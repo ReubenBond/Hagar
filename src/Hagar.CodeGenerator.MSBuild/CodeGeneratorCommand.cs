@@ -172,10 +172,11 @@ namespace Hagar.CodeGenerator.MSBuild
             {
                 case ".csproj":
                     return LanguageNames.CSharp;
-                case ".vbproj":
-                    return LanguageNames.VisualBasic;
+                case string ext when !string.IsNullOrWhiteSpace(ext):
+                    throw new NotSupportedException($"Projects of type {ext} are not supported.");
                 default:
                     throw new InvalidOperationException("Could not determine supported language from project path");
+
             }
         }
 
