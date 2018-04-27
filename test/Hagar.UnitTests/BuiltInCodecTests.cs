@@ -98,6 +98,10 @@ namespace Hagar.UnitTests
             typeof(Guid),
             typeof(int).MakePointerType(),
             typeof(string[]),
+            typeof(string[,]),
+            typeof(string[,]).MakePointerType(),
+            typeof(string[,]).MakeByRefType(),
+            typeof(Dictionary<,>),
             typeof(List<>),
             typeof(string)
         };
@@ -139,7 +143,7 @@ namespace Hagar.UnitTests
     {
         protected override void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
+            services.AddISerializableSupport();
         }
 
         protected override Dictionary<string, int> CreateValue()
