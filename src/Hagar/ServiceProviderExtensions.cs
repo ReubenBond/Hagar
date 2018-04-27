@@ -6,6 +6,7 @@ using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Configuration;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.TypeSystem;
@@ -65,7 +66,7 @@ namespace Hagar
                 if (service.ServiceType == typeof(T)) return (T)service.ImplementationInstance;
             }
 
-            return default(T);
+            return default;
         }
 
         private class HagarConfigurationContext
@@ -97,41 +98,44 @@ namespace Hagar
             public void Configure(TOptions configuration) => this.configure(configuration);
         }
 
-        private class FieldCodecHolder<TField> : IFieldCodec<TField>
+        private class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>
         {
-            private readonly IFieldCodec<TField> codec;
+            private readonly ITypedCodecProvider codecProvider;
+            private IFieldCodec<TField> codec;
 
             public FieldCodecHolder(ITypedCodecProvider codecProvider)
             {
-                this.codec = codecProvider.GetCodec<TField>();
+                this.codecProvider = codecProvider;
             }
+            
+            public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value) => this.Value.WriteField(writer, session, fieldIdDelta, expectedType, value);
+            
+            public TField ReadValue(Reader reader, SerializerSession session, Field field) => this.Value.ReadValue(reader, session, field);
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value) => this.codec.WriteField(writer, session, fieldIdDelta, expectedType, value);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public TField ReadValue(Reader reader, SerializerSession session, Field field) => this.codec.ReadValue(reader, session, field);
+            public IFieldCodec<TField> Value => this.codec ?? (this.codec = this.codecProvider.GetCodec<TField>());
         }
 
-        private class PartialSerializerHolder<TField> : IPartialSerializer<TField> where TField : class
+        private class PartialSerializerHolder<TField> : IPartialSerializer<TField>, IServiceHolder<IPartialSerializer<TField>> where TField : class
         {
-            private readonly IPartialSerializer<TField> partialSerializer;
+            private readonly IPartialSerializerProvider provider;
+            private IPartialSerializer<TField> partialSerializer;
+
             public PartialSerializerHolder(IPartialSerializerProvider provider)
             {
-                this.partialSerializer = provider.GetPartialSerializer<TField>();
+                this.provider = provider;
             }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            
             public void Serialize(Writer writer, SerializerSession session, TField value)
             {
-                this.partialSerializer.Serialize(writer, session, value);
+                this.Value.Serialize(writer, session, value);
             }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            
             public void Deserialize(Reader reader, SerializerSession session, TField value)
             {
-                this.partialSerializer.Deserialize(reader, session, value);
+                this.Value.Deserialize(reader, session, value);
             }
+
+            public IPartialSerializer<TField> Value => this.partialSerializer ?? (this.partialSerializer = this.provider.GetPartialSerializer<TField>());
         }
     }
 }

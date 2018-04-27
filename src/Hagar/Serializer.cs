@@ -6,14 +6,12 @@ using Hagar.Session;
 
 namespace Hagar
 {
-#warning TODO: Multi-dimensional array support
 #warning TODO: Surrogate type support
 #warning TODO: Replace Jenkins Hash
 #warning TODO: Formalize TypeCodec format for CLR types
 #warning TODO: Make TypeCodec version-tolerant
 #warning TODO: Deferred deserialization fields (esp useful for RPC)
 #warning TODO: Object-model parser
-
 
     public class Serializer<T>
     {

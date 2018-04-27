@@ -141,6 +141,7 @@ namespace Hagar.UnitTests
         {
             services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
         }
+
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());

@@ -5,47 +5,8 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    /// <summary>
-    /// Marker object used to denote an unknown field and its offset into a stream of data.
-    /// </summary>
-    public class UnknownFieldMarker
-    {
-        public UnknownFieldMarker(Field field, int offset)
-        {
-            this.Field = field;
-            this.Offset = offset;
-        }
-
-        /// <summary>
-        /// The offset into the stream at which this field occurs.
-        /// </summary>
-        public int Offset { get; }
-
-        /// <summary>
-        /// The field header.
-        /// </summary>
-        public Field Field { get; }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"[{nameof(UnknownFieldMarker)}] {nameof(this.Offset)}: {this.Offset}, {nameof(this.Field)}: {this.Field}";
-        }
-    }
-
     public static class ConsumeFieldExtension
     {
-/*        public static Reader GetReaderForReference(this Reader reader, SerializerSession session, uint reference)
-        {
-            if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object referencedObject)) ThrowReferenceNotFound();
-            if (referencedObject is UnknownFieldMarker marker)
-            {
-                var result = new Reader(reader.GetBuffers());
-                result.Advance(marker.Offset);
-                return result;
-            }
-        }*/
-
         /// <summary>
         /// Consumes an unknown field.
         /// </summary>

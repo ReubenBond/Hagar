@@ -25,7 +25,15 @@ namespace TestApp
             var serviceProvider = new ServiceCollection()
                 .AddHagar()
                 .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
+                .AddHagar(options =>
+                {
+                    options.PartialSerializers.Add(typeof(SubTypeSerializer));
+                    options.PartialSerializers.Add(typeof(BaseTypeSerializer));
+                })
                 .BuildServiceProvider();
+
+            var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
+            c.Serialize(new Writer(), serviceProvider.GetRequiredService<SessionPool>().GetSession(), new SubType());
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();

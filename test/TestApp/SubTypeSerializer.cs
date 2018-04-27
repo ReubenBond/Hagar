@@ -1,5 +1,6 @@
 ﻿using Hagar.Buffers;
 using Hagar.Codecs;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.Session;
 
@@ -7,17 +8,19 @@ namespace TestApp
 {
     public class SubTypeSerializer : IPartialSerializer<SubType>
     {
+        private readonly IPartialSerializer<SubType> subTypeSerializer;
         private readonly IPartialSerializer<BaseType> baseTypeSerializer;
         private readonly IFieldCodec<string> stringCodec;
         private readonly IFieldCodec<int> intCodec;
         private readonly IFieldCodec<object> objectCodec;
 
-        public SubTypeSerializer(IPartialSerializer<BaseType> baseTypeSerializer, IFieldCodec<string> stringCodec, IFieldCodec<int> intCodec, IFieldCodec<object> objectCodec)
+        public SubTypeSerializer(IPartialSerializer<BaseType> baseTypeSerializer, IPartialSerializer<SubType> subTypeSerializer, IFieldCodec<string> stringCodec, IFieldCodec<int> intCodec, IFieldCodec<object> objectCodec)
         {
-            this.baseTypeSerializer = baseTypeSerializer;
-            this.stringCodec = stringCodec;
-            this.intCodec = intCodec;
-            this.objectCodec = objectCodec;
+            this.subTypeSerializer = HagarGeneratedCodeHelper.UnwrapService(this, subTypeSerializer);
+            this.baseTypeSerializer = HagarGeneratedCodeHelper.UnwrapService(this, baseTypeSerializer);
+            this.stringCodec = HagarGeneratedCodeHelper.UnwrapService(this, stringCodec);
+            this.intCodec = HagarGeneratedCodeHelper.UnwrapService(this, intCodec);
+            this.objectCodec = HagarGeneratedCodeHelper.UnwrapService(this, objectCodec);
         }
 
         public void Serialize(Writer writer, SerializerSession session, SubType obj)

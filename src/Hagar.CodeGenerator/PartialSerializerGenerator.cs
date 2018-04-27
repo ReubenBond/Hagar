@@ -15,7 +15,6 @@ namespace Hagar.CodeGenerator
         private const string BaseTypeSerializerFieldName = "baseTypeSerializer";
         private const string SerializeMethodName = "Serialize";
         private const string DeserializeMethodName = "Deserialize";
-        private const string CodecProviderFieldName = "codecs";
 
         public static ClassDeclarationSyntax GenerateSerializer(Compilation compilation, TypeDescription typeDescription)
         {
@@ -27,7 +26,6 @@ namespace Hagar.CodeGenerator
 
             var fieldDescriptions = GetFieldDescriptions(typeDescription, libraryTypes);
             var fields = GetFieldDeclarations(fieldDescriptions);
-            var getters = GetCodecGetterDeclarations(fieldDescriptions);
             var ctor = GenerateConstructor(simpleClassName, fieldDescriptions);
 
             var serializeMethod = GenerateSerializeMethod(typeDescription, fieldDescriptions, libraryTypes);
@@ -38,8 +36,7 @@ namespace Hagar.CodeGenerator
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fields)
-                .AddMembers(ctor, serializeMethod, deserializeMethod)
-                .AddMembers(getters);
+                .AddMembers(ctor, serializeMethod, deserializeMethod);
             if (type.IsGenericType)
             {
                 classDeclaration = AddGenericTypeConstraints(classDeclaration, type);
@@ -106,32 +103,8 @@ namespace Hagar.CodeGenerator
                             .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword));
                     default:
                         return FieldDeclaration(VariableDeclaration(description.FieldType.ToTypeSyntax(), SingletonSeparatedList(VariableDeclarator(description.FieldName))))
-                            .AddModifiers(Token(SyntaxKind.PrivateKeyword));
+                            .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword));
                 }
-            }
-        }
-
-        private static MemberDeclarationSyntax[] GetCodecGetterDeclarations(List<SerializerFieldDescription> fieldDescriptions)
-        {
-            return fieldDescriptions.OfType<CodecFieldDescription>().Select(GetFieldDeclaration).ToArray();
-
-            MemberDeclarationSyntax GetFieldDeclaration(CodecFieldDescription description)
-            {
-                // C#: $FieldType$ $GetterPropertyName$ => this.$FieldName$ ?? (this.$FieldName$ = this.codecs.GetCodec<$UnderlyingFieldType$>());
-                var codecs = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), IdentifierName(CodecProviderFieldName));
-                var getCodec = GenericName("GetCodec").WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList(description.UnderlyingType.ToTypeSyntax())));
-                var callGetCodec = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        codecs,
-                        getCodec),
-                    ArgumentList(SeparatedList<ArgumentSyntax>()));
-                var codecField = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), description.FieldName.ToIdentifierName());
-                var assignCodecField = ParenthesizedExpression(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, codecField, callGetCodec));
-                var coalesceField = BinaryExpression(SyntaxKind.CoalesceExpression, codecField, assignCodecField);
-                return PropertyDeclaration(description.FieldType.ToTypeSyntax(), description.GetterPropertyName)
-                    .AddModifiers(Token(SyntaxKind.PrivateKeyword))
-                    .WithExpressionBody(
-                        ArrowExpressionClause(coalesceField))
-                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
             }
         }
 
@@ -144,11 +117,18 @@ namespace Hagar.CodeGenerator
                     AssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         ThisExpression().Member(f.FieldName.ToIdentifierName()),
-                        f.FieldName.ToIdentifierName())));
+                        Unwrapped(f.FieldName.ToIdentifierName()))));
             return ConstructorDeclaration(simpleClassName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters.ToArray())
                 .AddBodyStatements(body.ToArray());
+
+            ExpressionSyntax Unwrapped(ExpressionSyntax expr)
+            {
+                return InvocationExpression(
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("HagarGeneratedCodeHelper"), IdentifierName("UnwrapService")),
+                    ArgumentList(SeparatedList(new [] {Argument(ThisExpression()), Argument(expr)})));
+            }
         }
 
         private static List<SerializerFieldDescription> GetFieldDescriptions(TypeDescription typeDescription, LibraryTypes libraryTypes)
@@ -156,9 +136,7 @@ namespace Hagar.CodeGenerator
             var type = typeDescription.Type;
             var fields = new List<SerializerFieldDescription>();
             fields.AddRange(typeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct().Select(GetTypeDescription));
-
-            fields.Add(new InjectedFieldDescription(libraryTypes.TypedCodecProvider, CodecProviderFieldName));
-
+            
             if (HasComplexBaseType(type))
             {
                 fields.Add(new InjectedFieldDescription(libraryTypes.PartialSerializer.Construct(type.BaseType), BaseTypeSerializerFieldName));
@@ -171,8 +149,7 @@ namespace Hagar.CodeGenerator
             {
                 var codecType = libraryTypes.FieldCodec.Construct(t);
                 var fieldName = '_' + ToLowerCamelCase(t.GetValidIdentifier()) + "Codec";
-                var getterName = ToUpperCamelCase(t.GetValidIdentifier()) + "Codec";
-                return new CodecFieldDescription(codecType, fieldName, t, getterName);
+                return new CodecFieldDescription(codecType, fieldName, t);
             }
 
             TypeFieldDescription GetTypeDescription(ITypeSymbol t)
@@ -182,7 +159,6 @@ namespace Hagar.CodeGenerator
             }
 
             string ToLowerCamelCase(string input) => char.IsLower(input, 0) ? input : char.ToLowerInvariant(input[0]) + input.Substring(1);
-            string ToUpperCamelCase(string input) => char.IsUpper(input, 0) ? input : char.ToUpperInvariant(input[0]) + input.Substring(1);
         }
 
         /// <summary>
@@ -237,7 +213,7 @@ namespace Hagar.CodeGenerator
                 body.Add(
                     ExpressionStatement(
                         InvocationExpression(
-                            ThisExpression().Member(codec.GetterPropertyName).Member("WriteField"),
+                            ThisExpression().Member(codec.FieldName).Member("WriteField"),
                             ArgumentList(
                                 SeparatedList(
                                     new[]
@@ -343,7 +319,7 @@ namespace Hagar.CodeGenerator
                     // C#: instance.<member> = this.<codec>.ReadValue(reader, session, header);
                     var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
                     ExpressionSyntax readValueExpression = InvocationExpression(
-                        ThisExpression().Member(codec.GetterPropertyName).Member("ReadValue"),
+                        ThisExpression().Member(codec.FieldName).Member("ReadValue"),
                         ArgumentList(SeparatedList(new[] { Argument(readerParam), Argument(sessionParam), Argument(headerVar) })));
                     if (!codec.UnderlyingType.Equals(member.Type))
                     {
@@ -393,15 +369,13 @@ namespace Hagar.CodeGenerator
 
         internal class CodecFieldDescription : SerializerFieldDescription
         {
-            public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType, string getterPropertyName) : base(fieldType, fieldName)
+            public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
             {
                 this.UnderlyingType = underlyingType;
-                this.GetterPropertyName = getterPropertyName;
             }
 
             public ITypeSymbol UnderlyingType { get; }
-            public string GetterPropertyName { get; }
-            public override bool IsInjected => false;
+            public override bool IsInjected => true;
         }
 
         internal class TypeFieldDescription : SerializerFieldDescription
