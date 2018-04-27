@@ -11,6 +11,7 @@
 *.userprefs
 
 # Build results
+[Aa]rtifacts/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -259,3 +260,8 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Binary MSBuild Log files
+*.binlog
+/_site/
+/docs/api/.manifest

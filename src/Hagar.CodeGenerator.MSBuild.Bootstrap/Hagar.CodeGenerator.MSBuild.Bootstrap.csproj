@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;PostBuildPublish">
+
+  <PropertyGroup>
+    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>
+    <RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win10-x64</RuntimeIdentifier>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <AssemblyName>Hagar.CodeGenerator.MSBuild.Bootstrap</AssemblyName>
+    <RootNamespace>Hagar.CodeGenerator.MSBuild</RootNamespace>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PublishRoot>bin\publish\$(Configuration)\</PublishRoot>
+    <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
+    <SourceDir>$(MSBuildThisFileDirectory)..\Hagar.CodeGenerator.MSBuild\</SourceDir>
+    <HagarCodeGen>false</HagarCodeGen>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="$(SourceDir)**/*.cs" Exclude="$(SourceDir)obj/**/*.cs;$(SourceDir)bin/**/*.cs" Condition="'$(DesignTimeBuild)' != 'true'">
+      <!-- Hide the files and folder structure in the editor. -->
+      <Link>_%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </Compile>
+    <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.5.180" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Security.Principal" Version="4.3.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="2.8.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="2.8.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.8.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic" Version="2.8.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="2.8.0" />
+    <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
+    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.0" />
+  </ItemGroup>
+
+  <Target Name="PostBuildPublish" AfterTargets="Build">
+    <!-- So that we can create a nuget package which includes all dependencies, we publish the build. -->
+    <!-- However, we cannot publish during the cross-targeting build, so we skip that. -->
+    <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
+  </Target>
+</Project>

@@ -1,0 +1,79 @@
+<Project TreatAsLocalProperty="CodeGenDirectory;MSBuildIsCore;DotNetHost;TargetIsCore;TaskAssembly;OutputFileName;CoreAssembly;FullAssembly;GeneratorAssembly;ArgsFile">
+
+  <PropertyGroup>
+    <DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</DotNetHost>
+    <CoreAssembly Condition="'$(HagarCodeGenCoreAssembly)' != ''">$(HagarCodeGenCoreAssembly)</CoreAssembly>
+    <FullAssembly Condition="'$(HagarCodeGenFullAssembly)' != ''">$(HagarCodeGenFullAssembly)</FullAssembly>
+    <CoreAssembly Condition="'$(CoreAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.0\Hagar.CodeGenerator.MSBuild.dll</CoreAssembly>
+    <FullAssembly Condition="'$(FullAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\net47\Hagar.CodeGenerator.MSBuild.exe</FullAssembly>
+
+    <!-- Specify the assembly containing the MSBuild tasks. -->
+    <MSBuildIsCore Condition="'$(MSBuildRuntimeType)' == 'Core' or '$(OS)' != 'Windows_NT'">true</MSBuildIsCore>
+    <TaskAssembly Condition="'$(MSBuildIsCore)' == 'true'">$(CoreAssembly)</TaskAssembly>
+
+    <!-- When the MSBuild host is full-framework, we defer to PATH for dotnet -->
+    <DotNetHost Condition="'$(MSBuildIsCore)' != 'true'">dotnet</DotNetHost>
+
+    <!-- Specify the assembly containing the code generator. -->
+    <TargetIsCore Condition="$(TargetFramework.StartsWith('netcore')) or $(TargetFramework.StartsWith('netstandard')) or '$(OS)' != 'Windows_NT'">true</TargetIsCore>
+    <GeneratorAssembly Condition="'$(TargetIsCore)' == 'true'">$(CoreAssembly)</GeneratorAssembly>
+    <GeneratorAssembly Condition="'$(TargetIsCore)' != 'true'">$(FullAssembly)</GeneratorAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <HagarCodeGenLogLevel Condition="'$(HagarCodeGenLogLevel)' == ''">Warning</HagarCodeGenLogLevel>
+    <CodeGenDirectory Condition="'$([System.IO.Path]::IsPathRooted($(IntermediateOutputPath)))' == 'true'">$(IntermediateOutputPath)</CodeGenDirectory>
+    <CodeGenDirectory Condition="'$(CodeGenDirectory)' == ''">$(ProjectDir)$(IntermediateOutputPath)</CodeGenDirectory>
+    <OutputFileName>$(CodeGenDirectory)$(TargetName).hagar.g.cs</OutputFileName>
+    <CodeGeneratorEnabled Condition=" '$(DesignTimeBuild)' != 'true'">true</CodeGeneratorEnabled>
+    <ArgsFile>$(CodeGenDirectory)$(TargetName).hagar.g.args.txt</ArgsFile>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(TaskAssembly)" Condition="'$(CodeGeneratorEnabled)' == 'true' and '$(DotNetHost)' == '' and '$(MSBuildIsCore)' == 'true'" />
+
+  <Target Name="GenerateCode"
+          BeforeTargets="CoreCompile"
+          Condition="'$(CodeGeneratorEnabled)' == 'true'"
+          Inputs="@(Compile);@(Reference)"
+          Outputs="$(OutputFileName)">
+
+    <ItemGroup>
+      <CodeGenArgs Include="LogLevel:$(HagarCodeGenLogLevel)" />
+      <CodeGenArgs Include="ProjectPath:$(MSBuildProjectFullPath)"/>
+      <CodeGenArgs Include="ProjectGuid:$(ProjectGuid)"/>
+      <CodeGenArgs Include="OutputType:$(OutputType)"/>
+      <CodeGenArgs Include="TargetPath:$(TargetPath)"/>
+      <CodeGenArgs Include="CodeGenOutputFile:$(OutputFileName)"/>
+      <CodeGenArgs Include="@(Compile -> 'Compile:%(FullPath)')"/>
+      <CodeGenArgs Include="@(ReferencePath -> 'Reference:%(FullPath)')"/>
+    </ItemGroup>
+    
+    <Message Text="[Hagar.CodeGenerator] - CodeGen arguments file=$(ArgsFile)"/>
+    <WriteLinesToFile Overwrite="true" File="$(ArgsFile)" Lines="@(CodeGenArgs)"/>
+    
+    
+    <Hagar.CodeGenerator.MSBuild.GetDotNetHost Condition="'$(DotNetHost)' == '' and '$(TargetIsCore)' == 'true' and '$(MSBuildIsCore)' == 'true' ">
+      <Output TaskParameter="DotNetHost" PropertyName="DotNetHost" />
+    </Hagar.CodeGenerator.MSBuild.GetDotNetHost>
+
+    <!-- If building on .NET Core, use dotnet to execute the process. -->
+    <Exec Command="&quot;$(DotNetHost)&quot; &quot;$(GeneratorAssembly)&quot; &quot;$(ArgsFile)&quot;" Outputs="$(OutputFileName)" Condition=" '$(TargetIsCore)' == 'true'" />
+
+    <!-- If not building on .NET Core, execute the process directly. -->
+    <Exec Command="&quot;$(GeneratorAssembly)&quot; &quot;$(ArgsFile)&quot;" Outputs="$(OutputFileName)" Condition=" '$(TargetIsCore)' != 'true'" />
+
+    <ItemGroup>
+      <Compile Include="$(OutputFileName)" Condition="Exists('$(OutputFileName)')" />
+      <FileWrites Include="$(OutputFileName)" Condition="Exists('$(OutputFileName)')"/>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeCodegenOutputDuringDesignTimeBuild"
+          BeforeTargets="AssignTargetPaths"
+          Condition="'$(CodeGeneratorEnabled)' != 'true' and Exists('$(OutputFileName)')">
+    <ItemGroup>
+      <Compile Include="$(OutputFileName)"/>
+      <FileWrites Include="$(OutputFileName)"/>
+    </ItemGroup>
+  </Target>
+</Project>

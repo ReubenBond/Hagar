@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hagar" Version="1.0.0-dev-20171025004207" />
+    <PackageReference Include="Hagar.Abstractions" Version="1.0.0-dev-20171025004207" />
+    <PackageReference Include="Hagar.CodeGenerator.MSBuild" Version="1.0.0-dev-20171025004207" />
+  </ItemGroup>
+
+</Project>
