@@ -92,26 +92,5 @@ namespace Hagar.Codecs
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }
         }
-
-        private static Type TryReadType(this Reader reader, SerializerSession session, SchemaType schemaType)
-        {
-            switch (schemaType)
-            {
-                case SchemaType.Expected:
-                    return null;
-                case SchemaType.WellKnown:
-                    var typeId = reader.ReadVarUInt32();
-                    return session.WellKnownTypes.GetWellKnownType(typeId);
-                case SchemaType.Encoded:
-                    session.TypeCodec.TryRead(reader, out var encoded);
-                    return encoded;
-                case SchemaType.Referenced:
-                    var reference = reader.ReadVarUInt32();
-                    session.ReferencedTypes.TryGetReferencedType(reference, out var result);
-                    return result;
-                default:
-                    return null;
-            }
-        }
     }
 }

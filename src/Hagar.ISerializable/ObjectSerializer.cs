@@ -52,8 +52,7 @@ namespace Hagar.ISerializable
                 this.entrySerializer.WriteField(writer, session, first ? 1 : (uint) 0, SerializationEntryCodec.SerializationEntryType, surrogate);
                 if (first) first = false;
             }
-
-            writer.WriteEndObject();
+            
             callbacks.OnSerialized?.Invoke(value, streamingContext);
         }
 
