@@ -6,7 +6,11 @@ using Hagar.Session;
 
 namespace Hagar.ISerializable
 {
-    internal class ValueTypeSerializer<T> : ISerializableSerializer
+    /// <summary>
+    /// Serializer for ISerializable value types.
+    /// </summary>
+    /// <typeparam name="T">The type which this serializer can serialize.</typeparam>
+    internal class ValueTypeSerializer<T> : ISerializableSerializer where T : struct
     {
         public delegate void ValueConstructor(ref T value, SerializationInfo info, StreamingContext context);
 

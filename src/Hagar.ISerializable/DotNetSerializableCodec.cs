@@ -35,7 +35,6 @@ namespace Hagar.ISerializable
 
             this.objectSerializer = new ObjectSerializer(
                 entrySerializer,
-                untypedCodecProvider,
                 constructorFactory,
                 serializationCallbacks,
                 formatterConverter,

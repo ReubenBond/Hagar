@@ -3,14 +3,15 @@ using System.Collections.Concurrent;
 using System.Runtime.Serialization;
 using Hagar.Buffers;
 using Hagar.Codecs;
-using Hagar.Serializers;
 using Hagar.Session;
 
 namespace Hagar.ISerializable
 {
+    /// <summary>
+    /// Serializer for ISerializable reference types.
+    /// </summary>
     internal class ObjectSerializer : ISerializableSerializer
     {
-        private readonly IUntypedCodecProvider untypedCodecProvider;
         private readonly SerializationCallbacksFactory serializationCallbacks;
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
 
@@ -23,13 +24,11 @@ namespace Hagar.ISerializable
 
         public ObjectSerializer(
             SerializationEntryCodec entrySerializer,
-            IUntypedCodecProvider untypedCodecProvider,
             SerializationConstructorFactory constructorFactory,
             SerializationCallbacksFactory serializationCallbacks,
             IFormatterConverter formatterConverter,
             StreamingContext streamingContext)
         {
-            this.untypedCodecProvider = untypedCodecProvider;
             this.serializationCallbacks = serializationCallbacks;
             this.formatterConverter = formatterConverter;
             this.streamingContext = streamingContext;
