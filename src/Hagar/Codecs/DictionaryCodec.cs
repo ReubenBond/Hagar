@@ -87,7 +87,12 @@ namespace Hagar.Codecs
                         break;
                 }
             }
-            
+
+            if (result == null)
+            {
+                result = CreateInstance(comparer, session, placeholderReferenceId);
+            }
+
             return result;
         }
 
