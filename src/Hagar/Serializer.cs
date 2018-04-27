@@ -15,11 +15,13 @@ namespace Hagar
 
     public class Serializer<T>
     {
+        protected readonly ITypedCodecProvider CodecProvider;
         private readonly IFieldCodec<T> codec;
         private readonly Type expectedType = typeof(T);
 
         public Serializer(ITypedCodecProvider codecProvider)
         {
+            this.CodecProvider = codecProvider;
             this.codec = codecProvider.GetCodec<T>();
         }
 
@@ -39,6 +41,17 @@ namespace Hagar
     {
         public Serializer(ITypedCodecProvider codecProvider) : base(codecProvider)
         {
+        }
+
+        public void Serialize<T>(T value, SerializerSession session, Writer writer)
+        {
+            this.CodecProvider.GetCodec<T>().WriteField(writer, session, 0, typeof(T), value);
+        }
+
+        public T Deserialize<T>(SerializerSession session, Reader reader)
+        {
+            var field = reader.ReadFieldHeader(session);
+            return this.CodecProvider.GetCodec<T>().ReadValue(reader, session, field);
         }
     }
 }
