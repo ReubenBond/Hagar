@@ -52,8 +52,6 @@ namespace TestApp
                 var result = codec.ReadValue(reader, readerSession, initialHeader);
                 Console.WriteLine(result);
             }
-
-            Console.ReadKey();
         }
 
         public static void Main(string[] args)
@@ -72,8 +70,7 @@ namespace TestApp
 
             var codecProvider = serviceProvider.GetRequiredService<CodecProvider>();
             var serializer = codecProvider.GetCodec<SubType>();
-            SerializerSession GetSession() => serviceProvider.GetRequiredService<SerializerSession>();
-
+            SerializerSession GetSession() => serviceProvider.GetRequiredService<SessionPool>().GetSession();
             var testString = "hello, hagar";
             Test(
                 GetSession,
@@ -164,7 +161,6 @@ namespace TestApp
                     Number = 7,
                     String = "bananas!"
                 });
-
             var mySerializable = new MySerializableClass
             {
                 String = "yolooo",
@@ -183,6 +179,7 @@ namespace TestApp
                 new AbstractTypeSerializer<object>(codecProvider),
                 mySerializable
             );
+
             Exception exception = null;
             try
             {
@@ -247,6 +244,9 @@ namespace TestApp
 
             Console.WriteLine($"Size: {writer.CurrentOffset} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
+
+            //Console.WriteLine("TokenStream: " + string.Join(" ", TokenStreamParser.Parse(new Reader(writer.ToBytes()), getSession())));
+
             var reader = new Reader(writer.ToBytes());
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);

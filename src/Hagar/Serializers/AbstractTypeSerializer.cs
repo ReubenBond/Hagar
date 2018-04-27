@@ -22,7 +22,9 @@ namespace Hagar.Serializers
 
         public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
-            if (value == null)
+            // If the value is null then we will not be able to get its type in order to get a concrete codec for it.
+            // Therefore write the null reference and exit.
+            if (value is null)
             {
                 ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, null);
                 return;

@@ -101,9 +101,7 @@ namespace Hagar.Codecs
         public static uint CreateRecordPlaceholder(SerializerSession session)
         {
             var referencedObject = session.ReferencedObjects;
-            var placeholder = referencedObject.CurrentReferenceId;
-            referencedObject.CurrentReferenceId++;
-            return placeholder;
+            return ++referencedObject.CurrentReferenceId;
         }
 
         private static void ThrowReferenceNotFound(Type expectedType, uint reference)

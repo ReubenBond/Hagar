@@ -20,12 +20,6 @@ namespace Hagar.Session
             return this.references.TryGetValue(reference, out value);
         }
 
-        public void RecordReferenceField(object value)
-        {
-            if (value == null) return;
-            this.references[++this.CurrentReferenceId] = value;
-        }
-
         public void MarkValueField() => ++this.CurrentReferenceId;
 
         public bool GetOrAddReference(object value, out uint reference)
@@ -45,9 +39,12 @@ namespace Hagar.Session
             return false;
         }
 
+        public void RecordReferenceField(object value) => RecordReferenceField(value, ++this.CurrentReferenceId);
+
         public void RecordReferenceField(object value, uint referenceId)
         {
-            this.referenceToIdMap.Add(value, referenceId);
+            if (value == null) return;
+            this.references[referenceId] = value;
         }
 
         public Dictionary<uint, object> CopyReferenceTable() => new Dictionary<uint, object>(this.references);

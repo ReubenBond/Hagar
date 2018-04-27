@@ -80,7 +80,8 @@ namespace Hagar.UnitTests
 
     public class CharCodecTests : FieldCodecTester<char, CharCodec>
     {
-        protected override char CreateValue() => Guid.NewGuid().ToString()[0];
+        private int createValueCount;
+        protected override char CreateValue() => (char) ('!' + createValueCount++ % ('~' - '!'));
     }
 
     public class GuidCodecTests : FieldCodecTester<Guid, GuidCodec>
