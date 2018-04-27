@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.0;net47</TargetFrameworks>
-    <RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win10-x64</RuntimeIdentifier>
     <OutputType>Exe</OutputType>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
@@ -14,7 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <DevelopmentDependency>true</DevelopmentDependency>
-    <PublishRoot>bin\publish\$(Configuration)\</PublishRoot>
+    <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
     <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
   </PropertyGroup>
 
@@ -71,12 +70,11 @@
   </ItemGroup>
 
 
-  <!--<Target Name="PostBuildPublish" AfterTargets="Build">-->
+  <Target Name="PostBuildPublish" AfterTargets="Build">
     <!-- So that we can create a nuget package which includes all dependencies, we publish the build. -->
     <!-- However, we cannot publish during the cross-targeting build, so we skip that. -->
-<!--    <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
+    <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
   </Target>
-  -->
   
   <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
    <!-- 

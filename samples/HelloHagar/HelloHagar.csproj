@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hagar" Version="1.0.0-dev-20171025004207" />
+    <PackageReference Include="Hagar" Version="0.0.1-dev-20180427205312" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
   </ItemGroup>
 

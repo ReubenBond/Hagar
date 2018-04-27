@@ -1,7 +1,7 @@
 $env:VersionDateSuffix = [System.DateTime]::Now.ToString("yyyyMMddHHmmss");
 
 $VisualStudioVersion = "15.0";
-$DotnetSDKVersion = "2.0.0";
+$DotnetSDKVersion = "2.1.4";
 
 # Get dotnet paths
 $MSBuildExtensionsPath = "C:\Program Files\dotnet\sdk\" + $DotnetSDKVersion;
