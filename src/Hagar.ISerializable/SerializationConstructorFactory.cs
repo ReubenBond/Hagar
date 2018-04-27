@@ -13,17 +13,17 @@ namespace Hagar.ISerializable
     /// </summary>
     internal class SerializationConstructorFactory
     {
+        private static readonly Type[] SerializationConstructorParameterTypes = { typeof(SerializationInfo), typeof(StreamingContext) };
         private readonly Func<Type, object> createConstructorDelegate;
-
         private readonly ConcurrentDictionary<Type, object> constructors = new ConcurrentDictionary<Type, object>();
-
-        private readonly Type[] serializationConstructorParameterTypes = { typeof(SerializationInfo), typeof(StreamingContext) };
-
+        
         public SerializationConstructorFactory()
         {
             this.createConstructorDelegate = this
                 .GetSerializationConstructorInvoker<object, Action<object, SerializationInfo, StreamingContext>>;
         }
+
+        public static bool HasSerializationConstructor(Type type) => GetSerializationConstructor(type) != null;
 
         public Action<object, SerializationInfo, StreamingContext> GetSerializationConstructorDelegate(Type type)
         {
@@ -39,18 +39,18 @@ namespace Hagar.ISerializable
                 type => (object)this.GetSerializationConstructorInvoker<TOwner, TConstructor>(type));
         }
 
-        public ConstructorInfo GetSerializationConstructor(Type type)
+        private static ConstructorInfo GetSerializationConstructor(Type type)
         {
             return type.GetConstructor(
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
                 null,
-                this.serializationConstructorParameterTypes,
+                SerializationConstructorParameterTypes,
                 null);
         }
 
         private TConstructor GetSerializationConstructorInvoker<TOwner, TConstructor>(Type type)
         {
-            var constructor = this.GetSerializationConstructor(type);
+            var constructor = GetSerializationConstructor(type);
             if (constructor == null) throw new SerializationException($"{nameof(ISerializable)} constructor not found on type {type}.");
 
             Type[] parameterTypes;
