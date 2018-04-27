@@ -51,13 +51,18 @@
   
   <ItemGroup>
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
+    <PackageReference Update="Microsoft.Build" Version="15.6.85" />
+    <PackageReference Update="Microsoft.Build.Tasks.Core" Version="15.6.85" />
+    <PackageReference Update="Microsoft.Build.Utilities.Core" Version="15.6.85" />
     <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="2.8.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="2.8.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.8.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic" Version="2.8.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="2.8.0" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.0" />
+    <PackageReference Update="Microsoft.Extensions.Logging" Version="2.0.1" />
+    <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="2.0.1" />
+    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.1" />
   </ItemGroup>
 
   <Target Name="PostBuildPublish" AfterTargets="Build">

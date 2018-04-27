@@ -107,7 +107,6 @@ namespace Hagar.Serializers
                     untypedResult = this.CreateCodecInstance(fieldType, fieldType);
                     if (untypedResult == null)
                     {
-                        if (!this.initialized) this.Initialize();
                         foreach (var dynamicCodec in this.generalized)
                         {
                             if (dynamicCodec.IsSupportedType(fieldType))
