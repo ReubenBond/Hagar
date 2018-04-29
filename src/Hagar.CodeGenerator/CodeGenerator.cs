@@ -101,7 +101,7 @@ namespace Hagar.CodeGenerator
                             .AddArgumentListArguments(AttributeArgument(TypeOfExpression(ParseTypeName($"{namespaceName}.{metadataClass.Identifier.Text}"))))));
 
             return CompilationUnit()
-                .WithAttributeLists(List(new []{GetGeneratedCodeAttribute(), metadataAttribute}))
+                .WithAttributeLists(List(new []{metadataAttribute}))
                 .WithMembers(
                     SingletonList<MemberDeclarationSyntax>(
                         NamespaceDeclaration(ParseName(namespaceName))
@@ -217,20 +217,6 @@ namespace Hagar.CodeGenerator
                     .Select(attr => model.GetTypeInfo(attr).ConvertedType)
                     .Any(attrType => attrType.Equals(this.generateSerializerAttribute));
             }
-        }
-
-        private static AttributeListSyntax GetGeneratedCodeAttribute()
-        {
-            var assemblyVersion = typeof(CodeGenerator).Assembly.GetName().Version.ToString();
-            var generatedCodeAttribute =
-                AttributeList()
-                  .AddAttributes(
-                      Attribute(ParseName("System.CodeDom.Compiler.GeneratedCodeAttribute"))
-                        .AddArgumentListArguments(
-                            AttributeArgument("Hagar.CodeGenerator".GetLiteralExpression()),
-                            AttributeArgument(assemblyVersion.GetLiteralExpression())))
-                  .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)));
-            return generatedCodeAttribute;
         }
 
         internal static AttributeSyntax GetGeneratedCodeAttributeSyntax()
