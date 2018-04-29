@@ -19,11 +19,11 @@ namespace Hagar.Serializers
         private readonly IUntypedCodecProvider codecProvider;
         private readonly IPartialSerializer<TField> serializer;
 
-        public ConcreteTypeSerializer(IActivator<TField> activator, IUntypedCodecProvider codecProvider, IPartialSerializer<TField> serializer)
+        public ConcreteTypeSerializer(IActivator<TField> activator, IUntypedCodecProvider codecProvider, IPartialSerializerProvider partialSerializerProvider)
         {
             this.activator = activator;
             this.codecProvider = codecProvider;
-            this.serializer = serializer;
+            this.serializer = partialSerializerProvider.GetPartialSerializer<TField>();
         }
 
         public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)

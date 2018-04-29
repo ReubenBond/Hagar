@@ -64,5 +64,17 @@ namespace Hagar.GeneratedCodeHelpers
                 return val;
             }
         }
+
+        internal static object TryGetService(Type serviceType)
+        {
+            var state = ResolutionState.Value;
+            foreach (var c in state.Callers)
+            {
+                var type = c?.GetType();
+                if (serviceType == type) return c;
+            }
+
+            return null;
+        }
     }
 }
