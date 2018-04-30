@@ -8,9 +8,7 @@ Existing serialization libraries which support version tolerance tend to restric
 * Generics (parametric types)
 * References, including cyclic references
 
-There is no fundamental reason why version tolerance can not be achieved while still supporting the rich type system which we are used to.
-
-Hagar is a new serialization library which does support these features, is fast & compact, supports schema evolution, and requires minimal input from the developer.
+Hagar is a new serialization library which does supports these features, is fast & compact, supports schema evolution, and requires minimal input from the developer.
 
 ## Encoding
 
