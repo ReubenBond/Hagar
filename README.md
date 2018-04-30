@@ -99,7 +99,7 @@ Version Tolerance is supported provided the developer follows a set of rules whe
   * Eg: conversions from `int` to `long` or `ulong` to `ushort` are supported.
   * Conversions which narrow the width will throw if the runtime value of a field would cause an overflow.
     * Conversion from `ulong` to `ushort` are only supported if the value at runtime is less than `ushort.MaxValue`.
-    * Conversions from `double` to `flaot` are only supported if the runtime value is between `float.MinValue` and `float.MaxValue`.
+    * Conversions from `double` to `float` are only supported if the runtime value is between `float.MinValue` and `float.MaxValue`.
     * Similarly for `decimal`, which has a narrower range than both `double` and `float`.
 
 ### Types
