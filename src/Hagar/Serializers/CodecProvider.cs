@@ -237,32 +237,23 @@ namespace Hagar.Serializers
 
         private IFieldCodec CreateCodecInstance(Type fieldType, Type searchType)
         {
-            IFieldCodec untypedResult = null;
             if (this.fieldCodecs.TryGetValue(searchType, out var codecType))
             {
                 if (codecType.IsGenericTypeDefinition) codecType = codecType.MakeGenericType(fieldType.GetGenericArguments());
-                untypedResult = (IFieldCodec)GetServiceOrCreateInstance(codecType);
             }
             else if (this.partialSerializers.TryGetValue(searchType, out var serializerType))
             {
-                untypedResult = (IFieldCodec)GetServiceOrCreateInstance(typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType));
+                // If there is a partial serializer for this type, create a codec which will then accept that partial serializer.
+                codecType = typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType);
             }
             else if (fieldType.IsArray)
             {
-                Type arrayCodecType;
-                if (fieldType.GetArrayRank() == 1)
-                {
-                    arrayCodecType = typeof(ArrayCodec<>).MakeGenericType(fieldType.GetElementType());
-                }
-                else
-                {
-                    arrayCodecType = typeof(MultiDimensionalArrayCodec<>).MakeGenericType(fieldType.GetElementType());
-                }
-
-                untypedResult = (IFieldCodec)GetServiceOrCreateInstance(arrayCodecType);
+                // Depending on the rank of the array (1 or higher), select the base array codec or the multi-dimensional codec.
+                var arrayCodecType = fieldType.GetArrayRank() == 1 ? typeof(ArrayCodec<>) : typeof(MultiDimensionalArrayCodec<>);
+                codecType = arrayCodecType.MakeGenericType(fieldType.GetElementType());
             }
 
-            return untypedResult;
+            return codecType != null ? (IFieldCodec) GetServiceOrCreateInstance(codecType) : null;
         }
 
         private static void ThrowPointerType(Type fieldType)
