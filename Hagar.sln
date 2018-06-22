@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{231D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild.Bootstrap", "src\Hagar.CodeGenerator.MSBuild.Bootstrap\Hagar.CodeGenerator.MSBuild.Bootstrap.csproj", "{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "test\Benchmarks\Benchmarks.csproj", "{6023811E-B6F6-4879-ABB2-77515FEA6C5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6023811E-B6F6-4879-ABB2-77515FEA6C5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6023811E-B6F6-4879-ABB2-77515FEA6C5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6023811E-B6F6-4879-ABB2-77515FEA6C5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6023811E-B6F6-4879-ABB2-77515FEA6C5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +103,7 @@ Global
 		{E027C482-0B30-4875-8929-CA0B7831C786} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{1FCCA413-929B-447A-839D-E69510E9C1E5} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{6023811E-B6F6-4879-ABB2-77515FEA6C5F} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8125413B-1B31-40F0-BA6B-BFD0C6925F6C}

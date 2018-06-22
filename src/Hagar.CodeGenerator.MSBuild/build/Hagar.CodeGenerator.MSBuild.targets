@@ -15,7 +15,7 @@
     <Hagar_DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</Hagar_DotNetHost>
     <Hagar_CoreAssembly Condition="'$(HagarCodeGenCoreAssembly)' != ''">$(HagarCodeGenCoreAssembly)</Hagar_CoreAssembly>
     <Hagar_FullAssembly Condition="'$(HagarCodeGenFullAssembly)' != ''">$(HagarCodeGenFullAssembly)</Hagar_FullAssembly>
-    <Hagar_CoreAssembly Condition="'$(Hagar_CoreAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.0\Hagar.CodeGenerator.MSBuild.dll</Hagar_CoreAssembly>
+    <Hagar_CoreAssembly Condition="'$(Hagar_CoreAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.1\Hagar.CodeGenerator.MSBuild.dll</Hagar_CoreAssembly>
     <Hagar_FullAssembly Condition="'$(Hagar_FullAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\net47\Hagar.CodeGenerator.MSBuild.exe</Hagar_FullAssembly>
 
     <!-- Specify the assembly containing the MSBuild tasks. -->
