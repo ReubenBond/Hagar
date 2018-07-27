@@ -67,8 +67,8 @@ namespace Hagar.Codecs
             Type lastResortFieldType)
         {
             // Create a reader at the position specified by the marker.
-            var referencedReader = new Reader(reader.GetBuffers());
-            referencedReader.Advance(marker.Offset);
+            var referencedReader = reader.Copy();
+            referencedReader.Seek(marker.Position);
 
             // Determine the correct type for the field.
             var fieldType = marker.Field.FieldType ?? field.FieldType ?? lastResortFieldType;

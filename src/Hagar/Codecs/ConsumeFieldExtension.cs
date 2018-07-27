@@ -1,3 +1,4 @@
+using System;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.Utilities;
@@ -5,8 +6,20 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
+
     public static class ConsumeFieldExtension
     {
+/*        public static Reader GetReaderForReference(this Reader reader, SerializerSession session, uint reference)
+        {
+            if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object referencedObject)) ThrowReferenceNotFound();
+            if (referencedObject is UnknownFieldMarker marker)
+            {
+                var result = new Reader(reader.GetBuffers());
+                result.Advance(marker.Position);
+                return result;
+            }
+        }*/
+
         /// <summary>
         /// Consumes an unknown field.
         /// </summary>

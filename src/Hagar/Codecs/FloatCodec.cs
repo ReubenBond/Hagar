@@ -38,8 +38,8 @@ namespace Hagar.Codecs
                 }
 
                 case WireType.Fixed128:
-                    // Decimal has a smaller range, but higher precision than float.
-                    return (float) reader.ReadDecimal();
+                // Decimal has a smaller range, but higher precision than float.
+                return (float) reader.ReadDecimal();
 
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Pipelines;
 using System.Runtime.Serialization;
 using System.Text;
 using Hagar.Serializers;
@@ -33,29 +34,33 @@ namespace TestApp
                 .BuildServiceProvider();
 
             var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
-            c.Serialize(new Writer(), serviceProvider.GetRequiredService<SessionPool>().GetSession(), new SubType());
+            var p = new Pipe();
+            c.Serialize(new Writer(p.Writer), serviceProvider.GetRequiredService<SessionPool>().GetSession(), new SubType());
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();
             var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
 
             var writeSession = sessionPool.GetSession();
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             codec.WriteField(writer,
                              writeSession,
                              0,
                              typeof(SomeClassWithSerialzers),
                              new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
 
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
             using (var readerSession = sessionPool.GetSession())
             {
-                var reader = new Reader(writer.ToBytes());
+                var reader = new Reader(readResult.Buffer);
                 Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
             }
 
             using (var readerSession = sessionPool.GetSession())
             {
-                var reader = new Reader(writer.ToBytes());
+                var reader = new Reader(readResult.Buffer);
                 var initialHeader = reader.ReadFieldHeader(readerSession);
                 var result = codec.ReadValue(reader, readerSession, initialHeader);
                 Console.WriteLine(result);
@@ -246,16 +251,16 @@ namespace TestApp
         static void Test<T>(Func<SerializerSession> getSession, IFieldCodec<T> serializer, T expected)
         {
             var session = getSession();
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
 
             serializer.WriteField(writer, session, 0, typeof(T), expected);
 
-            Console.WriteLine($"Size: {writer.CurrentOffset} bytes.");
+            Console.WriteLine($"Size: {writer.TotalLength} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
-
-            //Console.WriteLine("TokenStream: " + string.Join(" ", TokenStreamParser.Parse(new Reader(writer.ToBytes()), getSession())));
-
-            var reader = new Reader(writer.ToBytes());
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer);
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             //Console.WriteLine(initialHeader);
@@ -290,11 +295,14 @@ namespace TestApp
         static void TestSkip(Func<SerializerSession> getSession, IFieldCodec<SubType> serializer, SubType expected)
         {
             var session = getSession();
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
 
             serializer.WriteField(writer, session, 0, typeof(SubType), expected);
-            
-            var reader = new Reader(writer.ToBytes());
+
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer);
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             var skipCodec = new SkipFieldCodec();

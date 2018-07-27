@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
@@ -31,7 +33,7 @@ namespace Benchmarks
         private readonly ComplexClass value;
         private readonly SerializationManager orleansSerializer;
         private readonly SerializerSession session;
-        private List<ArraySegment<byte>> hagarBytes;
+        private ReadOnlySequence<byte> hagarBytes;
         private List<ArraySegment<byte>> orleansBytes;
 
         public ComplexTypeBenchmarks()
@@ -60,10 +62,13 @@ namespace Benchmarks
             };
             this.value.AlsoSelf = this.value.BaseSelf = this.value.Self = this.value;
             this.session = sessionPool.GetSession();
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             this.hagarSerializer.Serialize(this.value, session, writer);
-            this.hagarBytes = writer.ToBytes();
-            
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
+            this.hagarBytes = readResult.Buffer;
+
             var writer2 = new BinaryTokenStreamWriter();
             this.orleansSerializer.Serialize(this.value, writer2);
             this.orleansBytes = writer2.ToBytes();
@@ -72,13 +77,15 @@ namespace Benchmarks
         //[Benchmark]
         public object HagarSerializer()
         {
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             session.FullReset();
             this.hagarSerializer.Serialize(this.value, session, writer);
 
             session.FullReset();
-
-            var reader = new Reader(writer.ToBytes());
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer);
             return this.hagarSerializer.Deserialize(session, reader);
         }
 
@@ -93,7 +100,8 @@ namespace Benchmarks
         [Benchmark]
         public object HagarSerialize()
         {
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             session.FullReset();
             this.hagarSerializer.Serialize(this.value, session, writer);
             return session;
@@ -125,7 +133,7 @@ namespace Benchmarks
     [GenerateSerializer]
     public class SimpleClass
     {
-        [FieldId(0)]
+        [Id(0)]
         public int BaseInt { get; set; }
     }
 
@@ -133,25 +141,25 @@ namespace Benchmarks
     [GenerateSerializer]
     public class ComplexClass : SimpleClass
     {
-        [FieldId(0)]
+        [Id(0)]
         public int Int { get; set; }
 
-        [FieldId(1)]
+        [Id(1)]
         public string String { get; set; }
 
-        [FieldId(2)]
+        [Id(2)]
         public ComplexClass Self { get; set; }
 
-        [FieldId(3)]
+        [Id(3)]
         public object AlsoSelf { get; set; }
 
-        [FieldId(4)]
+        [Id(4)]
         public SimpleClass BaseSelf { get; set; }
 
-        [FieldId(5)]
+        [Id(5)]
         public int[] Array { get; set; }
 
-        [FieldId(6)]
+        [Id(6)]
         public int[,] MultiDimensionalArray { get; set; }
     }
 }

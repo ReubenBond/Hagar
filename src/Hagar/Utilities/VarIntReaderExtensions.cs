@@ -67,6 +67,11 @@ namespace Hagar.Utilities
             return result;
         }
 
+        public static sbyte ReadVarInt8(this Reader reader) => ZigZagDecode(ReadVarUInt8(reader));
+        public static short ReadVarInt16(this Reader reader) => ZigZagDecode(ReadVarUInt16(reader));
+        public static int ReadVarInt32(this Reader reader) => ZigZagDecode(ReadVarUInt32(reader));
+        public static long ReadVarInt64(this Reader reader) => ZigZagDecode(ReadVarUInt64(reader));
+
         public static int GetVarIntLength(this Reader reader)
         {
             var count = 1;

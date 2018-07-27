@@ -18,7 +18,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(session);
             var bytes = new byte[16];
-            reader.ReadByteArray(bytes, 0, 16);
+            reader.ReadSpan(bytes);
             return new Guid(bytes);
         }
     }
