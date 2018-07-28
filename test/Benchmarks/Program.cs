@@ -97,7 +97,7 @@ namespace Benchmarks
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object HagarSerialize()
         {
             var pipe = new Pipe();
@@ -107,7 +107,7 @@ namespace Benchmarks
             return session;
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object OrleansSerialize()
         {
             var writer = new BinaryTokenStreamWriter();
@@ -122,7 +122,7 @@ namespace Benchmarks
             return this.hagarSerializer.Deserialize(session, new Reader(this.hagarBytes));
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object OrleansDeserialize()
         {
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));

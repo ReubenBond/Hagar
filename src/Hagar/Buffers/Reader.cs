@@ -2,316 +2,230 @@ using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
-    public class Reader
+    public sealed class Reader
     {
-        private readonly ReadOnlySequence<byte> input;
-        private SequencePosition position;
-        
-        private static readonly byte[] EmptyByteArray = new byte[0];
-        
-        public Reader(ReadOnlySequence<byte> input) : this(input, input.Start)
-        {
-        }
+        private ReadOnlySequence<byte> input;
+        private ReadOnlyMemory<byte> currentBuffer;
+        private SequencePosition currentBufferStart;
+        private int bufferPos;
+        private int bufferSize;
+        private long previousBuffersSize;
 
-        public Reader(ReadOnlySequence<byte> input, SequencePosition position)
+        public Reader(ReadOnlySequence<byte> input)
         {
             this.input = input;
-            this.position = position;
+            this.currentBuffer = input.First;
+            this.currentBufferStart = input.Start;
+            this.bufferSize = this.currentBuffer.Length;
         }
+
+        public long CurrentPosition => this.previousBuffersSize + this.bufferPos;
         
-        public SequencePosition CurrentPosition => this.position;
+        public ReadOnlySpan<byte> CurrentSpan => currentBuffer.Span;
         
-        public long Length => this.input.Length;
+        public void Skip(long count)
+        {
+            var end = this.CurrentPosition + count;
+            while (this.CurrentPosition < end)
+            {
+                if (this.CurrentPosition + this.bufferSize >= end)
+                {
+                    this.bufferPos = (int) (end - this.previousBuffersSize);
+                }
+                else
+                {
+                    MoveNext(out _);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a new reader begining at the specified position.
+        /// </summary>
+        public Reader ForkFrom(long position)
+        {
+            var result = new Reader(this.input);
+            result.Skip(position);
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void MoveNext(out ReadOnlySpan<byte> currentSpan)
+        {
+            this.previousBuffersSize += this.bufferSize;
+            
+            if (!this.input.TryGet(ref this.currentBufferStart, out this.currentBuffer)) ThrowInsufficientData();
+
+            currentSpan = this.CurrentSpan;
+            this.bufferPos = 0;
+            this.bufferSize = currentSpan.Length;
+        }
         
         public byte ReadByte()
         {
-            var readOnly = this.TryReadSpan(1);
-            if (readOnly.Length >= 1)
-            {
-                return readOnly[0];
-            }
-
-            ThrowInsufficientData();
-            return 0;
+            var currentSpan = this.CurrentSpan;
+            return ReadByte(ref currentSpan);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Advance(int length)
+        public byte ReadByte(ref ReadOnlySpan<byte> currentSpan)
         {
-            this.position = this.input.GetPosition(length, this.position);
+            if (this.bufferPos == this.bufferSize) MoveNext(out currentSpan);
+            return currentSpan[this.bufferPos++];
+        }
+        
+        public int ReadInt32()
+        {
+            var currentSpan = this.CurrentSpan;
+            return (int)ReadUInt32(ref currentSpan);
+        }
+        
+        public uint ReadUInt32()
+        {
+            var currentSpan = this.CurrentSpan;
+            return ReadUInt32(ref currentSpan);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Seek(SequencePosition newPosition)
-        {
-            this.position = newPosition;
-        }
-
-        public Reader Copy() => new Reader(this.input, this.position);
-
-        public void Reset() => this.position = this.input.Start;
-
-        public int ReadInt()
+        public uint ReadUInt32(ref ReadOnlySpan<byte> currentSpan)
         {
             const int width = 4;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return BinaryPrimitives.ReadInt32LittleEndian(readOnly);
-            }
+            if (this.bufferPos + width > this.bufferSize) return ReadSlower(ref currentSpan);
 
-            return ReadSlower();
-
-            int ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return BinaryPrimitives.ReadInt32LittleEndian(span);
-            }
-        }
-
-        public ReadOnlySpan<byte> TryReadSpan(int length)
-        {
-            if (!this.input.TryGet(ref this.position, out var mem, advance: false))
-            {
-                ThrowInsufficientData();
-            }
-
-            if (mem.Length < length) return default;
+            var result = BinaryPrimitives.ReadUInt32LittleEndian(currentSpan.Slice(this.bufferPos, width));
+            this.bufferPos += width;
+            return result;
             
-            // Return a span which is probably longer than requested.
-            Advance(length);
-            return mem.Span;
-        }
-
-        public void ReadSpan(in Span<byte> span)
-        {
-            var indexInSpan = 0;
-            while (this.input.TryGet(ref this.position, out var mem, advance: false))
+            uint ReadSlower(ref ReadOnlySpan<byte> c)
             {
-                var memSpan = mem.Span;
-                memSpan.CopyTo(span.Slice(indexInSpan));
-                indexInSpan += memSpan.Length;
-                Advance(memSpan.Length);
-                if (indexInSpan == span.Length) return;
-            }
+                uint b1 = ReadByte(ref c);
+                uint b2 = ReadByte(ref c);
+                uint b3 = ReadByte(ref c);
+                uint b4 = ReadByte(ref c);
 
-            ThrowInsufficientData();
+                return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24);
+            }
+        }
+        
+        public ulong ReadUInt64()
+        {
+            var currentSpan = this.CurrentSpan;
+            return ReadUInt64(ref currentSpan);
+        }
+        
+        public long ReadInt64()
+        {
+            var currentSpan = this.CurrentSpan;
+            return (long)ReadUInt64(ref currentSpan);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong ReadUInt64(ref ReadOnlySpan<byte> currentSpan)
+        {
+            const int width = 8;
+            if (this.bufferPos + width > this.bufferSize) return ReadSlower(ref currentSpan);
+
+            var result = BinaryPrimitives.ReadUInt64LittleEndian(currentSpan.Slice(this.bufferPos, width));
+            this.bufferPos += width;
+            return result;
+
+            ulong ReadSlower(ref ReadOnlySpan<byte> c)
+            {
+                ulong b1 = ReadByte(ref c);
+                ulong b2 = ReadByte(ref c);
+                ulong b3 = ReadByte(ref c);
+                ulong b4 = ReadByte(ref c);
+                ulong b5 = ReadByte(ref c);
+                ulong b6 = ReadByte(ref c);
+                ulong b7 = ReadByte(ref c);
+                ulong b8 = ReadByte(ref c);
+
+                return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24)
+                       | (b5 << 32) | (b6 << 40) | (b7 << 48) | (b8 << 56);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowInsufficientData()
         {
             throw new InvalidOperationException("Insufficient data present in buffer.");
         }
+        
+#if NETCOREAPP2_1
+        public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
+#else
+        public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
+#endif
 
-        public uint ReadUInt()
-        {
-            const int width = 4;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return BinaryPrimitives.ReadUInt32LittleEndian(readOnly);
-            }
-
-            return ReadSlower();
-            
-            uint ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return BinaryPrimitives.ReadUInt32LittleEndian(span);
-            }
-        }
-
-        public short ReadShort()
-        {
-            const int width = 2;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return BinaryPrimitives.ReadInt16LittleEndian(readOnly);
-            }
-
-            return ReadInt16Slower();
-
-            short ReadInt16Slower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return BinaryPrimitives.ReadInt16LittleEndian(span);
-            }
-        }
-
-        public ushort ReadUShort()
-        {
-            const int width = 2;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return BinaryPrimitives.ReadUInt16LittleEndian(readOnly);
-            }
-
-            return ReadSlower();
-
-            ushort ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return BinaryPrimitives.ReadUInt16LittleEndian(span);
-            }
-        }
-
-        public long ReadLong()
-        {
-            const int width = 8;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return BinaryPrimitives.ReadInt64LittleEndian(readOnly);
-            }
-
-            return ReadSlower();
-
-            long ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return BinaryPrimitives.ReadInt64LittleEndian(span);
-            }
-        }
-
-        public ulong ReadULong()
-        {
-            const int width = 8;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return BinaryPrimitives.ReadUInt64LittleEndian(readOnly);
-            }
-
-            return ReadSlower();
-
-            ulong ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return BinaryPrimitives.ReadUInt64LittleEndian(span);
-            }
-        }
-
-        public float ReadFloat()
-        {
-            const int width = 4;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return MemoryMarshal.Read<float>(readOnly);
-            }
-
-            return ReadSlower();
-
-            float ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return MemoryMarshal.Read<float>(span);
-            }
-        }
-
-        public double ReadDouble()
-        {
-            const int width = 4;
-            var readOnly = TryReadSpan(width);
-            if (readOnly.Length >= width)
-            {
-                return MemoryMarshal.Read<double>(readOnly);
-            }
-
-            return ReadSlower();
-
-            double ReadSlower()
-            {
-                Span<byte> span = stackalloc byte[width];
-                this.ReadSpan(in span);
-                return MemoryMarshal.Read<double>(span);
-            }
-        }
-
+        
+#if NETCOREAPP2_1
+        public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
+#else
+        public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(ReadInt64()), 0);
+#endif
+        
         public decimal ReadDecimal()
         {
-            var parts = new[] { ReadInt(), ReadInt(), ReadInt(), ReadInt() };
+            var parts = new[] { ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32() };
             return new decimal(parts);
         }
-
-        public DateTime ReadDateTime()
-        {
-            var n = this.ReadLong();
-            return n == 0 ? default : DateTime.FromBinary(n);
-        }
-
-        public string ReadString()
-        {
-            var n = this.ReadVarInt32();
-            if (n == 0)
-            {
-                return string.Empty;
-            }
-
-            string s = null;
-            // a length of -1 indicates that the string is null.
-            if (-1 != n)
-            {
-                var readOnly = this.TryReadSpan(n);
-                if (readOnly.Length >= n)
-                {
-#if NETCOREAPP2_1
-                    s = Encoding.UTF8.GetString(readOnly.Slice(0, n));
-#else
-                    s = Encoding.UTF8.GetString(readOnly.Slice(0, n).ToArray(), 0, n);
-#endif
-                }
-                else
-                {
-                    var bytes = ArrayPool<byte>.Shared.Rent(n);
-                    var span = new Span<byte>(bytes, 0, n);
-                    this.ReadSpan(span);
-#if NETCOREAPP2_1
-                    s = Encoding.UTF8.GetString(span.Slice(0, n));
-#else
-                    s = Encoding.UTF8.GetString(span.Slice(0, n).ToArray(), 0, n);
-#endif
-                    ArrayPool<byte>.Shared.Return(bytes);
-                }
-            }
-
-            return s;
-        }
-
+        
         public byte[] ReadBytes(int count)
         {
             if (count == 0)
             {
-                return EmptyByteArray;
+                return Array.Empty<byte>();
             }
 
             var bytes = new byte[count];
-            var readOnly = this.TryReadSpan(count);
-            if (readOnly.Length >= count)
+            var destination = new Span<byte>(bytes);
+            ReadBytes(in destination);
+            return bytes;
+        }
+        
+        public void ReadBytes(in Span<byte> destination)
+        {
+            if (this.bufferPos + destination.Length <= this.bufferSize)
             {
-                readOnly.Slice(0, count).CopyTo(bytes);
-            }
-            else
-            {
-                this.ReadSpan(bytes);
+                this.CurrentSpan.Slice(this.bufferPos, destination.Length).CopyTo(destination);
+                this.bufferPos += destination.Length;
+                return;
             }
 
-            return bytes;
+            CopySlower(destination);
+
+            void CopySlower(Span<byte> dest)
+            {
+                var src = this.CurrentSpan;
+                while (true)
+                {
+                    var writeSize = Math.Min(dest.Length, src.Length - this.bufferPos);
+                    src.Slice(this.bufferPos, writeSize).CopyTo(dest);
+                    this.bufferPos += writeSize;
+                    dest = dest.Slice(writeSize);
+
+                    if (dest.Length == 0) break;
+
+                    MoveNext(out src);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes)
+        {
+            if (this.bufferPos + length <= this.bufferSize)
+            {
+                bytes = CurrentSpan.Slice(this.bufferPos, length);
+                this.bufferPos += length;
+                return true;
+            }
+
+            bytes = default;
+            return false;
         }
     }
 }

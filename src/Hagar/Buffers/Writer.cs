@@ -27,11 +27,13 @@ namespace Hagar.Buffers
 
         public int TotalLength => this.totalLength;
 
-        private void Advance(int length)
+        public void Advance(int length)
         {
             this.totalLength += length;
             this.output.Advance(length);
         }
+
+        public Span<byte> GetSpan(int sizeHint) => this.output.GetSpan(sizeHint);
 
         /// <summary> Write an <c>Int32</c> value to the stream. </summary>
         public void Write(int i)
@@ -97,12 +99,6 @@ namespace Hagar.Buffers
             this.Advance(1);
         }
 
-#if NETCOREAPP2_1
-        public void Write(float value) => WriteRawLittleEndian32((uint)BitConverter.SingleToInt32Bits(value));
-#else
-        public void Write(float value) => this.Write((uint)BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
-#endif
-
         public void Write(double value)
         {
             var span = this.output.GetSpan(8);
@@ -110,57 +106,10 @@ namespace Hagar.Buffers
             this.Advance(8);
         }
 
-        /// <summary> Write a <c>decimal</c> value to the stream. </summary>
-        public void Write(decimal d)
-        {
-            var ints = Decimal.GetBits(d);
-            foreach (var part in ints) this.Write(part);
-        }
-
-        /// <summary> Write a <c>string</c> value to the stream. </summary>
-        public void Write(string s)
-        {
-            if (null == s)
-            {
-                this.Write(-1);
-            }
-            else
-            {
-                var bytes = Encoding.UTF8.GetBytes(s);
-                this.Write(bytes.Length);
-                this.Write(bytes);
-            }
-        }
-
-        /// <summary> Write a <c>char</c> value to the stream. </summary>
-        public void Write(char c)
-        {
-            this.Write(Convert.ToInt16(c));
-        }
-
-        /// <summary> Write a <c>byte[]</c> value to the stream. </summary>
-        public void Write(byte[] b)
-        {
-            this.Write(new ReadOnlySpan<byte>(b));
-        }
-
         public void Write(ReadOnlySpan<byte> input)
         {
-            var remaining = input;
-            while (remaining.Length > 0)
-            {
-                // Get a span which is hopefully large enough to fit the remaining input.
-                var outputSpan = this.output.GetSpan();
-
-                var len = Math.Min(remaining.Length, outputSpan.Length);
-
-                // Copy from input to output.
-                remaining.Slice(0, len).CopyTo(outputSpan);
-
-                // Advance the input.
-                remaining = remaining.Slice(len);
-                this.Advance(len);
-            }
+            this.output.Write(input);
+            this.totalLength += input.Length;
         }
 
         /// <summary> Write the specified number of bytes to the stream, starting at the specified offset in the input <c>byte[]</c>. </summary>
@@ -182,12 +131,6 @@ namespace Hagar.Buffers
         public void Write(DateTime dt)
         {
             this.Write(dt.ToBinary());
-        }
-
-        /// <summary> Write a <c>Guid</c> value to the stream. </summary>
-        public void Write(Guid id)
-        {
-            this.Write(id.ToByteArray());
         }
     }
 }

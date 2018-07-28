@@ -39,14 +39,14 @@ namespace Hagar.Codecs
                     SkipLengthPrefixedField(reader);
                     break;
                 case WireType.Fixed32:
-                    reader.ReadUInt();
+                    reader.ReadUInt32();
                     break;
                 case WireType.Fixed64:
-                    reader.ReadULong();
+                    reader.ReadUInt64();
                     break;
                 case WireType.Fixed128:
-                    reader.ReadULong();
-                    reader.ReadULong();
+                    reader.ReadUInt64();
+                    reader.ReadUInt64();
                     break;
                 case WireType.Extended:
                     if (!field.IsEndBaseOrEndObject)
@@ -73,7 +73,7 @@ namespace Hagar.Codecs
         internal static void SkipLengthPrefixedField(Reader reader)
         {
             var length = reader.ReadVarUInt32();
-            reader.Advance((int) length);
+            reader.Skip(length);
         }
 
         private static void SkipTagDelimitedField(Reader reader, SerializerSession session)

@@ -7,62 +7,65 @@ namespace Hagar.Utilities
     {
         public static byte ReadVarUInt8(this Reader reader)
         {
-            var next = reader.ReadByte();
+            var currentSpan = reader.CurrentSpan;
+            var next = reader.ReadByte(ref currentSpan);
             if ((next & 0x80) == 0) return next;
             var result = (byte) (next & 0x7F);
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (byte)((next & 0x7F) << 7);
 
             // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte(); 
+            while ((next & 0x80) != 0) next = reader.ReadByte(ref currentSpan); 
 
             return result;
         }
 
         public static ushort ReadVarUInt16(this Reader reader)
         {
-            var next = reader.ReadByte();
+            var currentSpan = reader.CurrentSpan;
+            var next = reader.ReadByte(ref currentSpan);
             var result = (ushort)(next & 0x7F);
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (ushort)((next & 0x7F) << 7);
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (ushort)((next & 0x7F) << 14);
 
             // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte();
+            while ((next & 0x80) != 0) next = reader.ReadByte(ref currentSpan);
 
             return result;
         }
 
         public static uint ReadVarUInt32(this Reader reader)
         {
-            var next = reader.ReadByte();
+            var currentSpan = reader.CurrentSpan;
+            var next = reader.ReadByte(ref currentSpan);
             var result = (uint)(next & 0x7F);
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (uint)((next & 0x7F) << 7);
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (uint)((next & 0x7F) << 14);
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (uint)((next & 0x7F) << 21);
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (uint)((next & 0x7F) << 28);
             if ((next & 0x80) == 0) return result;
 
             // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte();
+            while ((next & 0x80) != 0) next = reader.ReadByte(ref currentSpan);
 
             return result;
         }
@@ -74,10 +77,11 @@ namespace Hagar.Utilities
 
         public static int GetVarIntLength(this Reader reader)
         {
+            var currentSpan = reader.CurrentSpan;
             var count = 1;
             while (true)
             {
-                var next = reader.ReadByte();
+                var next = reader.ReadByte(ref currentSpan);
                 if ((next & 0x80) == 0) return count;
                 count++;
             }
@@ -85,48 +89,49 @@ namespace Hagar.Utilities
 
         public static ulong ReadVarUInt64(this Reader reader)
         {
-            ulong next = reader.ReadByte();
+            var currentSpan = reader.CurrentSpan;
+            ulong next = reader.ReadByte(ref currentSpan);
             var result = next & 0x7F;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 7;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 14;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 21;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 28;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 35;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 42;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 49;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 56;
             if ((next & 0x80) == 0) return result;
 
-            next = reader.ReadByte();
+            next = reader.ReadByte(ref currentSpan);
             result |= (next & 0x7F) << 63;
             if ((next & 0x80) == 0) return result;
 
             // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte();
+            while ((next & 0x80) != 0) next = reader.ReadByte(ref currentSpan);
 
             return result;
         }
@@ -138,9 +143,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ReadVarUInt8(reader);
                 case WireType.Fixed32:
-                    return (byte) reader.ReadUInt();
+                    return (byte) reader.ReadUInt32();
                 case WireType.Fixed64:
-                    return (byte) reader.ReadULong();
+                    return (byte) reader.ReadUInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<byte>(nameof(wireType));
             }
@@ -153,9 +158,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ReadVarUInt16(reader);
                 case WireType.Fixed32:
-                    return (ushort) reader.ReadUInt();
+                    return (ushort) reader.ReadUInt32();
                 case WireType.Fixed64:
-                    return (ushort) reader.ReadULong();
+                    return (ushort) reader.ReadUInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<ushort>(nameof(wireType));
             }
@@ -168,9 +173,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ReadVarUInt32(reader);
                 case WireType.Fixed32:
-                    return reader.ReadUInt();
+                    return reader.ReadUInt32();
                 case WireType.Fixed64:
-                    return (uint) reader.ReadULong();
+                    return (uint) reader.ReadUInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<uint>(nameof(wireType));
             }
@@ -183,9 +188,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ReadVarUInt64(reader);
                 case WireType.Fixed32:
-                    return reader.ReadUInt();
+                    return reader.ReadUInt32();
                 case WireType.Fixed64:
-                    return reader.ReadULong();
+                    return reader.ReadUInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<ulong>(nameof(wireType));
             }
@@ -198,9 +203,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ZigZagDecode(ReadVarUInt8(reader));
                 case WireType.Fixed32:
-                    return (sbyte) reader.ReadInt();
+                    return (sbyte) reader.ReadInt32();
                 case WireType.Fixed64:
-                    return (sbyte) reader.ReadLong();
+                    return (sbyte) reader.ReadInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<sbyte>(nameof(wireType));
             }
@@ -213,9 +218,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ZigZagDecode(ReadVarUInt16(reader));
                 case WireType.Fixed32:
-                    return (short) reader.ReadInt();
+                    return (short) reader.ReadInt32();
                 case WireType.Fixed64:
-                    return (short) reader.ReadLong();
+                    return (short) reader.ReadInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<short>(nameof(wireType));
             }
@@ -228,9 +233,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ZigZagDecode(ReadVarUInt32(reader));
                 case WireType.Fixed32:
-                    return reader.ReadInt();
+                    return reader.ReadInt32();
                 case WireType.Fixed64:
-                    return (int) reader.ReadLong();
+                    return (int) reader.ReadInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<int>(nameof(wireType));
             }
@@ -243,9 +248,9 @@ namespace Hagar.Utilities
                 case WireType.VarInt:
                     return ZigZagDecode(ReadVarUInt64(reader));
                 case WireType.Fixed32:
-                    return reader.ReadInt();
+                    return reader.ReadInt32();
                 case WireType.Fixed64:
-                    return reader.ReadLong();
+                    return reader.ReadInt64();
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<long>(nameof(wireType));
             }

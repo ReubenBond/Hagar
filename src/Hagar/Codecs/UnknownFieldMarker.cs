@@ -8,7 +8,7 @@ namespace Hagar.Codecs
     /// </summary>
     public class UnknownFieldMarker
     {
-        public UnknownFieldMarker(Field field, SequencePosition position)
+        public UnknownFieldMarker(Field field, long position)
         {
             this.Field = field;
             this.Position = position;
@@ -17,7 +17,7 @@ namespace Hagar.Codecs
         /// <summary>
         /// The position into the stream at which this field occurs.
         /// </summary>
-        public SequencePosition Position { get; }
+        public long Position { get; }
 
         /// <summary>
         /// The field header.

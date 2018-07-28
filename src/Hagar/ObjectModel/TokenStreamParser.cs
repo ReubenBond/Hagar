@@ -49,13 +49,13 @@ namespace Hagar.ObjectModel
                             yield return $"[Length: {length}, Bytes: {bytes.Take(80).Select(b => b.ToString("X2"))}{(length > 80 ? "..." : string.Empty)}]";
                             break;
                         case WireType.Fixed32:
-                            yield return $"[Fixed32: {reader.ReadUInt():X8}]";
+                            yield return $"[Fixed32: {reader.ReadUInt32():X8}]";
                             break;
                         case WireType.Fixed64:
-                            yield return $"[Fixed64: {reader.ReadULong():X16}]";
+                            yield return $"[Fixed64: {reader.ReadUInt64():X16}]";
                             break;
                         case WireType.Fixed128:
-                            yield return $"[Fixed128: {reader.ReadULong():X16}{reader.ReadULong():X16}]";
+                            yield return $"[Fixed128: {reader.ReadUInt64():X16}{reader.ReadUInt64():X16}]";
                             break;
                         case WireType.Reference:
                             yield return $"[Reference: {reader.ReadVarUInt32()}]";

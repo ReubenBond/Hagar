@@ -60,7 +60,7 @@ namespace Hagar.TypeSystem
 
         private static TypeKey ReadTypeKey(Reader reader)
         {
-            var hashCode = reader.ReadInt();
+            var hashCode = reader.ReadInt32();
             var count = reader.ReadVarUInt32();
             var typeName = reader.ReadBytes((int) count);
             var key = new TypeKey(hashCode, typeName);

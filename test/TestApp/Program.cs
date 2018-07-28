@@ -308,7 +308,7 @@ namespace TestApp
             var skipCodec = new SkipFieldCodec();
             skipCodec.ReadValue(reader, deserializationContext, initialHeader);
             
-            Console.WriteLine($"Skipped {reader.CurrentPosition}/{reader.Length} bytes.");
+            Console.WriteLine($"Skipped {reader.CurrentPosition} bytes.");
         }
     }
 

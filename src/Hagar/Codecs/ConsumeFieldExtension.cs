@@ -49,14 +49,13 @@ namespace Hagar.Codecs
                     SkipFieldExtension.SkipLengthPrefixedField(reader);
                     break;
                 case WireType.Fixed32:
-                    reader.ReadUInt();
+                    reader.Skip(4);
                     break;
                 case WireType.Fixed64:
-                    reader.ReadULong();
+                    reader.Skip(8);
                     break;
                 case WireType.Fixed128:
-                    reader.ReadULong();
-                    reader.ReadULong();
+                    reader.Skip(16);
                     break;
                 case WireType.Extended:
                     SkipFieldExtension.ThrowUnexpectedExtendedWireType(field);
