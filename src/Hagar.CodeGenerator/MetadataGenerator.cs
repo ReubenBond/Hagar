@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
@@ -40,7 +39,7 @@ namespace Hagar.CodeGenerator
             TypeSyntax GetPartialSerializerTypeName(INamedTypeSymbol type)
             {
                 var genericArity = type.TypeParameters.Length;
-                var name = PartialSerializerGenerator.GetSimpleClassName(type);
+                var name = SerializerGenerator.GetSimpleClassName(type);
                 if (genericArity > 0)
                 {
                     name += $"<{new string(',', genericArity - 1)}>";

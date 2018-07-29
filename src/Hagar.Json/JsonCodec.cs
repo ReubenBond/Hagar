@@ -55,7 +55,7 @@ namespace Hagar.Json
         public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<object>(ref reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<object>(ref reader, session, field);
             
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();

@@ -6,6 +6,7 @@ namespace Hagar.Utilities
 {
     public static class VarIntReaderExtensions
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ReadUInt8(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -21,6 +22,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -36,6 +38,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint ReadUInt32(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -51,6 +54,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ReadUInt64(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -66,6 +70,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ReadInt8(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -81,6 +86,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadInt16(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -96,6 +102,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt32(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
@@ -111,6 +118,7 @@ namespace Hagar.Utilities
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadInt64(this ref Reader reader, WireType wireType)
         {
             switch (wireType)

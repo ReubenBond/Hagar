@@ -9,7 +9,6 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.ISerializable;
 using Hagar.Json;
-using Hagar.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyPocos;
 using Newtonsoft.Json;

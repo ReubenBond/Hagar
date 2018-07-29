@@ -21,7 +21,8 @@ namespace Hagar.Codecs
             {
                 ThrowInvalidWireType(field);
             }
-            return ReferenceCodec.ReadReference<object>(ref reader, session, field, null);
+
+            return ReferenceCodec.ReadReference<object>(ref reader, session, field);
         }
 
         private static void ThrowInvalidWireType(Field field)

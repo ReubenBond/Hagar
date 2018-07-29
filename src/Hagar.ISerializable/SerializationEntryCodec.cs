@@ -8,16 +8,8 @@ namespace Hagar.ISerializable
 {
     internal class SerializationEntryCodec : IFieldCodec<SerializationEntrySurrogate>
     {
-        private readonly IFieldCodec<string> stringCodec;
-        private readonly IFieldCodec<object> objectCodec;
         public static readonly Type SerializationEntryType = typeof(SerializationEntrySurrogate);
-
-        public SerializationEntryCodec(IFieldCodec<string> stringCodec, IFieldCodec<object> objectCodec)
-        {
-            this.stringCodec = stringCodec;
-            this.objectCodec = objectCodec;
-        }
-
+        
         public void WriteField(
             ref Writer writer,
             SerializerSession session,
@@ -27,8 +19,8 @@ namespace Hagar.ISerializable
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
-            this.stringCodec.WriteField(ref writer, session, 0, typeof(string), value.Name);
-            this.objectCodec.WriteField(ref writer, session, 1, typeof(object), value.Value);
+            StringCodec.WriteField(ref writer, session, 0, typeof(string), value.Name);
+            ObjectCodec.WriteField(ref writer, session, 1, typeof(object), value.Value);
             
             writer.WriteEndObject();
         }
@@ -46,10 +38,10 @@ namespace Hagar.ISerializable
                 switch (fieldId)
                 {
                     case 0:
-                        result.Name = this.stringCodec.ReadValue(ref reader, session, header);
+                        result.Name = StringCodec.ReadValue(ref reader, session, header);
                         break;
                     case 1:
-                        result.Value = this.objectCodec.ReadValue(ref reader, session, header);
+                        result.Value = ObjectCodec.ReadValue(ref reader, session, header);
                         break;
                 }
             }

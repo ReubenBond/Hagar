@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Hagar.ISerializable;
+﻿using Hagar.ISerializable;
 using Hagar.Serializers;
 using Microsoft.Extensions.DependencyInjection;
 

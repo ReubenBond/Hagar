@@ -9,18 +9,17 @@ namespace Hagar.Codecs
 {
     public class TypeSerializerCodec : IFieldCodec<Type>
     {
-        private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SchemaTypeType = typeof(SchemaType);
         private static readonly Type TypeType = typeof(Type);
         private static readonly Type ByteArrayType = typeof(byte[]);
         private static readonly Type UIntType = typeof(uint);
 
-        public TypeSerializerCodec(IUntypedCodecProvider codecProvider)
+        void IFieldCodec<Type>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value)
         {
-            this.codecProvider = codecProvider;
+            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value)
+        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, TypeType, WireType.TagDelimited);
@@ -46,13 +45,17 @@ namespace Hagar.Codecs
                 writer.WriteVarInt((uint) id);
             }
 
-            
             writer.WriteEndObject();
         }
 
-        public Type ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Type IFieldCodec<Type>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(ref reader, session, field, this.codecProvider);
+            return ReadValue(ref reader, session, field);
+        }
+
+        public static Type ReadValue(ref Reader reader, SerializerSession session, Field field)
+        {
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(ref reader, session, field);
 
             uint fieldId = 0;
             var schemaType = default(SchemaType);

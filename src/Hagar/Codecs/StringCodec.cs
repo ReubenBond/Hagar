@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Hagar.Buffers;
 using Hagar.Serializers;
@@ -10,22 +11,21 @@ namespace Hagar.Codecs
 {
     public class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
-        private readonly IUntypedCodecProvider codecProvider;
-        public StringCodec(IUntypedCodecProvider codecProvider)
-        {
-            this.codecProvider = codecProvider;
-        }
-
         string IFieldCodec<string>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
+            return ReadValue(ref reader, session, field);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ReadValue(ref Reader reader, SerializerSession session, Field field)
+        {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<string>(ref reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<string>(ref reader, session, field);
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
 
             string result;
-#if  NETCOREAPP2_1
-      
+#if NETCOREAPP2_1
             if (reader.TryReadBytes((int) length, out var span))
             {
                 result = Encoding.UTF8.GetString(span);
@@ -43,12 +43,18 @@ namespace Hagar.Codecs
 
         void IFieldCodec<string>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
         {
+            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
+        {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
 
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
             // TODO: use Span<byte>
             var bytes = Encoding.UTF8.GetBytes(value);
-            writer.WriteVarInt((uint)bytes.Length);
+            writer.WriteVarInt((uint) bytes.Length);
             writer.Write(bytes);
         }
 

@@ -1,4 +1,3 @@
-using System;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs

@@ -55,7 +55,7 @@ namespace Hagar.Codecs
         public Dictionary<TKey, TValue> ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>>(ref reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>>(ref reader, session, field);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);

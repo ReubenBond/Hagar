@@ -14,14 +14,24 @@ namespace Hagar.Codecs
             Type expectedType,
             float value)
         {
+            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+        }
+
+        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, float value)
+        {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(float), WireType.Fixed32);
 
             // TODO: Optimize
-            writer.Write((uint)BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+            writer.Write((uint) BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         }
 
         float IFieldCodec<float>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        {
+            return ReadValue(ref reader, session, field);
+        }
+
+        public static float ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             switch (field.WireType)
@@ -40,8 +50,8 @@ namespace Hagar.Codecs
                 }
 
                 case WireType.Fixed128:
-                // Decimal has a smaller range, but higher precision than float.
-                return (float) reader.ReadDecimal();
+                    // Decimal has a smaller range, but higher precision than float.
+                    return (float) reader.ReadDecimal();
 
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
@@ -65,14 +75,24 @@ namespace Hagar.Codecs
             Type expectedType,
             double value)
         {
+            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+        }
+
+        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, double value)
+        {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(double), WireType.Fixed64);
 
             // TODO: Optimize
-            writer.Write((ulong)BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
+            writer.Write((ulong) BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
         }
 
         double IFieldCodec<double>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        {
+            return ReadValue(ref reader, session, field);
+        }
+
+        public static double ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             switch (field.WireType)
@@ -97,6 +117,11 @@ namespace Hagar.Codecs
     {
         void IFieldCodec<decimal>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
         {
+            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+        }
+
+        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
+        {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(decimal), WireType.Fixed128);
             var ints = Decimal.GetBits(value);
@@ -104,6 +129,11 @@ namespace Hagar.Codecs
         }
 
         decimal IFieldCodec<decimal>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        {
+            return ReadValue(ref reader, session, field);
+        }
+
+        public static decimal ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             switch (field.WireType)

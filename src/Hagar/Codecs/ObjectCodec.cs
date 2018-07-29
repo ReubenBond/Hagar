@@ -1,6 +1,5 @@
 using System;
 using Hagar.Buffers;
-using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
@@ -9,28 +8,32 @@ namespace Hagar.Codecs
 {
     public class ObjectCodec : IFieldCodec<object>
     {
-        private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type ObjectType = typeof(object);
 
-        public ObjectCodec(IUntypedCodecProvider codecProvider)
+        object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            this.codecProvider = codecProvider;
+            return ReadValue(ref reader, session, field);
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(ref reader, session, field, this.codecProvider);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(ref reader, session, field);
             if (field.FieldType == ObjectType || field.FieldType == null)
             {
                 reader.ReadVarUInt32();
                 return new object();
             }
 
-            var specificSerializer = this.codecProvider.GetCodec(field.FieldType);
+            var specificSerializer = session.CodecProvider.GetCodec(field.FieldType);
             return specificSerializer.ReadValue(ref reader, session, field);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        {
+            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+        }
+
+        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             var fieldType = value?.GetType();
             if (fieldType == null || fieldType == ObjectType)
@@ -40,7 +43,7 @@ namespace Hagar.Codecs
                 writer.WriteVarInt((uint) 0);
             }
 
-            var specificSerializer = this.codecProvider.GetCodec(fieldType);
+            var specificSerializer = session.CodecProvider.GetCodec(fieldType);
             specificSerializer.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
     }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,7 +82,7 @@ namespace Hagar.CodeGenerator
             foreach (var type in serializableTypes)
             {
                 // Generate a partial serializer class for each serializable type.
-                members.Add(PartialSerializerGenerator.GenerateSerializer(this.compilation, type));
+                members.Add(SerializerGenerator.GenerateSerializer(this.compilation, type));
             }
 
             var namespaceName = "HagarGeneratedCode." + this.compilation.AssemblyName;

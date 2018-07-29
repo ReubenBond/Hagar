@@ -1,6 +1,5 @@
 using System;
 using Hagar.Buffers;
-using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
@@ -35,12 +34,12 @@ namespace Hagar.Codecs
             return true;
         }
 
-        public static T ReadReference<T>(ref Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers)
+        public static T ReadReference<T>(ref Reader reader, SerializerSession session, Field field)
         {
-            return (T) ReadReference(ref reader, session, field, serializers, typeof(T));
+            return (T) ReadReference(ref reader, session, field, typeof(T));
         }
 
-        public static object ReadReference(ref Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers, Type expectedType)
+        public static object ReadReference(ref Reader reader, SerializerSession session, Field field, Type expectedType)
         {
             var reference = reader.ReadVarUInt32();
             if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object value))
@@ -51,7 +50,7 @@ namespace Hagar.Codecs
             switch (value)
             {
                 case UnknownFieldMarker marker:
-                    return DeserializeFromMarker(ref reader, session, field, serializers, marker, reference, expectedType);
+                    return DeserializeFromMarker(ref reader, session, field, marker, reference, expectedType);
                 default:
                     return value;
             }
@@ -61,7 +60,6 @@ namespace Hagar.Codecs
             ref Reader reader,
             SerializerSession session,
             Field field,
-            IUntypedCodecProvider serializers,
             UnknownFieldMarker marker,
             uint reference,
             Type lastResortFieldType)
@@ -73,7 +71,7 @@ namespace Hagar.Codecs
             var fieldType = marker.Field.FieldType ?? field.FieldType ?? lastResortFieldType;
 
             // Get a serializer for that type.
-            var specificSerializer = serializers.GetCodec(fieldType);
+            var specificSerializer = session.CodecProvider.GetCodec(fieldType);
 
             // Reset the session's reference id so that the deserialized object overwrites the marker.
             var originalCurrentReferenceId = session.ReferencedObjects.CurrentReferenceId;

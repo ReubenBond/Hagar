@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hagar.Codecs;
-using Hagar.ISerializable;
-using Hagar.Serializers;
 using Hagar.TestKit;
 using Microsoft.Extensions.DependencyInjection;
 
