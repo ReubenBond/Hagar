@@ -6,7 +6,6 @@ using System.Reflection;
 using Hagar.Codecs;
 using Hagar.Configuration;
 using Hagar.GeneratedCodeHelpers;
-using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 namespace Hagar.Serializers
 {

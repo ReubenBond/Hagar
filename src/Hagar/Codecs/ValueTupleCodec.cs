@@ -1,5 +1,6 @@
 ﻿using System;
 using Hagar.Buffers;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
@@ -35,7 +36,7 @@ namespace Hagar.Codecs
 
         public ValueTupleCodec(IFieldCodec<T> valueCodec)
         {
-            this.valueCodec = valueCodec;
+            this.valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T> value)
@@ -85,8 +86,8 @@ namespace Hagar.Codecs
 
         public ValueTupleCodec(IFieldCodec<T1> item1Codec, IFieldCodec<T2> item2Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2> value)
@@ -145,9 +146,9 @@ namespace Hagar.Codecs
             IFieldCodec<T2> item2Codec,
             IFieldCodec<T3> item3Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
-            this.item3Codec = item3Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
+            this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2, T3> value)
@@ -213,10 +214,10 @@ namespace Hagar.Codecs
             IFieldCodec<T3> item3Codec,
             IFieldCodec<T4> item4Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
-            this.item3Codec = item3Codec;
-            this.item4Codec = item4Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
+            this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
+            this.item4Codec = HagarGeneratedCodeHelper.UnwrapService(this, item4Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2, T3, T4> value)
@@ -289,11 +290,11 @@ namespace Hagar.Codecs
             IFieldCodec<T4> item4Codec,
             IFieldCodec<T5> item5Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
-            this.item3Codec = item3Codec;
-            this.item4Codec = item4Codec;
-            this.item5Codec = item5Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
+            this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
+            this.item4Codec = HagarGeneratedCodeHelper.UnwrapService(this, item4Codec);
+            this.item5Codec = HagarGeneratedCodeHelper.UnwrapService(this, item5Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2, T3, T4, T5> value)
@@ -373,12 +374,12 @@ namespace Hagar.Codecs
             IFieldCodec<T5> item5Codec,
             IFieldCodec<T6> item6Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
-            this.item3Codec = item3Codec;
-            this.item4Codec = item4Codec;
-            this.item5Codec = item5Codec;
-            this.item6Codec = item6Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
+            this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
+            this.item4Codec = HagarGeneratedCodeHelper.UnwrapService(this, item4Codec);
+            this.item5Codec = HagarGeneratedCodeHelper.UnwrapService(this, item5Codec);
+            this.item6Codec = HagarGeneratedCodeHelper.UnwrapService(this, item6Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2, T3, T4, T5, T6> value)
@@ -466,13 +467,13 @@ namespace Hagar.Codecs
             IFieldCodec<T6> item6Codec,
             IFieldCodec<T7> item7Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
-            this.item3Codec = item3Codec;
-            this.item4Codec = item4Codec;
-            this.item5Codec = item5Codec;
-            this.item6Codec = item6Codec;
-            this.item7Codec = item7Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
+            this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
+            this.item4Codec = HagarGeneratedCodeHelper.UnwrapService(this, item4Codec);
+            this.item5Codec = HagarGeneratedCodeHelper.UnwrapService(this, item5Codec);
+            this.item6Codec = HagarGeneratedCodeHelper.UnwrapService(this, item6Codec);
+            this.item7Codec = HagarGeneratedCodeHelper.UnwrapService(this, item7Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2, T3, T4, T5, T6, T7> value)
@@ -567,14 +568,14 @@ namespace Hagar.Codecs
             IFieldCodec<T7> item7Codec,
             IFieldCodec<T8> item8Codec)
         {
-            this.item1Codec = item1Codec;
-            this.item2Codec = item2Codec;
-            this.item3Codec = item3Codec;
-            this.item4Codec = item4Codec;
-            this.item5Codec = item5Codec;
-            this.item6Codec = item6Codec;
-            this.item7Codec = item7Codec;
-            this.item8Codec = item8Codec;
+            this.item1Codec = HagarGeneratedCodeHelper.UnwrapService(this, item1Codec);
+            this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
+            this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
+            this.item4Codec = HagarGeneratedCodeHelper.UnwrapService(this, item4Codec);
+            this.item5Codec = HagarGeneratedCodeHelper.UnwrapService(this, item5Codec);
+            this.item6Codec = HagarGeneratedCodeHelper.UnwrapService(this, item6Codec);
+            this.item7Codec = HagarGeneratedCodeHelper.UnwrapService(this, item7Codec);
+            this.item8Codec = HagarGeneratedCodeHelper.UnwrapService(this, item8Codec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8> value)

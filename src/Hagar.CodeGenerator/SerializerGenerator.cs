@@ -9,7 +9,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
-    internal static class PartialSerializerGenerator
+    internal static class SerializerGenerator
     {
         private const string BaseTypeSerializerFieldName = "baseTypeSerializer";
         private const string SerializeMethodName = "Serialize";
@@ -142,7 +142,11 @@ namespace Hagar.CodeGenerator
                 fields.Add(new InjectedFieldDescription(libraryTypes.PartialSerializer.Construct(type.BaseType), BaseTypeSerializerFieldName));
             }
 
-            fields.AddRange(typeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct().Select(GetCodecDescription));
+            // Add a codec field for any field in the target which does not have a static codec.
+            fields.AddRange(typeDescription.Members
+                .Select(m => GetExpectedType(m.Type)).Distinct()
+                .Where(t => !libraryTypes.StaticCodecs.Any(c => c.UnderlyingType.Equals(t)))
+                .Select(GetCodecDescription));
             return fields;
 
             CodecFieldDescription GetCodecDescription(ITypeSymbol t)
@@ -209,12 +213,26 @@ namespace Hagar.CodeGenerator
                 var fieldIdDelta = member.FieldId - previousFieldId;
                 previousFieldId = member.FieldId;
 
-                var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
-                var expectedType = fieldDescriptions.OfType<TypeFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
+                // Codecs can either be static classes or injected into the constructor.
+                // Either way, the member signatures are the same.
+                var memberType = GetExpectedType(member.Type);
+                var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => c.UnderlyingType.Equals(memberType));
+                ExpressionSyntax codecExpression;
+                if (staticCodec != null)
+                {
+                    codecExpression = staticCodec.CodecType.ToNameSyntax();
+                }
+                else
+                {
+                    var instanceCodec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
+                    codecExpression = ThisExpression().Member(instanceCodec.FieldName);
+                }
+
+                var expectedType = fieldDescriptions.OfType<TypeFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
                 body.Add(
                     ExpressionStatement(
                         InvocationExpression(
-                            ThisExpression().Member(codec.FieldName).Member("WriteField"),
+                            codecExpression.Member("WriteField"),
                             ArgumentList(
                                 SeparatedList(
                                     new[]
@@ -342,8 +360,25 @@ namespace Hagar.CodeGenerator
 
                     // C#: instance.<member> = this.<codec>.ReadValue(ref reader, session, header);
                     var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
+
+
+                    // Codecs can either be static classes or injected into the constructor.
+                    // Either way, the member signatures are the same.
+                    var memberType = GetExpectedType(member.Type);
+                    var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => c.UnderlyingType.Equals(memberType));
+                    ExpressionSyntax codecExpression;
+                    if (staticCodec != null)
+                    {
+                        codecExpression = staticCodec.CodecType.ToNameSyntax();
+                    }
+                    else
+                    {
+                        var instanceCodec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
+                        codecExpression = ThisExpression().Member(instanceCodec.FieldName);
+                    }
+
                     ExpressionSyntax readValueExpression = InvocationExpression(
-                        ThisExpression().Member(codec.FieldName).Member("ReadValue"),
+                        codecExpression.Member("ReadValue"),
                         ArgumentList(SeparatedList(new[] {Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(sessionParam), Argument(headerVar)})));
                     if (!codec.UnderlyingType.Equals(member.Type))
                     {
@@ -390,8 +425,8 @@ namespace Hagar.CodeGenerator
 
             public override bool IsInjected => true;
         }
-
-        internal class CodecFieldDescription : SerializerFieldDescription
+        
+        internal class CodecFieldDescription : SerializerFieldDescription, ICodecDescription
         {
             public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
             {
@@ -413,4 +448,21 @@ namespace Hagar.CodeGenerator
             public override bool IsInjected => false;
         }
     }
+        internal interface ICodecDescription
+        {
+            ITypeSymbol UnderlyingType { get; }
+        }
+
+        internal class StaticCodecDescription : ICodecDescription
+        {
+            public StaticCodecDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
+            {
+                UnderlyingType = underlyingType;
+                CodecType = codecType;
+            }
+
+            public ITypeSymbol UnderlyingType { get; }
+
+            public INamedTypeSymbol CodecType { get; }
+        }
 }

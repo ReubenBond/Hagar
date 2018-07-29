@@ -1,6 +1,6 @@
 ﻿using System;
 using Hagar.Buffers;
-using Hagar.Serializers;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
@@ -13,14 +13,10 @@ namespace Hagar.Codecs
     internal class ArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> fieldCodec;
-        private readonly IFieldCodec<int> intCodec;
-        private readonly IUntypedCodecProvider codecProvider;
 
-        public ArrayCodec(IFieldCodec<T> fieldCodec, IFieldCodec<int> intCodec, IUntypedCodecProvider codecProvider)
+        public ArrayCodec(IFieldCodec<T> fieldCodec)
         {
-            this.fieldCodec = fieldCodec;
-            this.intCodec = intCodec;
-            this.codecProvider = codecProvider;
+            this.fieldCodec = HagarGeneratedCodeHelper.UnwrapService(this, fieldCodec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, T[] value)
@@ -28,7 +24,7 @@ namespace Hagar.Codecs
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.intCodec.WriteField(ref writer, session, 0, typeof(int), value.Length);
+            Int32Codec.WriteField(ref writer, session, 0, typeof(int), value.Length);
             var first = true;
             foreach (var element in value)
             {
@@ -42,7 +38,7 @@ namespace Hagar.Codecs
         public T[] ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<T[]>(ref reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<T[]>(ref reader, session, field);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
@@ -58,7 +54,7 @@ namespace Hagar.Codecs
                 switch (fieldId)
                 {
                     case 0:
-                        length = this.intCodec.ReadValue(ref reader, session, header);
+                        length = Int32Codec.ReadValue(ref reader, session, header);
                         result = new T[length];
                         ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
                         break;

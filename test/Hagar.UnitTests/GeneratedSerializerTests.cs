@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using Hagar.Buffers;
 using Hagar.Codecs;

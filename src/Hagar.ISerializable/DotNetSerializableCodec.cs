@@ -14,21 +14,16 @@ namespace Hagar.ISerializable
         public static readonly Type CodecType = typeof(DotNetSerializableCodec);
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
         private readonly IFieldCodec<Type> typeCodec;
-        private readonly IUntypedCodecProvider untypedCodecProvider;
         
         private readonly StreamingContext streamingContext = new StreamingContext();
         private readonly ObjectSerializer objectSerializer;
         private readonly ValueTypeSerializerFactory valueTypeSerializerFactory;
 
         public DotNetSerializableCodec(
-            IFieldCodec<Type> typeCodec,
-            IFieldCodec<string> stringCodec,
-            IFieldCodec<object> objectCodec,
-            IUntypedCodecProvider untypedCodecProvider)
+            IFieldCodec<Type> typeCodec)
         {
             this.typeCodec = typeCodec;
-            this.untypedCodecProvider = untypedCodecProvider;
-            var entrySerializer = new SerializationEntryCodec(stringCodec, objectCodec);
+            var entrySerializer = new SerializationEntryCodec();
             var constructorFactory = new SerializationConstructorFactory();
             var serializationCallbacks = new SerializationCallbacksFactory();
             var formatterConverter = new FormatterConverter();
@@ -70,7 +65,7 @@ namespace Hagar.ISerializable
 
         public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(ref reader, session, field, this.untypedCodecProvider, null);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(ref reader, session, field, null);
           
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
             var header = reader.ReadFieldHeader(session);

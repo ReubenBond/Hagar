@@ -1,5 +1,6 @@
 ﻿using System;
 using Hagar.Buffers;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.WireProtocol;
@@ -12,15 +13,13 @@ namespace Hagar.Codecs
     /// <typeparam name="T">The array element type.</typeparam>
     internal class MultiDimensionalArrayCodec<T> : IGeneralizedCodec
     {
-        private readonly IUntypedCodecProvider codecProvider;
         private readonly IFieldCodec<int[]> intArrayCodec;
         private readonly IFieldCodec<T> elementCodec;
 
-        public MultiDimensionalArrayCodec(IUntypedCodecProvider codecProvider, IFieldCodec<int[]> intArrayCodec, IFieldCodec<T> elementCodec)
+        public MultiDimensionalArrayCodec(IFieldCodec<int[]> intArrayCodec, IFieldCodec<T> elementCodec)
         {
-            this.codecProvider = codecProvider;
-            this.intArrayCodec = intArrayCodec;
-            this.elementCodec = elementCodec;
+            this.intArrayCodec = HagarGeneratedCodeHelper.UnwrapService(this, intArrayCodec);
+            this.elementCodec = HagarGeneratedCodeHelper.UnwrapService(this, elementCodec);
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
@@ -70,7 +69,7 @@ namespace Hagar.Codecs
         public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<T[]>(ref reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<T[]>(ref reader, session, field);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);

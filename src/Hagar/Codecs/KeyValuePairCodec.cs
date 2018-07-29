@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Hagar.Buffers;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
@@ -13,11 +14,11 @@ namespace Hagar.Codecs
 
         public KeyValuePairCodec(IFieldCodec<TKey> keyCodec, IFieldCodec<TValue> valueCodec)
         {
-            this.keyCodec = keyCodec;
-            this.valueCodec = valueCodec;
+            this.keyCodec = HagarGeneratedCodeHelper.UnwrapService(this, keyCodec);
+            this.valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
+        void IFieldCodec<KeyValuePair<TKey, TValue>>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
@@ -25,7 +26,6 @@ namespace Hagar.Codecs
             this.keyCodec.WriteField(ref writer, session, 0, typeof(TKey), value.Key);
             this.valueCodec.WriteField(ref writer, session, 1, typeof(TValue), value.Value);
 
-            
             writer.WriteEndObject();
         }
 
