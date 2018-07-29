@@ -22,7 +22,7 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteStartObject(
-            this Writer writer,
+            this ref Writer writer,
             SerializerSession session,
             uint fieldId,
             Type expectedType,
@@ -32,13 +32,13 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEndObject(this Writer writer)
+        public static void WriteEndObject(this ref Writer writer)
         {
             writer.Write((byte) EndObjectTag);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEndBase(this Writer writer)
+        public static void WriteEndBase(this ref Writer writer)
         {
             writer.Write((byte) EndBaseFieldsTag);
         }

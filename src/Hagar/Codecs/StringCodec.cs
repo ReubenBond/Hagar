@@ -16,21 +16,21 @@ namespace Hagar.Codecs
             this.codecProvider = codecProvider;
         }
 
-        string IFieldCodec<string>.ReadValue(Reader reader, SerializerSession session, Field field)
+        string IFieldCodec<string>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<string>(reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<string>(ref reader, session, field, this.codecProvider);
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
-            var bytes = reader.ReadBytes((int) length);
+            var bytes = reader.ReadBytes(length);
             var result = Encoding.UTF8.GetString(bytes);
             ReferenceCodec.RecordObject(session, result);
             return result;
         }
 
-        void IFieldCodec<string>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
+        void IFieldCodec<string>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
 
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
             // TODO: use Span<byte>

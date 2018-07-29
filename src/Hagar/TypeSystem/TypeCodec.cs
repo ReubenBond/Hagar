@@ -20,7 +20,7 @@ namespace Hagar.TypeSystem
             this.getTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(RuntimeTypeNameFormatter.Format(type)));
         }
 
-        public void Write(Writer writer, Type type)
+        public void Write(ref Writer writer, Type type)
         {
             var key = this.typeCache.GetOrAdd(type, this.getTypeKey);
             writer.Write(key.HashCode);
@@ -28,9 +28,9 @@ namespace Hagar.TypeSystem
             writer.Write(key.TypeName);
         }
 
-        public bool TryRead(Reader reader, out Type type)
+        public bool TryRead(ref Reader reader, out Type type)
         {
-            var key = ReadTypeKey(reader);
+            var key = ReadTypeKey(ref reader);
 
             if (this.typeKeyCache.TryGetValue(key, out type)) return type != null;
 
@@ -43,9 +43,9 @@ namespace Hagar.TypeSystem
             return type != null;
         }
 
-        public Type Read(Reader reader)
+        public Type Read(ref Reader reader)
         {
-            var key = ReadTypeKey(reader);
+            var key = ReadTypeKey(ref reader);
 
             if (this.typeKeyCache.TryGetValue(key, out var type)) return type;
 
@@ -58,11 +58,11 @@ namespace Hagar.TypeSystem
             return type;
         }
 
-        private static TypeKey ReadTypeKey(Reader reader)
+        private static TypeKey ReadTypeKey(ref Reader reader)
         {
             var hashCode = reader.ReadInt32();
             var count = reader.ReadVarUInt32();
-            var typeName = reader.ReadBytes((int) count);
+            var typeName = reader.ReadBytes(count);
             var key = new TypeKey(hashCode, typeName);
             return key;
         }

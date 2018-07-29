@@ -56,7 +56,8 @@ namespace Hagar.TestKit
             var beforeReference = writerSession.ReferencedObjects.CurrentReferenceId;
 
             // Write the field. This should involve marking at least one reference in the session.
-            writerCodec.WriteField(writer, writerSession, 0, typeof(TField), this.CreateValue());
+            writerCodec.WriteField(ref writer, writerSession, 0, typeof(TField), this.CreateValue());
+            writer.Commit();
             var afterReference = writerSession.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
@@ -66,7 +67,7 @@ namespace Hagar.TestKit
             var readerCodec = this.CreateCodec();
             var readField = reader.ReadFieldHeader(readerSession);
             beforeReference = readerSession.ReferencedObjects.CurrentReferenceId;
-            readerCodec.ReadValue(reader, readerSession, readField);
+            readerCodec.ReadValue(ref reader, readerSession, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             afterReference = readerSession.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
@@ -80,14 +81,15 @@ namespace Hagar.TestKit
             var writer = new Writer(pipe.Writer);
             var writerSession = CreateSession();
             var writerCodec = this.CreateCodec();
-            writerCodec.WriteField(writer, writerSession, 0, typeof(TField), original);
+            writerCodec.WriteField(ref writer, writerSession, 0, typeof(TField), original);
+            writer.Commit();
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Reader.TryRead(out var readResult);
             var reader = new Reader(readResult.Buffer);
             var readerSession = CreateSession();
             var readerCodec = this.CreateCodec();
             var readField = reader.ReadFieldHeader(readerSession);
-            var deserialized = readerCodec.ReadValue(reader, readerSession, readField);
+            var deserialized = readerCodec.ReadValue(ref reader, readerSession, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
         }

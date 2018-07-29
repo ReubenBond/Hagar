@@ -197,7 +197,7 @@ namespace Hagar.CodeGenerator
                     ExpressionStatement(
                         InvocationExpression(
                             ThisExpression().Member(BaseTypeSerializerFieldName.ToIdentifierName()).Member(SerializeMethodName),
-                            ArgumentList(SeparatedList(new[] { Argument(writerParam), Argument(sessionParam), Argument(instanceParam) })))));
+                            ArgumentList(SeparatedList(new[] { Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(sessionParam), Argument(instanceParam) })))));
                 body.Add(ExpressionStatement(InvocationExpression(writerParam.Member("WriteEndBase"), ArgumentList())));
             }
 
@@ -218,7 +218,7 @@ namespace Hagar.CodeGenerator
                                 SeparatedList(
                                     new[]
                                     {
-                                        Argument(writerParam),
+                                        Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
                                         Argument(sessionParam),
                                         Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(fieldIdDelta))),
                                         Argument(expectedType.FieldName.ToIdentifierName()),
@@ -229,7 +229,7 @@ namespace Hagar.CodeGenerator
             return MethodDeclaration(returnType, SerializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(
-                    Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()),
+                    Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
                     Parameter("session".ToIdentifier()).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
                     Parameter("instance".ToIdentifier()).WithType(typeDescription.Type.ToTypeSyntax()))
                 .AddBodyStatements(body.ToArray());
@@ -259,12 +259,17 @@ namespace Hagar.CodeGenerator
 
             if (HasComplexBaseType(typeDescription.Type))
             {
-                // C#: this.baseTypeSerializer.Deserialize(reader, session, instance);
+                // C#: this.baseTypeSerializer.Deserialize(ref reader, session, instance);
                 body.Add(
                     ExpressionStatement(
                         InvocationExpression(
                             ThisExpression().Member(BaseTypeSerializerFieldName.ToIdentifierName()).Member(DeserializeMethodName),
-                            ArgumentList(SeparatedList(new[] { Argument(readerParam), Argument(sessionParam), Argument(instanceParam) })))));
+                            ArgumentList(SeparatedList(new[]
+                            {
+                                Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
+                                Argument(sessionParam),
+                                Argument(instanceParam)
+                            })))));
             }
 
             body.Add(WhileStatement(LiteralExpression(SyntaxKind.TrueLiteralExpression), Block(GetDeserializerLoopBody())));
@@ -272,7 +277,7 @@ namespace Hagar.CodeGenerator
             return MethodDeclaration(returnType, DeserializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(
-                    Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()),
+                    Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
                     Parameter(sessionParam.Identifier).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
                     Parameter(instanceParam.Identifier).WithType(typeDescription.Type.ToTypeSyntax()))
                 .AddBodyStatements(body.ToArray());
@@ -316,11 +321,11 @@ namespace Hagar.CodeGenerator
                     // C#: case <fieldId>:
                     var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(member.FieldId)));
 
-                    // C#: instance.<member> = this.<codec>.ReadValue(reader, session, header);
+                    // C#: instance.<member> = this.<codec>.ReadValue(ref reader, session, header);
                     var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
                     ExpressionSyntax readValueExpression = InvocationExpression(
                         ThisExpression().Member(codec.FieldName).Member("ReadValue"),
-                        ArgumentList(SeparatedList(new[] { Argument(readerParam), Argument(sessionParam), Argument(headerVar) })));
+                        ArgumentList(SeparatedList(new[] {Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(sessionParam), Argument(headerVar)})));
                     if (!codec.UnderlyingType.Equals(member.Type))
                     {
                         // If the member type type differs from the codec type (eg because the member is an array), cast the result.

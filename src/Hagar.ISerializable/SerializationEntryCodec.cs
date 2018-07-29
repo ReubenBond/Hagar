@@ -2,7 +2,6 @@
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
@@ -20,7 +19,7 @@ namespace Hagar.ISerializable
         }
 
         public void WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -28,12 +27,13 @@ namespace Hagar.ISerializable
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
-            this.stringCodec.WriteField(writer, session, 0, typeof(string), value.Name);
-            this.objectCodec.WriteField(writer, session, 1, typeof(object), value.Value);
+            this.stringCodec.WriteField(ref writer, session, 0, typeof(string), value.Name);
+            this.objectCodec.WriteField(ref writer, session, 1, typeof(object), value.Value);
+            
             writer.WriteEndObject();
         }
 
-        public SerializationEntrySurrogate ReadValue(Reader reader, SerializerSession session, Field field)
+        public SerializationEntrySurrogate ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             var result = new SerializationEntrySurrogate();
@@ -46,10 +46,10 @@ namespace Hagar.ISerializable
                 switch (fieldId)
                 {
                     case 0:
-                        result.Name = this.stringCodec.ReadValue(reader, session, header);
+                        result.Name = this.stringCodec.ReadValue(ref reader, session, header);
                         break;
                     case 1:
-                        result.Value = this.objectCodec.ReadValue(reader, session, header);
+                        result.Value = this.objectCodec.ReadValue(ref reader, session, header);
                         break;
                 }
             }

@@ -33,8 +33,9 @@ namespace Benchmarks
         private readonly ComplexClass value;
         private readonly SerializationManager orleansSerializer;
         private readonly SerializerSession session;
-        private ReadOnlySequence<byte> hagarBytes;
-        private List<ArraySegment<byte>> orleansBytes;
+        private readonly ReadOnlySequence<byte> hagarBytes;
+        private readonly List<ArraySegment<byte>> orleansBytes;
+        private readonly long readBytesLength;
 
         public ComplexTypeBenchmarks()
         {
@@ -64,7 +65,7 @@ namespace Benchmarks
             this.session = sessionPool.GetSession();
             var pipe = new Pipe();
             var writer = new Writer(pipe.Writer);
-            this.hagarSerializer.Serialize(this.value, session, writer);
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Reader.TryRead(out var readResult);
             this.hagarBytes = readResult.Buffer;
@@ -72,24 +73,26 @@ namespace Benchmarks
             var writer2 = new BinaryTokenStreamWriter();
             this.orleansSerializer.Serialize(this.value, writer2);
             this.orleansBytes = writer2.ToBytes();
+
+            this.readBytesLength = Math.Min(readResult.Buffer.Length, orleansBytes.Sum(x => x.Count));
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object HagarSerializer()
         {
             var pipe = new Pipe();
             var writer = new Writer(pipe.Writer);
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, writer);
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
 
             session.FullReset();
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Reader.TryRead(out var readResult);
             var reader = new Reader(readResult.Buffer);
-            return this.hagarSerializer.Deserialize(session, reader);
+            return this.hagarSerializer.Deserialize(session, ref reader);
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object OrleansSerializer()
         {
             var writer = new BinaryTokenStreamWriter();
@@ -97,17 +100,17 @@ namespace Benchmarks
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object HagarSerialize()
         {
             var pipe = new Pipe();
             var writer = new Writer(pipe.Writer);
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, writer);
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
             return session;
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object OrleansSerialize()
         {
             var writer = new BinaryTokenStreamWriter();
@@ -119,10 +122,29 @@ namespace Benchmarks
         public object HagarDeserialize()
         {
             session.FullReset();
-            return this.hagarSerializer.Deserialize(session, new Reader(this.hagarBytes));
+            var reader = new Reader(this.hagarBytes);
+            return this.hagarSerializer.Deserialize(session, ref reader);
         }
 
-        //[Benchmark]
+        [Benchmark]
+        public int HagarReadEachByte()
+        {
+            var sum = 0;
+            var reader = new Reader(this.hagarBytes);
+            for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
+            return sum;
+        }
+
+        [Benchmark]
+        public int OrleansReadEachByte()
+        {
+            var sum = 0;
+            var reader = new BinaryTokenStreamReader(this.orleansBytes);
+            for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
+            return sum;
+        }
+
+        [Benchmark]
         public object OrleansDeserialize()
         {
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));

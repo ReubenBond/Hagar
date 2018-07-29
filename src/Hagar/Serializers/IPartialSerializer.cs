@@ -11,7 +11,7 @@ namespace Hagar.Serializers
     [SuppressMessage("ReSharper", "TypeParameterCanBeVariant")]
     public interface IPartialSerializer<T> where T : class
     {
-        void Serialize(Writer writer, SerializerSession session, T value);
-        void Deserialize(Reader reader, SerializerSession session, T value);
+        void Serialize(ref Writer writer, SerializerSession session, T value);
+        void Deserialize(ref Reader reader, SerializerSession session, T value);
     }
 }

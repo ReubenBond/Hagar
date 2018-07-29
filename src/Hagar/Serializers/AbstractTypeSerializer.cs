@@ -20,13 +20,13 @@ namespace Hagar.Serializers
             this.codecProvider = codecProvider;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
             // If the value is null then we will not be able to get its type in order to get a concrete codec for it.
             // Therefore write the null reference and exit.
             if (value is null)
             {
-                ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, null);
+                ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, null);
                 return;
             }
 
@@ -34,7 +34,7 @@ namespace Hagar.Serializers
             var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
-                specificSerializer.WriteField(writer, session, fieldIdDelta, expectedType, value);
+                specificSerializer.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
             }
             else
             {
@@ -42,16 +42,16 @@ namespace Hagar.Serializers
             }
         }
 
-        public TField ReadValue(Reader reader, SerializerSession session, Field field)
+        public TField ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(reader, session, field, this.codecProvider);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(ref reader, session, field, this.codecProvider);
             var fieldType = field.FieldType;
             if (fieldType == null) ThrowMissingFieldType();
 
             var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
-                return (TField)specificSerializer.ReadValue(reader, session, field);
+                return (TField)specificSerializer.ReadValue(ref reader, session, field);
             }
 
             return ThrowSerializerNotFound(fieldType);

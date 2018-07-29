@@ -36,7 +36,7 @@ namespace Hagar.ISerializable
             this.createConstructorDelegate = constructorFactory.GetSerializationConstructorDelegate;
         }
 
-        public void WriteValue(Writer writer, SerializerSession session, object value)
+        public void WriteValue(ref Writer writer, SerializerSession session, object value)
         {
             var type = value.GetType();
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);
@@ -48,14 +48,14 @@ namespace Hagar.ISerializable
             foreach (var field in info)
             {
                 var surrogate = new SerializationEntrySurrogate(field);
-                this.entrySerializer.WriteField(writer, session, first ? 1 : (uint) 0, SerializationEntryCodec.SerializationEntryType, surrogate);
+                this.entrySerializer.WriteField(ref writer, session, first ? 1 : (uint) 0, SerializationEntryCodec.SerializationEntryType, surrogate);
                 if (first) first = false;
             }
             
             callbacks.OnSerialized?.Invoke(value, streamingContext);
         }
 
-        public object ReadValue(Reader reader, SerializerSession session, Type type, uint placeholderReferenceId)
+        public object ReadValue(ref Reader reader, SerializerSession session, Type type, uint placeholderReferenceId)
         {
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);
 
@@ -73,7 +73,7 @@ namespace Hagar.ISerializable
                 fieldId += header.FieldIdDelta;
                 if (fieldId == 1)
                 {
-                    var entry = this.entrySerializer.ReadValue(reader, session, header);
+                    var entry = this.entrySerializer.ReadValue(ref reader, session, header);
                     info.AddValue(entry.Name, entry.Value);
                 }
             }

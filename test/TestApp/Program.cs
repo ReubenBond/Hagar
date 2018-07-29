@@ -10,7 +10,6 @@ using Hagar.Codecs;
 using Hagar.ISerializable;
 using Hagar.Json;
 using Hagar.Configuration;
-using Hagar.ObjectModel;
 using Microsoft.Extensions.DependencyInjection;
 using MyPocos;
 using Newtonsoft.Json;
@@ -35,7 +34,8 @@ namespace TestApp
 
             var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
             var p = new Pipe();
-            c.Serialize(new Writer(p.Writer), serviceProvider.GetRequiredService<SessionPool>().GetSession(), new SubType());
+            var writer1 = new Writer(p.Writer);
+            c.Serialize(ref writer1, serviceProvider.GetRequiredService<SessionPool>().GetSession(), new SubType());
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();
@@ -44,7 +44,7 @@ namespace TestApp
             var writeSession = sessionPool.GetSession();
             var pipe = new Pipe();
             var writer = new Writer(pipe.Writer);
-            codec.WriteField(writer,
+            codec.WriteField(ref writer,
                              writeSession,
                              0,
                              typeof(SomeClassWithSerialzers),
@@ -55,14 +55,14 @@ namespace TestApp
             using (var readerSession = sessionPool.GetSession())
             {
                 var reader = new Reader(readResult.Buffer);
-                Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
+                //Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
             }
 
             using (var readerSession = sessionPool.GetSession())
             {
                 var reader = new Reader(readResult.Buffer);
                 var initialHeader = reader.ReadFieldHeader(readerSession);
-                var result = codec.ReadValue(reader, readerSession, initialHeader);
+                var result = codec.ReadValue(ref reader, readerSession, initialHeader);
                 Console.WriteLine(result);
             }
         }
@@ -254,9 +254,9 @@ namespace TestApp
             var pipe = new Pipe();
             var writer = new Writer(pipe.Writer);
 
-            serializer.WriteField(writer, session, 0, typeof(T), expected);
+            serializer.WriteField(ref writer, session, 0, typeof(T), expected);
 
-            Console.WriteLine($"Size: {writer.TotalLength} bytes.");
+            Console.WriteLine($"Size: {writer.Position} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Reader.TryRead(out var readResult);
@@ -264,7 +264,7 @@ namespace TestApp
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             //Console.WriteLine(initialHeader);
-            var actual = serializer.ReadValue(reader, deserializationContext, initialHeader);
+            var actual = serializer.ReadValue(ref reader, deserializationContext, initialHeader);
 
             Console.WriteLine($"Expect: {expected}\nActual: {actual}");
             var references = GetReadReferenceTable(deserializationContext);
@@ -298,7 +298,7 @@ namespace TestApp
             var pipe = new Pipe();
             var writer = new Writer(pipe.Writer);
 
-            serializer.WriteField(writer, session, 0, typeof(SubType), expected);
+            serializer.WriteField(ref writer, session, 0, typeof(SubType), expected);
 
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Reader.TryRead(out var readResult);
@@ -306,9 +306,9 @@ namespace TestApp
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             var skipCodec = new SkipFieldCodec();
-            skipCodec.ReadValue(reader, deserializationContext, initialHeader);
+            skipCodec.ReadValue(ref reader, deserializationContext, initialHeader);
             
-            Console.WriteLine($"Skipped {reader.CurrentPosition} bytes.");
+            Console.WriteLine($"Skipped {reader.Position} bytes.");
         }
     }
 

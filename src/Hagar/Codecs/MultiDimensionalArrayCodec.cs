@@ -23,9 +23,9 @@ namespace Hagar.Codecs
             this.elementCodec = elementCodec;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
             var array = (Array) value;
@@ -40,14 +40,14 @@ namespace Hagar.Codecs
                 lengths[i] = array.GetLength(i);
             }
 
-            this.intArrayCodec.WriteField(writer, session, 0, typeof(int[]), lengths);
+            this.intArrayCodec.WriteField(ref writer, session, 0, typeof(int[]), lengths);
 
             var remaining = array.Length;
             var first = true;
             while (remaining-- > 0)
             {
                 var element = array.GetValue(indices);
-                this.elementCodec.WriteField(writer, session, first ? 1U : 0, typeof(T), (T) element);
+                this.elementCodec.WriteField(ref writer, session, first ? 1U : 0, typeof(T), (T) element);
                 first = false;
 
                 // Increment the indices array by 1.
@@ -63,13 +63,14 @@ namespace Hagar.Codecs
                 }
             }
 
+            
             writer.WriteEndObject();
         }
 
-        public object ReadValue(Reader reader, SerializerSession session, Field field)
+        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<T[]>(reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<T[]>(ref reader, session, field, this.codecProvider);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
@@ -87,7 +88,7 @@ namespace Hagar.Codecs
                 {
                     case 0:
                     {
-                        lengths = this.intArrayCodec.ReadValue(reader, session, header);
+                        lengths = this.intArrayCodec.ReadValue(ref reader, session, header);
                         rank = lengths.Length;
 
                         // Multi-dimensional arrays must be indexed using indexing arrays, so create one now.
@@ -99,7 +100,7 @@ namespace Hagar.Codecs
                     case 1:
                     {
                         if (result == null) return ThrowLengthsFieldMissing();
-                        var element = this.elementCodec.ReadValue(reader, session, header);
+                        var element = this.elementCodec.ReadValue(ref reader, session, header);
                         result.SetValue(element, indices);
 
                         // Increment the indices array by 1.

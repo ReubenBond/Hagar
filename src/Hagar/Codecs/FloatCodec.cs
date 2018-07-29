@@ -8,7 +8,7 @@ namespace Hagar.Codecs
     public class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
         void IFieldCodec<float>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -16,10 +16,12 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(float), WireType.Fixed32);
+
+            // TODO: Optimize
             writer.Write((uint)BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         }
 
-        float IFieldCodec<float>.ReadValue(Reader reader, SerializerSession session, Field field)
+        float IFieldCodec<float>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             switch (field.WireType)
@@ -57,7 +59,7 @@ namespace Hagar.Codecs
     public class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
         void IFieldCodec<double>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -65,10 +67,12 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(double), WireType.Fixed64);
-            writer.Write(value);
+
+            // TODO: Optimize
+            writer.Write((ulong)BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
         }
 
-        double IFieldCodec<double>.ReadValue(Reader reader, SerializerSession session, Field field)
+        double IFieldCodec<double>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             switch (field.WireType)
@@ -91,7 +95,7 @@ namespace Hagar.Codecs
 
     public class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
     {
-        void IFieldCodec<decimal>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
+        void IFieldCodec<decimal>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(decimal), WireType.Fixed128);
@@ -99,7 +103,7 @@ namespace Hagar.Codecs
             foreach (var part in ints) writer.Write(part);
         }
 
-        decimal IFieldCodec<decimal>.ReadValue(Reader reader, SerializerSession session, Field field)
+        decimal IFieldCodec<decimal>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             switch (field.WireType)

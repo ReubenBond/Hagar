@@ -32,30 +32,30 @@ namespace Hagar.Codecs
             this.activator = activator;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Dictionary<TKey, TValue> value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Dictionary<TKey, TValue> value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
             
             if (value.Comparer != EqualityComparer<TKey>.Default)
             {
-                this.comparerCodec.WriteField(writer, session, 0, typeof(IEqualityComparer<TKey>), value.Comparer);
+                this.comparerCodec.WriteField(ref writer, session, 0, typeof(IEqualityComparer<TKey>), value.Comparer);
             }
 
             var first = true;
             foreach (var element in value)
             {
-                this.pairCodec.WriteField(writer, session, first ? 1U : 0, typeof(KeyValuePair<TKey, TValue>), element);
+                this.pairCodec.WriteField(ref writer, session, first ? 1U : 0, typeof(KeyValuePair<TKey, TValue>), element);
                 first = false;
             }
-
+            
             writer.WriteEndObject();
         }
 
-        public Dictionary<TKey, TValue> ReadValue(Reader reader, SerializerSession session, Field field)
+        public Dictionary<TKey, TValue> ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>>(reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>>(ref reader, session, field, this.codecProvider);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
@@ -70,7 +70,7 @@ namespace Hagar.Codecs
                 switch (fieldId)
                 {
                     case 0:
-                        comparer = this.comparerCodec.ReadValue(reader, session, header);
+                        comparer = this.comparerCodec.ReadValue(ref reader, session, header);
                         break;
                     case 1:
                         if (result == null)
@@ -78,7 +78,7 @@ namespace Hagar.Codecs
                             result = CreateInstance(comparer, session, placeholderReferenceId);
                         }
 
-                        var pair = this.pairCodec.ReadValue(reader, session, header);
+                        var pair = this.pairCodec.ReadValue(ref reader, session, header);
                         // ReSharper disable once PossibleNullReferenceException
                         result.Add(pair.Key, pair.Value);
                         break;

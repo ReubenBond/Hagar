@@ -19,7 +19,7 @@ namespace Hagar.Codecs
         }
 
         public static bool TryWriteReferenceField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldId,
             Type expectedType,
@@ -35,12 +35,12 @@ namespace Hagar.Codecs
             return true;
         }
 
-        public static T ReadReference<T>(Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers)
+        public static T ReadReference<T>(ref Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers)
         {
-            return (T) ReadReference(reader, session, field, serializers, typeof(T));
+            return (T) ReadReference(ref reader, session, field, serializers, typeof(T));
         }
 
-        public static object ReadReference(Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers, Type expectedType)
+        public static object ReadReference(ref Reader reader, SerializerSession session, Field field, IUntypedCodecProvider serializers, Type expectedType)
         {
             var reference = reader.ReadVarUInt32();
             if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object value))
@@ -51,14 +51,14 @@ namespace Hagar.Codecs
             switch (value)
             {
                 case UnknownFieldMarker marker:
-                    return DeserializeFromMarker(reader, session, field, serializers, marker, reference, expectedType);
+                    return DeserializeFromMarker(ref reader, session, field, serializers, marker, reference, expectedType);
                 default:
                     return value;
             }
         }
 
         private static object DeserializeFromMarker(
-            Reader reader,
+            ref Reader reader,
             SerializerSession session,
             Field field,
             IUntypedCodecProvider serializers,
@@ -82,7 +82,7 @@ namespace Hagar.Codecs
             // Deserialize the object, replacing the marker in the session.
             try
             {
-                return specificSerializer.ReadValue(referencedReader, session, marker.Field);
+                return specificSerializer.ReadValue(ref referencedReader, session, marker.Field);
             }
             finally
             {

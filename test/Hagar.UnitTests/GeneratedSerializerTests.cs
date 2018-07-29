@@ -131,18 +131,18 @@ namespace Hagar.UnitTests
             {
                 var codec = this.codecProvider.GetCodec<T>();
                 codec.WriteField(
-                    writer,
+                    ref writer,
                     writeSession,
                     0,
                     null,
                     original);
-
+                writer.Commit();
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
 
                 var initialHeader = reader.ReadFieldHeader(readerSession);
-                result = codec.ReadValue(reader, readerSession, initialHeader);
+                result = codec.ReadValue(ref reader, readerSession, initialHeader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
             }
             return result;
@@ -157,13 +157,13 @@ namespace Hagar.UnitTests
             using (var writeSession = this.sessionPool.GetSession())
             {
                 var serializer = this.serviceProvider.GetService<Serializer>();
-                serializer.Serialize(original, writeSession, writer);
+                serializer.Serialize(original, writeSession, ref writer);
 
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
 
-                result = serializer.Deserialize(readerSession, reader);
+                result = serializer.Deserialize(readerSession, ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
             }
 
