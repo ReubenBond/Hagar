@@ -32,7 +32,6 @@ namespace Hagar.Serializers
         {
             ReferenceCodec.MarkValueField(session);
             var value = default(TField);
-            ReferenceCodec.RecordObject(session, value);
             this.serializer.Deserialize(ref reader, session, ref value);
             return value;
         }
