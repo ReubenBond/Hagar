@@ -131,6 +131,7 @@ namespace Benchmarks
             var reader = new Reader(readResult.Buffer);
             this.structSerializer.Deserialize(session, ref reader);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reset();
         }
 
         private readonly Pipe sharedPipe = new Pipe(new PipeOptions(useSynchronizationContext: false));
@@ -181,7 +182,7 @@ namespace Benchmarks
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object HagarSerialize()
         {
             var pipe = new Pipe();
@@ -191,7 +192,7 @@ namespace Benchmarks
             return session;
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object OrleansSerialize()
         {
             var writer = new BinaryTokenStreamWriter();
@@ -199,12 +200,18 @@ namespace Benchmarks
             return writer;
         }
 
-        //[Benchmark]
+        [Benchmark]
         public object HagarDeserialize()
         {
             session.FullReset();
             var reader = new Reader(this.hagarBytes);
             return this.hagarSerializer.Deserialize(session, ref reader);
+        }
+
+        [Benchmark]
+        public object OrleansDeserialize()
+        {
+            return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));
         }
 
         //[Benchmark]
@@ -223,12 +230,6 @@ namespace Benchmarks
             var reader = new BinaryTokenStreamReader(this.orleansBytes);
             for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
             return sum;
-        }
-
-        //[Benchmark]
-        public object OrleansDeserialize()
-        {
-            return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));
         }
     }
 

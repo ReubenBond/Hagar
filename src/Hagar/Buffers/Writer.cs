@@ -1,19 +1,19 @@
 ﻿using System;
+using System.Buffers;
 using System.Buffers.Binary;
-using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 
 namespace Hagar.Buffers
 {
     public ref struct Writer
     {
-        private readonly PipeWriter output;
+        private readonly IBufferWriter<byte> output;
         private Span<byte> currentSpan;
         private int bufferPos;
         private int bufferSize;
         private int previousBuffersSize;
 
-        public Writer(PipeWriter output)
+        public Writer(IBufferWriter<byte> output)
         {
             this.output = output;
             this.currentSpan = output.GetSpan();

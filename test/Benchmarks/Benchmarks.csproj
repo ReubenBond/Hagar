@@ -4,9 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <HagarCodeGen>true</HagarCodeGen>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
@@ -16,6 +13,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="2.0.3" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.5.0" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="2.0.3" />
     <!--<PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.3" />-->
   </ItemGroup>
