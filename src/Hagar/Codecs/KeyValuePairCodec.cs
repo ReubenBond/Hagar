@@ -17,18 +17,19 @@ namespace Hagar.Codecs
             this.valueCodec = valueCodec;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.keyCodec.WriteField(writer, session, 0, typeof(TKey), value.Key);
-            this.valueCodec.WriteField(writer, session, 1, typeof(TValue), value.Value);
+            this.keyCodec.WriteField(ref writer, session, 0, typeof(TKey), value.Key);
+            this.valueCodec.WriteField(ref writer, session, 1, typeof(TValue), value.Value);
 
+            
             writer.WriteEndObject();
         }
 
-        public KeyValuePair<TKey, TValue> ReadValue(Reader reader, SerializerSession session, Field field)
+        public KeyValuePair<TKey, TValue> ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -44,10 +45,10 @@ namespace Hagar.Codecs
                 switch (fieldId)
                 {
                     case 0:
-                        key = this.keyCodec.ReadValue(reader, session, header);
+                        key = this.keyCodec.ReadValue(ref reader, session, header);
                         break;
                     case 1:
-                        value = this.valueCodec.ReadValue(reader, session, header);
+                        value = this.valueCodec.ReadValue(ref reader, session, header);
                         break;
                     default:
                         reader.ConsumeUnknownField(session, header);

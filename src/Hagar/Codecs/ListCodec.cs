@@ -27,26 +27,27 @@ namespace Hagar.Codecs
             this.activator = activator;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, List<T> value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, List<T> value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.intCodec.WriteField(writer, session, 0, typeof(int), value.Count);
+            this.intCodec.WriteField(ref writer, session, 0, typeof(int), value.Count);
             var first = true;
             foreach (var element in value)
             {
-                this.fieldCodec.WriteField(writer, session, first ? 1U : 0, typeof(T), element);
+                this.fieldCodec.WriteField(ref writer, session, first ? 1U : 0, typeof(T), element);
                 first = false;
             }
 
+            
             writer.WriteEndObject();
         }
 
-        public List<T> ReadValue(Reader reader, SerializerSession session, Field field)
+        public List<T> ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<List<T>>(reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<List<T>>(ref reader, session, field, this.codecProvider);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
@@ -62,7 +63,7 @@ namespace Hagar.Codecs
                 switch (fieldId)
                 {
                     case 0:
-                        length = this.intCodec.ReadValue(reader, session, header);
+                        length = this.intCodec.ReadValue(ref reader, session, header);
                         result = this.activator.Create(length);
                         result.Capacity = length;
                         ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
@@ -71,7 +72,7 @@ namespace Hagar.Codecs
                         if (result == null) ThrowLengthFieldMissing();
                         if (index >= length) ThrowIndexOutOfRangeException(length);
                         // ReSharper disable once PossibleNullReferenceException
-                        result.Add(this.fieldCodec.ReadValue(reader, session, header));
+                        result.Add(this.fieldCodec.ReadValue(ref reader, session, header));
                         ++index;
                         break;
                     default:

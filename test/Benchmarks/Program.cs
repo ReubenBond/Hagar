@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
@@ -18,7 +20,26 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            //new ComplexTypeBenchmarks().HagarSerializer();
+            if (args.Length > 0 && args[0] == "loop")
+            {
+                var benchmarks = new ComplexTypeBenchmarks();
+                var pipe = new Pipe();
+                while (true)
+                {
+                    benchmarks.SerializeComplex(pipe);
+                }
+            }
+
+            if (args.Length > 0 && args[0] == "structloop")
+            {
+                var benchmarks = new ComplexTypeBenchmarks();
+                var pipe = new Pipe();
+                while (true)
+                {
+                    benchmarks.SerializeStruct(pipe);
+                }
+            }
+
             BenchmarkRunner.Run<ComplexTypeBenchmarks>();
         }
     }
@@ -26,13 +47,16 @@ namespace Benchmarks
     [MemoryDiagnoser]
     public class ComplexTypeBenchmarks
     {
+        private readonly Serializer<SimpleStruct> structSerializer;
         private readonly Serializer<ComplexClass> hagarSerializer;
         private readonly SessionPool sessionPool;
         private readonly ComplexClass value;
         private readonly SerializationManager orleansSerializer;
         private readonly SerializerSession session;
-        private List<ArraySegment<byte>> hagarBytes;
-        private List<ArraySegment<byte>> orleansBytes;
+        private readonly ReadOnlySequence<byte> hagarBytes;
+        private readonly List<ArraySegment<byte>> orleansBytes;
+        private readonly long readBytesLength;
+        private SimpleStruct structValue;
 
         public ComplexTypeBenchmarks()
         {
@@ -49,37 +73,105 @@ namespace Benchmarks
                 .AddSerializers(typeof(Program).Assembly);
             var serviceProvider = services.BuildServiceProvider();
             this.hagarSerializer = serviceProvider.GetRequiredService<Serializer<ComplexClass>>();
+            this.structSerializer = serviceProvider.GetRequiredService<Serializer<SimpleStruct>>();
             this.sessionPool = serviceProvider.GetRequiredService<SessionPool>();
             this.value = new ComplexClass
             {
                 BaseInt = 192,
                 Int = 501,
                 String = "bananas",
-                Array = Enumerable.Range(0, 60).ToArray(),
-                MultiDimensionalArray = new[,] {{0, 2, 4}, {1, 5, 6}}
+                //Array = Enumerable.Range(0, 60).ToArray(),
+                //MultiDimensionalArray = new[,] {{0, 2, 4}, {1, 5, 6}}
             };
             this.value.AlsoSelf = this.value.BaseSelf = this.value.Self = this.value;
+
+            this.structValue = new SimpleStruct
+            {
+                Int = 42,
+                Bool = true
+            };
             this.session = sessionPool.GetSession();
-            var writer = new Writer();
-            this.hagarSerializer.Serialize(this.value, session, writer);
-            this.hagarBytes = writer.ToBytes();
-            
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
+            this.hagarBytes = readResult.Buffer;
+
             var writer2 = new BinaryTokenStreamWriter();
             this.orleansSerializer.Serialize(this.value, writer2);
             this.orleansBytes = writer2.ToBytes();
+
+            this.readBytesLength = Math.Min(readResult.Buffer.Length, orleansBytes.Sum(x => x.Count));
+        }
+
+        public void SerializeComplex(Pipe pipe)
+        {
+            var writer = new Writer(pipe.Writer);
+            session.FullReset();
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
+
+            session.FullReset();
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            var readResult = pipe.Reader.ReadAsync().GetAwaiter().GetResult();
+            var reader = new Reader(readResult.Buffer);
+            this.hagarSerializer.Deserialize(session, ref reader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+        }
+
+        public void SerializeStruct(Pipe pipe)
+        {
+            var writer = new Writer(pipe.Writer);
+            session.FullReset();
+            this.structSerializer.Serialize(this.structValue, session, ref writer);
+
+            session.FullReset();
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            var readResult = pipe.Reader.ReadAsync().GetAwaiter().GetResult();
+            var reader = new Reader(readResult.Buffer);
+            this.structSerializer.Deserialize(session, ref reader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reset();
+        }
+
+        private readonly Pipe sharedPipe = new Pipe(new PipeOptions(useSynchronizationContext: false));
+        [Benchmark]
+        public SimpleStruct HagarStructRoundTrip()
+        {
+            var writer = new Writer(sharedPipe.Writer);
+            session.FullReset();
+            this.structSerializer.Serialize(this.structValue, session, ref writer);
+
+            session.FullReset();
+            sharedPipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            var readResult = sharedPipe.Reader.ReadAsync().GetAwaiter().GetResult();
+            var reader = new Reader(readResult.Buffer);
+            var result = this.structSerializer.Deserialize(session, ref reader);
+            sharedPipe.Reader.AdvanceTo(readResult.Buffer.End);
+            return result;
+        }
+
+        [Benchmark]
+        public SimpleStruct OrleansStructRoundTrip()
+        {
+            var writer = new BinaryTokenStreamWriter();
+            this.orleansSerializer.Serialize(this.structValue, writer);
+            return (SimpleStruct)this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
         //[Benchmark]
         public object HagarSerializer()
         {
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, writer);
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
 
             session.FullReset();
-
-            var reader = new Reader(writer.ToBytes());
-            return this.hagarSerializer.Deserialize(session, reader);
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer);
+            return this.hagarSerializer.Deserialize(session, ref reader);
         }
 
         //[Benchmark]
@@ -93,9 +185,10 @@ namespace Benchmarks
         [Benchmark]
         public object HagarSerialize()
         {
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, writer);
+            this.hagarSerializer.Serialize(this.value, session, ref writer);
             return session;
         }
 
@@ -111,7 +204,8 @@ namespace Benchmarks
         public object HagarDeserialize()
         {
             session.FullReset();
-            return this.hagarSerializer.Deserialize(session, new Reader(this.hagarBytes));
+            var reader = new Reader(this.hagarBytes);
+            return this.hagarSerializer.Deserialize(session, ref reader);
         }
 
         [Benchmark]
@@ -119,13 +213,31 @@ namespace Benchmarks
         {
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));
         }
+
+        //[Benchmark]
+        public int HagarReadEachByte()
+        {
+            var sum = 0;
+            var reader = new Reader(this.hagarBytes);
+            for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
+            return sum;
+        }
+
+        //[Benchmark]
+        public int OrleansReadEachByte()
+        {
+            var sum = 0;
+            var reader = new BinaryTokenStreamReader(this.orleansBytes);
+            for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
+            return sum;
+        }
     }
 
     [Serializable]
     [GenerateSerializer]
     public class SimpleClass
     {
-        [FieldId(0)]
+        [Id(0)]
         public int BaseInt { get; set; }
     }
 
@@ -133,25 +245,39 @@ namespace Benchmarks
     [GenerateSerializer]
     public class ComplexClass : SimpleClass
     {
-        [FieldId(0)]
+        [Id(0)]
         public int Int { get; set; }
 
-        [FieldId(1)]
+        [Id(1)]
         public string String { get; set; }
 
-        [FieldId(2)]
+        [Id(2)]
         public ComplexClass Self { get; set; }
 
-        [FieldId(3)]
+        [Id(3)]
         public object AlsoSelf { get; set; }
 
-        [FieldId(4)]
+        [Id(4)]
         public SimpleClass BaseSelf { get; set; }
 
-        [FieldId(5)]
+        [Id(5)]
         public int[] Array { get; set; }
 
-        [FieldId(6)]
+        [Id(6)]
         public int[,] MultiDimensionalArray { get; set; }
+    }
+
+    [Serializable]
+    [GenerateSerializer]
+    public struct SimpleStruct
+    {
+        [Id(0)]
+        public int Int { get; set; }
+
+        [Id(1)]
+        public bool Bool { get; set; }
+        
+        [Id(3)]
+        public object AlwaysNull { get; set; }
     }
 }

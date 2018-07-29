@@ -9,7 +9,7 @@ namespace Hagar.Codecs
     public class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>
     {
         void IFieldCodec<bool>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -20,7 +20,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value ? 1 : 0);
         }
 
-        bool IFieldCodec<bool>.ReadValue(Reader reader, SerializerSession session, Field field)
+        bool IFieldCodec<bool>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadUInt8(field.WireType) == 1;
@@ -30,7 +30,7 @@ namespace Hagar.Codecs
     public class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>
     {
         void IFieldCodec<char>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -41,7 +41,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        char IFieldCodec<char>.ReadValue(Reader reader, SerializerSession session, Field field)
+        char IFieldCodec<char>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return (char)reader.ReadUInt8(field.WireType);
@@ -51,7 +51,7 @@ namespace Hagar.Codecs
     public class ByteCodec : TypedCodecBase<byte, ByteCodec>, IFieldCodec<byte>
     {
         void IFieldCodec<byte>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -62,7 +62,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        byte IFieldCodec<byte>.ReadValue(Reader reader, SerializerSession session, Field field)
+        byte IFieldCodec<byte>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadUInt8(field.WireType);
@@ -72,7 +72,7 @@ namespace Hagar.Codecs
     public class SByteCodec : TypedCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>
     {
         void IFieldCodec<sbyte>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -83,7 +83,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        sbyte IFieldCodec<sbyte>.ReadValue(Reader reader, SerializerSession session, Field field)
+        sbyte IFieldCodec<sbyte>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadInt8(field.WireType);
@@ -92,14 +92,14 @@ namespace Hagar.Codecs
 
     public class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
     {
-        ushort IFieldCodec<ushort>.ReadValue(Reader reader, SerializerSession session, Field field)
+        ushort IFieldCodec<ushort>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadUInt16(field.WireType);
         }
 
         void IFieldCodec<ushort>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -114,7 +114,7 @@ namespace Hagar.Codecs
     public class Int16Codec : TypedCodecBase<short, Int16Codec>, IFieldCodec<short>
     {
         void IFieldCodec<short>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -125,7 +125,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        short IFieldCodec<short>.ReadValue(Reader reader, SerializerSession session, Field field)
+        short IFieldCodec<short>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadInt16(field.WireType);
@@ -135,7 +135,7 @@ namespace Hagar.Codecs
     public class UInt32Codec : TypedCodecBase<uint, UInt32Codec>, IFieldCodec<uint>
     {
         void IFieldCodec<uint>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -154,7 +154,7 @@ namespace Hagar.Codecs
             }
         }
 
-        uint IFieldCodec<uint>.ReadValue(Reader reader, SerializerSession session, Field field)
+        uint IFieldCodec<uint>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadUInt32(field.WireType);
@@ -164,7 +164,7 @@ namespace Hagar.Codecs
     public class Int32Codec : TypedCodecBase<int, Int32Codec>, IFieldCodec<int>
     {
         void IFieldCodec<int>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -183,7 +183,7 @@ namespace Hagar.Codecs
             }
         }
 
-        int IFieldCodec<int>.ReadValue(Reader reader, SerializerSession session, Field field)
+        int IFieldCodec<int>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadInt32(field.WireType);
@@ -192,7 +192,7 @@ namespace Hagar.Codecs
 
     public class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>
     {
-        void IFieldCodec<long>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, long value)
+        void IFieldCodec<long>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, long value)
         {
             ReferenceCodec.MarkValueField(session);
             if (value <= int.MaxValue && value >= int.MinValue)
@@ -200,7 +200,7 @@ namespace Hagar.Codecs
                 if (value > 1 << 20 || -value > 1 << 20)
                 {
                     writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed32);
-                    writer.Write(value);
+                    writer.Write((int)value);
                 }
                 else
                 {
@@ -220,7 +220,7 @@ namespace Hagar.Codecs
             }
         }
 
-        long IFieldCodec<long>.ReadValue(Reader reader, SerializerSession session, Field field)
+        long IFieldCodec<long>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadInt64(field.WireType);
@@ -230,7 +230,7 @@ namespace Hagar.Codecs
     public class UInt64Codec : TypedCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>
     {
         void IFieldCodec<ulong>.WriteField(
-            Writer writer,
+            ref Writer writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -242,7 +242,7 @@ namespace Hagar.Codecs
                 if (value > 1 << 20)
                 {
                     writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed32);
-                    writer.Write(value);
+                    writer.Write((uint)value);
                 }
                 else
                 {
@@ -262,7 +262,7 @@ namespace Hagar.Codecs
             }
         }
 
-        ulong IFieldCodec<ulong>.ReadValue(Reader reader, SerializerSession session, Field field)
+        ulong IFieldCodec<ulong>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             return reader.ReadUInt64(field.WireType);

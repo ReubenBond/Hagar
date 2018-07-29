@@ -20,9 +20,9 @@ namespace Hagar.Codecs
             this.codecProvider = codecProvider;
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, TypeType, WireType.TagDelimited);
             var (schemaType, id) = GetSchemaType(session, value);
 
@@ -36,7 +36,7 @@ namespace Hagar.Codecs
                 // If the type is encoded, write the length-prefixed bytes.
                 ReferenceCodec.MarkValueField(session);
                 writer.WriteFieldHeader(session, 1, ByteArrayType, ByteArrayType, WireType.LengthPrefixed);
-                session.TypeCodec.Write(writer, value);
+                session.TypeCodec.Write(ref writer, value);
             }
             else
             {
@@ -46,12 +46,13 @@ namespace Hagar.Codecs
                 writer.WriteVarInt((uint) id);
             }
 
+            
             writer.WriteEndObject();
         }
 
-        public Type ReadValue(Reader reader, SerializerSession session, Field field)
+        public Type ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(reader, session, field, this.codecProvider);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(ref reader, session, field, this.codecProvider);
 
             uint fieldId = 0;
             var schemaType = default(SchemaType);
@@ -69,7 +70,7 @@ namespace Hagar.Codecs
                         schemaType = (SchemaType) reader.ReadVarUInt32();
                         break;
                     case 1:
-                        result = session.TypeCodec.Read(reader);
+                        result = session.TypeCodec.Read(ref reader);
                         break;
                     case 2:
                         id = reader.ReadVarUInt32();

@@ -48,42 +48,42 @@ namespace Hagar.ISerializable
                 this.streamingContext);
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             var type = value.GetType();
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, CodecType, WireType.TagDelimited);
-            this.typeCodec.WriteField(writer, session, 0, typeof(Type), type);
+            this.typeCodec.WriteField(ref writer, session, 0, typeof(Type), type);
 
             if (type.IsValueType)
             {
                 var serializer = this.valueTypeSerializerFactory.GetSerializer(type);
-                serializer.WriteValue(writer, session, value);
+                serializer.WriteValue(ref writer, session, value);
             }
             else
             {
-                this.objectSerializer.WriteValue(writer, session, value);
+                this.objectSerializer.WriteValue(ref writer, session, value);
             }
-
+            
             writer.WriteEndObject();
         }
 
-        public object ReadValue(Reader reader, SerializerSession session, Field field)
+        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(reader, session, field, this.untypedCodecProvider, null);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference(ref reader, session, field, this.untypedCodecProvider, null);
           
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
             var header = reader.ReadFieldHeader(session);
                 
-            var type = this.typeCodec.ReadValue(reader, session, header);
+            var type = this.typeCodec.ReadValue(ref reader, session, header);
 
             if (type.IsValueType)
             {
                 var serializer = this.valueTypeSerializerFactory.GetSerializer(type);
-                return serializer.ReadValue(reader, session, type, placeholderReferenceId);
+                return serializer.ReadValue(ref reader, session, type, placeholderReferenceId);
             }
 
-            return this.objectSerializer.ReadValue(reader, session, type, placeholderReferenceId);
+            return this.objectSerializer.ReadValue(ref reader, session, type, placeholderReferenceId);
         }
 
         public bool IsSupportedType(Type type) =>

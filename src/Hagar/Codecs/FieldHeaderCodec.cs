@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.Utilities;
@@ -11,20 +12,21 @@ namespace Hagar.Codecs
     /// </summary>
     public static class FieldHeaderCodec
     {
-        public static void WriteFieldHeader(this Writer writer, SerializerSession session, uint fieldId, Type expectedType, Type actualType, WireType wireType)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteFieldHeader(this ref Writer writer, SerializerSession session, uint fieldId, Type expectedType, Type actualType, WireType wireType)
         {
-            var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(session, expectedType, actualType);
             var field = default(Field);
             field.FieldIdDelta = fieldId;
-            field.SchemaType = schemaType;
+            uint idOrReference;
+            (field.SchemaType, idOrReference) = GetSchemaTypeWithEncoding(session, expectedType, actualType);
             field.WireType = wireType;
 
             writer.Write(field.Tag);
             if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldIdDelta);
-            if (field.HasExtendedSchemaType) writer.WriteType(session, schemaType, idOrReference, actualType);
+            if (field.HasExtendedSchemaType) writer.WriteType(session, field.SchemaType, idOrReference, actualType);
         }
 
-        public static Field ReadFieldHeader(this Reader reader, SerializerSession session)
+        public static Field ReadFieldHeader(this ref Reader reader, SerializerSession session)
         {
             var field = default(Field);
             field.Tag = reader.ReadByte();
@@ -34,6 +36,7 @@ namespace Hagar.Codecs
             return field;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializerSession session, Type expectedType, Type actualType)
         {
             if (actualType == expectedType)
@@ -54,7 +57,8 @@ namespace Hagar.Codecs
             return (SchemaType.Encoded, 0);
         }
 
-        private static void WriteType(this Writer writer, SerializerSession session, SchemaType schemaType, uint idOrReference, Type type)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void WriteType(this ref Writer writer, SerializerSession session, SchemaType schemaType, uint idOrReference, Type type)
         {
             switch (schemaType)
             {
@@ -65,7 +69,7 @@ namespace Hagar.Codecs
                     writer.WriteVarInt(idOrReference);
                     break;
                 case SchemaType.Encoded:
-                    session.TypeCodec.Write(writer, type);
+                    session.TypeCodec.Write(ref writer, type);
                     break;
                 default:
                     ExceptionHelper.ThrowArgumentOutOfRange(nameof(schemaType));
@@ -73,7 +77,7 @@ namespace Hagar.Codecs
             }
         }
 
-        private static Type ReadType(this Reader reader, SerializerSession session, SchemaType schemaType)
+        private static Type ReadType(this ref Reader reader, SerializerSession session, SchemaType schemaType)
         {
             switch (schemaType)
             {
@@ -83,7 +87,7 @@ namespace Hagar.Codecs
                     var typeId = reader.ReadVarUInt32();
                     return session.WellKnownTypes.GetWellKnownType(typeId);
                 case SchemaType.Encoded:
-                    session.TypeCodec.TryRead(reader, out Type encoded);
+                    session.TypeCodec.TryRead(ref reader, out Type encoded);
                     return encoded;
                 case SchemaType.Referenced:
                     var reference = reader.ReadVarUInt32();

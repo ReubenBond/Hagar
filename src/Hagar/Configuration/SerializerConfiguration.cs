@@ -9,7 +9,9 @@ namespace Hagar.Configuration
 
         public HashSet<Type> FieldCodecs { get; } = new HashSet<Type>();
 
-        public HashSet<Type> PartialSerializers { get; } = new HashSet<Type>();
+        public HashSet<Type> Serializers { get; } = new HashSet<Type>();
+
+        public HashSet<Type> ValueSerializers { get; } = new HashSet<Type>();
     }
 
     public class TypeConfiguration

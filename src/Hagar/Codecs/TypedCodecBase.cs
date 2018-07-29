@@ -15,14 +15,14 @@ namespace Hagar.Codecs
             if (this.codec == null) ThrowInvalidSubclass();
         }
 
-        void IFieldCodec<object>.WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            this.codec.WriteField(writer, session, fieldIdDelta, expectedType, (TField)value);
+            this.codec.WriteField(ref writer, session, fieldIdDelta, expectedType, (TField)value);
         }
 
-        object IFieldCodec<object>.ReadValue(Reader reader, SerializerSession session, Field field)
+        object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            return this.codec.ReadValue(reader, session, field);
+            return this.codec.ReadValue(ref reader, session, field);
         }
 
         private static void ThrowInvalidSubclass()

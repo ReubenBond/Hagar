@@ -9,6 +9,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.ObjectModel
 {
+    /*
     public static class TokenStreamParser
     {
         public static IEnumerable<string> Parse(Reader reader, SerializerSession session)
@@ -45,17 +46,17 @@ namespace Hagar.ObjectModel
                             break;
                         case WireType.LengthPrefixed:
                             var length = reader.ReadVarUInt32();
-                            var bytes = reader.ReadBytes((int) length);
+                            var bytes = reader.ReadBytes(length);
                             yield return $"[Length: {length}, Bytes: {bytes.Take(80).Select(b => b.ToString("X2"))}{(length > 80 ? "..." : string.Empty)}]";
                             break;
                         case WireType.Fixed32:
-                            yield return $"[Fixed32: {reader.ReadUInt():X8}]";
+                            yield return $"[Fixed32: {reader.ReadUInt32():X8}]";
                             break;
                         case WireType.Fixed64:
-                            yield return $"[Fixed64: {reader.ReadULong():X16}]";
+                            yield return $"[Fixed64: {reader.ReadUInt64():X16}]";
                             break;
                         case WireType.Fixed128:
-                            yield return $"[Fixed128: {reader.ReadULong():X16}{reader.ReadULong():X16}]";
+                            yield return $"[Fixed128: {reader.ReadUInt64():X16}{reader.ReadUInt64():X16}]";
                             break;
                         case WireType.Reference:
                             yield return $"[Reference: {reader.ReadVarUInt32()}]";
@@ -70,5 +71,5 @@ namespace Hagar.ObjectModel
                 if (objectDepth == 0) yield break;
             }
         }
-    }
+    }*/
 }

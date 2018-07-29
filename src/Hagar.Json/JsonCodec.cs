@@ -35,9 +35,9 @@ namespace Hagar.Json
             this.isSupportedFunc = isSupportedFunc ?? (_ => true);
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             var result = JsonConvert.SerializeObject(value, this.settings);
             
             // The schema type when serializing the field is the type of the codec.
@@ -52,14 +52,14 @@ namespace Hagar.Json
             writer.Write(bytes);
         }
 
-        public object ReadValue(Reader reader, SerializerSession session, Field field)
+        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<object>(reader, session, field, this.codecProvider);
+                return ReferenceCodec.ReadReference<object>(ref reader, session, field, this.codecProvider);
             
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
-            var bytes = reader.ReadBytes((int)length);
+            var bytes = reader.ReadBytes(length);
 
             // TODO: NoAlloc
             var resultString = Encoding.UTF8.GetString(bytes);

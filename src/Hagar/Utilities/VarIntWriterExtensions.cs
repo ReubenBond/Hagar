@@ -1,78 +1,98 @@
-using System;
+using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 
 namespace Hagar.Utilities
 {
     public static class VarIntWriterExtensions
     {
-        public static void WriteVarInt(this Writer writer, sbyte value) => WriteVarInt(writer, ZigZagEncode(value));
-        public static void WriteVarInt(this Writer writer, short value) => WriteVarInt(writer, ZigZagEncode(value));
-        public static void WriteVarInt(this Writer writer, int value) => WriteVarInt(writer, ZigZagEncode(value));
-        public static void WriteVarInt(this Writer writer, long value) => WriteVarInt(writer, ZigZagEncode(value));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, sbyte value) => WriteVarInt(ref writer, ZigZagEncode(value));
 
-        public static void WriteVarInt(this Writer writer, byte value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, short value) => WriteVarInt(ref writer, ZigZagEncode(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, int value) => WriteVarInt(ref writer, ZigZagEncode(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, long value) => WriteVarInt(ref writer, ZigZagEncode(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, byte value)
         {
-            var scratch = new byte[2];
+            writer.EnsureContiguous(2);
             var count = 0;
+            var span = writer.WritableSpan;
             do
             {
-                scratch[count++] = (byte)((value & 0x7F) | 0x80);
+                span[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
-            scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(scratch, 0, count);
+            span[count - 1] &= 0x7F; // adjust the last byte.
+            writer.AdvanceSpan(count);
         }
 
-        public static void WriteVarInt(this Writer writer, ushort value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, ushort value)
         {
-            var scratch = new byte[3];
+            writer.EnsureContiguous(3);
+
             var count = 0;
+            var span = writer.WritableSpan;
             do
             {
-                scratch[count++] = (byte)((value & 0x7F) | 0x80);
+                span[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
-            scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(scratch, 0, count);
+            span[count - 1] &= 0x7F; // adjust the last byte.
+            writer.AdvanceSpan(count);
         }
 
-        public static void WriteVarInt(this Writer writer, uint value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, uint value)
         {
-            var scratch = new byte[5];
+            writer.EnsureContiguous(5);
             var count = 0;
+            var span = writer.WritableSpan;
             do
             {
-                scratch[count++] = (byte)((value & 0x7F) | 0x80);
+                span[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
-            scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(scratch, 0, count);
+            span[count - 1] &= 0x7F; // adjust the last byte.
+            writer.AdvanceSpan(count);
         }
 
-        public static void WriteVarInt(this Writer writer, ulong value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteVarInt(ref this Writer writer, ulong value)
         {
-            var scratch = new byte[10];
+            writer.EnsureContiguous(10);
             var count = 0;
+            var span = writer.WritableSpan;
             do
             {
-                scratch[count++] = (byte)((value & 0x7F) | 0x80);
+                span[count++] = (byte)((value & 0x7F) | 0x80);
             } while ((value >>= 7) != 0);
-            scratch[count - 1] &= 0x7F; // adjust the last byte.
-            writer.Write(scratch, 0, count);
+            span[count - 1] &= 0x7F; // adjust the last byte.
+            writer.AdvanceSpan(count);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte ZigZagEncode(sbyte value)
         {
             return (byte)((value << 1) ^ (value >> 7));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort ZigZagEncode(short value)
         {
             return (ushort)((value << 1) ^ (value >> 15));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint ZigZagEncode(int value)
         {
             return (uint)((value << 1) ^ (value >> 31));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong ZigZagEncode(long value)
         {
             return (ulong)((value << 1) ^ (value >> 63));

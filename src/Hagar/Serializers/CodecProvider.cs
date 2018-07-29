@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,9 +17,11 @@ namespace Hagar.Serializers
         private static readonly MethodInfo TypedCodecWrapperCreateMethod = typeof(CodecAdapter).GetMethod(nameof(CodecAdapter.CreateUntypedFromTyped), BindingFlags.Public | BindingFlags.Static);
 
         private readonly object initializationLock = new object();
-        private readonly CachedReadConcurrentDictionary<(Type, Type), IFieldCodec> adaptedCodecs = new CachedReadConcurrentDictionary<(Type, Type), IFieldCodec>();
-        private readonly CachedReadConcurrentDictionary<Type, object> instantiatedPartialSerializers = new CachedReadConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<(Type, Type), IFieldCodec> adaptedCodecs = new ConcurrentDictionary<(Type, Type), IFieldCodec>();
+        private readonly ConcurrentDictionary<Type, object> instantiatedPartialSerializers = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Type, object> instantiatedValueSerializers = new ConcurrentDictionary<Type, object>();
         private readonly Dictionary<Type, Type> partialSerializers = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> valueSerializers = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> fieldCodecs = new Dictionary<Type, Type>();
         private readonly List<IGeneralizedCodec> generalized = new List<IGeneralizedCodec>();
         private readonly VoidCodec voidCodec = new VoidCodec();
@@ -50,16 +53,17 @@ namespace Hagar.Serializers
         private void ConsumeMetadata(IConfiguration<SerializerConfiguration> codecConfiguration)
         {
             var metadata = codecConfiguration.Value;
-            AddFromMetadata(this.partialSerializers, metadata.PartialSerializers, typeof(IPartialSerializer<>));
+            AddFromMetadata(this.partialSerializers, metadata.Serializers, typeof(IPartialSerializer<>));
+            AddFromMetadata(this.valueSerializers, metadata.Serializers, typeof(IValueSerializer<>));
             AddFromMetadata(this.fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
             
             void AddFromMetadata(Dictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
             {
                 if (genericType.GetGenericArguments().Length != 1) throw new ArgumentException($"Type {genericType} must have an arity of 1.");
 
-                foreach (var fieldCodec in metadataCollection)
+                foreach (var type in metadataCollection)
                 {
-                    foreach (var iface in fieldCodec.GetInterfaces())
+                    foreach (var iface in type.GetInterfaces())
                     {
                         if (!iface.IsGenericType) continue;
                         if (genericType != iface.GetGenericTypeDefinition()) continue;
@@ -69,7 +73,7 @@ namespace Hagar.Serializers
                         {
                             genericArgument = genericArgument.GetGenericTypeDefinition();
                         }
-                        resultCollection[genericArgument] = fieldCodec;
+                        resultCollection[genericArgument] = type;
                     }
                 }
             }
@@ -188,7 +192,7 @@ namespace Hagar.Serializers
                 throw new InvalidOperationException($"Cannot convert codec of type {rawCodec.GetType()} to codec of type {typeof(IFieldCodec<TField>)}.");
             }
         }
-        
+
         public IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class
         {
             if (!this.initialized) this.Initialize();
@@ -197,6 +201,16 @@ namespace Hagar.Serializers
             var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
             return this.GetPartialSerializerInner<TField>(type, searchType) ?? ThrowPartialSerializerNotFound<TField>(type);
+        }
+
+        public IValueSerializer<TField> GetValueSerializer<TField>() where TField : struct
+        {
+            if (!this.initialized) this.Initialize();
+            ThrowIfUnsupportedType(typeof(TField));
+            var type = typeof(TField);
+            var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+
+            return this.GetValueSerializerInner<TField>(type, searchType) ?? ThrowValueSerializerNotFound<TField>(type);
         }
 
         private IPartialSerializer<TField> GetPartialSerializerInner<TField>(Type concreteType, Type searchType) where TField : class
@@ -210,6 +224,19 @@ namespace Hagar.Serializers
             }
 
             return (IPartialSerializer<TField>)result;
+        }
+
+        private IValueSerializer<TField> GetValueSerializerInner<TField>(Type concreteType, Type searchType) where TField : struct
+        {
+            if (!this.valueSerializers.TryGetValue(searchType, out var serializerType)) return null;
+            if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(concreteType.GetGenericArguments());
+            if (!this.instantiatedValueSerializers.TryGetValue(serializerType, out var result))
+            {
+                result = GetServiceOrCreateInstance(serializerType);
+                this.instantiatedValueSerializers.TryAdd(serializerType, result);
+            }
+
+            return (IValueSerializer<TField>)result;
         }
 
         private static void ThrowIfUnsupportedType(Type fieldType)
@@ -241,10 +268,15 @@ namespace Hagar.Serializers
             {
                 if (codecType.IsGenericTypeDefinition) codecType = codecType.MakeGenericType(fieldType.GetGenericArguments());
             }
-            else if (this.partialSerializers.TryGetValue(searchType, out var serializerType))
+            else if (this.partialSerializers.TryGetValue(searchType, out var _))
             {
                 // If there is a partial serializer for this type, create a codec which will then accept that partial serializer.
                 codecType = typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType);
+            }
+            else if (this.valueSerializers.TryGetValue(searchType, out var _))
+            {
+                // If there is a value serializer for this type, create a codec which will then accept that value serializer.
+                codecType = typeof(ValueSerializer<>).MakeGenericType(fieldType);
             }
             else if (fieldType.IsArray)
             {
@@ -274,5 +306,6 @@ namespace Hagar.Serializers
         // TODO: Use a library-specific exception.
         private static IFieldCodec<TField> ThrowCodecNotFound<TField>(Type fieldType) => throw new KeyNotFoundException($"Could not find a codec for type {fieldType}.");
         private static IPartialSerializer<TField> ThrowPartialSerializerNotFound<TField>(Type fieldType) where TField : class => throw new KeyNotFoundException($"Could not find a partial serializer for type {fieldType}.");
+        private static IValueSerializer<TField> ThrowValueSerializerNotFound<TField>(Type fieldType) where TField : struct => throw new KeyNotFoundException($"Could not find a value serializer for type {fieldType}.");
     }
 }

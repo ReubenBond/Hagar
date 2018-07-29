@@ -67,15 +67,17 @@ namespace Hagar.Session
             public static ReferenceEqualsComparer Instance { get; } = new ReferenceEqualsComparer();
 
             /// <inheritdoc />
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             bool IEqualityComparer<object>.Equals(object x, object y)
             {
                 return ReferenceEquals(x, y);
             }
 
             /// <inheritdoc />
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             int IEqualityComparer<object>.GetHashCode(object obj)
             {
-                return obj == null ? 0 : RuntimeHelpers.GetHashCode(obj);
+                return RuntimeHelpers.GetHashCode(obj);
             }
         }
     }

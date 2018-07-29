@@ -14,7 +14,7 @@ namespace Hagar.CodeGenerator
         public static ClassDeclarationSyntax GenerateMetadata(Compilation compilation, List<TypeDescription> serializableTypes)
         {
             var configParam = "config".ToIdentifierName();
-            var addMethod = configParam.Member("PartialSerializers").Member("Add");
+            var addMethod = configParam.Member("Serializers").Member("Add");
             var body = new List<StatementSyntax>();
             body.AddRange(
                 serializableTypes.Select(

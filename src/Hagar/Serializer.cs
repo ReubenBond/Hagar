@@ -25,15 +25,16 @@ namespace Hagar
             this.codec = codecProvider.GetCodec<T>();
         }
 
-        public void Serialize(T value, SerializerSession session, Writer writer)
+        public void Serialize(T value, SerializerSession session, ref Writer writer)
         {
-            this.codec.WriteField(writer, session, 0, this.expectedType, value);
+            this.codec.WriteField(ref writer, session, 0, this.expectedType, value);
+            writer.Commit();
         }
 
-        public T Deserialize(SerializerSession session, Reader reader)
+        public T Deserialize(SerializerSession session, ref Reader reader)
         {
             var field = reader.ReadFieldHeader(session);
-            return this.codec.ReadValue(reader, session, field);
+            return this.codec.ReadValue(ref reader, session, field);
         }
     }
 
@@ -43,15 +44,16 @@ namespace Hagar
         {
         }
 
-        public void Serialize<T>(T value, SerializerSession session, Writer writer)
+        public void Serialize<T>(T value, SerializerSession session, ref Writer writer)
         {
-            this.CodecProvider.GetCodec<T>().WriteField(writer, session, 0, typeof(T), value);
+            this.CodecProvider.GetCodec<T>().WriteField(ref writer, session, 0, typeof(T), value);
+            writer.Commit();
         }
 
-        public T Deserialize<T>(SerializerSession session, Reader reader)
+        public T Deserialize<T>(SerializerSession session, ref Reader reader)
         {
             var field = reader.ReadFieldHeader(session);
-            return this.CodecProvider.GetCodec<T>().ReadValue(reader, session, field);
+            return this.CodecProvider.GetCodec<T>().ReadValue(ref reader, session, field);
         }
     }
 }

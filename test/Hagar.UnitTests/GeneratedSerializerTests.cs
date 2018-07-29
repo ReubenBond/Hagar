@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
@@ -123,38 +124,54 @@ namespace Hagar.UnitTests
         private T RoundTripThroughCodec<T>(T original)
         {
             T result;
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
             using (var readerSession = this.sessionPool.GetSession())
             using (var writeSession = this.sessionPool.GetSession())
             {
                 var codec = this.codecProvider.GetCodec<T>();
                 codec.WriteField(
-                    writer,
+                    ref writer,
                     writeSession,
                     0,
                     null,
                     original);
+                writer.Commit();
+                pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                pipe.Writer.Complete();
 
-                var reader = new Reader(writer.ToBytes());
+                pipe.Reader.TryRead(out var readResult);
+                var reader = new Reader(readResult.Buffer);
 
                 var initialHeader = reader.ReadFieldHeader(readerSession);
-                result = codec.ReadValue(reader, readerSession, initialHeader);
+                result = codec.ReadValue(ref reader, readerSession, initialHeader);
+                pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
             }
+
             return result;
         }
 
         private object RoundTripThroughUntypedSerializer(object original)
         {
+            var pipe = new Pipe();
             object result;
-            var writer = new Writer();
+            var writer = new Writer(pipe.Writer);
             using (var readerSession = this.sessionPool.GetSession())
             using (var writeSession = this.sessionPool.GetSession())
             {
                 var serializer = this.serviceProvider.GetService<Serializer>();
-                serializer.Serialize(original, writeSession, writer);
-                var reader = new Reader(writer.ToBytes());
+                serializer.Serialize(original, writeSession, ref writer);
 
-                result = serializer.Deserialize(readerSession, reader);
+                pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                pipe.Writer.Complete();
+
+                pipe.Reader.TryRead(out var readResult);
+                var reader = new Reader(readResult.Buffer);
+
+                result = serializer.Deserialize(readerSession, ref reader);
+                pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
             }
 
             return result;

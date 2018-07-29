@@ -15,13 +15,13 @@ namespace TestApp
             this.stringCodec = stringCodec;
         }
 
-        public void Serialize(Writer writer, SerializerSession session, BaseType obj)
+        public void Serialize(ref Writer writer, SerializerSession session, BaseType obj)
         {
-            this.stringCodec.WriteField(writer, session, 0, typeof(string), obj.BaseTypeString);
-            this.stringCodec.WriteField(writer, session, 234, typeof(string), obj.AddedLaterString);
+            this.stringCodec.WriteField(ref writer, session, 0, typeof(string), obj.BaseTypeString);
+            this.stringCodec.WriteField(ref writer, session, 234, typeof(string), obj.AddedLaterString);
         }
 
-        public void Deserialize(Reader reader, SerializerSession session, BaseType obj)
+        public void Deserialize(ref Reader reader, SerializerSession session, BaseType obj)
         {
             uint fieldId = 0;
             while (true)
@@ -33,7 +33,7 @@ namespace TestApp
                 {
                     case 0:
                     {
-                        obj.BaseTypeString = this.stringCodec.ReadValue(reader, session, header);
+                        obj.BaseTypeString = this.stringCodec.ReadValue(ref reader, session, header);
                         /*var type = header.FieldType ?? typeof(string);
                             Console.WriteLine(
                             $"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/

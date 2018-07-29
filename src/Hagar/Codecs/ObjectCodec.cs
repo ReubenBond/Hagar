@@ -17,9 +17,9 @@ namespace Hagar.Codecs
             this.codecProvider = codecProvider;
         }
 
-        public object ReadValue(Reader reader, SerializerSession session, Field field)
+        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(reader, session, field, this.codecProvider);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(ref reader, session, field, this.codecProvider);
             if (field.FieldType == ObjectType || field.FieldType == null)
             {
                 reader.ReadVarUInt32();
@@ -27,21 +27,21 @@ namespace Hagar.Codecs
             }
 
             var specificSerializer = this.codecProvider.GetCodec(field.FieldType);
-            return specificSerializer.ReadValue(reader, session, field);
+            return specificSerializer.ReadValue(ref reader, session, field);
         }
 
-        public void WriteField(Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             var fieldType = value?.GetType();
             if (fieldType == null || fieldType == ObjectType)
             {
-                if (ReferenceCodec.TryWriteReferenceField(writer, session, fieldIdDelta, expectedType, value)) return;
+                if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
                 writer.WriteFieldHeader(session, fieldIdDelta, expectedType, ObjectType, WireType.LengthPrefixed);
                 writer.WriteVarInt((uint) 0);
             }
 
             var specificSerializer = this.codecProvider.GetCodec(fieldType);
-            specificSerializer.WriteField(writer, session, fieldIdDelta, expectedType, value);
+            specificSerializer.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
     }
 }

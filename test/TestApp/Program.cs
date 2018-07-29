@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Pipelines;
 using System.Runtime.Serialization;
 using System.Text;
 using Hagar.Serializers;
@@ -9,7 +10,6 @@ using Hagar.Codecs;
 using Hagar.ISerializable;
 using Hagar.Json;
 using Hagar.Configuration;
-using Hagar.ObjectModel;
 using Microsoft.Extensions.DependencyInjection;
 using MyPocos;
 using Newtonsoft.Json;
@@ -27,37 +27,50 @@ namespace TestApp
                 .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
                 .AddHagar(options =>
                 {
-                    options.PartialSerializers.Add(typeof(SubTypeSerializer));
-                    options.PartialSerializers.Add(typeof(BaseTypeSerializer));
+                    options.Serializers.Add(typeof(SubTypeSerializer));
+                    options.Serializers.Add(typeof(BaseTypeSerializer));
                 })
                 .BuildServiceProvider();
 
-            var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
-            c.Serialize(new Writer(), serviceProvider.GetRequiredService<SessionPool>().GetSession(), new SubType());
+            using (var serializerSession = serviceProvider.GetRequiredService<SessionPool>().GetSession())
+            {
+                var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
+                var p = new Pipe();
+                var w = new Writer(p.Writer);
+                c.Serialize(ref w, serializerSession, new SubType());
+                p.Writer.Complete();
+            }
+
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();
             var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
 
             var writeSession = sessionPool.GetSession();
-            var writer = new Writer();
-            codec.WriteField(writer,
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
+            codec.WriteField(ref writer,
                              writeSession,
                              0,
                              typeof(SomeClassWithSerialzers),
                              new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
 
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+            pipe.Reader.TryRead(out var readResult);
             using (var readerSession = sessionPool.GetSession())
             {
-                var reader = new Reader(writer.ToBytes());
-                Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
+                var reader = new Reader(readResult.Buffer);
+                pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
+                //Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
             }
 
             using (var readerSession = sessionPool.GetSession())
             {
-                var reader = new Reader(writer.ToBytes());
+                var reader = new Reader(readResult.Buffer);
                 var initialHeader = reader.ReadFieldHeader(readerSession);
-                var result = codec.ReadValue(reader, readerSession, initialHeader);
+                var result = codec.ReadValue(ref reader, readerSession, initialHeader);
                 Console.WriteLine(result);
             }
         }
@@ -68,8 +81,8 @@ namespace TestApp
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHagar(configuration =>
             {
-                configuration.PartialSerializers.Add(typeof(SubTypeSerializer));
-                configuration.PartialSerializers.Add(typeof(BaseTypeSerializer));
+                configuration.Serializers.Add(typeof(SubTypeSerializer));
+                configuration.Serializers.Add(typeof(BaseTypeSerializer));
             });
             serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
             serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
@@ -246,20 +259,23 @@ namespace TestApp
         static void Test<T>(Func<SerializerSession> getSession, IFieldCodec<T> serializer, T expected)
         {
             var session = getSession();
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
 
-            serializer.WriteField(writer, session, 0, typeof(T), expected);
+            serializer.WriteField(ref writer, session, 0, typeof(T), expected);
 
-            Console.WriteLine($"Size: {writer.CurrentOffset} bytes.");
+            Console.WriteLine($"Size: {writer.Position} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
-
-            //Console.WriteLine("TokenStream: " + string.Join(" ", TokenStreamParser.Parse(new Reader(writer.ToBytes()), getSession())));
-
-            var reader = new Reader(writer.ToBytes());
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer);
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             //Console.WriteLine(initialHeader);
-            var actual = serializer.ReadValue(reader, deserializationContext, initialHeader);
+            var actual = serializer.ReadValue(ref reader, deserializationContext, initialHeader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
 
             Console.WriteLine($"Expect: {expected}\nActual: {actual}");
             var references = GetReadReferenceTable(deserializationContext);
@@ -290,17 +306,22 @@ namespace TestApp
         static void TestSkip(Func<SerializerSession> getSession, IFieldCodec<SubType> serializer, SubType expected)
         {
             var session = getSession();
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
 
-            serializer.WriteField(writer, session, 0, typeof(SubType), expected);
-            
-            var reader = new Reader(writer.ToBytes());
+            serializer.WriteField(ref writer, session, 0, typeof(SubType), expected);
+
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer);
             var deserializationContext = getSession();
             var initialHeader = reader.ReadFieldHeader(session);
             var skipCodec = new SkipFieldCodec();
-            skipCodec.ReadValue(reader, deserializationContext, initialHeader);
-            
-            Console.WriteLine($"Skipped {reader.CurrentPosition}/{reader.Length} bytes.");
+            skipCodec.ReadValue(ref reader, deserializationContext, initialHeader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
+            Console.WriteLine($"Skipped {reader.Position} bytes.");
         }
     }
 

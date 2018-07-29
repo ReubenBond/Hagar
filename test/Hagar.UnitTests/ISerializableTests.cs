@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Hagar.Buffers;
@@ -49,19 +50,27 @@ namespace Hagar.UnitTests
             }
             return deserialized;
         }
+
         private object SerializationLoop(object expected)
         {
-            var writer = new Writer();
+            var pipe = new Pipe();
+            var writer = new Writer(pipe.Writer);
 
             using (var session = this.sessionPool.GetSession())
             {
-                serializer.Serialize(expected, session, writer);
+                this.serializer.Serialize(expected, session, ref writer);
+                pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                pipe.Writer.Complete();
             }
 
             using (var session = this.sessionPool.GetSession())
             {
-                var reader = new Reader(writer.ToBytes());
-                return this.serializer.Deserialize(session, reader);
+                pipe.Reader.TryRead(out var readResult);
+                var reader = new Reader(readResult.Buffer);
+                var result = this.serializer.Deserialize(session, ref reader);
+                pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
+                return result;
             }
         }
 
