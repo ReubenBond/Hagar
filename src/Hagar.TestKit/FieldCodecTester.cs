@@ -61,6 +61,8 @@ namespace Hagar.TestKit
             var afterReference = writerSession.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+
             pipe.Reader.TryRead(out var readResult);
             var reader = new Reader(readResult.Buffer);
             var readerSession = CreateSession();
@@ -69,6 +71,7 @@ namespace Hagar.TestKit
             beforeReference = readerSession.ReferencedObjects.CurrentReferenceId;
             readerCodec.ReadValue(ref reader, readerSession, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
             afterReference = readerSession.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
         }
@@ -84,6 +87,8 @@ namespace Hagar.TestKit
             writerCodec.WriteField(ref writer, writerSession, 0, typeof(TField), original);
             writer.Commit();
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+
             pipe.Reader.TryRead(out var readResult);
             var reader = new Reader(readResult.Buffer);
             var readerSession = CreateSession();
@@ -91,6 +96,7 @@ namespace Hagar.TestKit
             var readField = reader.ReadFieldHeader(readerSession);
             var deserialized = readerCodec.ReadValue(ref reader, readerSession, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
             Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
         }
     }

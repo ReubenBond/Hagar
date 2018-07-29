@@ -50,6 +50,7 @@ namespace Hagar.UnitTests
             }
             return deserialized;
         }
+
         private object SerializationLoop(object expected)
         {
             var pipe = new Pipe();
@@ -57,15 +58,19 @@ namespace Hagar.UnitTests
 
             using (var session = this.sessionPool.GetSession())
             {
-                serializer.Serialize(expected, session, ref writer);
+                this.serializer.Serialize(expected, session, ref writer);
+                pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                pipe.Writer.Complete();
             }
 
             using (var session = this.sessionPool.GetSession())
             {
-                pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
-                return this.serializer.Deserialize(session, ref reader);
+                var result = this.serializer.Deserialize(session, ref reader);
+                pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
+                return result;
             }
         }
 

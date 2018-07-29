@@ -138,13 +138,17 @@ namespace Hagar.UnitTests
                     original);
                 writer.Commit();
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                pipe.Writer.Complete();
+
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
 
                 var initialHeader = reader.ReadFieldHeader(readerSession);
                 result = codec.ReadValue(ref reader, readerSession, initialHeader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
             }
+
             return result;
         }
 
@@ -160,11 +164,14 @@ namespace Hagar.UnitTests
                 serializer.Serialize(original, writeSession, ref writer);
 
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                pipe.Writer.Complete();
+
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
 
                 result = serializer.Deserialize(readerSession, ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
             }
 
             return result;
