@@ -359,9 +359,10 @@ namespace Hagar.CodeGenerator
                     var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(member.FieldId)));
 
                     // C#: instance.<member> = this.<codec>.ReadValue(ref reader, session, header);
-                    var codec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
-
-
+                    var codec = fieldDescriptions.OfType<ICodecDescription>()
+                        .Concat(libraryTypes.StaticCodecs)
+                        .First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
+                    
                     // Codecs can either be static classes or injected into the constructor.
                     // Either way, the member signatures are the same.
                     var memberType = GetExpectedType(member.Type);

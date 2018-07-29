@@ -10,25 +10,28 @@ namespace Hagar.WireProtocol
         private Type fieldType;
         public Tag Tag;
 
-        public static readonly Field EndObject = new Field
-        {
-            WireType = WireType.Extended,
-            ExtendedWireType = ExtendedWireType.EndTagDelimited
-        };
-
         public Field(Tag tag)
         {
             this.Tag = tag;
             this.fieldIdDelta = 0;
             this.fieldType = null;
+#if DEBUG
             if (!this.HasFieldId) ThrowFieldIdInvalid();
+#endif
         }
 
         public uint FieldIdDelta
         {
             // If the embedded field id delta is valid, return it, otherwise return the extended field id delta.
             // The extended field id might not be valid if this field has the Extended wire type.
-            get => this.Tag.IsFieldIdValid ? this.Tag.FieldIdDelta : this.HasFieldId ? this.fieldIdDelta : ThrowFieldIdInvalid();
+            get
+            {
+                if (this.Tag.IsFieldIdValid) return this.Tag.FieldIdDelta;
+#if DEBUG
+                if (!this.HasFieldId) ThrowFieldIdInvalid();
+#endif
+                return this.fieldIdDelta;
+            }
             set
             {
                 // If the field id delta can fit into the tag, embed it there, otherwise invalidate the embedded field id delta and set the full field id delta.
@@ -47,11 +50,20 @@ namespace Hagar.WireProtocol
 
         public Type FieldType
         {
-            get => this.IsSchemaTypeValid ? this.fieldType : ThrowFieldTypeInvalid();
+            get
+            {
+#if DEBUG
+                if (this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
+#endif
+                return this.fieldType;
+            }
+
             set
             {
-                if (this.IsSchemaTypeValid) this.fieldType = value;
-                else ThrowFieldTypeInvalid();
+#if DEBUG
+                if (this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
+#endif
+                this.fieldType = value;
             }
         }
 
@@ -66,26 +78,42 @@ namespace Hagar.WireProtocol
 
         public SchemaType SchemaType
         {
-            get => this.IsSchemaTypeValid ? this.Tag.SchemaType : ThrowSchemaTypeInvalid();
+            get
+            {
+#if DEBUG
+                if (!this.IsSchemaTypeValid) ThrowSchemaTypeInvalid();
+#endif
+
+                return this.Tag.SchemaType;
+            }
+
             set => this.Tag.SchemaType = value;
         }
 
         public ExtendedWireType ExtendedWireType
         {
-            get => this.WireType == WireType.Extended ? this.Tag.ExtendedWireType : ThrowExtendedWireTypeInvalid();
+            get
+            {
+#if DEBUG
+                if (this.WireType != WireType.Extended) ThrowExtendedWireTypeInvalid();
+#endif
+                return this.Tag.ExtendedWireType;
+            }
             set => this.Tag.ExtendedWireType = value;
         }
 
         public bool IsSchemaTypeValid => this.Tag.IsSchemaTypeValid;
         public bool HasExtendedSchemaType => this.IsSchemaTypeValid && this.SchemaType != SchemaType.Expected;
-
-        public bool IsStartObject => this.WireType == WireType.TagDelimited;
         public bool IsEndBaseFields => this.Tag.HasExtendedWireType && this.Tag.ExtendedWireType == ExtendedWireType.EndBaseFields;
         public bool IsEndObject => this.Tag.HasExtendedWireType && this.Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited;
 
-        public bool IsEndBaseOrEndObject => this.Tag.HasExtendedWireType &&
-                                            (this.Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited ||
-                                             this.Tag.ExtendedWireType == ExtendedWireType.EndBaseFields);
+        public bool IsEndBaseOrEndObject
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.Tag.HasExtendedWireType &&
+                   (this.Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited ||
+                    this.Tag.ExtendedWireType == ExtendedWireType.EndBaseFields);
+        }
 
         public override string ToString()
         {
@@ -100,15 +128,15 @@ namespace Hagar.WireProtocol
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static uint ThrowFieldIdInvalid() => throw new FieldIdNotPresentException();
+        private static void ThrowFieldIdInvalid() => throw new FieldIdNotPresentException();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static SchemaType ThrowSchemaTypeInvalid() => throw new SchemaTypeInvalidException();
+        private static void ThrowSchemaTypeInvalid() => throw new SchemaTypeInvalidException();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static Type ThrowFieldTypeInvalid() => throw new FieldTypeInvalidException();
+        private static void ThrowFieldTypeInvalid() => throw new FieldTypeInvalidException();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static ExtendedWireType ThrowExtendedWireTypeInvalid() => throw new ExtendedWireTypeInvalidException();
+        private static void ThrowExtendedWireTypeInvalid() => throw new ExtendedWireTypeInvalidException();
     }
 }

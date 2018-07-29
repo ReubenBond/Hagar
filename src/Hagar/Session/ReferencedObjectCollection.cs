@@ -8,6 +8,7 @@ namespace Hagar.Session
         private readonly Dictionary<uint, object> references = new Dictionary<uint, object>();
         private readonly Dictionary<object, uint> referenceToIdMap = new Dictionary<object, uint>(ReferenceEqualsComparer.Instance);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetReferencedObject(uint reference, out object value)
         {
             // Reference 0 is always null.
@@ -20,8 +21,10 @@ namespace Hagar.Session
             return this.references.TryGetValue(reference, out value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void MarkValueField() => ++this.CurrentReferenceId;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool GetOrAddReference(object value, out uint reference)
         {
             // Null is always at reference 0
@@ -39,8 +42,10 @@ namespace Hagar.Session
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object value) => RecordReferenceField(value, ++this.CurrentReferenceId);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object value, uint referenceId)
         {
             if (value == null) return;

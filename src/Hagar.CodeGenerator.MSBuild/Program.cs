@@ -30,14 +30,22 @@ namespace Hagar.CodeGenerator.MSBuild
                 foreach (var arg in fileArgs)
                 {
                     var parts = arg.Split(new[] { ':' }, 2);
-                    if (parts.Length != 2) throw new ArgumentException($"Argument \"{arg}\" cannot be parsed.");
+                    if (parts.Length > 2) throw new ArgumentException($"Argument \"{arg}\" cannot be parsed.");
                     var key = parts[0];
-                    var value = parts[1];
+                    var value = parts.Skip(1).SingleOrDefault();
                     switch (key)
                     {
                         case "WaitForDebugger":
-                            Console.WriteLine("Waiting for debugger to attach.");
-                            while (!Debugger.IsAttached) Thread.Sleep(100);
+                            var i = 0;
+                            while (!Debugger.IsAttached)
+                            {
+                                if (i++ % 50 == 0)
+                                {
+                                    Console.WriteLine("Waiting for debugger to attach.");
+                                }
+
+                                Thread.Sleep(100);
+                            }
                             break;
                         case nameof(cmd.ProjectGuid):
                             cmd.ProjectGuid = value;

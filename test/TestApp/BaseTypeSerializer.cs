@@ -7,17 +7,10 @@ namespace TestApp
 {
     public class BaseTypeSerializer : IPartialSerializer<BaseType>
     {
-        private readonly IFieldCodec<string> stringCodec;
-
-        public BaseTypeSerializer(IFieldCodec<string> stringCodec)
-        {
-            this.stringCodec = stringCodec;
-        }
-
         public void Serialize(ref Writer writer, SerializerSession session, BaseType obj)
         {
-            this.stringCodec.WriteField(ref writer, session, 0, typeof(string), obj.BaseTypeString);
-            this.stringCodec.WriteField(ref writer, session, 234, typeof(string), obj.AddedLaterString);
+            StringCodec.WriteField(ref writer, session, 0, typeof(string), obj.BaseTypeString);
+            StringCodec.WriteField(ref writer, session, 234, typeof(string), obj.AddedLaterString);
         }
 
         public void Deserialize(ref Reader reader, SerializerSession session, BaseType obj)
@@ -32,7 +25,7 @@ namespace TestApp
                 {
                     case 0:
                     {
-                        obj.BaseTypeString = this.stringCodec.ReadValue(ref reader, session, header);
+                        obj.BaseTypeString = StringCodec.ReadValue(ref reader, session, header);
                         /*var type = header.FieldType ?? typeof(string);
                             Console.WriteLine(
                             $"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/

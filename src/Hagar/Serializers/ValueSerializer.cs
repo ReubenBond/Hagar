@@ -1,6 +1,7 @@
 using System;
 using Hagar.Buffers;
 using Hagar.Codecs;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
@@ -17,7 +18,7 @@ namespace Hagar.Serializers
 
         public ValueSerializer(IValueSerializerProvider provider)
         {
-            this.serializer = provider.GetValueSerializer<TField>();
+            this.serializer = HagarGeneratedCodeHelper.UnwrapService(this, provider.GetValueSerializer<TField>());
         }
 
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
