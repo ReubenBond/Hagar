@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.Utilities;
@@ -12,11 +13,13 @@ namespace Hagar.Codecs
         /// Indicates that the field being serialized or deserialized is a value type.
         /// </summary>
         /// <param name="session">The serializer session.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MarkValueField(SerializerSession session)
         {
             session.ReferencedObjects.MarkValueField();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryWriteReferenceField(
             ref Writer writer,
             SerializerSession session,
@@ -24,7 +27,7 @@ namespace Hagar.Codecs
             Type expectedType,
             object value)
         {
-            if (!session.ReferencedObjects.GetOrAddReference(value, out uint reference))
+            if (!session.ReferencedObjects.GetOrAddReference(value, out var reference))
             {
                 return false;
             }
@@ -34,15 +37,17 @@ namespace Hagar.Codecs
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadReference<T>(ref Reader reader, SerializerSession session, Field field)
         {
             return (T) ReadReference(ref reader, session, field, typeof(T));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object ReadReference(ref Reader reader, SerializerSession session, Field field, Type expectedType)
         {
             var reference = reader.ReadVarUInt32();
-            if (!session.ReferencedObjects.TryGetReferencedObject(reference, out object value))
+            if (!session.ReferencedObjects.TryGetReferencedObject(reference, out var value))
             {
                 ThrowReferenceNotFound(expectedType, reference);
             }

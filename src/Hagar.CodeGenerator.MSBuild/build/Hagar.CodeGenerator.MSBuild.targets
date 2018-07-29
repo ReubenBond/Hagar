@@ -52,6 +52,7 @@
           Outputs="$(Hagar_OutputFileName)">
 
     <ItemGroup>
+      <Hagar_CodeGenArgs Include="WaitForDebugger" Condition="'$(HagarCodeGenWaitForDebugger)' != ''" />
       <Hagar_CodeGenArgs Include="LogLevel:$(HagarCodeGenLogLevel)" />
       <Hagar_CodeGenArgs Include="ProjectPath:$(MSBuildProjectFullPath)"/>
       <Hagar_CodeGenArgs Include="ProjectGuid:$(ProjectGuid)"/>

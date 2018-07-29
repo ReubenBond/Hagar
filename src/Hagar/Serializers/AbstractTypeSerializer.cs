@@ -13,13 +13,6 @@ namespace Hagar.Serializers
     /// <typeparam name="TField"></typeparam>
     public class AbstractTypeSerializer<TField> : IFieldCodec<TField> where TField : class
     {
-        private readonly IUntypedCodecProvider codecProvider;
-
-        public AbstractTypeSerializer(IUntypedCodecProvider codecProvider)
-        {
-            this.codecProvider = codecProvider;
-        }
-
         public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
             // If the value is null then we will not be able to get its type in order to get a concrete codec for it.
@@ -31,7 +24,7 @@ namespace Hagar.Serializers
             }
 
             var fieldType = value.GetType();
-            var specificSerializer = this.codecProvider.GetCodec(fieldType);
+            var specificSerializer = session.CodecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
                 specificSerializer.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
@@ -48,7 +41,7 @@ namespace Hagar.Serializers
             var fieldType = field.FieldType;
             if (fieldType == null) ThrowMissingFieldType();
 
-            var specificSerializer = this.codecProvider.GetCodec(fieldType);
+            var specificSerializer = session.CodecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
                 return (TField)specificSerializer.ReadValue(ref reader, session, field);

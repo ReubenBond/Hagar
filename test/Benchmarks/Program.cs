@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using Hagar;
@@ -23,20 +24,18 @@ namespace Benchmarks
             if (args.Length > 0 && args[0] == "loop")
             {
                 var benchmarks = new ComplexTypeBenchmarks();
-                var pipe = new Pipe();
                 while (true)
                 {
-                    benchmarks.SerializeComplex(pipe);
+                    benchmarks.SerializeComplex();
                 }
             }
 
             if (args.Length > 0 && args[0] == "structloop")
             {
                 var benchmarks = new ComplexTypeBenchmarks();
-                var pipe = new Pipe();
                 while (true)
                 {
-                    benchmarks.SerializeStruct(pipe);
+                    benchmarks.SerializeStruct();
                 }
             }
 
@@ -88,70 +87,65 @@ namespace Benchmarks
             this.structValue = new SimpleStruct
             {
                 Int = 42,
-                Bool = true
+                Bool = true,
+                Guid = Guid.NewGuid()
             };
             this.session = sessionPool.GetSession();
-            var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer(HagarBuffer);
             this.hagarSerializer.Serialize(this.value, session, ref writer);
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            pipe.Reader.TryRead(out var readResult);
-            this.hagarBytes = readResult.Buffer;
+            var bytes = new byte[HagarBuffer.GetMemory().Length];
+            HagarBuffer.GetReadOnlySequence().CopyTo(bytes);
+            this.hagarBytes = new ReadOnlySequence<byte>(bytes);
+            HagarBuffer.Reset();
 
             var writer2 = new BinaryTokenStreamWriter();
             this.orleansSerializer.Serialize(this.value, writer2);
             this.orleansBytes = writer2.ToBytes();
 
-            this.readBytesLength = Math.Min(readResult.Buffer.Length, orleansBytes.Sum(x => x.Count));
+            this.readBytesLength = Math.Min(bytes.Length, orleansBytes.Sum(x => x.Count));
         }
 
-        public void SerializeComplex(Pipe pipe)
+        public void SerializeComplex()
         {
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer(HagarBuffer);
             session.FullReset();
             this.hagarSerializer.Serialize(this.value, session, ref writer);
 
             session.FullReset();
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            var readResult = pipe.Reader.ReadAsync().GetAwaiter().GetResult();
-            var reader = new Reader(readResult.Buffer);
+            var reader = new Reader(new ReadOnlySequence<byte>(HagarBuffer.GetMemory()));
             this.hagarSerializer.Deserialize(session, ref reader);
-            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            HagarBuffer.Reset();
         }
 
-        public void SerializeStruct(Pipe pipe)
+        public void SerializeStruct()
         {
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer(HagarBuffer);
             session.FullReset();
             this.structSerializer.Serialize(this.structValue, session, ref writer);
 
             session.FullReset();
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            var readResult = pipe.Reader.ReadAsync().GetAwaiter().GetResult();
-            var reader = new Reader(readResult.Buffer);
+            var reader = new Reader(HagarBuffer.GetReadOnlySequence());
             this.structSerializer.Deserialize(session, ref reader);
-            pipe.Reader.AdvanceTo(readResult.Buffer.End);
-            pipe.Reset();
+            HagarBuffer.Reset();
         }
+        
+        private static readonly SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer();
 
-        private readonly Pipe sharedPipe = new Pipe(new PipeOptions(useSynchronizationContext: false));
         [Benchmark]
         public SimpleStruct HagarStructRoundTrip()
         {
-            var writer = new Writer(sharedPipe.Writer);
+            var writer = new Writer(HagarBuffer);
             session.FullReset();
             this.structSerializer.Serialize(this.structValue, session, ref writer);
 
             session.FullReset();
-            sharedPipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            var readResult = sharedPipe.Reader.ReadAsync().GetAwaiter().GetResult();
-            var reader = new Reader(readResult.Buffer);
+            var reader = new Reader(HagarBuffer.GetReadOnlySequence());
             var result = this.structSerializer.Deserialize(session, ref reader);
-            sharedPipe.Reader.AdvanceTo(readResult.Buffer.End);
+            HagarBuffer.Reset();
             return result;
         }
 
-        [Benchmark]
+        //[Benchmark]
         public SimpleStruct OrleansStructRoundTrip()
         {
             var writer = new BinaryTokenStreamWriter();
@@ -159,23 +153,22 @@ namespace Benchmarks
             return (SimpleStruct)this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
-        //[Benchmark]
-        public object HagarSerializer()
+        [Benchmark]
+        public object HagarClassRoundTrip()
         {
-            var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer(HagarBuffer);
             session.FullReset();
             this.hagarSerializer.Serialize(this.value, session, ref writer);
 
             session.FullReset();
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer);
-            return this.hagarSerializer.Deserialize(session, ref reader);
+            var reader = new Reader(HagarBuffer.GetReadOnlySequence());
+            var result = this.hagarSerializer.Deserialize(session, ref reader);
+            HagarBuffer.Reset();
+            return result;
         }
 
         //[Benchmark]
-        public object OrleansSerializer()
+        public object OrleansClassRoundTrip()
         {
             var writer = new BinaryTokenStreamWriter();
             this.orleansSerializer.Serialize(this.value, writer);
@@ -185,14 +178,14 @@ namespace Benchmarks
         [Benchmark]
         public object HagarSerialize()
         {
-            var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer(HagarBuffer);
             session.FullReset();
             this.hagarSerializer.Serialize(this.value, session, ref writer);
+            HagarBuffer.Reset();
             return session;
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object OrleansSerialize()
         {
             var writer = new BinaryTokenStreamWriter();
@@ -208,7 +201,7 @@ namespace Benchmarks
             return this.hagarSerializer.Deserialize(session, ref reader);
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object OrleansDeserialize()
         {
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(this.orleansBytes));
@@ -279,5 +272,32 @@ namespace Benchmarks
         
         [Id(3)]
         public object AlwaysNull { get; set; }
+
+        [Id(4)]
+        public Guid Guid { get; set; }
+    }
+
+    public class SingleSegmentBuffer : IBufferWriter<byte>
+    {
+        private readonly byte[] buffer = new byte[1000];
+        private int written;
+
+        public void Advance(int bytes)
+        {
+            written += bytes;
+        }
+
+        public Memory<byte> GetMemory(int sizeHint = 0) => buffer.AsMemory().Slice(written);
+
+        public Span<byte> GetSpan(int sizeHint) => buffer.AsSpan().Slice(written);
+
+        public void Reset() => this.written = 0;
+
+        public ReadOnlySequence<byte> GetReadOnlySequence() => new ReadOnlySequence<byte>(this.buffer, 0, this.written);
+
+        public override string ToString()
+        {
+            return Encoding.UTF8.GetString(buffer.AsSpan(0, written).ToArray());
+        }
     }
 }

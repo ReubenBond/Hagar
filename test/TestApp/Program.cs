@@ -175,7 +175,7 @@ namespace TestApp
 
             Test(
                 GetSession,
-                new AbstractTypeSerializer<object>(codecProvider),
+                new AbstractTypeSerializer<object>(),
                 new WhackyJsonType
                 {
                     Number = 7,
@@ -189,14 +189,14 @@ namespace TestApp
             };
             Test(
                 GetSession,
-                new AbstractTypeSerializer<object>(codecProvider),
+                new AbstractTypeSerializer<object>(),
                 mySerializable
             );
 
             mySerializable.Self = mySerializable;
             Test(
                 GetSession,
-                new AbstractTypeSerializer<object>(codecProvider),
+                new AbstractTypeSerializer<object>(),
                 mySerializable
             );
 
@@ -212,11 +212,11 @@ namespace TestApp
 
             Test(
                 GetSession,
-                new AbstractTypeSerializer<object>(codecProvider),
+                new AbstractTypeSerializer<object>(),
                 exception
             );
 
-            Test(GetSession, new AbstractTypeSerializer<object>(codecProvider), new LocalDate());
+            Test(GetSession, new AbstractTypeSerializer<object>(), new LocalDate());
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
