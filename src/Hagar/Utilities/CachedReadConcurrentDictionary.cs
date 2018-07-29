@@ -30,7 +30,7 @@ namespace Hagar.Utilities
         /// <summary>
         /// Cached version of <see cref="dictionary"/>.
         /// </summary>
-        private Dictionary<TKey, TValue> readCache;
+        private volatile Dictionary<TKey, TValue> readCache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CachedReadConcurrentDictionary{TKey,TValue}"/> class.
@@ -141,9 +141,7 @@ namespace Hagar.Utilities
         /// <returns>The value for the key. This will be either the existing value for the key if the key is already in the dictionary, or the new value if the key was not in the dictionary.</returns>
         public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
         {
-            TValue value;
-
-            if (this.GetReadDictionary().TryGetValue(key, out value))
+            if (this.GetReadDictionary().TryGetValue(key, out var value))
                 return value;
 
             value = this.dictionary.GetOrAdd(key, valueFactory);
@@ -187,7 +185,7 @@ namespace Hagar.Utilities
         /// <inheritdoc />
         public TValue this[TKey key]
         {
-            get { return this.GetReadDictionary()[key]; }
+            get => this.GetReadDictionary()[key];
             set
             {
                 this.dictionary[key] = value;

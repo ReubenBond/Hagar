@@ -30,12 +30,6 @@ namespace Hagar.Buffers
             get => this.previousBuffersSize + this.bufferPos;
         }
 
-        public ReadOnlySpan<byte> CurrentSpan
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => currentSpan;
-        }
-
         public void Skip(long count)
         {
             var end = this.Position + count;
@@ -182,7 +176,7 @@ namespace Hagar.Buffers
         {
             if (this.bufferPos + destination.Length <= this.bufferSize)
             {
-                this.CurrentSpan.Slice(this.bufferPos, destination.Length).CopyTo(destination);
+                this.currentSpan.Slice(this.bufferPos, destination.Length).CopyTo(destination);
                 this.bufferPos += destination.Length;
                 return;
             }
@@ -218,6 +212,222 @@ namespace Hagar.Buffers
 
             bytes = default;
             return false;
+        }
+
+        public uint ReadVarUInt32()
+        {
+            if (bufferPos + 5 > bufferSize)
+            {
+                return ReadVarUInt32Slow();
+            }
+
+            int tmp = currentSpan[bufferPos++];
+            if (tmp < 128)
+            {
+                return (uint)tmp;
+            }
+            int result = tmp & 0x7f;
+            if ((tmp = currentSpan[bufferPos++]) < 128)
+            {
+                result |= tmp << 7;
+            }
+            else
+            {
+                result |= (tmp & 0x7f) << 7;
+                if ((tmp = currentSpan[bufferPos++]) < 128)
+                {
+                    result |= tmp << 14;
+                }
+                else
+                {
+                    result |= (tmp & 0x7f) << 14;
+                    if ((tmp = currentSpan[bufferPos++]) < 128)
+                    {
+                        result |= tmp << 21;
+                    }
+                    else
+                    {
+                        result |= (tmp & 0x7f) << 21;
+                        result |= (tmp = currentSpan[bufferPos++]) << 28;
+                        if (tmp >= 128)
+                        {
+                            // Discard upper 32 bits.
+                            // Note that this has to use ReadRawByte() as we only ensure we've
+                            // got at least 5 bytes at the start of the method. This lets us
+                            // use the fast path in more cases, and we rarely hit this section of code.
+                            for (int i = 0; i < 5; i++)
+                            {
+                                if (ReadByte() < 128)
+                                {
+                                    return (uint)result;
+                                }
+                            }
+
+                            ThrowInsufficientData();
+                        }
+                    }
+                }
+            }
+            return (uint)result;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private uint ReadVarUInt32Slow()
+        {
+            int tmp = ReadByte();
+            if (tmp < 128)
+            {
+                return (uint)tmp;
+            }
+            int result = tmp & 0x7f;
+            if ((tmp = ReadByte()) < 128)
+            {
+                result |= tmp << 7;
+            }
+            else
+            {
+                result |= (tmp & 0x7f) << 7;
+                if ((tmp = ReadByte()) < 128)
+                {
+                    result |= tmp << 14;
+                }
+                else
+                {
+                    result |= (tmp & 0x7f) << 14;
+                    if ((tmp = ReadByte()) < 128)
+                    {
+                        result |= tmp << 21;
+                    }
+                    else
+                    {
+                        result |= (tmp & 0x7f) << 21;
+                        result |= (tmp = ReadByte()) << 28;
+                        if (tmp >= 128)
+                        {
+                            // Discard upper 32 bits.
+                            for (int i = 0; i < 5; i++)
+                            {
+                                if (ReadByte() < 128)
+                                {
+                                    return (uint)result;
+                                }
+                            }
+
+                            ThrowInsufficientData();
+                        }
+                    }
+                }
+            }
+            return (uint)result;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong ReadVarUInt64()
+        {
+            if (this.bufferPos + 10 > this.bufferSize)
+            {
+                return ReadVarUInt64Slow();
+            }
+
+            long tmp = currentSpan[bufferPos++];
+            if (tmp < 128)
+            {
+                return (ulong)tmp;
+            }
+            long result = tmp & 0x7f;
+            if ((tmp = currentSpan[bufferPos++]) < 128)
+            {
+                result |= tmp << 7;
+            }
+            else
+            {
+                result |= (tmp & 0x7f) << 7;
+                if ((tmp = currentSpan[bufferPos++]) < 128)
+                {
+                    result |= tmp << 14;
+                }
+                else
+                {
+                    result |= (tmp & 0x7f) << 14;
+                    if ((tmp = currentSpan[bufferPos++]) < 128)
+                    {
+                        result |= tmp << 21;
+                    }
+                    else
+                    {
+                        result |= (tmp & 0x7f) << 21;
+                        if ((tmp = currentSpan[bufferPos++]) < 128)
+                        {
+                            result |= tmp << 28;
+                        }
+                        else
+                        {
+                            result |= (tmp & 0x7f) << 28;
+                            if ((tmp = currentSpan[bufferPos++]) < 128)
+                            {
+                                result |= tmp << 35;
+                            }
+                            else
+                            {
+                                result |= (tmp & 0x7f) << 35;
+                                if ((tmp = currentSpan[bufferPos++]) < 128)
+                                {
+                                    result |= tmp << 42;
+                                }
+                                else
+                                {
+                                    result |= (tmp & 0x7f) << 42;
+                                    if ((tmp = currentSpan[bufferPos++]) < 128)
+                                    {
+                                        result |= tmp << 49;
+                                    }
+                                    else
+                                    {
+                                        result |= (tmp & 0x7f) << 49;
+                                        if ((tmp = currentSpan[bufferPos++]) < 128)
+                                        {
+                                            result |= tmp << 56;
+                                        }
+                                        else
+                                        {
+                                            result |= (tmp & 0x7f) << 56;
+                                            result |= (tmp = currentSpan[bufferPos++]) << 63;
+                                            if (tmp >= 128)
+                                            {
+                                                ThrowInsufficientData();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return (ulong)result;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private ulong ReadVarUInt64Slow()
+        {
+            //TODO: Implement fast path
+            int shift = 0;
+            ulong result = 0;
+            while (shift < 64)
+            {
+                byte b = ReadByte();
+                result |= (ulong)(b & 0x7F) << shift;
+                if ((b & 0x80) == 0)
+                {
+                    return result;
+                }
+                shift += 7;
+            }
+
+            ThrowInsufficientData();
+            return 0;
         }
     }
 }

@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Configuration;
-using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.TypeSystem;
@@ -37,8 +34,10 @@ namespace Hagar
                 services.TryAddSingleton<IUntypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<ITypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IPartialSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
+                services.TryAddSingleton<IValueSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddScoped(typeof(IFieldCodec<>), typeof(FieldCodecHolder<>));
                 services.TryAddScoped(typeof(IPartialSerializer<>), typeof(PartialSerializerHolder<>));
+                services.TryAddScoped(typeof(IValueSerializer<>), typeof(ValueSerializerHolder<>));
                 services.TryAddSingleton<WellKnownTypeCollection>();
                 services.TryAddSingleton<TypeCodec>();
 
@@ -124,18 +123,41 @@ namespace Hagar
             {
                 this.provider = provider;
             }
-            
+
             public void Serialize(ref Writer writer, SerializerSession session, TField value)
             {
                 this.Value.Serialize(ref writer, session, value);
             }
-            
+
             public void Deserialize(ref Reader reader, SerializerSession session, TField value)
             {
                 this.Value.Deserialize(ref reader, session, value);
             }
 
             public IPartialSerializer<TField> Value => this.partialSerializer ?? (this.partialSerializer = this.provider.GetPartialSerializer<TField>());
+        }
+
+        private class ValueSerializerHolder<TField> : IValueSerializer<TField>, IServiceHolder<IValueSerializer<TField>> where TField : struct
+        {
+            private readonly IValueSerializerProvider provider;
+            private IValueSerializer<TField> serializer;
+
+            public ValueSerializerHolder(IValueSerializerProvider provider)
+            {
+                this.provider = provider;
+            }
+
+            public void Serialize(ref Writer writer, SerializerSession session, ref TField value)
+            {
+                this.Value.Serialize(ref writer, session, ref value);
+            }
+
+            public void Deserialize(ref Reader reader, SerializerSession session, ref TField value)
+            {
+                this.Value.Deserialize(ref reader, session, ref value);
+            }
+
+            public IValueSerializer<TField> Value => this.serializer ?? (this.serializer = this.provider.GetValueSerializer<TField>());
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using Hagar.Buffers;
@@ -8,21 +9,19 @@ namespace Hagar.TypeSystem
 {
     public class TypeCodec
     {
-        private readonly CachedReadConcurrentDictionary<Type, TypeKey> typeCache = new CachedReadConcurrentDictionary<Type, TypeKey>();
-        private readonly CachedReadConcurrentDictionary<TypeKey, Type> typeKeyCache =
-            new CachedReadConcurrentDictionary<TypeKey, Type>(new TypeKey.Comparer());
+        private readonly ConcurrentDictionary<Type, TypeKey> typeCache = new ConcurrentDictionary<Type, TypeKey>();
+        private readonly ConcurrentDictionary<TypeKey, Type> typeKeyCache = new ConcurrentDictionary<TypeKey, Type>(new TypeKey.Comparer());
         private readonly ITypeResolver typeResolver;
-        private readonly Func<Type, TypeKey> getTypeKey;
+        private static readonly Func<Type, TypeKey> GetTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(RuntimeTypeNameFormatter.Format(type)));
 
         public TypeCodec(ITypeResolver typeResolver)
         {
             this.typeResolver = typeResolver;
-            this.getTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(RuntimeTypeNameFormatter.Format(type)));
         }
 
         public void Write(ref Writer writer, Type type)
         {
-            var key = this.typeCache.GetOrAdd(type, this.getTypeKey);
+            var key = this.typeCache.GetOrAdd(type, GetTypeKey);
             writer.Write(key.HashCode);
             writer.WriteVarInt((uint)key.TypeName.Length);
             writer.Write(key.TypeName);
@@ -88,22 +87,17 @@ namespace Hagar.TypeSystem
                 this.TypeName = key;
             }
 
-            public TypeKey(string typeName) : this(Encoding.UTF8.GetBytes(typeName))
-            {
-            }
-
-            public string GetTypeName() => Encoding.UTF8.GetString(this.TypeName);
-
             public bool Equals(TypeKey other)
             {
                 if (this.HashCode != other.HashCode) return false;
                 var a = this.TypeName;
                 var b = other.TypeName;
-                if (ReferenceEquals(a, b)) return true;
-                if (a.Length != b.Length) return false;
-                var length = a.Length;
-                for (var i = 0; i < length; i++) if (a[i] != b[i]) return false;
-                return true;
+                return ReferenceEquals(a, b) || ByteArrayCompare(a, b);
+
+                bool ByteArrayCompare(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2)
+                {
+                    return a1.SequenceEqual(a2);
+                }
             }
 
             public override bool Equals(object obj)

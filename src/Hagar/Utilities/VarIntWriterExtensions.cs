@@ -1,14 +1,23 @@
+using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 
 namespace Hagar.Utilities
 {
     public static class VarIntWriterExtensions
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, sbyte value) => WriteVarInt(ref writer, ZigZagEncode(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, short value) => WriteVarInt(ref writer, ZigZagEncode(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, int value) => WriteVarInt(ref writer, ZigZagEncode(value));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, long value) => WriteVarInt(ref writer, ZigZagEncode(value));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, byte value)
         {
             writer.EnsureContiguous(2);
@@ -22,6 +31,7 @@ namespace Hagar.Utilities
             writer.AdvanceSpan(count);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, ushort value)
         {
             writer.EnsureContiguous(3);
@@ -36,6 +46,7 @@ namespace Hagar.Utilities
             writer.AdvanceSpan(count);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, uint value)
         {
             writer.EnsureContiguous(5);
@@ -49,6 +60,7 @@ namespace Hagar.Utilities
             writer.AdvanceSpan(count);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt(ref this Writer writer, ulong value)
         {
             writer.EnsureContiguous(10);
@@ -62,21 +74,25 @@ namespace Hagar.Utilities
             writer.AdvanceSpan(count);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte ZigZagEncode(sbyte value)
         {
             return (byte)((value << 1) ^ (value >> 7));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort ZigZagEncode(short value)
         {
             return (ushort)((value << 1) ^ (value >> 15));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint ZigZagEncode(int value)
         {
             return (uint)((value << 1) ^ (value >> 31));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong ZigZagEncode(long value)
         {
             return (ulong)((value << 1) ^ (value >> 63));

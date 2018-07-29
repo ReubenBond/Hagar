@@ -34,7 +34,7 @@ namespace Hagar.Serializers
             {
                 writer.WriteStartObject(session, fieldIdDelta, expectedType, fieldType);
                 this.serializer.Serialize(ref writer, session, value);
-                
+
                 writer.WriteEndObject();
             }
             else
@@ -67,7 +67,7 @@ namespace Hagar.Serializers
             var specificSerializer = this.codecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
-                return (TField) specificSerializer.ReadValue(ref reader, session, field);
+                return (TField)specificSerializer.ReadValue(ref reader, session, field);
             }
 
             ThrowSerializerNotFoundException(fieldType);

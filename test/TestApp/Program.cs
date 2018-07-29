@@ -27,8 +27,8 @@ namespace TestApp
                 .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
                 .AddHagar(options =>
                 {
-                    options.PartialSerializers.Add(typeof(SubTypeSerializer));
-                    options.PartialSerializers.Add(typeof(BaseTypeSerializer));
+                    options.Serializers.Add(typeof(SubTypeSerializer));
+                    options.Serializers.Add(typeof(BaseTypeSerializer));
                 })
                 .BuildServiceProvider();
 
@@ -73,8 +73,8 @@ namespace TestApp
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHagar(configuration =>
             {
-                configuration.PartialSerializers.Add(typeof(SubTypeSerializer));
-                configuration.PartialSerializers.Add(typeof(BaseTypeSerializer));
+                configuration.Serializers.Add(typeof(SubTypeSerializer));
+                configuration.Serializers.Add(typeof(BaseTypeSerializer));
             });
             serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
             serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();

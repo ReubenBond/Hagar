@@ -15,15 +15,15 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteFieldHeader(this ref Writer writer, SerializerSession session, uint fieldId, Type expectedType, Type actualType, WireType wireType)
         {
-            var (schemaType, idOrReference) = GetSchemaTypeWithEncoding(session, expectedType, actualType);
             var field = default(Field);
             field.FieldIdDelta = fieldId;
-            field.SchemaType = schemaType;
+            uint idOrReference;
+            (field.SchemaType, idOrReference) = GetSchemaTypeWithEncoding(session, expectedType, actualType);
             field.WireType = wireType;
 
             writer.Write(field.Tag);
             if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldIdDelta);
-            if (field.HasExtendedSchemaType) writer.WriteType(session, schemaType, idOrReference, actualType);
+            if (field.HasExtendedSchemaType) writer.WriteType(session, field.SchemaType, idOrReference, actualType);
         }
 
         public static Field ReadFieldHeader(this ref Reader reader, SerializerSession session)
@@ -36,6 +36,7 @@ namespace Hagar.Codecs
             return field;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializerSession session, Type expectedType, Type actualType)
         {
             if (actualType == expectedType)
@@ -56,6 +57,7 @@ namespace Hagar.Codecs
             return (SchemaType.Encoded, 0);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void WriteType(this ref Writer writer, SerializerSession session, SchemaType schemaType, uint idOrReference, Type type)
         {
             switch (schemaType)

@@ -11,7 +11,6 @@ namespace Hagar.CodeGenerator
 {
     internal static class PartialSerializerGenerator
     {
-        private const string ClassPrefix = CodeGenerator.CodeGeneratorName + "_Partial";
         private const string BaseTypeSerializerFieldName = "baseTypeSerializer";
         private const string SerializeMethodName = "Serialize";
         private const string DeserializeMethodName = "Deserialize";
@@ -22,7 +21,8 @@ namespace Hagar.CodeGenerator
             var simpleClassName = GetSimpleClassName(type);
 
             var libraryTypes = LibraryTypes.FromCompilation(compilation);
-            var partialSerializerInterface = libraryTypes.PartialSerializer.Construct(type).ToTypeSyntax();
+            var serializerInterface = type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer;
+            var baseInterface = serializerInterface.Construct(type).ToTypeSyntax();
 
             var fieldDescriptions = GetFieldDescriptions(typeDescription, libraryTypes);
             var fields = GetFieldDeclarations(fieldDescriptions);
@@ -32,7 +32,7 @@ namespace Hagar.CodeGenerator
             var deserializeMethod = GenerateDeserializeMethod(typeDescription, fieldDescriptions, libraryTypes);
 
             var classDeclaration = ClassDeclaration(simpleClassName)
-                .AddBaseListTypes(SimpleBaseType(partialSerializerInterface))
+                .AddBaseListTypes(SimpleBaseType(baseInterface))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fields)
@@ -47,7 +47,7 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(ISymbol type)
         {
-            return $"{ClassPrefix}_{type.Name}";
+            return $"{CodeGenerator.CodeGeneratorName}_Serializer_{type.Name}";
         }
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(ClassDeclarationSyntax classDeclaration, INamedTypeSymbol type)
@@ -177,10 +177,11 @@ namespace Hagar.CodeGenerator
 
         private static bool HasComplexBaseType(INamedTypeSymbol type)
         {
-            return type.BaseType != null && type.BaseType.SpecialType != SpecialType.System_Object;
+            return !type.IsValueType && type.BaseType != null && type.BaseType.SpecialType != SpecialType.System_Object;
         }
 
-        private static MemberDeclarationSyntax GenerateSerializeMethod(TypeDescription typeDescription,
+        private static MemberDeclarationSyntax GenerateSerializeMethod(
+            TypeDescription typeDescription,
             List<SerializerFieldDescription> fieldDescriptions,
             LibraryTypes libraryTypes)
         {
@@ -226,12 +227,21 @@ namespace Hagar.CodeGenerator
                                     })))));
             }
 
+            var parameters = new[]
+            {
+                Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
+                Parameter("session".ToIdentifier()).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
+                Parameter("instance".ToIdentifier()).WithType(typeDescription.Type.ToTypeSyntax())
+            };
+
+            if (typeDescription.Type.IsValueType)
+            {
+                parameters[2] = parameters[2].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
+            }
+
             return MethodDeclaration(returnType, SerializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                .AddParameterListParameters(
-                    Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
-                    Parameter("session".ToIdentifier()).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
-                    Parameter("instance".ToIdentifier()).WithType(typeDescription.Type.ToTypeSyntax()))
+                .AddParameterListParameters(parameters)
                 .AddBodyStatements(body.ToArray());
         }
 
@@ -274,12 +284,21 @@ namespace Hagar.CodeGenerator
 
             body.Add(WhileStatement(LiteralExpression(SyntaxKind.TrueLiteralExpression), Block(GetDeserializerLoopBody())));
 
+            var parameters = new[]
+            {
+                Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
+                Parameter(sessionParam.Identifier).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
+                Parameter(instanceParam.Identifier).WithType(typeDescription.Type.ToTypeSyntax())
+            };
+            
+            if (typeDescription.Type.IsValueType)
+            {
+                parameters[2] = parameters[2].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
+            }
+
             return MethodDeclaration(returnType, DeserializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                .AddParameterListParameters(
-                    Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
-                    Parameter(sessionParam.Identifier).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
-                    Parameter(instanceParam.Identifier).WithType(typeDescription.Type.ToTypeSyntax()))
+                .AddParameterListParameters(                    parameters)
                 .AddBodyStatements(body.ToArray());
 
             // Create the loop body.

@@ -1,4 +1,4 @@
-using System;
+using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
 
@@ -6,127 +6,12 @@ namespace Hagar.Utilities
 {
     public static class VarIntReaderExtensions
     {
-        public static byte ReadVarUInt8(this ref Reader reader)
-        {
-            var next = reader.ReadByte();
-            if ((next & 0x80) == 0) return next;
-            var result = (byte) (next & 0x7F);
-
-            next = reader.ReadByte();
-            result |= (byte)((next & 0x7F) << 7);
-
-            // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte(); 
-
-            return result;
-        }
-
-        public static ushort ReadVarUInt16(this ref Reader reader)
-        {
-            var next = reader.ReadByte();
-            var result = (ushort)(next & 0x7F);
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (ushort)((next & 0x7F) << 7);
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (ushort)((next & 0x7F) << 14);
-
-            // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte();
-
-            return result;
-        }
-
-        public static uint ReadVarUInt32(this ref Reader reader)
-        {
-            var next = reader.ReadByte();
-            var result = (uint)(next & 0x7F);
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (uint)((next & 0x7F) << 7);
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (uint)((next & 0x7F) << 14);
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (uint)((next & 0x7F) << 21);
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (uint)((next & 0x7F) << 28);
-            if ((next & 0x80) == 0) return result;
-
-            // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte();
-
-            return result;
-        }
-
-        public static sbyte ReadVarInt8(this ref Reader reader) => ZigZagDecode(reader.ReadVarUInt8());
-        public static short ReadVarInt16(this ref Reader reader) => ZigZagDecode(reader.ReadVarUInt16());
-        public static int ReadVarInt32(this ref Reader reader) => ZigZagDecode(reader.ReadVarUInt32());
-        public static long ReadVarInt64(this ref Reader reader) => ZigZagDecode(reader.ReadVarUInt64());
-        
-        public static ulong ReadVarUInt64(this ref Reader reader)
-        {
-            ulong next = reader.ReadByte();
-            var result = next & 0x7F;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 7;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 14;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 21;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 28;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 35;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 42;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 49;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 56;
-            if ((next & 0x80) == 0) return result;
-
-            next = reader.ReadByte();
-            result |= (next & 0x7F) << 63;
-            if ((next & 0x80) == 0) return result;
-
-            // Consume extra bytes.
-            while ((next & 0x80) != 0) next = reader.ReadByte();
-
-            return result;
-        }
-
         public static byte ReadUInt8(this ref Reader reader, WireType wireType)
         {
             switch (wireType)
             {
                 case WireType.VarInt:
-                    return reader.ReadVarUInt8();
+                    return (byte) reader.ReadVarUInt32();
                 case WireType.Fixed32:
                     return (byte) reader.ReadUInt32();
                 case WireType.Fixed64:
@@ -141,7 +26,7 @@ namespace Hagar.Utilities
             switch (wireType)
             {
                 case WireType.VarInt:
-                    return reader.ReadVarUInt16();
+                    return (ushort) reader.ReadVarUInt32();
                 case WireType.Fixed32:
                     return (ushort) reader.ReadUInt32();
                 case WireType.Fixed64:
@@ -186,7 +71,7 @@ namespace Hagar.Utilities
             switch (wireType)
             {
                 case WireType.VarInt:
-                    return ZigZagDecode(reader.ReadVarUInt8());
+                    return ZigZagDecode((byte) reader.ReadVarUInt32());
                 case WireType.Fixed32:
                     return (sbyte) reader.ReadInt32();
                 case WireType.Fixed64:
@@ -201,7 +86,7 @@ namespace Hagar.Utilities
             switch (wireType)
             {
                 case WireType.VarInt:
-                    return ZigZagDecode(reader.ReadVarUInt16());
+                    return ZigZagDecode((ushort) reader.ReadVarUInt32());
                 case WireType.Fixed32:
                     return (short) reader.ReadInt32();
                 case WireType.Fixed64:
@@ -246,24 +131,28 @@ namespace Hagar.Utilities
         private const int Int32Msb = unchecked((int) 0x80000000);
         private const long Int64Msb = unchecked((long) 0x8000000000000000);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static sbyte ZigZagDecode(byte encoded)
         {
             var value = (sbyte) encoded;
             return (sbyte) (-(value & 0x01) ^ ((sbyte) (value >> 1) & ~Int8Msb));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static short ZigZagDecode(ushort encoded)
         {
             var value = (short) encoded;
             return (short) (-(value & 0x01) ^ ((short) (value >> 1) & ~Int16Msb));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int ZigZagDecode(uint encoded)
         {
             var value = (int) encoded;
             return -(value & 0x01) ^ ((value >> 1) & ~Int32Msb);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long ZigZagDecode(ulong encoded)
         {
             var value = (long) encoded;

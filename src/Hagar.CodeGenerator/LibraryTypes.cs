@@ -9,6 +9,7 @@ namespace Hagar.CodeGenerator
             return new LibraryTypes
             {
                 PartialSerializer = compilation.GetTypeByMetadataName("Hagar.Serializers.IPartialSerializer`1"),
+                ValueSerializer = compilation.GetTypeByMetadataName("Hagar.Serializers.IValueSerializer`1"),
                 FieldCodec = compilation.GetTypeByMetadataName("Hagar.Codecs.IFieldCodec`1"),
                 TypedCodecProvider = compilation.GetTypeByMetadataName("Hagar.Serializers.ITypedCodecProvider"),
                 Writer = compilation.GetTypeByMetadataName("Hagar.Buffers.Writer"),
@@ -40,5 +41,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol FieldCodec { get; private set; }
 
         public INamedTypeSymbol PartialSerializer { get; private set; }
+
+        public INamedTypeSymbol ValueSerializer { get; private set; }
     }
 }

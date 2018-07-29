@@ -22,8 +22,21 @@ namespace Hagar.Codecs
                 return ReferenceCodec.ReadReference<string>(ref reader, session, field, this.codecProvider);
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
-            var bytes = reader.ReadBytes(length);
-            var result = Encoding.UTF8.GetString(bytes);
+
+            string result;
+#if  NETCOREAPP2_1
+      
+            if (reader.TryReadBytes((int) length, out var span))
+            {
+                result = Encoding.UTF8.GetString(span);
+            }
+            else      
+#endif
+            {
+                var bytes = reader.ReadBytes(length);
+                result = Encoding.UTF8.GetString(bytes);
+            }
+
             ReferenceCodec.RecordObject(session, result);
             return result;
         }
