@@ -64,7 +64,7 @@ namespace Hagar.Buffers
             void ThrowTooLarge(int l) => throw new InvalidOperationException($"Requested buffer length {l} cannot be satisfied by the writer.");
         }
 
-        private void Allocate(int length)
+        public void Allocate(int length)
         {
             // Commit the bytes which have been written.
             this.output.Advance(this.bufferPos);
@@ -84,7 +84,7 @@ namespace Hagar.Buffers
             // Fast path, try copying to the current buffer.
             if (value.Length <= this.bufferSize - this.bufferPos)
             {
-                value.CopyTo(currentSpan.Slice(this.bufferPos));
+                value.CopyTo(this.WritableSpan);
                 this.bufferPos += value.Length;
             }
             else
@@ -100,7 +100,7 @@ namespace Hagar.Buffers
             {
                 // Write as much as possible/necessary into the current segment.
                 var writeSize = Math.Min(this.bufferSize - this.bufferPos, input.Length);
-                input.Slice(0, writeSize).CopyTo(currentSpan.Slice(this.bufferPos));
+                input.Slice(0, writeSize).CopyTo(this.WritableSpan);
                 this.bufferPos += writeSize;
 
                 input = input.Slice(writeSize);
