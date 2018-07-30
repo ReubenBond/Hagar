@@ -10,11 +10,15 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.0" />
+    <PackageReference Include="Hyperion" Version="0.9.8" />
+    <PackageReference Include="MessagePack" Version="1.7.3.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="2.0.3" />
+    <PackageReference Include="protobuf-net" Version="2.3.14" />
     <PackageReference Include="System.IO.Pipelines" Version="4.5.0" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="2.0.3" />
+    <PackageReference Include="ZeroFormatter" Version="1.6.4" />
     <!--<PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.3" />-->
   </ItemGroup>
 

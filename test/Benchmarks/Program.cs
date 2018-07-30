@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.IO.Pipelines;
 using System.Linq;
 using System.Text;
 using BenchmarkDotNet.Attributes;
@@ -9,6 +8,7 @@ using BenchmarkDotNet.Running;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Session;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Orleans.Configuration;
@@ -39,7 +39,14 @@ namespace Benchmarks
                 }
             }
 
-            BenchmarkRunner.Run<ComplexTypeBenchmarks>();
+            var switcher = new BenchmarkSwitcher(new[]
+            {
+                typeof(DeserializeBenchmark),
+                typeof(SerializeBenchmark),
+                typeof(ComplexTypeBenchmarks)
+            });
+
+            switcher.Run(args);
         }
     }
     
@@ -153,7 +160,7 @@ namespace Benchmarks
             return (SimpleStruct)this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object HagarClassRoundTrip()
         {
             var writer = new Writer(HagarBuffer);
@@ -175,7 +182,7 @@ namespace Benchmarks
             return this.orleansSerializer.Deserialize(new BinaryTokenStreamReader(writer.ToBytes()));
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object HagarSerialize()
         {
             var writer = new Writer(HagarBuffer);
@@ -193,7 +200,7 @@ namespace Benchmarks
             return writer;
         }
 
-        [Benchmark]
+        //[Benchmark]
         public object HagarDeserialize()
         {
             session.FullReset();
@@ -290,6 +297,7 @@ namespace Benchmarks
         public Memory<byte> GetMemory(int sizeHint = 0) => buffer.AsMemory().Slice(written);
 
         public Span<byte> GetSpan(int sizeHint) => buffer.AsSpan().Slice(written);
+        public byte[] ToArray() => buffer.AsSpan(0, written).ToArray();
 
         public void Reset() => this.written = 0;
 
