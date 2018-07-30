@@ -7,7 +7,7 @@ namespace Hagar.Buffers
 {
     public ref struct Reader
     {
-        private ReadOnlySequence<byte> input;
+        private readonly ReadOnlySequence<byte> input;
         private ReadOnlySpan<byte> currentSpan;
         private SequencePosition currentBufferStart;
         private int bufferPos;
