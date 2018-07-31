@@ -12,7 +12,7 @@ namespace Hagar.Utilities
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
-    internal class CachedReadConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    internal sealed class CachedReadConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
         /// <summary>
         /// The number of cache misses which are tolerated before the cache is regenerated.

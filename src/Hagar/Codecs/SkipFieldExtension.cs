@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
@@ -7,7 +8,7 @@ namespace Hagar.Codecs
 {
     public class SkipFieldCodec : IFieldCodec<object>
     {
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(session);
             throw new NotImplementedException();

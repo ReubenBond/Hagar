@@ -1,7 +1,6 @@
 using System;
 using Hagar.Buffers;
 using Hagar.Codecs;
-using Hagar.GeneratedCodeHelpers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
@@ -11,17 +10,18 @@ namespace Hagar.Serializers
     /// Serializer for value types.
     /// </summary>
     /// <typeparam name="TField">The field type.</typeparam>
-    public class ValueSerializer<TField> : IFieldCodec<TField> where TField : struct
+    /// <typeparam name="TValueSerializer">The value-type serializer implementation type.</typeparam>
+    public sealed class ValueSerializer<TField, TValueSerializer> : IFieldCodec<TField> where TField : struct where TValueSerializer : IValueSerializer<TField>
     {
         private static readonly Type CodecFieldType = typeof(TField);
-        private readonly IValueSerializer<TField> serializer;
+        private readonly TValueSerializer serializer;
 
-        public ValueSerializer(IValueSerializerProvider provider)
+        public ValueSerializer(TValueSerializer serializer)
         {
-            this.serializer = HagarGeneratedCodeHelper.UnwrapService(this, provider.GetValueSerializer<TField>());
+            this.serializer = serializer;
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+        void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteStartObject(session, fieldIdDelta, expectedType, CodecFieldType);
@@ -29,7 +29,7 @@ namespace Hagar.Serializers
             writer.WriteEndObject();
         }
 
-        public TField ReadValue(ref Reader reader, SerializerSession session, Field field)
+        TField IFieldCodec<TField>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             ReferenceCodec.MarkValueField(session);
             var value = default(TField);

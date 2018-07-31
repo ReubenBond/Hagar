@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Reflection;
 using Hagar.Activators;
 using Hagar.Buffers;
@@ -46,7 +47,6 @@ namespace Hagar
 
                 // Serializer
                 services.AddSingleton(typeof(Serializer<>));
-                services.AddSingleton(typeof(Serializer));
             }
 
             if (configure != null)
@@ -68,7 +68,7 @@ namespace Hagar
             return default;
         }
 
-        private class HagarConfigurationContext
+        private sealed class HagarConfigurationContext
         {
             public static readonly ServiceDescriptor Descriptor = new ServiceDescriptor(typeof(HagarConfigurationContext), new HagarConfigurationContext());
         }
@@ -85,7 +85,7 @@ namespace Hagar
             return services;
         }
 
-        private class DelegateConfigurationProvider<TOptions> : IConfigurationProvider<TOptions>
+        private sealed class DelegateConfigurationProvider<TOptions> : IConfigurationProvider<TOptions>
         {
             private readonly Action<TOptions> configure;
 
@@ -97,7 +97,7 @@ namespace Hagar
             public void Configure(TOptions configuration) => this.configure(configuration);
         }
 
-        private class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>
+        private sealed class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>
         {
             private readonly ITypedCodecProvider codecProvider;
             private IFieldCodec<TField> codec;
@@ -107,14 +107,14 @@ namespace Hagar
                 this.codecProvider = codecProvider;
             }
             
-            public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value) => this.Value.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value) where TBufferWriter : IBufferWriter<byte> => this.Value.WriteField<TBufferWriter>(ref writer, session, fieldIdDelta, expectedType, value);
             
             public TField ReadValue(ref Reader reader, SerializerSession session, Field field) => this.Value.ReadValue(ref reader, session, field);
 
             public IFieldCodec<TField> Value => this.codec ?? (this.codec = this.codecProvider.GetCodec<TField>());
         }
 
-        private class PartialSerializerHolder<TField> : IPartialSerializer<TField>, IServiceHolder<IPartialSerializer<TField>> where TField : class
+        private sealed class PartialSerializerHolder<TField> : IPartialSerializer<TField>, IServiceHolder<IPartialSerializer<TField>> where TField : class
         {
             private readonly IPartialSerializerProvider provider;
             private IPartialSerializer<TField> partialSerializer;
@@ -124,7 +124,7 @@ namespace Hagar
                 this.provider = provider;
             }
 
-            public void Serialize(ref Writer writer, SerializerSession session, TField value)
+            public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, TField value) where TBufferWriter : IBufferWriter<byte>
             {
                 this.Value.Serialize(ref writer, session, value);
             }
@@ -137,7 +137,7 @@ namespace Hagar
             public IPartialSerializer<TField> Value => this.partialSerializer ?? (this.partialSerializer = this.provider.GetPartialSerializer<TField>());
         }
 
-        private class ValueSerializerHolder<TField> : IValueSerializer<TField>, IServiceHolder<IValueSerializer<TField>> where TField : struct
+        private sealed class ValueSerializerHolder<TField> : IValueSerializer<TField>, IServiceHolder<IValueSerializer<TField>> where TField : struct
         {
             private readonly IValueSerializerProvider provider;
             private IValueSerializer<TField> serializer;
@@ -147,7 +147,7 @@ namespace Hagar
                 this.provider = provider;
             }
 
-            public void Serialize(ref Writer writer, SerializerSession session, ref TField value)
+            public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, ref TField value) where TBufferWriter : IBufferWriter<byte>
             {
                 this.Value.Serialize(ref writer, session, ref value);
             }

@@ -9,7 +9,7 @@ using Hagar.GeneratedCodeHelpers;
 using Microsoft.Extensions.DependencyInjection;
 namespace Hagar.Serializers
 {
-    public class CodecProvider : ICodecProvider
+    public sealed class CodecProvider : ICodecProvider
     {
         private static readonly Type ObjectType = typeof(object);
         private static readonly Type OpenGenericCodecType = typeof(IFieldCodec<>);
@@ -56,7 +56,7 @@ namespace Hagar.Serializers
             AddFromMetadata(this.valueSerializers, metadata.Serializers, typeof(IValueSerializer<>));
             AddFromMetadata(this.fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
             
-            void AddFromMetadata(Dictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
+            void AddFromMetadata(IDictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
             {
                 if (genericType.GetGenericArguments().Length != 1) throw new ArgumentException($"Type {genericType} must have an arity of 1.");
 
@@ -256,26 +256,40 @@ namespace Hagar.Serializers
             }
         }
 
-        private object GetServiceOrCreateInstance(Type type)
+        private object GetServiceOrCreateInstance(Type type, object[] constructorArguments = null)
         {
-            return HagarGeneratedCodeHelper.TryGetService(type) ?? ActivatorUtilities.GetServiceOrCreateInstance(this.serviceProvider, type);
+            var result = HagarGeneratedCodeHelper.TryGetService(type);
+            if (result != null) return result;
+
+            result = this.serviceProvider.GetService(type);
+            if (result != null) return result;
+
+            result = ActivatorUtilities.CreateInstance(this.serviceProvider, type, constructorArguments ?? Array.Empty<object>());
+            return result;
         }
 
         private IFieldCodec CreateCodecInstance(Type fieldType, Type searchType)
         {
+            object[] constructorArguments = null;
             if (this.fieldCodecs.TryGetValue(searchType, out var codecType))
             {
                 if (codecType.IsGenericTypeDefinition) codecType = codecType.MakeGenericType(fieldType.GetGenericArguments());
             }
-            else if (this.partialSerializers.TryGetValue(searchType, out var _))
+            else if (this.partialSerializers.TryGetValue(searchType, out var partialSerializerType))
             {
+                if (partialSerializerType.IsGenericTypeDefinition) partialSerializerType = partialSerializerType.MakeGenericType(fieldType.GetGenericArguments());
+
                 // If there is a partial serializer for this type, create a codec which will then accept that partial serializer.
-                codecType = typeof(ConcreteTypeSerializer<>).MakeGenericType(fieldType);
+                codecType = typeof(ConcreteTypeSerializer<,>).MakeGenericType(fieldType, partialSerializerType);
+                constructorArguments = new[] { GetServiceOrCreateInstance(partialSerializerType) };
             }
-            else if (this.valueSerializers.TryGetValue(searchType, out var _))
+            else if (this.valueSerializers.TryGetValue(searchType, out var valueSerializerType))
             {
+                if (valueSerializerType.IsGenericTypeDefinition) valueSerializerType = valueSerializerType.MakeGenericType(fieldType.GetGenericArguments());
+
                 // If there is a value serializer for this type, create a codec which will then accept that value serializer.
-                codecType = typeof(ValueSerializer<>).MakeGenericType(fieldType);
+                codecType = typeof(ValueSerializer<,>).MakeGenericType(fieldType, valueSerializerType);
+                constructorArguments = new[] { GetServiceOrCreateInstance(valueSerializerType) };
             }
             else if (fieldType.IsArray)
             {
@@ -284,7 +298,7 @@ namespace Hagar.Serializers
                 codecType = arrayCodecType.MakeGenericType(fieldType.GetElementType());
             }
 
-            return codecType != null ? (IFieldCodec) GetServiceOrCreateInstance(codecType) : null;
+            return codecType != null ? (IFieldCodec) GetServiceOrCreateInstance(codecType, constructorArguments) : null;
         }
 
         private static void ThrowPointerType(Type fieldType)

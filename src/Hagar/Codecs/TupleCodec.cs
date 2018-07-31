@@ -6,7 +6,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class TupleCodec<T> : IFieldCodec<Tuple<T>>
+    public sealed class TupleCodec<T> : IFieldCodec<Tuple<T>>
     {
         private readonly IFieldCodec<T> valueCodec;
 
@@ -15,17 +15,17 @@ namespace Hagar.Codecs
             this.valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T> value)
+        void IFieldCodec<Tuple<T>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.valueCodec.WriteField(ref writer, session, 0, typeof(T), value.Item1);
+            this.valueCodec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T), value.Item1);
             
             writer.WriteEndObject();
         }
 
-        public Tuple<T> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T> IFieldCodec<Tuple<T>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -68,18 +68,18 @@ namespace Hagar.Codecs
             this.item2Codec = HagarGeneratedCodeHelper.UnwrapService(this, item2Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2> value)
+        void IFieldCodec<Tuple<T1, T2>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
 
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2> IFieldCodec<Tuple<T1, T2>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -131,19 +131,19 @@ namespace Hagar.Codecs
             this.item3Codec = HagarGeneratedCodeHelper.UnwrapService(this, item3Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3> value)
+        void IFieldCodec<Tuple<T1, T2, T3>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
-            this.item3Codec.WriteField(ref writer, session, 1, typeof(T3), value.Item3);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item3Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T3), value.Item3);
             
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2, T3> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2, T3> IFieldCodec<Tuple<T1, T2, T3>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -202,20 +202,20 @@ namespace Hagar.Codecs
             this.item4Codec = HagarGeneratedCodeHelper.UnwrapService(this, item4Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4> value)
+        void IFieldCodec<Tuple<T1, T2, T3, T4>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
-            this.item3Codec.WriteField(ref writer, session, 1, typeof(T3), value.Item3);
-            this.item4Codec.WriteField(ref writer, session, 1, typeof(T4), value.Item4);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item3Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T3), value.Item3);
+            this.item4Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T4), value.Item4);
 
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2, T3, T4> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2, T3, T4> IFieldCodec<Tuple<T1, T2, T3, T4>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -281,21 +281,21 @@ namespace Hagar.Codecs
             this.item5Codec = HagarGeneratedCodeHelper.UnwrapService(this, item5Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5> value)
+        void IFieldCodec<Tuple<T1, T2, T3, T4, T5>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
-            this.item3Codec.WriteField(ref writer, session, 1, typeof(T3), value.Item3);
-            this.item4Codec.WriteField(ref writer, session, 1, typeof(T4), value.Item4);
-            this.item5Codec.WriteField(ref writer, session, 1, typeof(T5), value.Item5);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item3Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T3), value.Item3);
+            this.item4Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T4), value.Item4);
+            this.item5Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T5), value.Item5);
             
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2, T3, T4, T5> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2, T3, T4, T5> IFieldCodec<Tuple<T1, T2, T3, T4, T5>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -368,22 +368,22 @@ namespace Hagar.Codecs
             this.item6Codec = HagarGeneratedCodeHelper.UnwrapService(this, item6Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5, T6> value)
+        void IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5, T6> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
-            this.item3Codec.WriteField(ref writer, session, 1, typeof(T3), value.Item3);
-            this.item4Codec.WriteField(ref writer, session, 1, typeof(T4), value.Item4);
-            this.item5Codec.WriteField(ref writer, session, 1, typeof(T5), value.Item5);
-            this.item6Codec.WriteField(ref writer, session, 1, typeof(T6), value.Item6);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item3Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T3), value.Item3);
+            this.item4Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T4), value.Item4);
+            this.item5Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T5), value.Item5);
+            this.item6Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T6), value.Item6);
             
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2, T3, T4, T5, T6> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2, T3, T4, T5, T6> IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -463,24 +463,24 @@ namespace Hagar.Codecs
             this.item7Codec = HagarGeneratedCodeHelper.UnwrapService(this, item7Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5, T6, T7> value)
+        void IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5, T6, T7> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
-            this.item3Codec.WriteField(ref writer, session, 1, typeof(T3), value.Item3);
-            this.item4Codec.WriteField(ref writer, session, 1, typeof(T4), value.Item4);
-            this.item5Codec.WriteField(ref writer, session, 1, typeof(T5), value.Item5);
-            this.item6Codec.WriteField(ref writer, session, 1, typeof(T6), value.Item6);
-            this.item7Codec.WriteField(ref writer, session, 1, typeof(T7), value.Item7);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item3Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T3), value.Item3);
+            this.item4Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T4), value.Item4);
+            this.item5Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T5), value.Item5);
+            this.item6Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T6), value.Item6);
+            this.item7Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T7), value.Item7);
 
             
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2, T3, T4, T5, T6, T7> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2, T3, T4, T5, T6, T7> IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
@@ -567,25 +567,25 @@ namespace Hagar.Codecs
             this.item8Codec = HagarGeneratedCodeHelper.UnwrapService(this, item8Codec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5, T6, T7, T8> value)
+        void IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Tuple<T1, T2, T3, T4, T5, T6, T7, T8> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.item1Codec.WriteField(ref writer, session, 0, typeof(T1), value.Item1);
-            this.item2Codec.WriteField(ref writer, session, 1, typeof(T2), value.Item2);
-            this.item3Codec.WriteField(ref writer, session, 1, typeof(T3), value.Item3);
-            this.item4Codec.WriteField(ref writer, session, 1, typeof(T4), value.Item4);
-            this.item5Codec.WriteField(ref writer, session, 1, typeof(T5), value.Item5);
-            this.item6Codec.WriteField(ref writer, session, 1, typeof(T6), value.Item6);
-            this.item7Codec.WriteField(ref writer, session, 1, typeof(T7), value.Item7);
-            this.item8Codec.WriteField(ref writer, session, 1, typeof(T8), value.Rest);
+            this.item1Codec.WriteField<TBufferWriter>(ref writer, session, 0, typeof(T1), value.Item1);
+            this.item2Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T2), value.Item2);
+            this.item3Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T3), value.Item3);
+            this.item4Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T4), value.Item4);
+            this.item5Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T5), value.Item5);
+            this.item6Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T6), value.Item6);
+            this.item7Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T7), value.Item7);
+            this.item8Codec.WriteField<TBufferWriter>(ref writer, session, 1, typeof(T8), value.Rest);
 
             
             writer.WriteEndObject();
         }
 
-        public Tuple<T1, T2, T3, T4, T5, T6, T7, T8> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Tuple<T1, T2, T3, T4, T5, T6, T7, T8> IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 

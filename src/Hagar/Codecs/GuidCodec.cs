@@ -1,20 +1,21 @@
 using System;
+using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class GuidCodec : IFieldCodec<Guid>
+    public sealed class GuidCodec : IFieldCodec<Guid>
     {
         private const int Width = 16;
 
-        void IFieldCodec<Guid>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value)
+        void IFieldCodec<Guid>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value)
         {
             WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value)
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(Guid), WireType.Fixed128);

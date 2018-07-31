@@ -1,4 +1,5 @@
-﻿using Hagar.Buffers;
+﻿using System.Buffers;
+using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
@@ -23,7 +24,7 @@ namespace TestApp
             this.objectCodec = HagarGeneratedCodeHelper.UnwrapService(this, objectCodec);
         }
 
-        public void Serialize(ref Writer writer, SerializerSession session, SubType obj)
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, SubType obj) where TBufferWriter : IBufferWriter<byte>
         {
             this.baseTypeSerializer.Serialize(ref writer, session, obj);
             writer.WriteEndBase(); // the base object is complete.

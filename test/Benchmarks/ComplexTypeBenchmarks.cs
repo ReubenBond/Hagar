@@ -3,6 +3,8 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Benchmarks.Models;
+using Benchmarks.Utilities;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Session;
@@ -14,6 +16,7 @@ using Orleans.Serialization;
 
 namespace Benchmarks
 {
+    [Config(typeof(BenchmarkConfig))]
     [MemoryDiagnoser]
     public class ComplexTypeBenchmarks
     {
@@ -62,8 +65,8 @@ namespace Benchmarks
                 Guid = Guid.NewGuid()
             };
             this.session = sessionPool.GetSession();
-            var writer = new Writer(HagarBuffer);
-            this.hagarSerializer.Serialize(this.value, session, ref writer);
+            var writer = HagarBuffer.CreateWriter();
+            this.hagarSerializer.Serialize(ref writer, session, this.value);
             var bytes = new byte[HagarBuffer.GetMemory().Length];
             HagarBuffer.GetReadOnlySequence().CopyTo(bytes);
             this.hagarBytes = new ReadOnlySequence<byte>(bytes);
@@ -78,40 +81,40 @@ namespace Benchmarks
 
         public void SerializeComplex()
         {
-            var writer = new Writer(HagarBuffer);
+            var writer = HagarBuffer.CreateWriter();
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, ref writer);
+            this.hagarSerializer.Serialize(ref writer, session, this.value);
 
             session.FullReset();
             var reader = new Reader(new ReadOnlySequence<byte>(HagarBuffer.GetMemory()));
-            this.hagarSerializer.Deserialize(session, ref reader);
+            this.hagarSerializer.Deserialize(ref reader, session);
             HagarBuffer.Reset();
         }
 
         public void SerializeStruct()
         {
-            var writer = new Writer(HagarBuffer);
+            var writer = HagarBuffer.CreateWriter();
             session.FullReset();
-            this.structSerializer.Serialize(this.structValue, session, ref writer);
+            this.structSerializer.Serialize(ref writer, session, this.structValue);
 
             session.FullReset();
             var reader = new Reader(HagarBuffer.GetReadOnlySequence());
-            this.structSerializer.Deserialize(session, ref reader);
+            this.structSerializer.Deserialize(ref reader, session);
             HagarBuffer.Reset();
         }
         
-        private static readonly SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer();
+        private static readonly SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer(new byte[1000]);
 
         [Benchmark]
         public SimpleStruct HagarStructRoundTrip()
         {
-            var writer = new Writer(HagarBuffer);
+            var writer = HagarBuffer.CreateWriter();
             session.FullReset();
-            this.structSerializer.Serialize(this.structValue, session, ref writer);
+            this.structSerializer.Serialize(ref writer, session, this.structValue);
 
             session.FullReset();
             var reader = new Reader(HagarBuffer.GetReadOnlySequence());
-            var result = this.structSerializer.Deserialize(session, ref reader);
+            var result = this.structSerializer.Deserialize(ref reader, session);
             HagarBuffer.Reset();
             return result;
         }
@@ -127,13 +130,13 @@ namespace Benchmarks
         //[Benchmark]
         public object HagarClassRoundTrip()
         {
-            var writer = new Writer(HagarBuffer);
+            var writer = HagarBuffer.CreateWriter();
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, ref writer);
+            this.hagarSerializer.Serialize(ref writer, session, this.value);
 
             session.FullReset();
             var reader = new Reader(HagarBuffer.GetReadOnlySequence());
-            var result = this.hagarSerializer.Deserialize(session, ref reader);
+            var result = this.hagarSerializer.Deserialize(ref reader, session);
             HagarBuffer.Reset();
             return result;
         }
@@ -149,9 +152,9 @@ namespace Benchmarks
         //[Benchmark]
         public object HagarSerialize()
         {
-            var writer = new Writer(HagarBuffer);
+            var writer = HagarBuffer.CreateWriter();
             session.FullReset();
-            this.hagarSerializer.Serialize(this.value, session, ref writer);
+            this.hagarSerializer.Serialize(ref writer, session, this.value);
             HagarBuffer.Reset();
             return session;
         }
@@ -169,7 +172,7 @@ namespace Benchmarks
         {
             session.FullReset();
             var reader = new Reader(this.hagarBytes);
-            return this.hagarSerializer.Deserialize(session, ref reader);
+            return this.hagarSerializer.Deserialize(ref reader, session);
         }
 
         //[Benchmark]

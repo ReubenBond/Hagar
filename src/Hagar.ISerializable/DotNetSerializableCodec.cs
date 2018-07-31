@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Hagar.Buffers;
@@ -43,7 +44,7 @@ namespace Hagar.ISerializable
                 this.streamingContext);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             var type = value.GetType();

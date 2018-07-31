@@ -35,7 +35,7 @@ namespace TestApp
             {
                 var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
                 var p = new Pipe();
-                var w = new Writer(p.Writer);
+                var w = new Writer<PipeWriter>(p.Writer);
                 c.Serialize(ref w, serializerSession, new SubType());
                 p.Writer.Complete();
             }
@@ -47,7 +47,7 @@ namespace TestApp
 
             var writeSession = sessionPool.GetSession();
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
             codec.WriteField(ref writer,
                              writeSession,
                              0,
@@ -259,7 +259,7 @@ namespace TestApp
         {
             var session = getSession();
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
 
             serializer.WriteField(ref writer, session, 0, typeof(T), expected);
 
@@ -306,7 +306,7 @@ namespace TestApp
         {
             var session = getSession();
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
 
             serializer.WriteField(ref writer, session, 0, typeof(SubType), expected);
 

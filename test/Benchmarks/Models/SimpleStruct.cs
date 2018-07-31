@@ -1,7 +1,7 @@
 ﻿using System;
 using Hagar;
 
-namespace Benchmarks
+namespace Benchmarks.Models
 {
     [Serializable]
     [GenerateSerializer]

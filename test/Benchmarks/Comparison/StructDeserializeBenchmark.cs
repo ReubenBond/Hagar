@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
+using Benchmarks.Models;
+using Benchmarks.Utilities;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Session;
@@ -13,42 +16,47 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
+using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
 
 namespace Benchmarks.Comparison
 {
     [Config(typeof(BenchmarkConfig))]
-    public class DeserializeBenchmark
+    public class StructDeserializeBenchmark
     {
-        private static readonly MemoryStream ProtoObj;
-        private static readonly string JsonnetObj = JsonConvert.SerializeObject(new MsgPackInts());
-        private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] {typeof(MsgPackInts)}));
-        private static readonly MemoryStream HyperionObj;
-        private static readonly Serializer<MsgPackInts> HagarSerializer;
-        private static readonly SingleSegmentBuffer HagarData;
+        private static readonly MemoryStream ProtoInput;
+        private static readonly string NewtonsoftJsonInput = JsonConvert.SerializeObject(IntStruct.Create());
+
+        private static readonly byte[] MsgPackInput = MessagePack.MessagePackSerializer.Serialize(IntStruct.Create());
+        private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(IntStruct.Create());
+        private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] {typeof(IntStruct)}));
+        private static readonly MemoryStream HyperionInput;
+        private static readonly Serializer<IntStruct> HagarSerializer;
+        private static readonly ReadOnlySequence<byte> HagarInput;
         private static readonly SerializerSession Session;
         private static readonly SerializationManager OrleansSerializer;
-        private static readonly List<ArraySegment<byte>> OrleansData;
+        private static readonly List<ArraySegment<byte>> OrleansInput;
         private static readonly BinaryTokenStreamReader OrleansBuffer;
 
-        static DeserializeBenchmark()
+        static StructDeserializeBenchmark()
         {
-            ProtoObj = new MemoryStream();
-            ProtoBuf.Serializer.Serialize(ProtoObj, new MsgPackInts());
+            ProtoInput = new MemoryStream();
+            ProtoBuf.Serializer.Serialize(ProtoInput, IntStruct.Create());
 
-            HyperionObj = new MemoryStream();
-            HyperionSerializer.Serialize(new MsgPackInts(), HyperionObj);
+            HyperionInput = new MemoryStream();
+            HyperionSerializer.Serialize(IntStruct.Create(), HyperionInput);
 
             // Hagar
             var services = new ServiceCollection()
                 .AddHagar()
                 .AddSerializers(typeof(Program).Assembly)
                 .BuildServiceProvider();
-            HagarSerializer = services.GetRequiredService<Serializer<MsgPackInts>>();
-            HagarData = new SingleSegmentBuffer();
-            var writer = new Writer(HagarData);
+            HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
+            var bytes = new byte[1000];
+            var writer = new SingleSegmentBuffer(bytes).CreateWriter();
             Session = services.GetRequiredService<SessionPool>().GetSession();
-            HagarSerializer.Serialize(new MsgPackInts(),  Session, ref writer);
+            HagarSerializer.Serialize(ref writer,  Session, IntStruct.Create());
+            HagarInput = new ReadOnlySequence<byte>(bytes);
 
             // Orleans
             OrleansSerializer = new ClientBuilder()
@@ -60,12 +68,12 @@ namespace Benchmarks.Comparison
                 .Build().ServiceProvider.GetRequiredService<SerializationManager>();
 
             var writer2 = new BinaryTokenStreamWriter();
-            OrleansSerializer.Serialize(new MsgPackInts(), writer2);
-            OrleansData = writer2.ToBytes();
-            OrleansBuffer = new BinaryTokenStreamReader(OrleansData);
+            OrleansSerializer.Serialize(IntStruct.Create(), writer2);
+            OrleansInput = writer2.ToBytes();
+            OrleansBuffer = new BinaryTokenStreamReader(OrleansInput);
         }
 
-        private static int SumResult(MsgPackInts result)
+        private static int SumResult(IntStruct result)
         {
             return result.MyProperty1 +
                    result.MyProperty2 +
@@ -82,35 +90,47 @@ namespace Benchmarks.Comparison
         public int Hagar()
         {
             Session.FullReset();
-            var reader = new Reader(HagarData.GetReadOnlySequence());
-            return SumResult(HagarSerializer.Deserialize(Session, ref reader));
+            var reader = new Reader(HagarInput);
+            return SumResult(HagarSerializer.Deserialize(ref reader, Session));
         }
 
         [Benchmark]
         public int Orleans()
         {
-            OrleansBuffer.Reset(OrleansData);
-            return SumResult(OrleansSerializer.Deserialize<MsgPackInts>(OrleansBuffer));
+            OrleansBuffer.Reset(OrleansInput);
+            return SumResult(OrleansSerializer.Deserialize<IntStruct>(OrleansBuffer));
+        }
+
+        [Benchmark]
+        public int MessagePackCSharp()
+        {
+            return SumResult(MessagePack.MessagePackSerializer.Deserialize<IntStruct>(MsgPackInput));
         }
 
         [Benchmark]
         public int ProtobufNet()
         {
-            ProtoObj.Position = 0;
-            return SumResult(ProtoBuf.Serializer.Deserialize<MsgPackInts>(ProtoObj));
+            ProtoInput.Position = 0;
+            return SumResult(ProtoBuf.Serializer.Deserialize<IntStruct>(ProtoInput));
         }
 
         [Benchmark]
         public int Hyperion()
         {
-            HyperionObj.Position = 0;
-            return SumResult(HyperionSerializer.Deserialize<MsgPackInts>(HyperionObj));
+            HyperionInput.Position = 0;
+            return SumResult(HyperionSerializer.Deserialize<IntStruct>(HyperionInput));
+        }
+
+        [Benchmark]
+        public int ZeroFormatter()
+        {
+            return SumResult(ZeroFormatterSerializer.Deserialize<IntStruct>(ZeroFormatterInput));
         }
 
         [Benchmark]
         public int NewtonsoftJson()
         {
-            return SumResult(JsonConvert.DeserializeObject<MsgPackInts>(JsonnetObj));
+            return SumResult(JsonConvert.DeserializeObject<IntStruct>(NewtonsoftJsonInput));
         }
     }
 }

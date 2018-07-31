@@ -12,21 +12,20 @@ namespace Hagar.Serializers
     /// Serializer for reference types which can be instantiated.
     /// </summary>
     /// <typeparam name="TField">The field type.</typeparam>
-    public class ConcreteTypeSerializer<TField> : IFieldCodec<TField> where TField : class
+    /// <typeparam name="TPartialSerializer">The partial serializer implementation type.</typeparam>
+    public sealed class ConcreteTypeSerializer<TField, TPartialSerializer> : IFieldCodec<TField> where TField : class where TPartialSerializer : IPartialSerializer<TField>
     {
         private static readonly Type CodecFieldType = typeof(TField);
         private readonly IActivator<TField> activator;
-        private readonly IUntypedCodecProvider codecProvider;
-        private readonly IPartialSerializer<TField> serializer;
+        private readonly TPartialSerializer serializer;
 
-        public ConcreteTypeSerializer(IActivator<TField> activator, IUntypedCodecProvider codecProvider, IPartialSerializerProvider partialSerializerProvider)
+        public ConcreteTypeSerializer(IActivator<TField> activator, TPartialSerializer serializer)
         {
             this.activator = activator;
-            this.codecProvider = codecProvider;
-            this.serializer = partialSerializerProvider.GetPartialSerializer<TField>();
+            this.serializer = serializer;
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+        void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             var fieldType = value.GetType();
@@ -34,12 +33,11 @@ namespace Hagar.Serializers
             {
                 writer.WriteStartObject(session, fieldIdDelta, expectedType, fieldType);
                 this.serializer.Serialize(ref writer, session, value);
-
                 writer.WriteEndObject();
             }
             else
             {
-                var specificSerializer = this.codecProvider.GetCodec(fieldType);
+                var specificSerializer = session.CodecProvider.GetCodec(fieldType);
                 if (specificSerializer != null)
                 {
                     specificSerializer.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
@@ -51,7 +49,7 @@ namespace Hagar.Serializers
             }
         }
 
-        public TField ReadValue(ref Reader reader, SerializerSession session, Field field)
+        TField IFieldCodec<TField>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(ref reader, session, field);
             var fieldType = field.FieldType;
@@ -64,7 +62,7 @@ namespace Hagar.Serializers
             }
 
             // The type is a descendant, not an exact match, so get the specific serializer for it.
-            var specificSerializer = this.codecProvider.GetCodec(fieldType);
+            var specificSerializer = session.CodecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
             {
                 return (TField)specificSerializer.ReadValue(ref reader, session, field);

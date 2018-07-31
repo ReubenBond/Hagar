@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Hagar.Configuration
 {
-    public class SerializerConfiguration
+    public sealed class SerializerConfiguration
     {
         public HashSet<Type> Activators { get; } = new HashSet<Type>();
 
@@ -12,7 +12,7 @@ namespace Hagar.Configuration
         public HashSet<Type> Serializers { get; } = new HashSet<Type>();
     }
 
-    public class TypeConfiguration
+    public sealed class TypeConfiguration
     {
         public Dictionary<uint, Type> WellKnownTypes { get; } = new Dictionary<uint, Type>();
     }

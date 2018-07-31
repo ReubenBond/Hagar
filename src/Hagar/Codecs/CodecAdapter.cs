@@ -27,7 +27,7 @@ namespace Hagar.Codecs
             return new UntypedCodecWrapper<TField>(untypedCodec);
         }
 
-        private class TypedCodecWrapper<TField, TCodec> : IFieldCodec<object>, IWrappedCodec where TCodec : IFieldCodec<TField>
+        private sealed class TypedCodecWrapper<TField, TCodec> : IFieldCodec<object>, IWrappedCodec where TCodec : IFieldCodec<TField>
         {
             private readonly TCodec codec;
 
@@ -36,12 +36,12 @@ namespace Hagar.Codecs
                 this.codec = codec;
             }
 
-            public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+            void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
             {
                 this.codec.WriteField(ref writer, session, fieldIdDelta, expectedType, (TField)value);
             }
 
-            public object ReadValue(ref Reader reader, SerializerSession session, Field field)
+            object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
             {
                 return this.codec.ReadValue(ref reader, session, field);
             }
@@ -49,7 +49,7 @@ namespace Hagar.Codecs
             public object InnerCodec => this.codec;
         }
 
-        private class UntypedCodecWrapper<TField> : IWrappedCodec, IFieldCodec<TField>
+        private sealed class UntypedCodecWrapper<TField> : IWrappedCodec, IFieldCodec<TField>
         {
             private readonly IFieldCodec<object> codec;
 
@@ -59,12 +59,13 @@ namespace Hagar.Codecs
             }
 
             public object InnerCodec => this.codec;
-            public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+
+            void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
             {
                 this.codec.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
             }
 
-            public TField ReadValue(ref Reader reader, SerializerSession session, Field field)
+            TField IFieldCodec<TField>.ReadValue(ref Reader reader, SerializerSession session, Field field)
             {
                 return (TField)this.codec.ReadValue(ref reader, session, field);
             }

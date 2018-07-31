@@ -39,7 +39,7 @@ namespace Hagar.ISerializable
             this.formatterConverter = formatterConverter;
         }
 
-        public void WriteValue(ref Writer writer, SerializerSession session, object value)
+        void ISerializableSerializer.WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, object value)
         {
             var item = (T) value;
             this.callbacks.OnSerializing?.Invoke(ref item, this.streamingContext);
@@ -58,7 +58,7 @@ namespace Hagar.ISerializable
             this.callbacks.OnSerialized?.Invoke(ref item, this.streamingContext);
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Type type, uint placeholderReferenceId)
+        object ISerializableSerializer.ReadValue(ref Reader reader, SerializerSession session, Type type, uint placeholderReferenceId)
         {
             var info = new SerializationInfo(Type, this.formatterConverter);
             T result = default;

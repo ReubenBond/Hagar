@@ -260,6 +260,8 @@ namespace Hagar.CodeGenerator
             return MethodDeclaration(returnType, SerializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters)
+                .AddTypeParameterListParameters(TypeParameter("TBufferWriter"))
+                .AddConstraintClauses(TypeParameterConstraintClause("TBufferWriter").AddConstraints(TypeConstraint(libraryTypes.IBufferWriter.Construct(libraryTypes.Byte).ToTypeSyntax())))
                 .AddBodyStatements(body.ToArray());
         }
 

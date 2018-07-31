@@ -124,7 +124,7 @@ namespace Hagar.UnitTests
         {
             T result;
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
             using (var readerSession = this.sessionPool.GetSession())
             using (var writeSession = this.sessionPool.GetSession())
             {
@@ -155,12 +155,12 @@ namespace Hagar.UnitTests
         {
             var pipe = new Pipe();
             object result;
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
             using (var readerSession = this.sessionPool.GetSession())
             using (var writeSession = this.sessionPool.GetSession())
             {
-                var serializer = this.serviceProvider.GetService<Serializer>();
-                serializer.Serialize(original, writeSession, ref writer);
+                var serializer = this.serviceProvider.GetService<Serializer<object>>();
+                serializer.Serialize(ref writer, writeSession, original);
 
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
@@ -168,7 +168,7 @@ namespace Hagar.UnitTests
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
 
-                result = serializer.Deserialize(readerSession, ref reader);
+                result = serializer.Deserialize(ref reader, readerSession);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
             }

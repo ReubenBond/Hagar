@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using Hagar.Buffers;
 using Hagar.Session;
 
@@ -11,7 +12,7 @@ namespace Hagar.Serializers
     [SuppressMessage("ReSharper", "TypeParameterCanBeVariant")]
     public interface IPartialSerializer<T> where T : class
     {
-        void Serialize(ref Writer writer, SerializerSession session, T value);
+        void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, T value) where TBufferWriter : IBufferWriter<byte>;
         void Deserialize(ref Reader reader, SerializerSession session, T value);
     }
 }

@@ -50,7 +50,7 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
             var writerSession = CreateSession();
             var writerCodec = this.CreateCodec();
             var beforeReference = writerSession.ReferencedObjects.CurrentReferenceId;
@@ -81,7 +81,7 @@ namespace Hagar.TestKit
         {
             var original = this.CreateValue();
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
             var writerSession = CreateSession();
             var writerCodec = this.CreateCodec();
             writerCodec.WriteField(ref writer, writerSession, 0, typeof(TField), original);

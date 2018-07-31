@@ -2,6 +2,8 @@
 using System.Reflection;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using Benchmarks.Models;
+using Benchmarks.Utilities;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Session;
@@ -12,18 +14,21 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
+using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
 
 namespace Benchmarks.Comparison
 {
+    [DisassemblyDiagnoser(printAsm: true, printIL: true, printSource: true, recursiveDepth: 4)]
     [Config(typeof(BenchmarkConfig))]
+    [PayloadSizeColumn]
     public class StructSerializeBenchmark
     {
-        private static readonly IntStruct Struct = new IntStruct();
+        private static readonly IntStruct Input = new IntStruct();
 
         private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
         private static readonly Serializer<IntStruct> HagarSerializer;
-        private static readonly SingleSegmentBuffer HagarData;
+        private static readonly byte[] HagarData;
         private static readonly SerializerSession Session;
         private static readonly SerializationManager OrleansSerializer;
         private static readonly MemoryStream ProtoBuffer = new MemoryStream();
@@ -37,7 +42,7 @@ namespace Benchmarks.Comparison
                 .AddSerializers(typeof(Program).Assembly)
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
-            HagarData = new SingleSegmentBuffer();
+            HagarData = new byte[1000];
             Session = services.GetRequiredService<SessionPool>().GetSession();
 
             // Orleans
@@ -53,43 +58,56 @@ namespace Benchmarks.Comparison
         [Benchmark(Baseline = true)]
         public long Hagar()
         {
-            HagarData.Reset();
             Session.FullReset();
-            var writer = new Writer(HagarData);
-            HagarSerializer.Serialize(Struct, Session, ref writer);
-            return HagarData.Length;
+            var writer = new SingleSegmentBuffer(HagarData).CreateWriter();
+            HagarSerializer.Serialize(ref writer, Session, Input);
+            return writer.BufferWriter.Length;
         }
 
         [Benchmark]
         public int Orleans()
         {
             var orleansBuffer = new BinaryTokenStreamWriter();
-            OrleansSerializer.Serialize(Struct, orleansBuffer);
+            OrleansSerializer.Serialize(Input, orleansBuffer);
             var result = orleansBuffer.CurrentOffset;
             orleansBuffer.ReleaseBuffers();
             return result;
         }
 
         [Benchmark]
+        public int MessagePackCSharp()
+        {
+            var bytes = MessagePack.MessagePackSerializer.Serialize(Input);
+            return bytes.Length;
+        }
+
+        [Benchmark]
         public long ProtobufNet()
         {
             ProtoBuffer.Position = 0;
-            ProtoBuf.Serializer.Serialize(ProtoBuffer, Struct);
-            return ProtoBuffer.Position;
+            ProtoBuf.Serializer.Serialize(ProtoBuffer, Input);
+            return ProtoBuffer.Length;
         }
 
         [Benchmark]
         public long Hyperion()
         {
             HyperionBuffer.Position = 0;
-            HyperionSerializer.Serialize(Struct, HyperionBuffer);
-            return HyperionBuffer.Position;
+            HyperionSerializer.Serialize(Input, HyperionBuffer);
+            return HyperionBuffer.Length;
+        }
+
+        [Benchmark]
+        public int ZeroFormatter()
+        {
+            var bytes = ZeroFormatterSerializer.Serialize(Input);
+            return bytes.Length;
         }
 
         [Benchmark]
         public int NewtonsoftJson()
         {
-            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Struct));
+            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Input));
             return bytes.Length;
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
@@ -11,7 +12,7 @@ namespace Hagar.Codecs
 
     public interface IFieldCodec<T> : IFieldCodec
     {
-        void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, T value);
+        void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, T value) where TBufferWriter : IBufferWriter<byte>;
         T ReadValue(ref Reader reader, SerializerSession session, Field field);
     }
 }

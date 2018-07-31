@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Hagar.Activators;
 using Hagar.Buffers;
-using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
@@ -13,26 +12,23 @@ namespace Hagar.Codecs
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
-    public class DictionaryCodec<TKey, TValue> : IFieldCodec<Dictionary<TKey, TValue>>
+    public sealed class DictionaryCodec<TKey, TValue> : IFieldCodec<Dictionary<TKey, TValue>>
     {
         private readonly IFieldCodec<KeyValuePair<TKey, TValue>> pairCodec;
-        private readonly IUntypedCodecProvider codecProvider;
         private readonly IFieldCodec<IEqualityComparer<TKey>> comparerCodec;
         private readonly DictionaryActivator<TKey, TValue> activator;
 
         public DictionaryCodec(
             IFieldCodec<KeyValuePair<TKey, TValue>> pairCodec,
-            IUntypedCodecProvider codecProvider,
             IFieldCodec<IEqualityComparer<TKey>> comparerCodec,
             DictionaryActivator<TKey, TValue> activator)
         {
             this.pairCodec = pairCodec;
-            this.codecProvider = codecProvider;
             this.comparerCodec = comparerCodec;
             this.activator = activator;
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Dictionary<TKey, TValue> value)
+        void IFieldCodec<Dictionary<TKey, TValue>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Dictionary<TKey, TValue> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
@@ -52,7 +48,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        public Dictionary<TKey, TValue> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Dictionary<TKey, TValue> IFieldCodec<Dictionary<TKey, TValue>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
                 return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>>(ref reader, session, field);
