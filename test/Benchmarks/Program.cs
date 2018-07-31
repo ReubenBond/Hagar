@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Benchmarks.Comparison;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Session;
@@ -300,6 +301,8 @@ namespace Benchmarks
         public byte[] ToArray() => buffer.AsSpan(0, written).ToArray();
 
         public void Reset() => this.written = 0;
+
+        public int Length => this.written;
 
         public ReadOnlySequence<byte> GetReadOnlySequence() => new ReadOnlySequence<byte>(this.buffer, 0, this.written);
 
