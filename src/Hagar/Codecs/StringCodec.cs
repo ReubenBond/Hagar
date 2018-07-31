@@ -2,7 +2,6 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Hagar.Buffers;
-using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
