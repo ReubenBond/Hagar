@@ -12,7 +12,7 @@ namespace Hagar.GeneratedCodeHelpers
     {
         private static readonly ThreadLocal<RecursiveServiceResolutionState> ResolutionState = new ThreadLocal<RecursiveServiceResolutionState>(() => new RecursiveServiceResolutionState());
 
-        private class RecursiveServiceResolutionState
+        private sealed class RecursiveServiceResolutionState
         {
             private int depth;
 
@@ -21,7 +21,7 @@ namespace Hagar.GeneratedCodeHelpers
             public void Enter(object caller)
             {
                 ++depth;
-                Callers.Add(caller);
+                if (caller != null) Callers.Add(caller);
             }
 
             public void Exit()

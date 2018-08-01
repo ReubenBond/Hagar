@@ -1,14 +1,15 @@
 using System;
+using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
+    public sealed class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
-        void IFieldCodec<float>.WriteField(
-            ref Writer writer,
+        void IFieldCodec<float>.WriteField<TBufferWriter>(
+            ref Writer<TBufferWriter> writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -17,7 +18,7 @@ namespace Hagar.Codecs
             WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, float value)
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, float value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(float), WireType.Fixed32);
@@ -66,10 +67,10 @@ namespace Hagar.Codecs
             $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(float)}.");
     }
 
-    public class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
+    public sealed class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
-        void IFieldCodec<double>.WriteField(
-            ref Writer writer,
+        void IFieldCodec<double>.WriteField<TBufferWriter>(
+            ref Writer<TBufferWriter> writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
@@ -78,7 +79,7 @@ namespace Hagar.Codecs
             WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, double value)
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, double value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(double), WireType.Fixed64);
@@ -113,14 +114,14 @@ namespace Hagar.Codecs
             $"{nameof(wireType)} {wireType} is not supported by this codec.");
     }
 
-    public class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
+    public sealed class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
     {
-        void IFieldCodec<decimal>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
+        void IFieldCodec<decimal>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
         {
             WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(decimal), WireType.Fixed128);

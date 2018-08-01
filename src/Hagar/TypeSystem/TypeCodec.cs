@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +8,7 @@ using Hagar.Utilities;
 
 namespace Hagar.TypeSystem
 {
-    public class TypeCodec
+    public sealed class TypeCodec
     {
         private readonly ConcurrentDictionary<Type, TypeKey> typeCache = new ConcurrentDictionary<Type, TypeKey>();
         private readonly ConcurrentDictionary<TypeKey, Type> typeKeyCache = new ConcurrentDictionary<TypeKey, Type>(new TypeKey.Comparer());
@@ -19,7 +20,7 @@ namespace Hagar.TypeSystem
             this.typeResolver = typeResolver;
         }
 
-        public void Write(ref Writer writer, Type type)
+        public void Write<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = this.typeCache.GetOrAdd(type, GetTypeKey);
             writer.Write(key.HashCode);

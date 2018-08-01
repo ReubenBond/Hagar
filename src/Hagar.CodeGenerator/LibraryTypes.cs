@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+// ReSharper disable InconsistentNaming
 
 namespace Hagar.CodeGenerator
 {
@@ -10,11 +11,13 @@ namespace Hagar.CodeGenerator
         {
             return new LibraryTypes
             {
+                Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
                 ValueSerializer = Type("Hagar.Serializers.IValueSerializer`1"),
                 FieldCodec = Type("Hagar.Codecs.IFieldCodec`1"),
                 TypedCodecProvider = Type("Hagar.Serializers.ITypedCodecProvider"),
-                Writer = Type("Hagar.Buffers.Writer"),
+                Writer = Type("Hagar.Buffers.Writer`1"),
+                IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 Reader = Type("Hagar.Buffers.Reader"),
                 SerializerSession = Type("Hagar.Session.SerializerSession"),
                 Object = compilation.GetSpecialType(SpecialType.System_Object),
@@ -71,10 +74,13 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol Writer { get; private set; }
 
+        public INamedTypeSymbol IBufferWriter { get; private set; }
+
         public INamedTypeSymbol FieldCodec { get; private set; }
 
         public INamedTypeSymbol PartialSerializer { get; private set; }
 
         public INamedTypeSymbol ValueSerializer { get; private set; }
+        public INamedTypeSymbol Byte { get; private set; }
     }
 }

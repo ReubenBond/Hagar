@@ -5,14 +5,15 @@ using System.Runtime.CompilerServices;
 
 namespace Hagar.Buffers
 {
-    public ref struct Writer<TBufferWriter> where TBufferWriter : IBufferWriter<byte>
+    public ref struct Writer
     {
+        private readonly IBufferWriter<byte> output;
         private TBufferWriter output;
         private Span<byte> currentSpan;
         private int bufferPos;
         private int previousBuffersSize;
 
-        public Writer(TBufferWriter output)
+        public Writer(IBufferWriter<byte> output)
         {
             this.output = output;
             this.currentSpan = output.GetSpan();
@@ -52,12 +53,12 @@ namespace Hagar.Buffers
         public void EnsureContiguous(int length)
         {
             // The current buffer is adequate.
-            if (this.bufferPos + length < this.currentSpan.Length) return;
+            if (this.bufferPos + length <= this.currentSpan.Length) return;
 
             // The current buffer is inadequate, allocate another.
             this.Allocate(length);
 #if DEBUG
-// Throw if the allocation does not satisfy the request.
+            // Throw if the allocation does not satisfy the request.
             if (this.currentSpan.Length < length) ThrowTooLarge(length);
             
             void ThrowTooLarge(int l) => throw new InvalidOperationException($"Requested buffer length {l} cannot be satisfied by the writer.");
@@ -177,18 +178,6 @@ namespace Hagar.Buffers
             this.EnsureContiguous(width);
             BinaryPrimitives.WriteUInt64LittleEndian(this.WritableSpan, value);
             this.bufferPos += width;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteVarInt(uint value)
-        {
-            this.EnsureContiguous(5);
-            
-            do
-            {
-                this.currentSpan[this.bufferPos++] = (byte)((value & 0x7F) | 0x80);
-            } while ((value >>= 7) != 0);
-            this.currentSpan[this.bufferPos - 1] &= 0x7F; // adjust the last byte.
         }
     }
 }

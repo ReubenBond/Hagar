@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Session;
@@ -6,16 +7,16 @@ using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
 {
-    internal class SerializationEntryCodec : IFieldCodec<SerializationEntrySurrogate>
+    internal sealed class SerializationEntryCodec : IFieldCodec<SerializationEntrySurrogate>
     {
         public static readonly Type SerializationEntryType = typeof(SerializationEntrySurrogate);
-        
-        public void WriteField(
-            ref Writer writer,
+
+        public void WriteField<TBufferWriter>(
+            ref Writer<TBufferWriter> writer,
             SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
-            SerializationEntrySurrogate value)
+            SerializationEntrySurrogate value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);

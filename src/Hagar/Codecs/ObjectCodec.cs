@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.Utilities;
@@ -6,7 +7,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class ObjectCodec : IFieldCodec<object>
+    public sealed class ObjectCodec : IFieldCodec<object>
     {
         private static readonly Type ObjectType = typeof(object);
 
@@ -28,12 +29,12 @@ namespace Hagar.Codecs
             return specificSerializer.ReadValue(ref reader, session, field);
         }
 
-        void IFieldCodec<object>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
             var fieldType = value?.GetType();
             if (fieldType == null || fieldType == ObjectType)

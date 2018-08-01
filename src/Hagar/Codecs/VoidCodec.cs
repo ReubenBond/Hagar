@@ -5,9 +5,9 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class VoidCodec : IFieldCodec<object>
+    public sealed class VoidCodec : IFieldCodec<object>
     {
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             if (!ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value))
             {
@@ -15,7 +15,7 @@ namespace Hagar.Codecs
             }
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
+        object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType != WireType.Reference)
             {

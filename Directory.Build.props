@@ -19,9 +19,9 @@
     -->
     <RepositoryType>git</RepositoryType>
     <IncludeSymbols>true</IncludeSymbols>
-    <IncludeSource>true</IncludeSource>    
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>embedded</DebugType>
+    <IncludeSource>true</IncludeSource> 
+    <DebugSymbols>true</DebugSymbols>   
+    <DebugType>pdbonly</DebugType>
     <DefaultLanguage>en-US</DefaultLanguage>
     <LangVersion>latest</LangVersion>
     <!--<SignAssembly>true</SignAssembly>

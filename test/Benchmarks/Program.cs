@@ -9,19 +9,19 @@ namespace Benchmarks
         {
             if (args.Length > 0 && args[0] == "loop")
             {
-                var benchmarks = new ComplexTypeBenchmarks();
+                var benchmarks = new SerializeBenchmark();
                 while (true)
                 {
-                    benchmarks.SerializeComplex();
+                    benchmarks.Hagar();
                 }
             }
 
             if (args.Length > 0 && args[0] == "structloop")
             {
-                var benchmarks = new ComplexTypeBenchmarks();
+                var benchmarks = new StructSerializeBenchmark();
                 while (true)
                 {
-                    benchmarks.SerializeStruct();
+                    benchmarks.Hagar();
                 }
             }
 
@@ -31,7 +31,8 @@ namespace Benchmarks
                 typeof(SerializeBenchmark),
                 typeof(StructSerializeBenchmark),
                 typeof(StructDeserializeBenchmark),
-                typeof(ComplexTypeBenchmarks)
+                typeof(ComplexTypeBenchmarks),
+                typeof(FieldHeaderBenchmarks)
             });
 
             switcher.Run(args);

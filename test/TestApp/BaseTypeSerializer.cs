@@ -1,4 +1,5 @@
-﻿using Hagar.Buffers;
+﻿using System.Buffers;
+using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.Session;
@@ -7,7 +8,7 @@ namespace TestApp
 {
     public class BaseTypeSerializer : IPartialSerializer<BaseType>
     {
-        public void Serialize(ref Writer writer, SerializerSession session, BaseType obj)
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, BaseType obj) where TBufferWriter : IBufferWriter<byte>
         {
             StringCodec.WriteField(ref writer, session, 0, typeof(string), obj.BaseTypeString);
             StringCodec.WriteField(ref writer, session, 234, typeof(string), obj.AddedLaterString);

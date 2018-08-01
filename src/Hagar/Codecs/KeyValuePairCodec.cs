@@ -7,7 +7,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class KeyValuePairCodec<TKey, TValue> : IFieldCodec<KeyValuePair<TKey, TValue>>
+    public sealed class KeyValuePairCodec<TKey, TValue> : IFieldCodec<KeyValuePair<TKey, TValue>>
     {
         private readonly IFieldCodec<TKey> keyCodec;
         private readonly IFieldCodec<TValue> valueCodec;
@@ -18,7 +18,7 @@ namespace Hagar.Codecs
             this.valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
         }
 
-        void IFieldCodec<KeyValuePair<TKey, TValue>>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
+        void IFieldCodec<KeyValuePair<TKey, TValue>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
         {
             ReferenceCodec.MarkValueField(session);
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);

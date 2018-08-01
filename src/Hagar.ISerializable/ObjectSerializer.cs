@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.Serialization;
 using Hagar.Buffers;
@@ -10,7 +11,7 @@ namespace Hagar.ISerializable
     /// <summary>
     /// Serializer for ISerializable reference types.
     /// </summary>
-    internal class ObjectSerializer : ISerializableSerializer
+    internal sealed class ObjectSerializer : ISerializableSerializer
     {
         private readonly SerializationCallbacksFactory serializationCallbacks;
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> createConstructorDelegate;
@@ -36,7 +37,7 @@ namespace Hagar.ISerializable
             this.createConstructorDelegate = constructorFactory.GetSerializationConstructorDelegate;
         }
 
-        public void WriteValue(ref Writer writer, SerializerSession session, object value)
+        public void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, object value) where TBufferWriter : IBufferWriter<byte>
         {
             var type = value.GetType();
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);

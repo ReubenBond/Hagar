@@ -10,7 +10,7 @@ namespace Hagar.Codecs
     /// Codec for arrays of rank 1.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    internal class ArrayCodec<T> : IFieldCodec<T[]>
+    internal sealed class ArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> fieldCodec;
 
@@ -19,7 +19,7 @@ namespace Hagar.Codecs
             this.fieldCodec = HagarGeneratedCodeHelper.UnwrapService(this, fieldCodec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, T[] value)
+        void IFieldCodec<T[]>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, T[] value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
@@ -35,7 +35,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        public T[] ReadValue(ref Reader reader, SerializerSession session, Field field)
+        T[] IFieldCodec<T[]>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
                 return ReferenceCodec.ReadReference<T[]>(ref reader, session, field);

@@ -15,7 +15,7 @@ namespace Hagar.Codecs
             if (this.codec == null) ThrowInvalidSubclass();
         }
 
-        void IFieldCodec<object>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             this.codec.WriteField(ref writer, session, fieldIdDelta, expectedType, (TField)value);
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
@@ -20,12 +21,12 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryWriteReferenceField(
-            ref Writer writer,
+        public static bool TryWriteReferenceField<TBufferWriter>(
+            ref Writer<TBufferWriter> writer,
             SerializerSession session,
             uint fieldId,
             Type expectedType,
-            object value)
+            object value) where TBufferWriter : IBufferWriter<byte>
         {
             if (!session.ReferencedObjects.GetOrAddReference(value, out var reference))
             {

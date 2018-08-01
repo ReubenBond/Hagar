@@ -11,7 +11,7 @@ namespace Hagar.Codecs
     /// Serializer for multi-dimensional arrays.
     /// </summary>
     /// <typeparam name="T">The array element type.</typeparam>
-    internal class MultiDimensionalArrayCodec<T> : IGeneralizedCodec
+    internal sealed class MultiDimensionalArrayCodec<T> : IGeneralizedCodec
     {
         private readonly IFieldCodec<int[]> intArrayCodec;
         private readonly IFieldCodec<T> elementCodec;
@@ -22,7 +22,7 @@ namespace Hagar.Codecs
             this.elementCodec = HagarGeneratedCodeHelper.UnwrapService(this, elementCodec);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
@@ -66,7 +66,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
+        object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
                 return ReferenceCodec.ReadReference<T[]>(ref reader, session, field);

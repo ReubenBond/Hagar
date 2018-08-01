@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Hagar.Buffers;
@@ -8,7 +9,7 @@ using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-    public class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
+    public sealed class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
         string IFieldCodec<string>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
@@ -40,13 +41,13 @@ namespace Hagar.Codecs
             return result;
         }
 
-        void IFieldCodec<string>.WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
+        void IFieldCodec<string>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
         {
             WriteField(ref writer, session, fieldIdDelta, expectedType, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value) where TBufferWriter : IBufferWriter<byte>
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
 

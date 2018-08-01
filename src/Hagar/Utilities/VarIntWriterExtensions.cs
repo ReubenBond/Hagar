@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 
@@ -6,19 +7,19 @@ namespace Hagar.Utilities
     public static class VarIntWriterExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, sbyte value) => WriteVarInt(ref writer, ZigZagEncode(value));
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, sbyte value) where TBufferWriter : IBufferWriter<byte> => WriteVarInt(ref writer, ZigZagEncode(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, short value) => WriteVarInt(ref writer, ZigZagEncode(value));
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, short value) where TBufferWriter : IBufferWriter<byte> => WriteVarInt(ref writer, ZigZagEncode(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, int value) => WriteVarInt(ref writer, ZigZagEncode(value));
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, int value) where TBufferWriter : IBufferWriter<byte> => writer.WriteVarInt(ZigZagEncode(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, long value) => WriteVarInt(ref writer, ZigZagEncode(value));
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, long value) where TBufferWriter : IBufferWriter<byte> => WriteVarInt(ref writer, ZigZagEncode(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, byte value)
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, byte value) where TBufferWriter : IBufferWriter<byte>
         {
             writer.EnsureContiguous(2);
             var count = 0;
@@ -32,7 +33,7 @@ namespace Hagar.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, ushort value)
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, ushort value) where TBufferWriter : IBufferWriter<byte>
         {
             writer.EnsureContiguous(3);
 
@@ -47,21 +48,7 @@ namespace Hagar.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, uint value)
-        {
-            writer.EnsureContiguous(5);
-            var count = 0;
-            var span = writer.WritableSpan;
-            do
-            {
-                span[count++] = (byte)((value & 0x7F) | 0x80);
-            } while ((value >>= 7) != 0);
-            span[count - 1] &= 0x7F; // adjust the last byte.
-            writer.AdvanceSpan(count);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt(ref this Writer writer, ulong value)
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, ulong value) where TBufferWriter : IBufferWriter<byte>
         {
             writer.EnsureContiguous(10);
             var count = 0;

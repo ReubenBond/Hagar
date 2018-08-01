@@ -12,7 +12,7 @@ namespace Hagar.Codecs
     /// Codec for <see cref="List{T}"/>.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    public class ListCodec<T> : IFieldCodec<List<T>>
+    public sealed class ListCodec<T> : IFieldCodec<List<T>>
     {
         private readonly IFieldCodec<T> fieldCodec;
         private readonly ListActivator<T> activator;
@@ -23,7 +23,7 @@ namespace Hagar.Codecs
             this.activator = activator;
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, List<T> value)
+        void IFieldCodec<List<T>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, List<T> value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
@@ -40,7 +40,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        public List<T> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        List<T> IFieldCodec<List<T>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
                 return ReferenceCodec.ReadReference<List<T>>(ref reader, session, field);

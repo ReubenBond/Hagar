@@ -19,11 +19,21 @@ namespace Hagar.WireProtocol
             if (!this.HasFieldId) ThrowFieldIdInvalid();
 #endif
         }
+        public Field(Tag tag, uint extendedFieldIdDelta, Type type)
+        {
+            this.Tag = tag;
+            this.fieldIdDelta = extendedFieldIdDelta;
+            this.fieldType = type;
+#if DEBUG
+            if (!this.HasFieldId) ThrowFieldIdInvalid();
+#endif
+        }
 
         public uint FieldIdDelta
         {
             // If the embedded field id delta is valid, return it, otherwise return the extended field id delta.
             // The extended field id might not be valid if this field has the Extended wire type.
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (this.Tag.IsFieldIdValid) return this.Tag.FieldIdDelta;
@@ -32,6 +42,8 @@ namespace Hagar.WireProtocol
 #endif
                 return this.fieldIdDelta;
             }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 // If the field id delta can fit into the tag, embed it there, otherwise invalidate the embedded field id delta and set the full field id delta.
@@ -50,6 +62,7 @@ namespace Hagar.WireProtocol
 
         public Type FieldType
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
 #if DEBUG
@@ -58,6 +71,7 @@ namespace Hagar.WireProtocol
                 return this.fieldType;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
 #if DEBUG
@@ -67,8 +81,17 @@ namespace Hagar.WireProtocol
             }
         }
 
-        public bool HasFieldId => this.Tag.WireType != WireType.Extended;
-        public bool HasExtendedFieldId => this.Tag.HasExtendedFieldId;
+        public bool HasFieldId
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.Tag.WireType != WireType.Extended;
+        }
+
+        public bool HasExtendedFieldId
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.Tag.HasExtendedFieldId;
+        }
 
         public WireType WireType
         {

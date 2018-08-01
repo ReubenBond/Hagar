@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
@@ -13,70 +14,88 @@ namespace Hagar.Codecs
     public static class FieldHeaderCodec
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteFieldHeader(this ref Writer writer, SerializerSession session, uint fieldId, Type expectedType, Type actualType, WireType wireType)
+        public static void WriteFieldHeader<TBufferWriter>(this ref Writer<TBufferWriter> writer,
+            SerializerSession session,
+            uint fieldId,
+            Type expectedType,
+            Type actualType,
+            WireType wireType) where TBufferWriter : IBufferWriter<byte>
         {
-            var field = default(Field);
-            field.FieldIdDelta = fieldId;
-            uint idOrReference;
-            (field.SchemaType, idOrReference) = GetSchemaTypeWithEncoding(session, expectedType, actualType);
-            field.WireType = wireType;
+            var hasExtendedFieldId = fieldId > Tag.MaxEmbeddedFieldIdDelta;
+            var embeddedFieldId = hasExtendedFieldId ? Tag.FieldIdCompleteMask : (byte) fieldId;
+            var tag = (byte) ((byte) wireType | embeddedFieldId);
 
-            writer.Write(field.Tag);
-            if (field.HasExtendedFieldId) writer.WriteVarInt(field.FieldIdDelta);
-            if (field.HasExtendedSchemaType) writer.WriteType(session, field.SchemaType, idOrReference, actualType);
+            if (actualType == expectedType)
+            {
+                writer.Write((byte) (tag | (byte) SchemaType.Expected));
+                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+            }
+            else if (session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out var typeOrReferenceId))
+            {
+                writer.Write((byte) (tag | (byte) SchemaType.WellKnown));
+                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                writer.WriteVarInt(typeOrReferenceId);
+            }
+            else if (session.ReferencedTypes.TryGetTypeReference(actualType, out typeOrReferenceId))
+            {
+                writer.Write((byte) (tag | (byte) SchemaType.Referenced));
+                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                writer.WriteVarInt(typeOrReferenceId);
+            }
+            else
+            {
+                writer.Write((byte) (tag | (byte) SchemaType.Encoded));
+                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                session.TypeCodec.Write(ref writer, actualType);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteFieldHeaderExpected<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
+            where TBufferWriter : IBufferWriter<byte>
+        {
+            if (fieldId < Tag.MaxEmbeddedFieldIdDelta) WriteFieldHeaderExpectedEmbedded(ref writer, fieldId, wireType);
+            else WriteFieldHeaderExpectedExtended(ref writer, fieldId, wireType);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteFieldHeaderExpectedEmbedded<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
+            where TBufferWriter : IBufferWriter<byte>
+        {
+            writer.Write((byte) ((byte) wireType | (byte) fieldId));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteFieldHeaderExpectedExtended<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
+            where TBufferWriter : IBufferWriter<byte>
+        {
+            writer.Write((byte) ((byte) wireType | Tag.FieldIdCompleteMask));
+            writer.WriteVarInt(fieldId);
         }
 
         public static Field ReadFieldHeader(this ref Reader reader, SerializerSession session)
         {
-            var field = default(Field);
-            field.Tag = reader.ReadByte();
-            if (field.HasExtendedFieldId) field.FieldIdDelta = reader.ReadVarUInt32();
-            if (field.IsSchemaTypeValid) field.FieldType = reader.ReadType(session, field.SchemaType);
+            Type type = null;
+            uint extendedId = 0;
+            var tag = reader.ReadByte();
 
-            return field;
+            // If all of the field id delta bits are set and the field isn't an extended wiretype field, read the extended field id delta
+            if ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask && (tag & (byte) WireType.Extended) != (byte) WireType.Extended)
+            {
+                extendedId = reader.ReadVarUInt32();
+            }
+
+            // If schema type is valid, read the type.
+
+            if ((tag & (byte) WireType.Extended) != (byte) WireType.Extended)
+            {
+                type = reader.ReadType(session, (SchemaType) (tag & Tag.SchemaTypeMask));
+            }
+
+            return new Field(tag, extendedId, type);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static (SchemaType, uint) GetSchemaTypeWithEncoding(SerializerSession session, Type expectedType, Type actualType)
-        {
-            if (actualType == expectedType)
-            {
-                return (SchemaType.Expected, 0);
-            }
-
-            if (session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out uint typeId))
-            {
-                return (SchemaType.WellKnown, typeId);
-            }
-
-            if (session.ReferencedTypes.TryGetTypeReference(actualType, out uint reference))
-            {
-                return (SchemaType.Referenced, reference);
-            }
-
-            return (SchemaType.Encoded, 0);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void WriteType(this ref Writer writer, SerializerSession session, SchemaType schemaType, uint idOrReference, Type type)
-        {
-            switch (schemaType)
-            {
-                case SchemaType.Expected:
-                    break;
-                case SchemaType.WellKnown:
-                case SchemaType.Referenced:
-                    writer.WriteVarInt(idOrReference);
-                    break;
-                case SchemaType.Encoded:
-                    session.TypeCodec.Write(ref writer, type);
-                    break;
-                default:
-                    ExceptionHelper.ThrowArgumentOutOfRange(nameof(schemaType));
-                    break;
-            }
-        }
-
         private static Type ReadType(this ref Reader reader, SerializerSession session, SchemaType schemaType)
         {
             switch (schemaType)

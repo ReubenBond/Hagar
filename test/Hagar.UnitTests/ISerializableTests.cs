@@ -17,7 +17,7 @@ namespace Hagar.UnitTests
     {
         private readonly IServiceProvider serviceProvider;
         private readonly SessionPool sessionPool;
-        private readonly Serializer serializer;
+        private readonly Serializer<object> serializer;
 
         public ISerializableTests()
         {
@@ -27,7 +27,7 @@ namespace Hagar.UnitTests
 
             this.serviceProvider = services.BuildServiceProvider();
             this.sessionPool = this.serviceProvider.GetService<SessionPool>();
-            this.serializer = this.serviceProvider.GetRequiredService<Serializer>();
+            this.serializer = this.serviceProvider.GetRequiredService<Serializer<object>>();
         }
 
         private object DotNetSerializationLoop(object input)
@@ -54,11 +54,11 @@ namespace Hagar.UnitTests
         private object SerializationLoop(object expected)
         {
             var pipe = new Pipe();
-            var writer = new Writer(pipe.Writer);
+            var writer = new Writer<PipeWriter>(pipe.Writer);
 
             using (var session = this.sessionPool.GetSession())
             {
-                this.serializer.Serialize(expected, session, ref writer);
+                this.serializer.Serialize(ref writer, session, expected);
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
             }
@@ -67,7 +67,7 @@ namespace Hagar.UnitTests
             {
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer);
-                var result = this.serializer.Deserialize(session, ref reader);
+                var result = this.serializer.Deserialize(ref reader, session);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
                 return result;

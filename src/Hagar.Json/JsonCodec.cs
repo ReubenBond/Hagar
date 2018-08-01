@@ -12,21 +12,14 @@ namespace Hagar.Json
 {
     public class JsonCodec : IGeneralizedCodec
     {
-        private readonly IUntypedCodecProvider codecProvider;
         private static readonly Type SelfType = typeof(JsonCodec);
         private readonly Func<Type, bool> isSupportedFunc;
         private readonly JsonSerializerSettings settings;
-
-        public JsonCodec(IUntypedCodecProvider codecProvider) : this(codecProvider, null, null)
-        {
-        }
-
+        
         public JsonCodec(
-            IUntypedCodecProvider codecProvider,
             JsonSerializerSettings settings = null,
             Func<Type, bool> isSupportedFunc = null)
         {
-            this.codecProvider = codecProvider;
             this.settings = settings ?? new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.All,
@@ -35,7 +28,7 @@ namespace Hagar.Json
             this.isSupportedFunc = isSupportedFunc ?? (_ => true);
         }
 
-        public void WriteField(ref Writer writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
             var result = JsonConvert.SerializeObject(value, this.settings);
@@ -52,7 +45,7 @@ namespace Hagar.Json
             writer.Write(bytes);
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
+        object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
         {
             if (field.WireType == WireType.Reference)
                 return ReferenceCodec.ReadReference<object>(ref reader, session, field);
