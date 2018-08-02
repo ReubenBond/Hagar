@@ -27,6 +27,8 @@ namespace Benchmarks.Comparison
         private static readonly MemoryStream ProtoInput;
         private static readonly string NewtonsoftJsonInput = JsonConvert.SerializeObject(IntStruct.Create());
 
+        private static readonly byte[] SpanJsonInput = SpanJson.JsonSerializer.Generic.Utf8.Serialize(IntStruct.Create());
+
         private static readonly byte[] MsgPackInput = MessagePack.MessagePackSerializer.Serialize(IntStruct.Create());
         private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(IntStruct.Create());
         private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] {typeof(IntStruct)}));
@@ -131,6 +133,12 @@ namespace Benchmarks.Comparison
         public int NewtonsoftJson()
         {
             return SumResult(JsonConvert.DeserializeObject<IntStruct>(NewtonsoftJsonInput));
+        }
+
+        [Benchmark(Description = "SpanJson")]
+        public int SpanJsonUtf8()
+        {
+            return SumResult(SpanJson.JsonSerializer.Generic.Utf8.Deserialize<IntStruct>(SpanJsonInput));
         }
     }
 }
