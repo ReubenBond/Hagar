@@ -110,5 +110,12 @@ namespace Benchmarks.Comparison
             var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Input));
             return bytes.Length;
         }
+
+        [Benchmark(Description = "SpanJson")]
+        public int SpanJsonUtf8()
+        {
+            var bytes = SpanJson.JsonSerializer.Generic.Utf8.Serialize(Input);
+            return bytes.Length;
+        }
     }
 }
