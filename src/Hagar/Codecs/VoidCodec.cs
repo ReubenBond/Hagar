@@ -1,28 +1,27 @@
 using System;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
     public sealed class VoidCodec : IFieldCodec<object>
     {
-        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+        void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (!ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value))
+            if (!ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
             {
                 ThrowNotNullException(value);
             }
         }
 
-        object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        object IFieldCodec<object>.ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType != WireType.Reference)
             {
                 ThrowInvalidWireType(field);
             }
 
-            return ReferenceCodec.ReadReference<object>(ref reader, session, field);
+            return ReferenceCodec.ReadReference<object>(ref reader, field);
         }
 
         private static void ThrowInvalidWireType(Field field)

@@ -3,7 +3,6 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
-using Hagar.Session;
 
 namespace TestApp
 {
@@ -24,41 +23,41 @@ namespace TestApp
             this.objectCodec = HagarGeneratedCodeHelper.UnwrapService(this, objectCodec);
         }
 
-        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, SubType obj) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SubType obj) where TBufferWriter : IBufferWriter<byte>
         {
-            this.baseTypeSerializer.Serialize(ref writer, session, obj);
+            this.baseTypeSerializer.Serialize(ref writer, obj);
             writer.WriteEndBase(); // the base object is complete.
-            this.stringCodec.WriteField(ref writer, session, 0, typeof(string), obj.String);
-            this.intCodec.WriteField(ref writer, session, 1, typeof(int), obj.Int);
-            this.objectCodec.WriteField(ref writer, session, 1, typeof(object), obj.Ref);
-            this.intCodec.WriteField(ref writer, session, 1, typeof(int), obj.Int);
-            this.intCodec.WriteField(ref writer, session, 409, typeof(int), obj.Int);
+            this.stringCodec.WriteField(ref writer, 0, typeof(string), obj.String);
+            this.intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
+            this.objectCodec.WriteField(ref writer, 1, typeof(object), obj.Ref);
+            this.intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
+            this.intCodec.WriteField(ref writer, 409, typeof(int), obj.Int);
             /*writer.WriteFieldHeader(session, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
             writer.WriteFieldHeader(session, 1020, typeof(object), typeof(Program), WireType.Reference);*/
         }
 
-        public void Deserialize(ref Reader reader, SerializerSession session, SubType obj)
+        public void Deserialize(ref Reader reader, SubType obj)
         {
             uint fieldId = 0;
-            this.baseTypeSerializer.Deserialize(ref reader, session, obj);
+            this.baseTypeSerializer.Deserialize(ref reader, obj);
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                        obj.String = this.stringCodec.ReadValue(ref reader, session, header);
+                        obj.String = this.stringCodec.ReadValue(ref reader, header);
                         break;
                     case 1:
-                        obj.Int = this.intCodec.ReadValue(ref reader, session, header);
+                        obj.Int = this.intCodec.ReadValue(ref reader, header);
                         break;
                     case 2:
-                        obj.Ref = this.objectCodec.ReadValue(ref reader, session, header);
+                        obj.Ref = this.objectCodec.ReadValue(ref reader, header);
                         break;
                     default:
-                        reader.ConsumeUnknownField(session, header);
+                        reader.ConsumeUnknownField(header);
                         break;
                 }
             }

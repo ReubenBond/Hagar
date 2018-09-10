@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Buffers;
-using System.Runtime.CompilerServices;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
 
@@ -10,259 +8,242 @@ namespace Hagar.Codecs
 {
     public sealed class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>
     {
-        void IFieldCodec<bool>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<bool>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             bool value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, bool value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, bool value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(bool), WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(bool), WireType.VarInt);
             writer.WriteVarInt(value ? 1 : 0);
         }
 
-        bool IFieldCodec<bool>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        bool IFieldCodec<bool>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static bool ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static bool ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType) == 1;
         }
     }
     
     public sealed class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>
     {
-        void IFieldCodec<char>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<char>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             char value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, char value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, char value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(char), WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(char), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        char IFieldCodec<char>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        char IFieldCodec<char>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static char ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static char ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return (char) reader.ReadUInt8(field.WireType);
         }
     }
 
     public sealed class ByteCodec : TypedCodecBase<byte, ByteCodec>, IFieldCodec<byte>
     {
-        void IFieldCodec<byte>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<byte>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             byte value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, byte value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, byte value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(byte), WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(byte), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        byte IFieldCodec<byte>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        byte IFieldCodec<byte>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static byte ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static byte ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType);
         }
     }
 
     public sealed class SByteCodec : TypedCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>
     {
-        void IFieldCodec<sbyte>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<sbyte>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             sbyte value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, sbyte value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, sbyte value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(sbyte), WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(sbyte), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        sbyte IFieldCodec<sbyte>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        sbyte IFieldCodec<sbyte>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static sbyte ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static sbyte ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt8(field.WireType);
         }
     }
 
     public sealed class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
     {
-        ushort IFieldCodec<ushort>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        ushort IFieldCodec<ushort>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static ushort ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static ushort ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt16(field.WireType);
         }
 
-        void IFieldCodec<ushort>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<ushort>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             ushort value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ushort value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ushort value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ushort), WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(ushort), WireType.VarInt);
             writer.WriteVarInt(value);
         }
     }
 
     public sealed class Int16Codec : TypedCodecBase<short, Int16Codec>, IFieldCodec<short>
     {
-        void IFieldCodec<short>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<short>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             short value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, short value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, short value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(short), WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(short), WireType.VarInt);
             writer.WriteVarInt(value);
         }
 
-        short IFieldCodec<short>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        short IFieldCodec<short>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static short ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static short ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt16(field.WireType);
         }
     }
 
     public sealed class UInt32Codec : TypedCodecBase<uint, UInt32Codec>, IFieldCodec<uint>
     {
-        void IFieldCodec<uint>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<uint>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             uint value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, uint value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, uint value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(writer.Session);
             if (value > 1 << 20)
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(uint), WireType.Fixed32);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(uint), WireType.Fixed32);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(uint), WireType.VarInt);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(uint), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
 
-        uint IFieldCodec<uint>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        uint IFieldCodec<uint>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static uint ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static uint ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt32(field.WireType);
         }
     }
 
     public sealed class Int32Codec : TypedCodecBase<int, Int32Codec>, IFieldCodec<int>
     {
-        void IFieldCodec<int>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<int>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             int value)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(writer.Session);
             if (value > 1 << 20 || -value > 1 << 20)
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(int), WireType.Fixed32);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(int), WireType.Fixed32);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(int), WireType.VarInt);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(int), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
         
         public static void WriteField<TBufferWriter>(
             ref Writer<TBufferWriter> writer,
-            SerializerSession session,
             uint fieldIdDelta,
             Type expectedType,
             int value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(writer.Session);
             if (value > 1 << 20 || -value > 1 << 20)
             {
                 writer.WriteFieldHeaderExpected(fieldIdDelta, WireType.Fixed32);
@@ -275,113 +256,111 @@ namespace Hagar.Codecs
             }
         }
 
-        int IFieldCodec<int>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        int IFieldCodec<int>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
-        public static int ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static int ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt32(field.WireType);
         }
     }
 
     public sealed class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>
     {
-        void IFieldCodec<long>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, long value)
+        void IFieldCodec<long>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, long value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(writer.Session);
             if (value <= int.MaxValue && value >= int.MinValue)
             {
                 if (value > 1 << 20 || -value > 1 << 20)
                 {
-                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed32);
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(long), WireType.Fixed32);
                     writer.Write((int) value);
                 }
                 else
                 {
-                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
                     writer.WriteVarInt(value);
                 }
             }
             else if (value > 1 << 41 || -value > 1 << 41)
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.Fixed64);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(long), WireType.Fixed64);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(long), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
 
-        long IFieldCodec<long>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        long IFieldCodec<long>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static long ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static long ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt64(field.WireType);
         }
     }
 
     public sealed class UInt64Codec : TypedCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>
     {
-        void IFieldCodec<ulong>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<ulong>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             ulong value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
         
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, ulong value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ulong value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(writer.Session);
             if (value <= int.MaxValue)
             {
                 if (value > 1 << 20)
                 {
-                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed32);
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed32);
                     writer.Write((uint) value);
                 }
                 else
                 {
-                    writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
                     writer.WriteVarInt(value);
                 }
             }
             else if (value > 1 << 41)
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed64);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed64);
                 writer.Write(value);
             }
             else
             {
-                writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(ulong), WireType.VarInt);
                 writer.WriteVarInt(value);
             }
         }
 
-        ulong IFieldCodec<ulong>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        ulong IFieldCodec<ulong>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
         
-        public static ulong ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static ulong ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt64(field.WireType);
         }
     }

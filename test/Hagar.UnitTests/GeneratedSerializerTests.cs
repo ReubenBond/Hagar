@@ -124,14 +124,13 @@ namespace Hagar.UnitTests
         {
             T result;
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer);
             using (var readerSession = this.sessionPool.GetSession())
             using (var writeSession = this.sessionPool.GetSession())
             {
+                var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
                 var codec = this.codecProvider.GetCodec<T>();
                 codec.WriteField(
                     ref writer,
-                    writeSession,
                     0,
                     null,
                     original);
@@ -140,10 +139,10 @@ namespace Hagar.UnitTests
                 pipe.Writer.Complete();
 
                 pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer);
+                var reader = new Reader(readResult.Buffer, readerSession);
 
-                var initialHeader = reader.ReadFieldHeader(readerSession);
-                result = codec.ReadValue(ref reader, readerSession, initialHeader);
+                var initialHeader = reader.ReadFieldHeader();
+                result = codec.ReadValue(ref reader, initialHeader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
             }
@@ -155,20 +154,20 @@ namespace Hagar.UnitTests
         {
             var pipe = new Pipe();
             object result;
-            var writer = new Writer<PipeWriter>(pipe.Writer);
             using (var readerSession = this.sessionPool.GetSession())
             using (var writeSession = this.sessionPool.GetSession())
             {
+                var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
                 var serializer = this.serviceProvider.GetService<Serializer<object>>();
-                serializer.Serialize(ref writer, writeSession, original);
+                serializer.Serialize(ref writer, original);
 
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
 
                 pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer);
+                var reader = new Reader(readResult.Buffer, readerSession);
 
-                result = serializer.Deserialize(ref reader, readerSession);
+                result = serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
             }

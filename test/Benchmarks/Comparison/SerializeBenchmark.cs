@@ -60,9 +60,9 @@ namespace Benchmarks.Comparison
         public long Hagar()
         {
             Session.PartialReset();
-            var writer = new SingleSegmentBuffer(HagarData).CreateWriter();
-            HagarSerializer.Serialize(ref writer, Session, Input);
-            return writer.BufferWriter.Length;
+            var writer = new SingleSegmentBuffer(HagarData).CreateWriter(Session);
+            HagarSerializer.Serialize(ref writer, Input);
+            return writer.Output.Length;
         }
 
         [Benchmark]

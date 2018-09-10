@@ -50,29 +50,27 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer);
-            var writerSession = CreateSession();
+            var writer = new Writer<PipeWriter>(pipe.Writer, CreateSession());
             var writerCodec = this.CreateCodec();
-            var beforeReference = writerSession.ReferencedObjects.CurrentReferenceId;
+            var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
             // Write the field. This should involve marking at least one reference in the session.
-            writerCodec.WriteField(ref writer, writerSession, 0, typeof(TField), this.CreateValue());
+            writerCodec.WriteField(ref writer, 0, typeof(TField), this.CreateValue());
             writer.Commit();
-            var afterReference = writerSession.ReferencedObjects.CurrentReferenceId;
+            var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
             pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer);
-            var readerSession = CreateSession();
+            var reader = new Reader(readResult.Buffer, CreateSession());
             var readerCodec = this.CreateCodec();
-            var readField = reader.ReadFieldHeader(readerSession);
-            beforeReference = readerSession.ReferencedObjects.CurrentReferenceId;
-            readerCodec.ReadValue(ref reader, readerSession, readField);
+            var readField = reader.ReadFieldHeader();
+            beforeReference = reader.Session.ReferencedObjects.CurrentReferenceId;
+            readerCodec.ReadValue(ref reader, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
-            afterReference = readerSession.ReferencedObjects.CurrentReferenceId;
+            afterReference = reader.Session.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
         }
 
@@ -81,20 +79,18 @@ namespace Hagar.TestKit
         {
             var original = this.CreateValue();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer);
-            var writerSession = CreateSession();
+            var writer = new Writer<PipeWriter>(pipe.Writer, CreateSession());
             var writerCodec = this.CreateCodec();
-            writerCodec.WriteField(ref writer, writerSession, 0, typeof(TField), original);
+            writerCodec.WriteField(ref writer, 0, typeof(TField), original);
             writer.Commit();
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
             pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer);
-            var readerSession = CreateSession();
+            var reader = new Reader(readResult.Buffer, CreateSession());
             var readerCodec = this.CreateCodec();
-            var readField = reader.ReadFieldHeader(readerSession);
-            var deserialized = readerCodec.ReadValue(ref reader, readerSession, readField);
+            var readField = reader.ReadFieldHeader();
+            var deserialized = readerCodec.ReadValue(ref reader, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
             Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");

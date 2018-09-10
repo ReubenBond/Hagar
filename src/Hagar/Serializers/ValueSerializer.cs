@@ -1,7 +1,6 @@
 using System;
 using Hagar.Buffers;
 using Hagar.Codecs;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Serializers
@@ -21,19 +20,19 @@ namespace Hagar.Serializers
             this.serializer = serializer;
         }
 
-        void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+        void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteStartObject(session, fieldIdDelta, expectedType, CodecFieldType);
-            this.serializer.Serialize(ref writer, session, ref value);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteStartObject(fieldIdDelta, expectedType, CodecFieldType);
+            this.serializer.Serialize(ref writer, in value);
             writer.WriteEndObject();
         }
 
-        TField IFieldCodec<TField>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        TField IFieldCodec<TField>.ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             var value = default(TField);
-            this.serializer.Deserialize(ref reader, session, ref value);
+            this.serializer.Deserialize(ref reader, ref value);
             return value;
         }
     }

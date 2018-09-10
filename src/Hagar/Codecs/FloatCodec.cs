@@ -1,40 +1,37 @@
 using System;
 using System.Buffers;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
     public sealed class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
-        void IFieldCodec<float>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<float>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             float value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, float value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, float value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(float), WireType.Fixed32);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(float), WireType.Fixed32);
 
             // TODO: Optimize
             writer.Write((uint) BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         }
 
-        float IFieldCodec<float>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        float IFieldCodec<float>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
-        public static float ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static float ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             switch (field.WireType)
             {
                 case WireType.Fixed32:
@@ -69,33 +66,31 @@ namespace Hagar.Codecs
 
     public sealed class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
-        void IFieldCodec<double>.WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        void IFieldCodec<double>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             double value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, double value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, double value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(double), WireType.Fixed64);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(double), WireType.Fixed64);
 
             // TODO: Optimize
             writer.Write((ulong) BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
         }
 
-        double IFieldCodec<double>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        double IFieldCodec<double>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
-        public static double ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static double ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             switch (field.WireType)
             {
                 case WireType.Fixed32:
@@ -116,27 +111,27 @@ namespace Hagar.Codecs
 
     public sealed class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
     {
-        void IFieldCodec<decimal>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value)
+        void IFieldCodec<decimal>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, decimal value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, decimal value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, decimal value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(decimal), WireType.Fixed128);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(decimal), WireType.Fixed128);
             var ints = Decimal.GetBits(value);
             foreach (var part in ints) writer.Write(part);
         }
 
-        decimal IFieldCodec<decimal>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        decimal IFieldCodec<decimal>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
-        public static decimal ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static decimal ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             switch (field.WireType)
             {
                 case WireType.Fixed32:

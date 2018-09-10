@@ -1,7 +1,6 @@
 using System;
 using System.Buffers;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -10,15 +9,15 @@ namespace Hagar.Codecs
     {
         private const int Width = 16;
 
-        void IFieldCodec<Guid>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value)
+        void IFieldCodec<Guid>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Guid value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(Guid), WireType.Fixed128);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(Guid), WireType.Fixed128);
 #if NETCOREAPP2_1
             writer.EnsureContiguous(Width);
             if (value.TryWriteBytes(writer.WritableSpan))
@@ -30,14 +29,14 @@ namespace Hagar.Codecs
             writer.Write(value.ToByteArray());
         }
 
-        Guid IFieldCodec<Guid>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Guid IFieldCodec<Guid>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
-        public static Guid ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static Guid ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
 #if NETCOREAPP2_1
             if (reader.TryReadBytes(Width, out var readOnly))
             {

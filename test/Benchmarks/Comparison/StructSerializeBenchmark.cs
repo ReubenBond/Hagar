@@ -24,7 +24,7 @@ namespace Benchmarks.Comparison
     [PayloadSizeColumn]
     public class StructSerializeBenchmark
     {
-        private static readonly IntStruct Input = new IntStruct();
+        private static readonly IntStruct Input = IntStruct.Create();
 
         private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
         private static readonly Serializer<IntStruct> HagarSerializer;
@@ -59,9 +59,9 @@ namespace Benchmarks.Comparison
         public long Hagar()
         {
             Session.FullReset();
-            var writer = new SingleSegmentBuffer(HagarData).CreateWriter();
-            HagarSerializer.Serialize(ref writer, Session, Input);
-            return writer.BufferWriter.Length;
+            var writer = new SingleSegmentBuffer(HagarData).CreateWriter(Session);
+            HagarSerializer.Serialize(ref writer, Input);
+            return writer.Output.Length;
         }
 
         [Benchmark]

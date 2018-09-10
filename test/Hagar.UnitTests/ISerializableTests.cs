@@ -54,11 +54,11 @@ namespace Hagar.UnitTests
         private object SerializationLoop(object expected)
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer);
 
             using (var session = this.sessionPool.GetSession())
             {
-                this.serializer.Serialize(ref writer, session, expected);
+                var writer = new Writer<PipeWriter>(pipe.Writer, session);
+                this.serializer.Serialize(ref writer, expected);
                 pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
             }
@@ -66,8 +66,8 @@ namespace Hagar.UnitTests
             using (var session = this.sessionPool.GetSession())
             {
                 pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer);
-                var result = this.serializer.Deserialize(ref reader, session);
+                var reader = new Reader(readResult.Buffer, session);
+                var result = this.serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
                 return result;

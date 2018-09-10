@@ -1,30 +1,29 @@
 using System;
 using System.Buffers;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
     public class SkipFieldCodec : IFieldCodec<object>
     {
-        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(writer.Session);
             throw new NotImplementedException();
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public object ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
-            reader.SkipField(session, field);
+            ReferenceCodec.MarkValueField(reader.Session);
+            reader.SkipField(field);
             return null;
         }
     }
 
     public static class SkipFieldExtension
     {
-        public static void SkipField(this ref Reader reader, SerializerSession session, Field field)
+        public static void SkipField(this ref Reader reader, Field field)
         {
             switch (field.WireType)
             {
@@ -33,7 +32,7 @@ namespace Hagar.Codecs
                     reader.ReadVarUInt64();
                     break;
                 case WireType.TagDelimited:
-                    SkipTagDelimitedField(ref reader, session);
+                    SkipTagDelimitedField(ref reader);
                     break;
                 case WireType.LengthPrefixed:
                     SkipLengthPrefixedField(ref reader);
@@ -76,13 +75,13 @@ namespace Hagar.Codecs
             reader.Skip(length);
         }
 
-        private static void SkipTagDelimitedField(ref Reader reader, SerializerSession session)
+        private static void SkipTagDelimitedField(ref Reader reader)
         {
             while (true)
             {
-                var field = reader.ReadFieldHeader(session);
+                var field = reader.ReadFieldHeader();
                 if (field.IsEndObject) break;
-                reader.SkipField(session, field);
+                reader.SkipField(field);
             }
         }
     }

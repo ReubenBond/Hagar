@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -23,16 +22,16 @@ namespace Hagar.Codecs
             this.activator = activator;
         }
 
-        void IFieldCodec<List<T>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, List<T> value)
+        void IFieldCodec<List<T>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, List<T> value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            Int32Codec.WriteField(ref writer, session, 0, typeof(int), value.Count);
+            Int32Codec.WriteField(ref writer, 0, typeof(int), value.Count);
             var first = true;
             foreach (var element in value)
             {
-                this.fieldCodec.WriteField(ref writer, session, first ? 1U : 0, typeof(T), element);
+                this.fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
                 first = false;
             }
 
@@ -40,39 +39,39 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        List<T> IFieldCodec<List<T>>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        List<T> IFieldCodec<List<T>>.ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<List<T>>(ref reader, session, field);
+                return ReferenceCodec.ReadReference<List<T>>(ref reader, field);
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
-            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(session);
+            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
             List<T> result = null;
             uint fieldId = 0;
             var length = 0;
             var index = 0;
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                        length = Int32Codec.ReadValue(ref reader, session, header);
+                        length = Int32Codec.ReadValue(ref reader, header);
                         result = this.activator.Create(length);
                         result.Capacity = length;
-                        ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
+                        ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
                     case 1:
                         if (result == null) ThrowLengthFieldMissing();
                         if (index >= length) ThrowIndexOutOfRangeException(length);
                         // ReSharper disable once PossibleNullReferenceException
-                        result.Add(this.fieldCodec.ReadValue(ref reader, session, header));
+                        result.Add(this.fieldCodec.ReadValue(ref reader, header));
                         ++index;
                         break;
                     default:
-                        reader.ConsumeUnknownField(session, header);
+                        reader.ConsumeUnknownField(header);
                         break;
                 }
             }

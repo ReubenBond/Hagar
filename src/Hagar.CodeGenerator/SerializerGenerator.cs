@@ -192,7 +192,6 @@ namespace Hagar.CodeGenerator
             var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
 
             var writerParam = "writer".ToIdentifierName();
-            var sessionParam = "session".ToIdentifierName();
             var instanceParam = "instance".ToIdentifierName();
 
             var body = new List<StatementSyntax>();
@@ -202,7 +201,7 @@ namespace Hagar.CodeGenerator
                     ExpressionStatement(
                         InvocationExpression(
                             ThisExpression().Member(BaseTypeSerializerFieldName.ToIdentifierName()).Member(SerializeMethodName),
-                            ArgumentList(SeparatedList(new[] { Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(sessionParam), Argument(instanceParam) })))));
+                            ArgumentList(SeparatedList(new[] { Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(instanceParam) })))));
                 body.Add(ExpressionStatement(InvocationExpression(writerParam.Member("WriteEndBase"), ArgumentList())));
             }
 
@@ -238,7 +237,6 @@ namespace Hagar.CodeGenerator
                                     new[]
                                     {
                                         Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
-                                        Argument(sessionParam),
                                         Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(fieldIdDelta))),
                                         Argument(expectedType.FieldName.ToIdentifierName()),
                                         Argument(instanceParam.Member(member.Member.Name))
@@ -248,13 +246,12 @@ namespace Hagar.CodeGenerator
             var parameters = new[]
             {
                 Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
-                Parameter("session".ToIdentifier()).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
                 Parameter("instance".ToIdentifier()).WithType(typeDescription.Type.ToTypeSyntax())
             };
 
             if (typeDescription.Type.IsValueType)
             {
-                parameters[2] = parameters[2].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
+                parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.InKeyword)));
             }
 
             return MethodDeclaration(returnType, SerializeMethodName)
@@ -272,7 +269,6 @@ namespace Hagar.CodeGenerator
             var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
 
             var readerParam = "reader".ToIdentifierName();
-            var sessionParam = "session".ToIdentifierName();
             var instanceParam = "instance".ToIdentifierName();
             var fieldIdVar = "fieldId".ToIdentifierName();
             var headerVar = "header".ToIdentifierName();
@@ -289,7 +285,7 @@ namespace Hagar.CodeGenerator
 
             if (HasComplexBaseType(typeDescription.Type))
             {
-                // C#: this.baseTypeSerializer.Deserialize(ref reader, session, instance);
+                // C#: this.baseTypeSerializer.Deserialize(ref reader, instance);
                 body.Add(
                     ExpressionStatement(
                         InvocationExpression(
@@ -297,7 +293,6 @@ namespace Hagar.CodeGenerator
                             ArgumentList(SeparatedList(new[]
                             {
                                 Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
-                                Argument(sessionParam),
                                 Argument(instanceParam)
                             })))));
             }
@@ -307,18 +302,17 @@ namespace Hagar.CodeGenerator
             var parameters = new[]
             {
                 Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
-                Parameter(sessionParam.Identifier).WithType(libraryTypes.SerializerSession.ToTypeSyntax()),
                 Parameter(instanceParam.Identifier).WithType(typeDescription.Type.ToTypeSyntax())
             };
             
             if (typeDescription.Type.IsValueType)
             {
-                parameters[2] = parameters[2].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
+                parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
             }
 
             return MethodDeclaration(returnType, DeserializeMethodName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                .AddParameterListParameters(                    parameters)
+                .AddParameterListParameters(parameters)
                 .AddBodyStatements(body.ToArray());
 
             // Create the loop body.
@@ -326,14 +320,14 @@ namespace Hagar.CodeGenerator
             {
                 return new List<StatementSyntax>
                 {
-                    // C#: var header = reader.ReadFieldHeader(session);
+                    // C#: var header = reader.ReadFieldHeader();
                     LocalDeclarationStatement(
                         VariableDeclaration(
                             IdentifierName("var"),
                             SingletonSeparatedList(
                                 VariableDeclarator(headerVar.Identifier)
                                     .WithInitializer(EqualsValueClause(InvocationExpression(readerParam.Member("ReadFieldHeader"),
-                                        ArgumentList(SingletonSeparatedList(Argument(sessionParam))))))))),
+                                        ArgumentList())))))),
 
                     // C#: if (header.IsEndBaseOrEndObject) break;
                     IfStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, headerVar, IdentifierName("IsEndBaseOrEndObject")), BreakStatement()),
@@ -360,7 +354,7 @@ namespace Hagar.CodeGenerator
                     // C#: case <fieldId>:
                     var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(member.FieldId)));
 
-                    // C#: instance.<member> = this.<codec>.ReadValue(ref reader, session, header);
+                    // C#: instance.<member> = this.<codec>.ReadValue(ref reader, header);
                     var codec = fieldDescriptions.OfType<ICodecDescription>()
                         .Concat(libraryTypes.StaticCodecs)
                         .First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
@@ -382,7 +376,7 @@ namespace Hagar.CodeGenerator
 
                     ExpressionSyntax readValueExpression = InvocationExpression(
                         codecExpression.Member("ReadValue"),
-                        ArgumentList(SeparatedList(new[] {Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(sessionParam), Argument(headerVar)})));
+                        ArgumentList(SeparatedList(new[] {Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(headerVar)})));
                     if (!codec.UnderlyingType.Equals(member.Type))
                     {
                         // If the member type type differs from the codec type (eg because the member is an array), cast the result.
@@ -400,7 +394,7 @@ namespace Hagar.CodeGenerator
 
                 // Add the default switch section.
                 var consumeUnknown = ExpressionStatement(InvocationExpression(readerParam.Member("ConsumeUnknownField"),
-                    ArgumentList(SeparatedList(new[] { Argument(sessionParam), Argument(headerVar) }))));
+                    ArgumentList(SeparatedList(new[] { Argument(headerVar) }))));
                 switchSections.Add(SwitchSection(SingletonList<SwitchLabelSyntax>(DefaultSwitchLabel()), List(new StatementSyntax[] { consumeUnknown, BreakStatement() })));
 
                 return switchSections;

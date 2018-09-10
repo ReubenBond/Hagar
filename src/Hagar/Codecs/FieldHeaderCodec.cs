@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -14,8 +13,8 @@ namespace Hagar.Codecs
     public static class FieldHeaderCodec
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteFieldHeader<TBufferWriter>(this ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        public static void WriteFieldHeader<TBufferWriter>(
+            ref this Writer<TBufferWriter> writer,
             uint fieldId,
             Type expectedType,
             Type actualType,
@@ -30,13 +29,13 @@ namespace Hagar.Codecs
                 writer.Write((byte) (tag | (byte) SchemaType.Expected));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
             }
-            else if (session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out var typeOrReferenceId))
+            else if (writer.Session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out var typeOrReferenceId))
             {
                 writer.Write((byte) (tag | (byte) SchemaType.WellKnown));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
                 writer.WriteVarInt(typeOrReferenceId);
             }
-            else if (session.ReferencedTypes.TryGetTypeReference(actualType, out typeOrReferenceId))
+            else if (writer.Session.ReferencedTypes.TryGetTypeReference(actualType, out typeOrReferenceId))
             {
                 writer.Write((byte) (tag | (byte) SchemaType.Referenced));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
@@ -46,7 +45,7 @@ namespace Hagar.Codecs
             {
                 writer.Write((byte) (tag | (byte) SchemaType.Encoded));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
-                session.TypeCodec.Write(ref writer, actualType);
+                writer.Session.TypeCodec.Write(ref writer, actualType);
             }
         }
 
@@ -73,7 +72,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(fieldId);
         }
 
-        public static Field ReadFieldHeader(this ref Reader reader, SerializerSession session)
+        public static Field ReadFieldHeader(ref this Reader reader)
         {
             Type type = null;
             uint extendedId = 0;
@@ -86,10 +85,9 @@ namespace Hagar.Codecs
             }
 
             // If schema type is valid, read the type.
-
             if ((tag & (byte) WireType.Extended) != (byte) WireType.Extended)
             {
-                type = reader.ReadType(session, (SchemaType) (tag & Tag.SchemaTypeMask));
+                type = reader.ReadType(reader.Session, (SchemaType) (tag & Tag.SchemaTypeMask));
             }
 
             return new Field(tag, extendedId, type);

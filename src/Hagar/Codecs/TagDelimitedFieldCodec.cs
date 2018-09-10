@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -23,13 +22,12 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteStartObject<TBufferWriter>(
-            this ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+            ref this Writer<TBufferWriter> writer,
             uint fieldId,
             Type expectedType,
             Type actualType) where TBufferWriter : IBufferWriter<byte>
         {
-            writer.WriteFieldHeader(session, fieldId, expectedType, actualType, WireType.TagDelimited);
+            writer.WriteFieldHeader(fieldId, expectedType, actualType, WireType.TagDelimited);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

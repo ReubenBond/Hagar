@@ -2,31 +2,30 @@
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
-using Hagar.Session;
 
 namespace TestApp
 {
     public class BaseTypeSerializer : IPartialSerializer<BaseType>
     {
-        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, BaseType obj) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, BaseType obj) where TBufferWriter : IBufferWriter<byte>
         {
-            StringCodec.WriteField(ref writer, session, 0, typeof(string), obj.BaseTypeString);
-            StringCodec.WriteField(ref writer, session, 234, typeof(string), obj.AddedLaterString);
+            StringCodec.WriteField(ref writer, 0, typeof(string), obj.BaseTypeString);
+            StringCodec.WriteField(ref writer, 234, typeof(string), obj.AddedLaterString);
         }
 
-        public void Deserialize(ref Reader reader, SerializerSession session, BaseType obj)
+        public void Deserialize(ref Reader reader, BaseType obj)
         {
             uint fieldId = 0;
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
                     {
-                        obj.BaseTypeString = StringCodec.ReadValue(ref reader, session, header);
+                        obj.BaseTypeString = StringCodec.ReadValue(ref reader, header);
                         /*var type = header.FieldType ?? typeof(string);
                             Console.WriteLine(
                             $"\tReading field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
@@ -37,7 +36,7 @@ namespace TestApp
                         /*var type = header.FieldType;
                         Console.WriteLine(
                             $"\tReading UNKNOWN field {fieldId} with type = {type?.ToString() ?? "UNKNOWN"} and wireType = {header.WireType}");*/
-                        reader.ConsumeUnknownField(session, header);
+                        reader.ConsumeUnknownField(header);
                         break;
                     }
                 }

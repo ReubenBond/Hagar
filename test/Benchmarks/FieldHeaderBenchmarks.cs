@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using Benchmarks.Utilities;
 using Hagar;
 using Hagar.Buffers;
@@ -32,25 +31,25 @@ namespace Benchmarks
         [Benchmark(Baseline = true)]
         public void WritePlainExpectedEmbeddedId()
         {
-            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter();
+            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
 
             // Use an expected type and a field id with a value small enough to be embedded.
-            writer.WriteFieldHeader(Session, 4, typeof(uint), typeof(uint), WireType.VarInt);
+            writer.WriteFieldHeader(4, typeof(uint), typeof(uint), WireType.VarInt);
         }
 
         [Benchmark]
         public void WritePlainExpectedExtendedId()
         {
-            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter();
+            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
 
             // Use a field id delta which is too large to be embedded.
-            writer.WriteFieldHeader(Session, Tag.MaxEmbeddedFieldIdDelta + 20, typeof(uint), typeof(uint), WireType.VarInt);
+            writer.WriteFieldHeader(Tag.MaxEmbeddedFieldIdDelta + 20, typeof(uint), typeof(uint), WireType.VarInt);
         }
 
         [Benchmark]
         public void WriteFastEmbedded()
         {
-            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter();
+            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
 
             // Use an expected type and a field id with a value small enough to be embedded.
             writer.WriteFieldHeaderExpectedEmbedded(4, WireType.VarInt);
@@ -59,7 +58,7 @@ namespace Benchmarks
         [Benchmark]
         public void WriteFastExtended()
         {
-            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter();
+            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
 
             // Use a field id delta which is too large to be embedded.
             writer.WriteFieldHeaderExpectedExtended(Tag.MaxEmbeddedFieldIdDelta + 20, WireType.VarInt);
@@ -68,13 +67,13 @@ namespace Benchmarks
         [Benchmark]
         public void CreateWriter()
         {
-            new SingleSegmentBuffer(HagarBuffer).CreateWriter();
+            new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
         }
 
         [Benchmark]
         public void WriteByte()
         {
-            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter();
+            var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
             writer.Write((byte)4);
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using Hagar.Buffers;
-using Hagar.Session;
 
 namespace Hagar.Serializers
 {
@@ -12,7 +11,7 @@ namespace Hagar.Serializers
     [SuppressMessage("ReSharper", "TypeParameterCanBeVariant")]
     public interface IValueSerializer<T> where T : struct
     {
-        void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, ref T value) where TBufferWriter : IBufferWriter<byte>;
-        void Deserialize(ref Reader reader, SerializerSession session, ref T value);
+        void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in T value) where TBufferWriter : IBufferWriter<byte>;
+        void Deserialize(ref Reader reader, ref T value);
     }
 }

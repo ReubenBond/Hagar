@@ -8,7 +8,6 @@
          Hagar_GeneratorAssembly;
          Hagar_MSBuildIsCore;
          Hagar_OutputFileName;
-         Hagar_TargetIsCore;
          Hagar_TaskAssembly;">
   
   <PropertyGroup>
@@ -27,9 +26,7 @@
     <Hagar_DotNetHost Condition="'$(DotNetHost)' != ''">$(DotNetHost)</Hagar_DotNetHost>
 
     <!-- Specify the assembly containing the code generator. -->
-    <Hagar_TargetIsCore Condition="$(TargetFramework.StartsWith('netcore')) or $(TargetFramework.StartsWith('netstandard')) or '$(OS)' != 'Windows_NT'">true</Hagar_TargetIsCore>
-    <Hagar_GeneratorAssembly Condition="'$(Hagar_TargetIsCore)' == 'true'">$(Hagar_CoreAssembly)</Hagar_GeneratorAssembly>
-    <Hagar_GeneratorAssembly Condition="'$(Hagar_TargetIsCore)' != 'true'">$(Hagar_FullAssembly)</Hagar_GeneratorAssembly>
+    <Hagar_GeneratorAssembly>$(Hagar_CoreAssembly)</Hagar_GeneratorAssembly>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -66,15 +63,12 @@
     <Message Text="[Hagar.CodeGenerator] - CodeGen arguments file=$(Hagar_ArgsFile)"/>
     <WriteLinesToFile Overwrite="true" File="$(Hagar_ArgsFile)" Lines="@(Hagar_CodeGenArgs)"/>
 
-    <Hagar.CodeGenerator.MSBuild.GetDotNetHost Condition="'$(Hagar_DotNetHost)' == '' and '$(Hagar_TargetIsCore)' == 'true' and '$(Hagar_MSBuildIsCore)' == 'true' ">
+    <Hagar.CodeGenerator.MSBuild.GetDotNetHost Condition="'$(Hagar_DotNetHost)' == '' and '$(Hagar_MSBuildIsCore)' == 'true' ">
       <Output TaskParameter="DotNetHost" PropertyName="Hagar_DotNetHost" />
     </Hagar.CodeGenerator.MSBuild.GetDotNetHost>
 
     <!-- If building on .NET Core, use dotnet to execute the process. -->
-    <Exec Command="&quot;$(Hagar_DotNetHost)&quot; &quot;$(Hagar_GeneratorAssembly)&quot; &quot;$(Hagar_ArgsFile)&quot;" Outputs="$(Hagar_OutputFileName)" Condition=" '$(Hagar_TargetIsCore)' == 'true'" />
-
-    <!-- If not building on .NET Core, execute the process directly. -->
-    <Exec Command="&quot;$(Hagar_GeneratorAssembly)&quot; &quot;$(Hagar_ArgsFile)&quot;" Outputs="$(Hagar_OutputFileName)" Condition=" '$(Hagar_TargetIsCore)' != 'true'" />
+    <Exec Command="&quot;$(Hagar_DotNetHost)&quot; &quot;$(Hagar_GeneratorAssembly)&quot; &quot;$(Hagar_ArgsFile)&quot;" Outputs="$(Hagar_OutputFileName)" />
 
     <ItemGroup>
       <Compile Include="$(Hagar_OutputFileName)" Condition="Exists('$(Hagar_OutputFileName)')" />

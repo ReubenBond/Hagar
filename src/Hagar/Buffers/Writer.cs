@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Hagar.Session;
 
 namespace Hagar.Buffers
 {
@@ -12,15 +13,18 @@ namespace Hagar.Buffers
         private int bufferPos;
         private int previousBuffersSize;
 
-        public Writer(TBufferWriter output)
+        public Writer(TBufferWriter output, SerializerSession session)
         {
             this.output = output;
+            this.Session = session;
             this.currentSpan = output.GetSpan();
             this.bufferPos = default;
             this.previousBuffersSize = default;
         }
 
-        public TBufferWriter BufferWriter => this.output;
+        public SerializerSession Session { get; }
+
+        public TBufferWriter Output => this.output;
         
         public int Position => this.previousBuffersSize + this.bufferPos;
         

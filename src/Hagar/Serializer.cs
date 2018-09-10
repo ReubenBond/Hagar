@@ -4,7 +4,6 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
-using Hagar.Session;
 
 namespace Hagar
 {
@@ -26,16 +25,16 @@ namespace Hagar
             this.codec = HagarGeneratedCodeHelper.UnwrapService(null, codecProvider.GetCodec<T>());
         }
 
-        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, T value) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, T value) where TBufferWriter : IBufferWriter<byte>
         {
-            this.codec.WriteField(ref writer, session, 0, this.expectedType, value);
+            this.codec.WriteField(ref writer, 0, this.expectedType, value);
             writer.Commit();
         }
 
-        public T Deserialize(ref Reader reader, SerializerSession session)
+        public T Deserialize(ref Reader reader)
         {
-            var field = reader.ReadFieldHeader(session);
-            return this.codec.ReadValue(ref reader, session, field);
+            var field = reader.ReadFieldHeader();
+            return this.codec.ReadValue(ref reader, field);
         }
     }
 }

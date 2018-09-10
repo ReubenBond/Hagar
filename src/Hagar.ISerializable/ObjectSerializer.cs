@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Runtime.Serialization;
 using Hagar.Buffers;
 using Hagar.Codecs;
-using Hagar.Session;
 
 namespace Hagar.ISerializable
 {
@@ -37,7 +36,7 @@ namespace Hagar.ISerializable
             this.createConstructorDelegate = constructorFactory.GetSerializationConstructorDelegate;
         }
 
-        public void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, object value) where TBufferWriter : IBufferWriter<byte>
+        public void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value) where TBufferWriter : IBufferWriter<byte>
         {
             var type = value.GetType();
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);
@@ -49,32 +48,32 @@ namespace Hagar.ISerializable
             foreach (var field in info)
             {
                 var surrogate = new SerializationEntrySurrogate(field);
-                this.entrySerializer.WriteField(ref writer, session, first ? 1 : (uint) 0, SerializationEntryCodec.SerializationEntryType, surrogate);
+                this.entrySerializer.WriteField(ref writer, first ? 1 : (uint) 0, SerializationEntryCodec.SerializationEntryType, surrogate);
                 if (first) first = false;
             }
             
             callbacks.OnSerialized?.Invoke(value, streamingContext);
         }
 
-        public object ReadValue(ref Reader reader, SerializerSession session, Type type, uint placeholderReferenceId)
+        public object ReadValue(ref Reader reader, Type type, uint placeholderReferenceId)
         {
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);
 
             var info = new SerializationInfo(type, formatterConverter);
             var result = FormatterServices.GetUninitializedObject(type);
 
-            ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
+            ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
             callbacks.OnDeserializing?.Invoke(result, streamingContext);
 
             uint fieldId = 0;
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 if (fieldId == 1)
                 {
-                    var entry = this.entrySerializer.ReadValue(ref reader, session, header);
+                    var entry = this.entrySerializer.ReadValue(ref reader, header);
                     info.AddValue(entry.Name, entry.Value);
                 }
             }

@@ -15,18 +15,13 @@ namespace Hagar.WireProtocol
             this.Tag = tag;
             this.fieldIdDelta = 0;
             this.fieldType = null;
-#if DEBUG
-            if (!this.HasFieldId) ThrowFieldIdInvalid();
-#endif
         }
+
         public Field(Tag tag, uint extendedFieldIdDelta, Type type)
         {
             this.Tag = tag;
             this.fieldIdDelta = extendedFieldIdDelta;
             this.fieldType = type;
-#if DEBUG
-            if (!this.HasFieldId) ThrowFieldIdInvalid();
-#endif
         }
 
         public uint FieldIdDelta
@@ -66,7 +61,7 @@ namespace Hagar.WireProtocol
             get
             {
 #if DEBUG
-                if (this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
+                if (!this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
 #endif
                 return this.fieldType;
             }
@@ -75,7 +70,7 @@ namespace Hagar.WireProtocol
             set
             {
 #if DEBUG
-                if (this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
+                if (!this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
 #endif
                 this.fieldType = value;
             }
