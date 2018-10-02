@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
@@ -16,11 +16,13 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
+using Xunit;
 using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
 
 namespace Benchmarks.Comparison
 {
+    [Trait("Category", "Benchmark")]
     [Config(typeof(BenchmarkConfig))]
     public class DeserializeBenchmark
     {
@@ -106,6 +108,7 @@ namespace Benchmarks.Comparison
                    result.MyProperty9;
         }
 
+        [Fact]
         [Benchmark(Baseline = true)]
         public int Hagar()
         {
