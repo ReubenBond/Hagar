@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.1;net472</TargetFrameworks>
     <HagarCodeGen>true</HagarCodeGen>
     <HagarCodeGenLogLevel>Information</HagarCodeGenLogLevel>
   </PropertyGroup>
@@ -15,16 +16,13 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.8.166" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" />
     <PackageReference Include="System.IO.Pipelines" Version="4.5.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.TestKit\Hagar.TestKit.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
   </ItemGroup>
 
 </Project>

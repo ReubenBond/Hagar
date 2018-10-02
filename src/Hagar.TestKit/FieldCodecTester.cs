@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using Hagar.Buffers;
@@ -20,7 +20,6 @@ namespace Hagar.TestKit
             var services = new ServiceCollection();
             services.AddHagar();
             services.AddSingleton<TCodec>();
-            services.AddSingleton<IFieldCodec<TField>>(sp => sp.GetRequiredService<TCodec>());
 
             // ReSharper disable once VirtualMemberCallInConstructor
             this.ConfigureServices(services);

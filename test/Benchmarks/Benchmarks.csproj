@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
     <HagarCodeGen>true</HagarCodeGen>
   </PropertyGroup>
 
@@ -22,6 +23,7 @@
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,10 +31,6 @@
     <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.Json\Hagar.Json.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
   </ItemGroup>
 
 </Project>
