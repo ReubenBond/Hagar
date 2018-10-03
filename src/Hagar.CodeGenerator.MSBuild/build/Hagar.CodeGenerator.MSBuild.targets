@@ -12,7 +12,8 @@
   <PropertyGroup>
     <!-- Specify the assembly containing the MSBuild tasks. -->
     <Hagar_MSBuildIsCore Condition="'$(MSBuildRuntimeType)' == 'Core' or '$(OS)' != 'Windows_NT'">true</Hagar_MSBuildIsCore>
-    <Hagar_TaskAssembly Condition="'$(Hagar_MSBuildIsCore)' == 'true'">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.1\Hagar.CodeGenerator.MSBuild.Tasks.dll</Hagar_TaskAssembly>
+    <Hagar_TaskAssembly Condition=" '$(HagarCodeGenTaskAssembly)' != '' ">$(HagarCodeGenTaskAssembly)</Hagar_TaskAssembly>
+    <Hagar_TaskAssembly Condition=" '$(Hagar_TaskAssembly)' == '' and '$(Hagar_MSBuildIsCore)' == 'true'">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.1\Hagar.CodeGenerator.MSBuild.Tasks.dll</Hagar_TaskAssembly>
 
     <!-- When the MSBuild host is full-framework, we defer to PATH for dotnet -->
     <Hagar_DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</Hagar_DotNetHost>
@@ -70,7 +71,7 @@
 
   </Target>
 
-  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(Hagar_TaskAssembly)" Condition="'$(Hagar_CodeGeneratorEnabled)' == 'true' and '$(Hagar_DotNetHost)' == '' and '$(Hagar_MSBuildIsCore)' == 'true'" />
+  <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.Tasks.GetDotNetHost" AssemblyFile="$(Hagar_TaskAssembly)" Condition="'$(Hagar_CodeGeneratorEnabled)' == 'true' and '$(Hagar_DotNetHost)' == '' and '$(Hagar_MSBuildIsCore)' == 'true'" />
 
   <Target Name="HagarGenerateCode"
           DependsOnTargets="$(HagarGenerateCodeDependsOn)"
@@ -95,9 +96,9 @@
     <Message Text="[Hagar.CodeGenerator] - CodeGen arguments file=$(Hagar_ArgsFile)"/>
     <WriteLinesToFile Overwrite="true" File="$(Hagar_ArgsFile)" Lines="@(Hagar_CodeGenArgs)"/>
 
-    <Hagar.CodeGenerator.MSBuild.GetDotNetHost Condition="'$(Hagar_DotNetHost)' == '' and '$(Hagar_MSBuildIsCore)' == 'true' ">
+    <Hagar.CodeGenerator.MSBuild.Tasks.GetDotNetHost Condition="'$(Hagar_DotNetHost)' == '' and '$(Hagar_MSBuildIsCore)' == 'true' ">
       <Output TaskParameter="DotNetHost" PropertyName="Hagar_DotNetHost" />
-    </Hagar.CodeGenerator.MSBuild.GetDotNetHost>
+    </Hagar.CodeGenerator.MSBuild.Tasks.GetDotNetHost>
 
     <!-- If building on .NET Core, use dotnet to execute the process. -->
     <Exec Command="&quot;$(Hagar_DotNetHost)&quot; &quot;$(Hagar_GeneratorAssembly)&quot; &quot;$(Hagar_ArgsFile)&quot;" Outputs="$(Hagar_OutputFileName)" />
