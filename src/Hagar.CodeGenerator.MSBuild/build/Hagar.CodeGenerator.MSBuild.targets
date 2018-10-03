@@ -2,31 +2,26 @@
          Hagar_ArgsFile;
          Hagar_CodeGenDirectory;
          Hagar_CodeGeneratorEnabled;
-         Hagar_CoreAssembly;
          Hagar_DotNetHost;
          Hagar_FullAssembly;
          Hagar_GeneratorAssembly;
          Hagar_MSBuildIsCore;
          Hagar_OutputFileName;
          Hagar_TaskAssembly;">
-  
-  <PropertyGroup>
-    <Hagar_DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</Hagar_DotNetHost>
-    <Hagar_CoreAssembly Condition="'$(HagarCodeGenCoreAssembly)' != ''">$(HagarCodeGenCoreAssembly)</Hagar_CoreAssembly>
-    <Hagar_FullAssembly Condition="'$(HagarCodeGenFullAssembly)' != ''">$(HagarCodeGenFullAssembly)</Hagar_FullAssembly>
-    <Hagar_CoreAssembly Condition="'$(Hagar_CoreAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.1\Hagar.CodeGenerator.MSBuild.dll</Hagar_CoreAssembly>
-    <Hagar_FullAssembly Condition="'$(Hagar_FullAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\net47\Hagar.CodeGenerator.MSBuild.exe</Hagar_FullAssembly>
 
+  <PropertyGroup>
     <!-- Specify the assembly containing the MSBuild tasks. -->
     <Hagar_MSBuildIsCore Condition="'$(MSBuildRuntimeType)' == 'Core' or '$(OS)' != 'Windows_NT'">true</Hagar_MSBuildIsCore>
-    <Hagar_TaskAssembly Condition="'$(Hagar_MSBuildIsCore)' == 'true'">$(Hagar_CoreAssembly)</Hagar_TaskAssembly>
+    <Hagar_TaskAssembly Condition="'$(Hagar_MSBuildIsCore)' == 'true'">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.1\Hagar.CodeGenerator.MSBuild.Tasks.dll</Hagar_TaskAssembly>
 
     <!-- When the MSBuild host is full-framework, we defer to PATH for dotnet -->
+    <Hagar_DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</Hagar_DotNetHost>
     <Hagar_DotNetHost Condition="'$(Hagar_MSBuildIsCore)' != 'true'">dotnet</Hagar_DotNetHost>
     <Hagar_DotNetHost Condition="'$(DotNetHost)' != ''">$(DotNetHost)</Hagar_DotNetHost>
 
     <!-- Specify the assembly containing the code generator. -->
-    <Hagar_GeneratorAssembly>$(Hagar_CoreAssembly)</Hagar_GeneratorAssembly>
+    <Hagar_GeneratorAssembly Condition="'$(HagarCodeGenCoreAssembly)' != ''">$(HagarCodeGenCoreAssembly)</Hagar_GeneratorAssembly>
+    <Hagar_GeneratorAssembly Condition="'$(Hagar_GeneratorAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\netcoreapp2.1\Hagar.CodeGenerator.MSBuild.dll</Hagar_GeneratorAssembly>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -34,18 +29,55 @@
     <Hagar_CodeGenDirectory Condition="'$([System.IO.Path]::IsPathRooted($(IntermediateOutputPath)))' == 'true'">$(IntermediateOutputPath)</Hagar_CodeGenDirectory>
     <Hagar_CodeGenDirectory Condition="'$(Hagar_CodeGenDirectory)' == ''">$(ProjectDir)$(IntermediateOutputPath)</Hagar_CodeGenDirectory>
     <Hagar_OutputFileName>$(Hagar_CodeGenDirectory)$(TargetName).hagar.g.cs</Hagar_OutputFileName>
-    <Hagar_CodeGeneratorEnabled Condition=" '$(DesignTimeBuild)' != 'true'">true</Hagar_CodeGeneratorEnabled>
+    <Hagar_CodeGeneratorEnabled Condition="'$(DesignTimeBuild)' != 'true'">true</Hagar_CodeGeneratorEnabled>
     <Hagar_ArgsFile>$(Hagar_CodeGenDirectory)$(TargetName).hagar.g.args.txt</Hagar_ArgsFile>
-    <Hagar_CodeGenCompileInputCache Condition="Exists('$(IntermediateOutputPath)$(MSBuildProjectFile).CoreCompileInputs.cache')">$(IntermediateOutputPath)$(MSBuildProjectFile).CoreCompileInputs.cache</Hagar_CodeGenCompileInputCache>
+    <HagarGenerateCodeDependsOn>$(HagarGenerateCodeDependsOn);ResolveReferences;HagarGenerateInputCache</HagarGenerateCodeDependsOn>
   </PropertyGroup>
+
+  <!--
+    Input to the code generator should not include its output.
+  -->
+  <ItemGroup>
+    <Hagar_CodeGenInputs Include="@(Compile);@(ReferencePath)" />
+    <Hagar_CodeGenInputs Remove="$(Hagar_OutputFileName)" />
+  </ItemGroup>
+
+  <!-- Properties used to support correct, incremental builds. -->
+  <PropertyGroup>
+    <!--
+        Since the Hagar code generator also affects the state of @(Compile) and hence the compile inputs file,
+        we maintain a separate cache with Hagar' own files removed. Otherwise there would be a circular dependency
+        whereby the cache updates and triggers the code generator, which triggers a cache update.
+    -->
+    <Hagar_CodeGenInputCache>$(IntermediateOutputPath)$(MSBuildProjectFile).HagarCodeGenInputs.cache</Hagar_CodeGenInputCache>
+  </PropertyGroup>
+
+  <!--
+      Update the file which captures the total set of all inputs to the code generator.
+      This is based on the _GenerateCompileDependencyCache target from the .NET project system.
+  -->
+  <Target Name="HagarGenerateInputCache" DependsOnTargets="ResolveAssemblyReferences" BeforeTargets="HagarGenerateCode">
+
+    <Hash ItemsToHash="@(Hagar_CodeGenInputs)">
+      <Output TaskParameter="HashResult" PropertyName="Hagar_UpdatedInputCacheContents" />
+    </Hash>
+
+    <WriteLinesToFile Overwrite="true" File="$(Hagar_CodeGenInputCache)" Lines="$(Hagar_UpdatedInputCacheContents)" WriteOnlyWhenDifferent="True" />
+
+    <ItemGroup>
+      <FileWrites Include="$(Hagar_CodeGenInputCache)" />
+    </ItemGroup>
+
+  </Target>
 
   <UsingTask TaskName="Hagar.CodeGenerator.MSBuild.GetDotNetHost" AssemblyFile="$(Hagar_TaskAssembly)" Condition="'$(Hagar_CodeGeneratorEnabled)' == 'true' and '$(Hagar_DotNetHost)' == '' and '$(Hagar_MSBuildIsCore)' == 'true'" />
 
   <Target Name="HagarGenerateCode"
-          AfterTargets="ResolveReferences"
+          DependsOnTargets="$(HagarGenerateCodeDependsOn)"
+          AfterTargets="HagarGenerateInputCache"
           BeforeTargets="AssignTargetPaths"
           Condition="'$(Hagar_CodeGeneratorEnabled)' == 'true'"
-          Inputs="@(Compile);@(Reference);$(Hagar_CodeGenCompileInputCache)"
+          Inputs="@(Compile);@(Reference);$(Hagar_CodeGenInputCache)"
           Outputs="$(Hagar_OutputFileName)">
 
     <ItemGroup>

@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build;PostBuildPublish">
 
   <PropertyGroup>
-    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.1;net47</TargetFrameworks>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win10-x64</RuntimeIdentifier>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
@@ -27,6 +26,7 @@
       <Visible>false</Visible>
     </Compile>
     <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Hagar.CodeGenerator.MSBuild.Tasks\Hagar.CodeGenerator.MSBuild.Tasks.csproj" PrivateAssets="all" Publish="true" />
   </ItemGroup>
   
   <ItemGroup>
@@ -62,7 +62,6 @@
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Update="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
   </ItemGroup>
 
   <Target Name="PostBuildPublish" AfterTargets="Build">

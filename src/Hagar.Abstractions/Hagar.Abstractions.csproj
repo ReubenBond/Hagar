@@ -1,12 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Hagar</RootNamespace>
+    <PackageDescription>Fast, flexible, and version-tolerant serializer for .NET</PackageDescription>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
-  </ItemGroup>
 
 </Project>

@@ -4,26 +4,29 @@
     <SourceRoot>$(MSBuildThisFileDirectory)</SourceRoot>
   </PropertyGroup>
 
+  <!-- Packaging -->
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
     <Product>Hagar</Product>
-    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionPrefix>0.2.1</VersionPrefix>
     <Copyright>Copyright © Reuben Bond 2018</Copyright>
-    <!--
-    <PackageLicenseUrl>https://github.com/dotnet/Orleans#license</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/dotnet/Orleans</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/ReubenBond/Hagar/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/dotnet/orleans/gh-pages/assets/logo_128.png</PackageIconUrl>
-    <PackageTags>Orleans Cloud-Computing Actor-Model Actors Distributed-Systems C# .NET</PackageTags>
+    <PackageTags>Serializer Span</PackageTags>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/dotnet/Orleans</RepositoryUrl>
-    -->
+    <RepositoryUrl>https://github.com/ReubenBond/Hagar</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSource>true</IncludeSource>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <LangVersion>latest</LangVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <!-- Strong Naming -->
+  <PropertyGroup>
     <SignAssembly>true</SignAssembly>
     <DelaySign>False</DelaySign>
     <AssemblyOriginatorKeyFile>$(SourceRoot)SigningKey.snk</AssemblyOriginatorKeyFile>
@@ -31,8 +34,9 @@
 
   <!-- Common compile parameters -->
   <PropertyGroup>
+    <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile Condition="'$(Configuration)'=='Release'">true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NoWarn>$(NoWarn);1591;FS2003</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
@@ -48,9 +52,24 @@
     <PackageOutputPath Condition=" '$(PackageOutputPath)'=='' ">$(SourceRoot)/Artifacts/$(Configuration)</PackageOutputPath>
   </PropertyGroup>
 
+  <!-- SourceLink -->
   <ItemGroup>
-    <PackageReference Include="SourceLink.Create.GitHub" Version="2.8.3" PrivateAssets="All" />
-    <DotNetCliToolReference Include="dotnet-sourcelink" Version="2.8.3" />
-    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="2.8.3" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02 " PrivateAssets="All" />
   </ItemGroup>
+
+  <!-- Solution bootstrapping for code generation -->
+  <PropertyGroup Condition=" '$(HagarCodeGen)' == 'true' ">
+    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/bin/publish/$(Configuration)/netcoreapp2.1/Hagar.CodeGenerator.MSBuild.Bootstrap.dll</HagarCodeGenCoreAssembly>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(HagarCodeGen)' == 'true' ">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/Hagar.CodeGenerator.MSBuild.Bootstrap.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <AssetTargetFallback>netcoreapp2.1</AssetTargetFallback>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <UndefineProperties>TargetFramework</UndefineProperties>
+      <HagarCodeGen>false</HagarCodeGen>
+    </ProjectReference>
+  </ItemGroup>
+  <!-- End -->
+
 </Project>
