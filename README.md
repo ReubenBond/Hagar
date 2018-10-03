@@ -1,5 +1,7 @@
 # Hagar
 
+[![Build status](https://dev.azure.com/reubenbond/Hagar/_apis/build/status/Azure%20Pipelines%20CI)](https://dev.azure.com/reubenbond/Hagar/_build/latest?definitionId=4)
+
 There are many existing serialization libraries and formats which are efficient, fast, and support schema evolution, so why create this?
 
 Existing serialization libraries which support version tolerance tend to restrict how data is modelled, usually by providing a very restricted type system which supports few of the features found in common type systems, features such as:
