@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
+using System.Security;
 using Hagar.Buffers;
 using Hagar.Codecs;
 
@@ -24,6 +25,7 @@ namespace Hagar.ISerializable
         private readonly StreamingContext streamingContext;
         private readonly SerializationEntryCodec entrySerializer;
 
+        [SecurityCritical]
         public ValueTypeSerializer(
             ValueConstructor constructor,
             SerializationCallbacksFactory.SerializationCallbacks<SerializationCallback> callbacks,
@@ -38,6 +40,7 @@ namespace Hagar.ISerializable
             this.formatterConverter = formatterConverter;
         }
 
+        [SecurityCritical]
         void ISerializableSerializer.WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value)
         {
             var item = (T) value;
@@ -57,6 +60,7 @@ namespace Hagar.ISerializable
             this.callbacks.OnSerialized?.Invoke(ref item, this.streamingContext);
         }
 
+        [SecurityCritical]
         object ISerializableSerializer.ReadValue(ref Reader reader, Type type, uint placeholderReferenceId)
         {
             var info = new SerializationInfo(Type, this.formatterConverter);

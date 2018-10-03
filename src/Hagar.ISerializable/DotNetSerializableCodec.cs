@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Security;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
@@ -43,6 +44,7 @@ namespace Hagar.ISerializable
                 this.streamingContext);
         }
 
+        [SecurityCritical]
         public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
@@ -63,6 +65,7 @@ namespace Hagar.ISerializable
             writer.WriteEndObject();
         }
 
+        [SecurityCritical]
         public object ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(ref reader, field);
@@ -81,6 +84,7 @@ namespace Hagar.ISerializable
             return this.objectSerializer.ReadValue(ref reader, type, placeholderReferenceId);
         }
 
+        [SecurityCritical]
         public bool IsSupportedType(Type type) =>
             type == CodecType || SerializableType.IsAssignableFrom(type) && SerializationConstructorFactory.HasSerializationConstructor(type);
     }
