@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.1;net472</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != '' ">$(TestTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;net472</TargetFrameworks>
     <HagarCodeGen>true</HagarCodeGen>
     <HagarCodeGenLogLevel>Information</HagarCodeGenLogLevel>
   </PropertyGroup>
