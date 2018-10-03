@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
@@ -9,7 +9,7 @@ namespace Hagar.Codecs
     /// Codec for arrays of rank 1.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    internal sealed class ArrayCodec<T> : IFieldCodec<T[]>
+    public sealed class ArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> fieldCodec;
 

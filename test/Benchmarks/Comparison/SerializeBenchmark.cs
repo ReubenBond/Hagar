@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using BenchmarkDotNet.Attributes;
@@ -15,10 +15,12 @@ using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
 using ZeroFormatter;
+using Xunit;
 using SerializerSession = Hagar.Session.SerializerSession;
 
 namespace Benchmarks.Comparison
 {
+    [Trait("Category", "Benchmark")]
     [DisassemblyDiagnoser(printAsm: true, printIL: true, printSource: true, recursiveDepth: 4)]
     [Config(typeof(BenchmarkConfig))]
     [PayloadSizeColumn]
@@ -56,6 +58,7 @@ namespace Benchmarks.Comparison
                 .Build().ServiceProvider.GetRequiredService<SerializationManager>();
         }
 
+        [Fact]
         [Benchmark(Baseline = true)]
         public long Hagar()
         {

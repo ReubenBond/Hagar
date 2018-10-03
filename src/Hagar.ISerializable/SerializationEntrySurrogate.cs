@@ -1,9 +1,11 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
+using System.Security;
 
 namespace Hagar.ISerializable
 {
     internal struct SerializationEntrySurrogate
     {
+        [SecurityCritical]
         public SerializationEntrySurrogate(SerializationEntry entry)
         {
             this.Name = entry.Name;

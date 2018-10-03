@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.Serialization;
+using System.Security;
 using Hagar.Buffers;
 using Hagar.Codecs;
 
@@ -36,6 +37,7 @@ namespace Hagar.ISerializable
             this.createConstructorDelegate = constructorFactory.GetSerializationConstructorDelegate;
         }
 
+        [SecurityCritical]
         public void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value) where TBufferWriter : IBufferWriter<byte>
         {
             var type = value.GetType();
@@ -55,6 +57,7 @@ namespace Hagar.ISerializable
             callbacks.OnSerialized?.Invoke(value, streamingContext);
         }
 
+        [SecurityCritical]
         public object ReadValue(ref Reader reader, Type type, uint placeholderReferenceId)
         {
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);

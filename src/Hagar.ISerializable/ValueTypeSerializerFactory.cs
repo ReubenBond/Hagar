@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Security;
 
 namespace Hagar.ISerializable
 {
@@ -21,6 +22,7 @@ namespace Hagar.ISerializable
             nameof(CreateTypedSerializer),
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
+        [SecurityCritical]
         public ValueTypeSerializerFactory(
             SerializationEntryCodec entrySerializer,
             SerializationConstructorFactory constructorFactory,
@@ -36,11 +38,13 @@ namespace Hagar.ISerializable
             this.createSerializerDelegate = type => (ISerializableSerializer) this.createTypedSerializerMethodInfo.MakeGenericMethod(type).Invoke(this, null);
         }
 
+        [SecurityCritical]
         public ISerializableSerializer GetSerializer(Type type)
         {
             return this.serializers.GetOrAdd(type, this.createSerializerDelegate);
         }
 
+        [SecurityCritical]
         private ISerializableSerializer CreateTypedSerializer<T>() where T : struct
         {
             var constructor = this.constructorFactory.GetSerializationConstructorDelegate<T, ValueTypeSerializer<T>.ValueConstructor>();

@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using System.Security;
 
-[assembly: SecurityTransparent]
 namespace Hagar.ISerializable
 {
     /// <summary>
@@ -16,15 +15,18 @@ namespace Hagar.ISerializable
         private static readonly Type[] SerializationConstructorParameterTypes = { typeof(SerializationInfo), typeof(StreamingContext) };
         private readonly Func<Type, object> createConstructorDelegate;
         private readonly ConcurrentDictionary<Type, object> constructors = new ConcurrentDictionary<Type, object>();
-        
+
+        [SecurityCritical]
         public SerializationConstructorFactory()
         {
             this.createConstructorDelegate = this
                 .GetSerializationConstructorInvoker<object, Action<object, SerializationInfo, StreamingContext>>;
         }
 
+        [SecurityCritical]
         public static bool HasSerializationConstructor(Type type) => GetSerializationConstructor(type) != null;
 
+        [SecurityCritical]
         public Action<object, SerializationInfo, StreamingContext> GetSerializationConstructorDelegate(Type type)
         {
             return (Action<object, SerializationInfo, StreamingContext>)this.constructors.GetOrAdd(
@@ -32,6 +34,7 @@ namespace Hagar.ISerializable
                 this.createConstructorDelegate);
         }
 
+        [SecurityCritical]
         public TConstructor GetSerializationConstructorDelegate<TOwner, TConstructor>()
         {
             return (TConstructor)this.constructors.GetOrAdd(
@@ -39,6 +42,7 @@ namespace Hagar.ISerializable
                 type => (object)this.GetSerializationConstructorInvoker<TOwner, TConstructor>(type));
         }
 
+        [SecurityCritical]
         private static ConstructorInfo GetSerializationConstructor(Type type)
         {
             return type.GetConstructor(
@@ -48,6 +52,7 @@ namespace Hagar.ISerializable
                 null);
         }
 
+        [SecurityCritical]
         private TConstructor GetSerializationConstructorInvoker<TOwner, TConstructor>(Type type)
         {
             var constructor = GetSerializationConstructor(type);

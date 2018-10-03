@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
@@ -17,10 +17,12 @@ using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
 using ZeroFormatter;
+using Xunit;
 using SerializerSession = Hagar.Session.SerializerSession;
 
 namespace Benchmarks.Comparison
 {
+    [Trait("Category", "Benchmark")]
     [Config(typeof(BenchmarkConfig))]
     public class StructDeserializeBenchmark
     {
@@ -54,9 +56,9 @@ namespace Benchmarks.Comparison
                 .AddSerializers(typeof(Program).Assembly)
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
+            Session = services.GetRequiredService<SessionPool>().GetSession();
             var bytes = new byte[1000];
             var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
-            Session = services.GetRequiredService<SessionPool>().GetSession();
             HagarSerializer.Serialize(ref writer, IntStruct.Create());
             HagarInput = new ReadOnlySequence<byte>(bytes);
 
@@ -88,6 +90,7 @@ namespace Benchmarks.Comparison
                    result.MyProperty9;
         }
 
+        [Fact]
         [Benchmark(Baseline = true)]
         public int Hagar()
         {

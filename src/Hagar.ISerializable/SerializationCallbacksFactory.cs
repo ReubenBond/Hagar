@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
+using System.Security;
 
 namespace Hagar.ISerializable
 {
@@ -14,17 +15,21 @@ namespace Hagar.ISerializable
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
         private readonly Func<Type, object> factory;
 
+        [SecurityCritical]
         public SerializationCallbacksFactory()
         {
             this.factory = this.CreateTypedCallbacks<object, Action<object, StreamingContext>>;
         }
 
+        [SecurityCritical]
         public SerializationCallbacks<Action<object, StreamingContext>> GetReferenceTypeCallbacks(Type type) => (
             SerializationCallbacks<Action<object, StreamingContext>>)this.cache.GetOrAdd(type, this.factory);
 
+        [SecurityCritical]
         public SerializationCallbacks<TDelegate> GetValueTypeCallbacks<TOwner, TDelegate>(Type type) => (
             SerializationCallbacks<TDelegate>)this.cache.GetOrAdd(type, t => (object)this.CreateTypedCallbacks<TOwner, TDelegate>(type));
 
+        [SecurityCritical]
         private SerializationCallbacks<TDelegate> CreateTypedCallbacks<TOwner, TDelegate>(Type type)
         {
             var typeInfo = type.GetTypeInfo();
@@ -62,6 +67,7 @@ namespace Hagar.ISerializable
             return new SerializationCallbacks<TDelegate>(onDeserializing, onDeserialized, onSerializing, onSerialized);
         }
 
+        [SecurityCritical]
         private static TDelegate GetSerializationMethod<TOwner, TDelegate>(Type type, MethodInfo callbackMethod)
         {
             Type[] callbackParameterTypes;
