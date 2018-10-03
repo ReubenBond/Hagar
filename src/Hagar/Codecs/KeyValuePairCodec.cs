@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -18,40 +17,43 @@ namespace Hagar.Codecs
             this.valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
         }
 
-        void IFieldCodec<KeyValuePair<TKey, TValue>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, KeyValuePair<TKey, TValue> value)
+        void IFieldCodec<KeyValuePair<TKey, TValue>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
+            uint fieldIdDelta,
+            Type expectedType,
+            KeyValuePair<TKey, TValue> value)
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.keyCodec.WriteField(ref writer, session, 0, typeof(TKey), value.Key);
-            this.valueCodec.WriteField(ref writer, session, 1, typeof(TValue), value.Value);
+            this.keyCodec.WriteField(ref writer, 0, typeof(TKey), value.Key);
+            this.valueCodec.WriteField(ref writer, 1, typeof(TValue), value.Value);
 
             writer.WriteEndObject();
         }
 
-        public KeyValuePair<TKey, TValue> ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public KeyValuePair<TKey, TValue> ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
 
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             var key = default(TKey);
             var value = default(TValue);
             uint fieldId = 0;
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                        key = this.keyCodec.ReadValue(ref reader, session, header);
+                        key = this.keyCodec.ReadValue(ref reader, header);
                         break;
                     case 1:
-                        value = this.valueCodec.ReadValue(ref reader, session, header);
+                        value = this.valueCodec.ReadValue(ref reader, header);
                         break;
                     default:
-                        reader.ConsumeUnknownField(session, header);
+                        reader.ConsumeUnknownField(header);
                         break;
                 }
             }

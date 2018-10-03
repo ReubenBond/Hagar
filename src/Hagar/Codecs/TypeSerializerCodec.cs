@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -14,48 +13,48 @@ namespace Hagar.Codecs
         private static readonly Type ByteArrayType = typeof(byte[]);
         private static readonly Type UIntType = typeof(uint);
 
-        void IFieldCodec<Type>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value)
+        void IFieldCodec<Type>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Type value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
 
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, Type value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Type value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, TypeType, WireType.TagDelimited);
-            var (schemaType, id) = GetSchemaType(session, value);
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, TypeType, WireType.TagDelimited);
+            var (schemaType, id) = GetSchemaType(writer.Session, value);
 
             // Write the encoding type.
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, 0, SchemaTypeType, SchemaTypeType, WireType.VarInt);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(0, SchemaTypeType, SchemaTypeType, WireType.VarInt);
             writer.WriteVarInt((uint) schemaType);
 
             if (schemaType == SchemaType.Encoded)
             {
                 // If the type is encoded, write the length-prefixed bytes.
-                ReferenceCodec.MarkValueField(session);
-                writer.WriteFieldHeader(session, 1, ByteArrayType, ByteArrayType, WireType.LengthPrefixed);
-                session.TypeCodec.Write(ref writer, value);
+                ReferenceCodec.MarkValueField(writer.Session);
+                writer.WriteFieldHeader(1, ByteArrayType, ByteArrayType, WireType.LengthPrefixed);
+                writer.Session.TypeCodec.Write(ref writer, value);
             }
             else
             {
                 // If the type is referenced or well-known, write it as a varint.
-                ReferenceCodec.MarkValueField(session);
-                writer.WriteFieldHeader(session, 2, UIntType, UIntType, WireType.VarInt);
+                ReferenceCodec.MarkValueField(writer.Session);
+                writer.WriteFieldHeader(2, UIntType, UIntType, WireType.VarInt);
                 writer.WriteVarInt((uint) id);
             }
 
             writer.WriteEndObject();
         }
 
-        Type IFieldCodec<Type>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        Type IFieldCodec<Type>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
-        public static Type ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static Type ReadValue(ref Reader reader, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(ref reader, session, field);
+            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(ref reader, field);
 
             uint fieldId = 0;
             var schemaType = default(SchemaType);
@@ -63,9 +62,9 @@ namespace Hagar.Codecs
             Type result = null;
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
-                ReferenceCodec.MarkValueField(session);
+                ReferenceCodec.MarkValueField(reader.Session);
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
@@ -73,7 +72,7 @@ namespace Hagar.Codecs
                         schemaType = (SchemaType) reader.ReadVarUInt32();
                         break;
                     case 1:
-                        result = session.TypeCodec.Read(ref reader);
+                        result = reader.Session.TypeCodec.Read(ref reader);
                         break;
                     case 2:
                         id = reader.ReadVarUInt32();
@@ -84,10 +83,10 @@ namespace Hagar.Codecs
             switch (schemaType)
             {
                 case SchemaType.Referenced:
-                    if (session.ReferencedTypes.TryGetReferencedType(id, out result)) return result;
+                    if (reader.Session.ReferencedTypes.TryGetReferencedType(id, out result)) return result;
                     return ThrowUnknownReferencedType(id);
                 case SchemaType.WellKnown:
-                    if (session.WellKnownTypes.TryGetWellKnownType(id, out result)) return result;
+                    if (reader.Session.WellKnownTypes.TryGetWellKnownType(id, out result)) return result;
                     return ThrowUnknownWellKnownType(id);
                 case SchemaType.Encoded:
                     if (result != null) return result;

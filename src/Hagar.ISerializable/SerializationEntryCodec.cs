@@ -2,7 +2,6 @@
 using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Codecs;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.ISerializable
@@ -11,38 +10,36 @@ namespace Hagar.ISerializable
     {
         public static readonly Type SerializationEntryType = typeof(SerializationEntrySurrogate);
 
-        public void WriteField<TBufferWriter>(
-            ref Writer<TBufferWriter> writer,
-            SerializerSession session,
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
             SerializationEntrySurrogate value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(session);
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
-            StringCodec.WriteField(ref writer, session, 0, typeof(string), value.Name);
-            ObjectCodec.WriteField(ref writer, session, 1, typeof(object), value.Value);
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
+            StringCodec.WriteField(ref writer, 0, typeof(string), value.Name);
+            ObjectCodec.WriteField(ref writer, 1, typeof(object), value.Value);
             
             writer.WriteEndObject();
         }
 
-        public SerializationEntrySurrogate ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public SerializationEntrySurrogate ReadValue(ref Reader reader, Field field)
         {
-            ReferenceCodec.MarkValueField(session);
+            ReferenceCodec.MarkValueField(reader.Session);
             var result = new SerializationEntrySurrogate();
             uint fieldId = 0;
             while (true)
             {
-                var header = reader.ReadFieldHeader(session);
+                var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject) break;
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                        result.Name = StringCodec.ReadValue(ref reader, session, header);
+                        result.Name = StringCodec.ReadValue(ref reader, header);
                         break;
                     case 1:
-                        result.Value = ObjectCodec.ReadValue(ref reader, session, header);
+                        result.Value = ObjectCodec.ReadValue(ref reader, header);
                         break;
                 }
             }

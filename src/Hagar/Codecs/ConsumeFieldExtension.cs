@@ -1,16 +1,14 @@
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
-
     public static class ConsumeFieldExtension
     {
         /// <summary>
         /// Consumes an unknown field.
         /// </summary>
-        public static void ConsumeUnknownField(this ref Reader reader, SerializerSession session, Field field)
+        public static void ConsumeUnknownField(this ref Reader reader, Field field)
         {
             // References cannot themselves be referenced.
             if (field.WireType == WireType.Reference)
@@ -20,7 +18,7 @@ namespace Hagar.Codecs
             }
 
             // Record a placeholder so that this field can later be correctly deserialized if it is referenced.
-            ReferenceCodec.RecordObject(session, new UnknownFieldMarker(field, reader.Position));
+            ReferenceCodec.RecordObject(reader.Session, new UnknownFieldMarker(field, reader.Position));
             
             switch (field.WireType)
             {
@@ -29,7 +27,7 @@ namespace Hagar.Codecs
                     break;
                 case WireType.TagDelimited:
                     // Since tag delimited fields can be comprised of other fields, recursively consume those, too.
-                    ConsumeTagDelimitedField(ref reader, session);
+                    reader.ConsumeTagDelimitedField();
                     break;
                 case WireType.LengthPrefixed:
                     SkipFieldExtension.SkipLengthPrefixedField(ref reader);
@@ -55,14 +53,14 @@ namespace Hagar.Codecs
         /// <summary>
         /// Consumes a tag-delimited field.
         /// </summary>
-        private static void ConsumeTagDelimitedField(ref Reader reader, SerializerSession session)
+        private static void ConsumeTagDelimitedField(this ref Reader reader)
         {
             while (true)
             {
-                var field = reader.ReadFieldHeader(session);
+                var field = reader.ReadFieldHeader();
                 if (field.IsEndObject) break;
                 if (field.IsEndBaseFields) continue;
-                reader.ConsumeUnknownField(session, field);
+                reader.ConsumeUnknownField(field);
             }
         }
     }

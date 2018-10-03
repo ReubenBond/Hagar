@@ -2,27 +2,31 @@ using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using Hagar.Session;
 
 namespace Hagar.Buffers
 {
     public ref struct Reader
     {
-        private readonly ReadOnlySequence<byte> input;
+        private ReadOnlySequence<byte> input;
         private ReadOnlySpan<byte> currentSpan;
         private SequencePosition currentBufferStart;
         private int bufferPos;
         private int bufferSize;
         private long previousBuffersSize;
 
-        public Reader(ReadOnlySequence<byte> input)
+        public Reader(ReadOnlySequence<byte> input, SerializerSession session)
         {
             this.input = input;
+            this.Session = session;
             this.currentSpan = input.First.Span;
             this.currentBufferStart = input.Start;
             this.bufferPos = 0;
             this.bufferSize = this.currentSpan.Length;
             this.previousBuffersSize = 0;
         }
+
+        public SerializerSession Session { get; }
 
         public long Position
         {
@@ -49,7 +53,7 @@ namespace Hagar.Buffers
         /// <summary>
         /// Creates a new reader begining at the specified position.
         /// </summary>
-        public Reader ForkFrom(long position) => new Reader(this.input.Slice(position));
+        public Reader ForkFrom(long position) => new Reader(this.input.Slice(position), this.Session);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveNext()

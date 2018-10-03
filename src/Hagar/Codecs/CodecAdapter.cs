@@ -1,7 +1,6 @@
 using System;
 using Hagar.Buffers;
 using Hagar.Serializers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -36,14 +35,14 @@ namespace Hagar.Codecs
                 this.codec = codec;
             }
 
-            void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, object value)
+            void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value)
             {
-                this.codec.WriteField(ref writer, session, fieldIdDelta, expectedType, (TField)value);
+                this.codec.WriteField(ref writer, fieldIdDelta, expectedType, (TField)value);
             }
 
-            object IFieldCodec<object>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+            object IFieldCodec<object>.ReadValue(ref Reader reader, Field field)
             {
-                return this.codec.ReadValue(ref reader, session, field);
+                return this.codec.ReadValue(ref reader, field);
             }
 
             public object InnerCodec => this.codec;
@@ -60,14 +59,14 @@ namespace Hagar.Codecs
 
             public object InnerCodec => this.codec;
 
-            void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, TField value)
+            void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)
             {
-                this.codec.WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+                this.codec.WriteField(ref writer, fieldIdDelta, expectedType, value);
             }
 
-            TField IFieldCodec<TField>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+            TField IFieldCodec<TField>.ReadValue(ref Reader reader, Field field)
             {
-                return (TField)this.codec.ReadValue(ref reader, session, field);
+                return (TField)this.codec.ReadValue(ref reader, field);
             }
         }
     }

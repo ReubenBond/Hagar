@@ -55,9 +55,9 @@ namespace Benchmarks.Comparison
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
             var bytes = new byte[1000];
-            var writer = new SingleSegmentBuffer(bytes).CreateWriter();
+            var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
             Session = services.GetRequiredService<SessionPool>().GetSession();
-            HagarSerializer.Serialize(ref writer,  Session, IntStruct.Create());
+            HagarSerializer.Serialize(ref writer, IntStruct.Create());
             HagarInput = new ReadOnlySequence<byte>(bytes);
 
             // Orleans
@@ -92,8 +92,8 @@ namespace Benchmarks.Comparison
         public int Hagar()
         {
             Session.FullReset();
-            var reader = new Reader(HagarInput);
-            return SumResult(HagarSerializer.Deserialize(ref reader, Session));
+            var reader = new Reader(HagarInput, Session);
+            return SumResult(HagarSerializer.Deserialize(ref reader));
         }
 
         [Benchmark]

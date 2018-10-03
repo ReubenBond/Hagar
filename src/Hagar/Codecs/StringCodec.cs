@@ -3,24 +3,22 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Hagar.Buffers;
-using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
     public sealed class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
-        string IFieldCodec<string>.ReadValue(ref Reader reader, SerializerSession session, Field field)
+        string IFieldCodec<string>.ReadValue(ref Reader reader, Field field)
         {
-            return ReadValue(ref reader, session, field);
+            return ReadValue(ref reader, field);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ReadValue(ref Reader reader, SerializerSession session, Field field)
+        public static string ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference)
-                return ReferenceCodec.ReadReference<string>(ref reader, session, field);
+                return ReferenceCodec.ReadReference<string>(ref reader, field);
             if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
             var length = reader.ReadVarUInt32();
 
@@ -37,21 +35,21 @@ namespace Hagar.Codecs
                 result = Encoding.UTF8.GetString(bytes);
             }
 
-            ReferenceCodec.RecordObject(session, result);
+            ReferenceCodec.RecordObject(reader.Session, result);
             return result;
         }
 
-        void IFieldCodec<string>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value)
+        void IFieldCodec<string>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, string value)
         {
-            WriteField(ref writer, session, fieldIdDelta, expectedType, value);
+            WriteField(ref writer, fieldIdDelta, expectedType, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, SerializerSession session, uint fieldIdDelta, Type expectedType, string value) where TBufferWriter : IBufferWriter<byte>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, string value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, session, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
 
-            writer.WriteFieldHeader(session, fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
             // TODO: use Span<byte>
             var bytes = Encoding.UTF8.GetBytes(value);
             writer.WriteVarInt((uint) bytes.Length);

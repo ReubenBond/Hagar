@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 

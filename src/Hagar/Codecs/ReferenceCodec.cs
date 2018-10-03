@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -23,32 +22,31 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryWriteReferenceField<TBufferWriter>(
             ref Writer<TBufferWriter> writer,
-            SerializerSession session,
             uint fieldId,
             Type expectedType,
             object value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (!session.ReferencedObjects.GetOrAddReference(value, out var reference))
+            if (!writer.Session.ReferencedObjects.GetOrAddReference(value, out var reference))
             {
                 return false;
             }
 
-            writer.WriteFieldHeader(session, fieldId, expectedType, value?.GetType(), WireType.Reference);
+            writer.WriteFieldHeader(fieldId, expectedType, value?.GetType(), WireType.Reference);
             writer.WriteVarInt(reference);
             return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadReference<T>(ref Reader reader, SerializerSession session, Field field)
+        public static T ReadReference<T>(ref Reader reader, Field field)
         {
-            return (T) ReadReference(ref reader, session, field, typeof(T));
+            return (T) ReadReference(ref reader, field, typeof(T));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object ReadReference(ref Reader reader, SerializerSession session, Field field, Type expectedType)
+        public static object ReadReference(ref Reader reader, Field field, Type expectedType)
         {
             var reference = reader.ReadVarUInt32();
-            if (!session.ReferencedObjects.TryGetReferencedObject(reference, out var value))
+            if (!reader.Session.ReferencedObjects.TryGetReferencedObject(reference, out var value))
             {
                 ThrowReferenceNotFound(expectedType, reference);
             }
@@ -56,7 +54,7 @@ namespace Hagar.Codecs
             switch (value)
             {
                 case UnknownFieldMarker marker:
-                    return DeserializeFromMarker(ref reader, session, field, marker, reference, expectedType);
+                    return DeserializeFromMarker(ref reader, field, marker, reference, expectedType);
                 default:
                     return value;
             }
@@ -64,7 +62,6 @@ namespace Hagar.Codecs
 
         private static object DeserializeFromMarker(
             ref Reader reader,
-            SerializerSession session,
             Field field,
             UnknownFieldMarker marker,
             uint reference,
@@ -77,6 +74,7 @@ namespace Hagar.Codecs
             var fieldType = marker.Field.FieldType ?? field.FieldType ?? lastResortFieldType;
 
             // Get a serializer for that type.
+            var session = reader.Session;
             var specificSerializer = session.CodecProvider.GetCodec(fieldType);
 
             // Reset the session's reference id so that the deserialized object overwrites the marker.
@@ -86,7 +84,7 @@ namespace Hagar.Codecs
             // Deserialize the object, replacing the marker in the session.
             try
             {
-                return specificSerializer.ReadValue(ref referencedReader, session, marker.Field);
+                return specificSerializer.ReadValue(ref referencedReader, marker.Field);
             }
             finally
             {
