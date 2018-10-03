@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO.Pipelines;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Codecs;
@@ -17,26 +18,23 @@ namespace HelloHagar
                 .AddHagar()
                 .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
                 .BuildServiceProvider();
-            var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
-
-            var codec = codecs.GetCodec<SomeClassWithSerialzers>();
-
+            var serializer = serviceProvider.GetRequiredService<Serializer<SomeClassWithSerialzers>>();
+            
             var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
-            var writer = new Writer();
-            using (var writerSession = sessionPool.GetSession())
+            var pipe = new Pipe();
+
+            using (var session = sessionPool.GetSession())
             {
-                codec.WriteField(writer,
-                    writerSession,
-                    0,
-                    null,
-                    new SomeClassWithSerialzers {IntField = 2, IntProperty = 30});
+                var writer = pipe.Writer.CreateWriter(session);
+                serializer.Serialize(ref writer, new SomeClassWithSerialzers {IntField = 2, IntProperty = 30});
+                pipe.Writer.Complete();
             }
 
-            var reader = new Reader(writer.ToBytes());
-            using (var readerSession = sessionPool.GetSession())
+            using (var session = sessionPool.GetSession())
             {
-                var initialHeader = reader.ReadFieldHeader(readerSession);
-                var result = codec.ReadValue(reader, readerSession, initialHeader);
+                pipe.Reader.TryRead(out var readResult);
+                var reader = new Reader(readResult.Buffer, session);
+                var result = serializer.Deserialize(ref reader);
                 Console.WriteLine(result);
             }
 
