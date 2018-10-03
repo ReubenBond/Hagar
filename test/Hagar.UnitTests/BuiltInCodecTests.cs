@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hagar.Codecs;
@@ -22,7 +22,7 @@ namespace Hagar.UnitTests
 
     internal class ArrayCodecTests : FieldCodecTester<int[], ArrayCodec<int>>
     {
-        protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120)).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
+        protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120) + 50).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
         protected override bool Equals(int[] left, int[] right) => left.SequenceEqual(right);
     }
 
@@ -130,7 +130,7 @@ namespace Hagar.UnitTests
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
             var result = new List<int>();
-            for (var i = 0; i < rand.Next(17); i++) result.Add(rand.Next());
+            for (var i = 0; i < rand.Next(17) + 5; i++) result.Add(rand.Next());
             return result;
         }
 
@@ -148,7 +148,7 @@ namespace Hagar.UnitTests
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
             var result = new Dictionary<string, int>();
-            for (var i = 0; i < rand.Next(17); i++) result[rand.Next().ToString()] = rand.Next();
+            for (var i = 0; i < rand.Next(17) + 5; i++) result[rand.Next().ToString()] = rand.Next();
             return result;
         }
 

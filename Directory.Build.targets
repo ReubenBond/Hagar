@@ -12,7 +12,6 @@
       <AssetTargetFallback>netcoreapp2.1</AssetTargetFallback>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <UndefineProperties>TargetFramework</UndefineProperties>
-      <HagarCodeGen>false</HagarCodeGen>
     </ProjectReference>
   </ItemGroup>
 
