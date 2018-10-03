@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 
   <PropertyGroup>
-    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">netcoreapp2.1;net47</TargetFrameworks>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackageDescription>Code generator for projects using Hagar with MSBuild</PackageDescription>
     <OutputType>Exe</OutputType>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
@@ -18,10 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="prefercliruntime" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <Content Include="build\Hagar.CodeGenerator.MSBuild.targets">
       <Pack>true</Pack>
       <PackagePath>%(Identity)</PackagePath>
@@ -36,8 +32,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Hagar.CodeGenerator.MSBuild.Tasks\Hagar.CodeGenerator.MSBuild.Tasks.csproj" PrivateAssets="all" Publish="true" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="15.5.180" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.5.180" />
@@ -57,7 +54,7 @@
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Security.Principal" Version="4.3.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
     <PackageReference Update="Microsoft.Build" Version="15.8.166" />
@@ -71,7 +68,6 @@
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Update="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
   </ItemGroup>
 
   <Target Name="PostBuildPublish" AfterTargets="Build">
@@ -79,16 +75,18 @@
     <!-- However, we cannot publish during the cross-targeting build, so we skip that. -->
     <CallTarget Targets="Publish" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''" />
   </Target>
-  
+
   <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
-   <!-- 
+   <!--
     The include needs to happen after output has been copied to build output folder
     but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
    -->
     <ItemGroup>
       <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*;$(PublishRoot)*/refs/**/*" />
       <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).deps.json" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).*.config" />
+      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).dll.config" />
+      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).Tasks.*" />
+
       <_PackageFiles Include="@(PublishedFiles)">
         <PackagePath>tasks/$(RecursiveDir)</PackagePath>
         <Visible>false</Visible>
@@ -96,4 +94,5 @@
       </_PackageFiles>
     </ItemGroup>
   </Target>
+
 </Project>

@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageDescription>Fast, flexible, and version-tolerant serializer for .NET</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,10 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hagar.Abstractions\Hagar.Abstractions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
   </ItemGroup>
 
 </Project>

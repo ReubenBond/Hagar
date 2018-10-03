@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>Newtonsoft.Json integration for Hagar</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,10 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hagar\Hagar.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="SourceLink.Create.GitHub" Version="2.8.3" />
   </ItemGroup>
 
 </Project>
