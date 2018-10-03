@@ -10,4 +10,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.5.180" />
   </ItemGroup>
+
 </Project>
