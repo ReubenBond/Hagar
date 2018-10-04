@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO.Pipelines;
 using Hagar.Buffers;
 using Hagar.Codecs;
@@ -30,7 +30,7 @@ namespace Hagar.UnitTests
         [Fact]
         public void GeneratedSerializersRoundTripThroughCodec()
         {
-            var original = new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 };
+            var original = new SomeClassWithSerializers { IntField = 2, IntProperty = 30 };
             var result = this.RoundTripThroughCodec(original);
 
             Assert.Equal(original.IntField, result.IntField);
@@ -40,8 +40,8 @@ namespace Hagar.UnitTests
         [Fact]
         public void GeneratedSerializersRoundTripThroughSerializer()
         {
-            var original = new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 };
-            var result = (SomeClassWithSerialzers) this.RoundTripThroughUntypedSerializer(original);
+            var original = new SomeClassWithSerializers { IntField = 2, IntProperty = 30 };
+            var result = (SomeClassWithSerializers) this.RoundTripThroughUntypedSerializer(original);
 
             Assert.Equal(original.IntField, result.IntField);
             Assert.Equal(original.IntProperty, result.IntProperty);
@@ -50,7 +50,7 @@ namespace Hagar.UnitTests
         [Fact]
         public void UnmarkedFieldsAreNotSerialized()
         {
-            var original = new SomeClassWithSerialzers { IntField = 2, IntProperty = 30, UnmarkedField = 12, UnmarkedProperty = 47 };
+            var original = new SomeClassWithSerializers { IntField = 2, IntProperty = 30, UnmarkedField = 12, UnmarkedProperty = 47 };
             var result = this.RoundTripThroughCodec(original);
 
             Assert.NotEqual(original.UnmarkedField, result.UnmarkedField);

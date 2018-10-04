@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Hagar.UnitTests
 {
     [GenerateSerializer]
-    public class SomeClassWithSerialzers
+    public class SomeClassWithSerializers
     {
         [Id(0)]
         public int IntProperty { get; set; }
