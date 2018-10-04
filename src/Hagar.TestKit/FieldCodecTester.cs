@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using Hagar.Buffers;
@@ -49,12 +50,16 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, CreateSession());
+            var writer = new Writer<PipeWriter>(pipe.Writer, this.CreateSession());
             var writerCodec = this.CreateCodec();
             var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
             // Write the field. This should involve marking at least one reference in the session.
+            Assert.Equal(0, writer.Position);
+
             writerCodec.WriteField(ref writer, 0, typeof(TField), this.CreateValue());
+            Assert.True(writer.Position > 0);
+            
             writer.Commit();
             var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
@@ -63,10 +68,20 @@ namespace Hagar.TestKit
 
             pipe.Reader.TryRead(out var readResult);
             var reader = new Reader(readResult.Buffer, CreateSession());
+
+            var previousPos = reader.Position;
+            Assert.Equal(0, previousPos);
             var readerCodec = this.CreateCodec();
             var readField = reader.ReadFieldHeader();
+
+            Assert.True(reader.Position > previousPos);
+            previousPos = reader.Position;
+
             beforeReference = reader.Session.ReferencedObjects.CurrentReferenceId;
             readerCodec.ReadValue(ref reader, readField);
+
+            Assert.True(reader.Position > previousPos);
+
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
             afterReference = reader.Session.ReferencedObjects.CurrentReferenceId;

@@ -38,14 +38,13 @@ namespace Hagar.Codecs
                     SkipLengthPrefixedField(ref reader);
                     break;
                 case WireType.Fixed32:
-                    reader.ReadUInt32();
+                    reader.Skip(4);
                     break;
                 case WireType.Fixed64:
-                    reader.ReadUInt64();
+                    reader.Skip(8);
                     break;
                 case WireType.Fixed128:
-                    reader.ReadUInt64();
-                    reader.ReadUInt64();
+                    reader.Skip(16);
                     break;
                 case WireType.Extended:
                     if (!field.IsEndBaseOrEndObject)
