@@ -141,7 +141,10 @@ namespace Hagar.UnitTests
                 pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer, readerSession);
 
+                var previousPos = reader.Position;
                 var initialHeader = reader.ReadFieldHeader();
+                Assert.True(reader.Position > previousPos);
+
                 result = codec.ReadValue(ref reader, initialHeader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
