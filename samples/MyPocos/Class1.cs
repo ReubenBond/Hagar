@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Hagar;
 
@@ -15,10 +15,10 @@ namespace MyPocos
     [GenerateSerializer]
     public class SomeClassWithSerialzers
     {
-        [FieldId(0)]
+        [Id(0)]
         public int IntProperty { get; set; }
 
-        [FieldId(1)] public int IntField;
+        [Id(1)] public int IntField;
 
         public int UnmarkedField;
 
@@ -33,20 +33,20 @@ namespace MyPocos
     [GenerateSerializer]
     public class SerializableClassWithCompiledBase : List<int>
     {
-        [FieldId(0)]
+        [Id(0)]
         public int IntProperty { get; set; }
     }
 
     [GenerateSerializer]
     public class GenericPoco<T>
     {
-        [FieldId(0)]
+        [Id(0)]
         public T Field { get; set; }
 
-        [FieldId(1030)]
+        [Id(1030)]
         public T[] ArrayField { get; set; }
 
-        [FieldId(2222)]
+        [Id(2222)]
         public Dictionary<T, T> DictField { get; set; }
     }
 
@@ -54,10 +54,10 @@ namespace MyPocos
     public class GenericPocoWithConstraint<TClass, TStruct>
         : GenericPoco<TStruct> where TClass : List<int>, new() where TStruct : struct
     {
-        [FieldId(0)]
+        [Id(0)]
         public new TClass Field { get; set; }
 
-        [FieldId(999)]
+        [Id(999)]
         public TStruct ValueField { get; set; }
     }
 }
