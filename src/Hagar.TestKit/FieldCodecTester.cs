@@ -19,7 +19,7 @@ namespace Hagar.TestKit
         protected FieldCodecTester()
         {
             var services = new ServiceCollection();
-            services.AddHagar();
+            services.AddHagar(hagar => hagar.FieldCodecs.Add(typeof(TCodec)));
             services.AddSingleton<TCodec>();
 
             // ReSharper disable once VirtualMemberCallInConstructor
@@ -37,14 +37,6 @@ namespace Hagar.TestKit
         protected virtual TCodec CreateCodec() => this.serviceProvider.GetRequiredService<TCodec>();
         protected abstract TField CreateValue();
         protected virtual bool Equals(TField left, TField right) => EqualityComparer<TField>.Default.Equals(left, right);
-
-        [Fact]
-        public void CreateValueShouldReturnDistinctValues()
-        {
-            var left = this.CreateValue();
-            var right = this.CreateValue();
-            Assert.False(this.Equals(left, right), $"{nameof(FieldCodecTester<TField, TCodec>)}.{nameof(this.CreateValue)}() must return distinct values. Got: {left} and {right}.");
-        }
 
         [Fact]
         public void CorrectlyAdvancesReferenceCounter()
@@ -67,7 +59,7 @@ namespace Hagar.TestKit
             pipe.Writer.Complete();
 
             pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, CreateSession());
+            var reader = new Reader(readResult.Buffer, this.CreateSession());
 
             var previousPos = reader.Position;
             Assert.Equal(0, previousPos);
@@ -89,11 +81,90 @@ namespace Hagar.TestKit
         }
 
         [Fact]
+        public void CanRoundTripViaSerializer()
+        {
+            var serializer = this.serviceProvider.GetRequiredService<Serializer<TField>>();
+
+            var pipe = new Pipe();
+            var writer = new Writer<PipeWriter>(pipe.Writer, this.CreateSession());
+
+            var original = this.CreateValue();
+            serializer.Serialize(ref writer, original);
+
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+
+            pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer, this.CreateSession());
+
+            var deserialized = serializer.Deserialize(ref reader);
+            Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
+        }
+
+        [Fact]
         public void RoundTrippedValuesEqual()
         {
-            var original = this.CreateValue();
+            this.TestRoundTrippedValue(this.CreateValue());
+        }
+
+        [Fact]
+        public void CanRoundTripDefaultValueViaCodec()
+        {
+            this.TestRoundTrippedValue(default);
+        }
+
+        [Fact]
+        public void CanSkipValue()
+        {
+            this.CanBeSkipped(default);
+        }
+
+        [Fact]
+        public void CanSkipDefaultValue()
+        {
+            this.CanBeSkipped(default);
+        }
+
+        private void CanBeSkipped(TField original)
+        {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, CreateSession());
+            var writer = new Writer<PipeWriter>(pipe.Writer, this.CreateSession());
+            var writerCodec = this.CreateCodec();
+            writerCodec.WriteField(ref writer, 0, typeof(TField), original);
+            var expectedLength = writer.Position;
+            writer.Commit();
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+
+            pipe.Reader.TryRead(out var readResult);
+            
+            {
+                var reader = new Reader(readResult.Buffer, this.CreateSession());
+                var readField = reader.ReadFieldHeader();
+                reader.SkipField(readField);
+                Assert.Equal(expectedLength, reader.Position);
+            }
+
+            {
+                var codec = new SkipFieldCodec();
+                var reader = new Reader(readResult.Buffer, this.CreateSession());
+                var readField = reader.ReadFieldHeader();
+                var shouldBeNull = codec.ReadValue(ref reader, readField);
+                Assert.Null(shouldBeNull);
+                Assert.Equal(expectedLength, reader.Position);
+            }
+
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
+        }
+
+        private void TestRoundTrippedValue(TField original)
+        {
+            var pipe = new Pipe();
+            var writer = new Writer<PipeWriter>(pipe.Writer, this.CreateSession());
             var writerCodec = this.CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TField), original);
             writer.Commit();
@@ -101,7 +172,7 @@ namespace Hagar.TestKit
             pipe.Writer.Complete();
 
             pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, CreateSession());
+            var reader = new Reader(readResult.Buffer, this.CreateSession());
             var readerCodec = this.CreateCodec();
             var readField = reader.ReadFieldHeader();
             var deserialized = readerCodec.ReadValue(ref reader, readField);

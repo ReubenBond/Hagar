@@ -17,13 +17,13 @@ namespace Hagar.UnitTests
     {
         protected override byte[] CreateValue() => Guid.NewGuid().ToByteArray();
 
-        protected override bool Equals(byte[] left, byte[] right) => left.SequenceEqual(right);
+        protected override bool Equals(byte[] left, byte[] right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 
     internal class ArrayCodecTests : FieldCodecTester<int[], ArrayCodec<int>>
     {
         protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120) + 50).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
-        protected override bool Equals(int[] left, int[] right) => left.SequenceEqual(right);
+        protected override bool Equals(int[] left, int[] right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 
     public class UInt64CodecTests : FieldCodecTester<ulong, UInt64Codec>
@@ -79,7 +79,7 @@ namespace Hagar.UnitTests
     public class CharCodecTests : FieldCodecTester<char, CharCodec>
     {
         private int createValueCount;
-        protected override char CreateValue() => (char) ('!' + createValueCount++ % ('~' - '!'));
+        protected override char CreateValue() => (char) ('!' + this.createValueCount++ % ('~' - '!'));
     }
 
     public class GuidCodecTests : FieldCodecTester<Guid, GuidCodec>
@@ -134,7 +134,7 @@ namespace Hagar.UnitTests
             return result;
         }
 
-        protected override bool Equals(List<int> left, List<int> right) => left.SequenceEqual(right);
+        protected override bool Equals(List<int> left, List<int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
@@ -152,6 +152,6 @@ namespace Hagar.UnitTests
             return result;
         }
 
-        protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => left.SequenceEqual(right);
+        protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 }

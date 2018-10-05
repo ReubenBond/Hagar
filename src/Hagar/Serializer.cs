@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Codecs;
@@ -25,7 +25,7 @@ namespace Hagar
             this.codec = HagarGeneratedCodeHelper.UnwrapService(null, codecProvider.GetCodec<T>());
         }
 
-        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, T value) where TBufferWriter : IBufferWriter<byte>
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in T value) where TBufferWriter : IBufferWriter<byte>
         {
             this.codec.WriteField(ref writer, 0, this.expectedType, value);
             writer.Commit();
