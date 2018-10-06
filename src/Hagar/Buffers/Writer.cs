@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
@@ -47,7 +47,7 @@ namespace Hagar.Buffers
         public void Commit()
         {
             this.output.Advance(this.bufferPos);
-            this.previousBuffersSize = this.bufferPos;
+            this.previousBuffersSize += this.bufferPos;
             this.currentSpan = default;
             this.bufferPos = default;
         }
@@ -61,7 +61,7 @@ namespace Hagar.Buffers
             // The current buffer is inadequate, allocate another.
             this.Allocate(length);
 #if DEBUG
-// Throw if the allocation does not satisfy the request.
+            // Throw if the allocation does not satisfy the request.
             if (this.currentSpan.Length < length) ThrowTooLarge(length);
             
             void ThrowTooLarge(int l) => throw new InvalidOperationException($"Requested buffer length {l} cannot be satisfied by the writer.");
