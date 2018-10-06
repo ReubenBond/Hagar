@@ -21,7 +21,6 @@ using SerializerSession = Hagar.Session.SerializerSession;
 namespace Benchmarks.Comparison
 {
     [Trait("Category", "Benchmark")]
-    [DisassemblyDiagnoser(printAsm: true, printIL: true, printSource: true, recursiveDepth: 4)]
     [Config(typeof(BenchmarkConfig))]
     [PayloadSizeColumn]
     public class SerializeBenchmark
