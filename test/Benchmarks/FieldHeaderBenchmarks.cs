@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using Benchmarks.Utilities;
 using Hagar;
 using Hagar.Buffers;
@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Benchmarks
 {
     [Config(typeof(BenchmarkConfig))]
-    [DisassemblyDiagnoser(printAsm: true, printIL: true, printSource: true, recursiveDepth: 5)]
     public class FieldHeaderBenchmarks
     {
         private static readonly SerializerSession Session;

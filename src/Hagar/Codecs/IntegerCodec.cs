@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Utilities;
@@ -60,7 +60,7 @@ namespace Hagar.Codecs
         public static char ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
-            return (char) reader.ReadUInt8(field.WireType);
+            return (char) reader.ReadUInt16(field.WireType);
         }
     }
 
