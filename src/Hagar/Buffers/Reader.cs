@@ -10,7 +10,7 @@ namespace Hagar.Buffers
     {
         private ReadOnlySequence<byte> input;
         private ReadOnlySpan<byte> currentSpan;
-        private SequencePosition currentBufferStart;
+        private SequencePosition nextSequencePosition;
         private int bufferPos;
         private int bufferSize;
         private long previousBuffersSize;
@@ -19,8 +19,8 @@ namespace Hagar.Buffers
         {
             this.input = input;
             this.Session = session;
+            this.nextSequencePosition = input.Start;
             this.currentSpan = input.First.Span;
-            this.currentBufferStart = input.Start;
             this.bufferPos = 0;
             this.bufferSize = this.currentSpan.Length;
             this.previousBuffersSize = 0;
@@ -51,7 +51,7 @@ namespace Hagar.Buffers
         }
 
         /// <summary>
-        /// Creates a new reader begining at the specified position.
+        /// Creates a new reader beginning at the specified position.
         /// </summary>
         public Reader ForkFrom(long position) => new Reader(this.input.Slice(position), this.Session);
 
@@ -60,15 +60,18 @@ namespace Hagar.Buffers
         {
             this.previousBuffersSize += this.bufferSize;
 
-            if (!this.input.TryGet(ref this.currentBufferStart, out var memory))
+            // If this is the first call to MoveNext then nextSequencePosition is invalid and must be moved to the second position.
+            if (this.nextSequencePosition.Equals(this.input.Start)) this.input.TryGet(ref this.nextSequencePosition, out _);
+
+            if (!this.input.TryGet(ref this.nextSequencePosition, out var memory))
             {
                 this.currentSpan = memory.Span;
                 ThrowInsufficientData();
             }
 
-            currentSpan = memory.Span;
+            this.currentSpan = memory.Span;
             this.bufferPos = 0;
-            this.bufferSize = currentSpan.Length;
+            this.bufferSize = this.currentSpan.Length;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -192,7 +195,7 @@ namespace Hagar.Buffers
                 var dest = d;
                 while (true)
                 {
-                    var writeSize = Math.Min(d.Length, reader.currentSpan.Length - reader.bufferPos);
+                    var writeSize = Math.Min(dest.Length, reader.currentSpan.Length - reader.bufferPos);
                     reader.currentSpan.Slice(reader.bufferPos, writeSize).CopyTo(dest);
                     reader.bufferPos += writeSize;
                     dest = dest.Slice(writeSize);
