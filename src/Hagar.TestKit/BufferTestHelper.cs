@@ -1,11 +1,13 @@
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using Hagar.Buffers;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Hagar.TestKit
 {
+    [ExcludeFromCodeCoverage]
     public static class BufferTestHelper<TValue>
     {
         public static IBufferTestSerializer[] GetTestSerializers(IServiceProvider serviceProvider)
@@ -25,6 +27,7 @@ namespace Hagar.TestKit
             void Deserialize(ReadOnlySequence<byte> buffer, out TValue output);
         }
 
+        [ExcludeFromCodeCoverage]
         private abstract class BufferTester<TBufferWriter> : IBufferTestSerializer where TBufferWriter : IBufferWriter<byte>, IOutputBuffer
         {
             private readonly SessionPool sessionPool;
@@ -59,6 +62,7 @@ namespace Hagar.TestKit
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
+        [ExcludeFromCodeCoverage]
         private class MultiSegmentBufferWriterTester : BufferTester<TestMultiSegmentBufferWriter>
         {
             private readonly Options options;
@@ -79,6 +83,7 @@ namespace Hagar.TestKit
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
+        [ExcludeFromCodeCoverage]
         private class SingleSegmentBufferWriterTester : BufferTester<TestSingleSegmentBufferWriter>
         {
             protected override TestSingleSegmentBufferWriter CreateBufferWriter() => new TestSingleSegmentBufferWriter(new byte[102400]);
@@ -91,6 +96,7 @@ namespace Hagar.TestKit
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
+        [ExcludeFromCodeCoverage]
         private class StructBufferWriterTester : BufferTester<TestBufferWriterStruct>
         {
             protected override TestBufferWriterStruct CreateBufferWriter() => new TestBufferWriterStruct(new byte[102400]);

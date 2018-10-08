@@ -1,10 +1,12 @@
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Hagar.TestKit
 {
+    [ExcludeFromCodeCoverage]
     public class TestSingleSegmentBufferWriter : IBufferWriter<byte>, IOutputBuffer
     {
         private readonly byte[] buffer;

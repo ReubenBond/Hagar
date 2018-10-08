@@ -1,11 +1,13 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Hagar.TestKit
 {
+    [ExcludeFromCodeCoverage]
     public class TestMultiSegmentBufferWriter : IBufferWriter<byte>, IOutputBuffer
     {
         private readonly List<byte[]> committed = new List<byte[]>();

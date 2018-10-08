@@ -1,10 +1,12 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Hagar.TestKit
 {
+    [ExcludeFromCodeCoverage]
     public static class ReadOnlySequenceHelper
     {
         public static IEnumerable<byte[]> Batch(this IEnumerable<byte> sequence, int batchSize)

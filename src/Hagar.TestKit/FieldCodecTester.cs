@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Linq;
 using Hagar.Buffers;
@@ -12,6 +13,7 @@ using Xunit;
 namespace Hagar.TestKit
 {
     [Trait("Category", "BVT")]
+    [ExcludeFromCodeCoverage]
     public abstract class FieldCodecTester<TValue, TCodec> where TCodec : class, IFieldCodec<TValue>
     {
         private readonly IServiceProvider serviceProvider;
