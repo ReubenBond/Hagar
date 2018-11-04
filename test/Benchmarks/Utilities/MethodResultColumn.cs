@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Columns;
@@ -59,7 +59,7 @@ namespace Benchmarks.Utilities
         public string Id => nameof(MethodResultColumn) + "_" + this.ColumnName;
         public string ColumnName { get; }
         public bool AlwaysShow => true;
-        public ColumnCategory Category => ColumnCategory.Diagnoser;
+        public ColumnCategory Category => ColumnCategory.Metric;
         public int PriorityInCategory => 0;
         public bool IsNumeric => true;
         public UnitType UnitType => UnitType.Size;
