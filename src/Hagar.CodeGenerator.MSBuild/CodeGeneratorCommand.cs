@@ -71,18 +71,18 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             try
             {
-                var projectName = Path.GetFileNameWithoutExtension(ProjectPath);
-                var projectId = !string.IsNullOrEmpty(ProjectGuid) && Guid.TryParse(ProjectGuid, out var projectIdGuid)
+                var projectName = Path.GetFileNameWithoutExtension(this.ProjectPath);
+                var projectId = !string.IsNullOrEmpty(this.ProjectGuid) && Guid.TryParse(this.ProjectGuid, out var projectIdGuid)
                     ? ProjectId.CreateFromSerialized(projectIdGuid)
                     : ProjectId.CreateNewId();
 
 
-                this.Log.LogDebug($"ProjectGuid: {ProjectGuid}");
+                this.Log.LogDebug($"ProjectGuid: {this.ProjectGuid}");
                 this.Log.LogDebug($"ProjectID: {projectId}");
 
-                var languageName = GetLanguageName(ProjectPath);
-                var documents = GetDocuments(Compile, projectId).ToList();
-                var metadataReferences = GetMetadataReferences(Reference).ToList();
+                var languageName = GetLanguageName(this.ProjectPath);
+                var documents = GetDocuments(this.Compile, projectId).ToList();
+                var metadataReferences = GetMetadataReferences(this.Reference).ToList();
                 
                 foreach (var doc in documents)
                     this.Log.LogDebug($"Document: {doc.FilePath}");
@@ -95,9 +95,9 @@ namespace Hagar.CodeGenerator.MSBuild
                     projectName,
                     projectName,
                     languageName,
-                    ProjectPath,
-                    TargetPath,
-                    CreateCompilationOptions(OutputType, languageName),
+                    this.ProjectPath,
+                    this.TargetPath,
+                    CreateCompilationOptions(this.OutputType, languageName),
                     documents: documents,
                     metadataReferences: metadataReferences
                 );

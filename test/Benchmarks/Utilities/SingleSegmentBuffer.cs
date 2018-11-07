@@ -18,16 +18,16 @@ namespace Benchmarks.Utilities
 
         public void Advance(int bytes)
         {
-            written += bytes;
+            this.written += bytes;
         }
 
         [Pure]
-        public Memory<byte> GetMemory(int sizeHint = 0) => buffer.AsMemory().Slice(written);
+        public Memory<byte> GetMemory(int sizeHint = 0) => this.buffer.AsMemory().Slice(this.written);
 
         [Pure]
-        public Span<byte> GetSpan(int sizeHint) => buffer.AsSpan().Slice(written);
+        public Span<byte> GetSpan(int sizeHint) => this.buffer.AsSpan().Slice(this.written);
 
-        public byte[] ToArray() => buffer.AsSpan(0, written).ToArray();
+        public byte[] ToArray() => this.buffer.AsSpan(0, this.written).ToArray();
 
         public void Reset() => this.written = 0;
 
@@ -39,7 +39,7 @@ namespace Benchmarks.Utilities
 
         public override string ToString()
         {
-            return Encoding.UTF8.GetString(buffer.AsSpan(0, written).ToArray());
+            return Encoding.UTF8.GetString(this.buffer.AsSpan(0, this.written).ToArray());
         }
     }
 }

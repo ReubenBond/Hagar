@@ -20,13 +20,13 @@ namespace Hagar.GeneratedCodeHelpers
 
             public void Enter(object caller)
             {
-                ++depth;
-                if (caller != null) Callers.Add(caller);
+                ++this.depth;
+                if (caller != null) this.Callers.Add(caller);
             }
 
             public void Exit()
             {
-                if (--depth <= 0) this.Callers.Clear();
+                if (--this.depth <= 0) this.Callers.Clear();
             }
         }
 

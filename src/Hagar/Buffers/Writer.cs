@@ -31,7 +31,7 @@ namespace Hagar.Buffers
         public Span<byte> WritableSpan
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.currentSpan.Slice(bufferPos);
+            get => this.currentSpan.Slice(this.bufferPos);
         }
 
         /// <summary>
@@ -119,14 +119,14 @@ namespace Hagar.Buffers
         public void Write(byte value)
         {
             this.EnsureContiguous(1);
-            currentSpan[this.bufferPos++] = value;
+            this.currentSpan[this.bufferPos++] = value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(sbyte value)
         {
             this.EnsureContiguous(1);
-            currentSpan[this.bufferPos++] = (byte)value;
+            this.currentSpan[this.bufferPos++] = (byte)value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

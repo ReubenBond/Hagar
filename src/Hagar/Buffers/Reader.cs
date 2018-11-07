@@ -78,7 +78,7 @@ namespace Hagar.Buffers
         public byte ReadByte()
         {
             if (this.bufferPos == this.bufferSize) MoveNext();
-            return currentSpan[this.bufferPos++];
+            return this.currentSpan[this.bufferPos++];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -93,7 +93,7 @@ namespace Hagar.Buffers
             const int width = 4;
             if (this.bufferPos + width > this.bufferSize) return ReadSlower(ref this);
 
-            var result = BinaryPrimitives.ReadUInt32LittleEndian(currentSpan.Slice(this.bufferPos, width));
+            var result = BinaryPrimitives.ReadUInt32LittleEndian(this.currentSpan.Slice(this.bufferPos, width));
             this.bufferPos += width;
             return result;
             
@@ -120,7 +120,7 @@ namespace Hagar.Buffers
             const int width = 8;
             if (this.bufferPos + width > this.bufferSize) return ReadSlower(ref this);
 
-            var result = BinaryPrimitives.ReadUInt64LittleEndian(currentSpan.Slice(this.bufferPos, width));
+            var result = BinaryPrimitives.ReadUInt64LittleEndian(this.currentSpan.Slice(this.bufferPos, width));
             this.bufferPos += width;
             return result;
 
@@ -212,7 +212,7 @@ namespace Hagar.Buffers
         {
             if (this.bufferPos + length <= this.bufferSize)
             {
-                bytes = currentSpan.Slice(this.bufferPos, length);
+                bytes = this.currentSpan.Slice(this.bufferPos, length);
                 this.bufferPos += length;
                 return true;
             }
@@ -223,39 +223,39 @@ namespace Hagar.Buffers
 
         public uint ReadVarUInt32()
         {
-            if (bufferPos + 5 > bufferSize)
+            if (this.bufferPos + 5 > this.bufferSize)
             {
                 return ReadVarUInt32Slow();
             }
 
-            int tmp = currentSpan[bufferPos++];
+            int tmp = this.currentSpan[this.bufferPos++];
             if (tmp < 128)
             {
                 return (uint)tmp;
             }
             int result = tmp & 0x7f;
-            if ((tmp = currentSpan[bufferPos++]) < 128)
+            if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
             {
                 result |= tmp << 7;
             }
             else
             {
                 result |= (tmp & 0x7f) << 7;
-                if ((tmp = currentSpan[bufferPos++]) < 128)
+                if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                 {
                     result |= tmp << 14;
                 }
                 else
                 {
                     result |= (tmp & 0x7f) << 14;
-                    if ((tmp = currentSpan[bufferPos++]) < 128)
+                    if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                     {
                         result |= tmp << 21;
                     }
                     else
                     {
                         result |= (tmp & 0x7f) << 21;
-                        result |= (tmp = currentSpan[bufferPos++]) << 28;
+                        result |= (tmp = this.currentSpan[this.bufferPos++]) << 28;
                         if (tmp >= 128)
                         {
                             // Discard upper 32 bits.
@@ -337,69 +337,69 @@ namespace Hagar.Buffers
                 return ReadVarUInt64Slow();
             }
 
-            long tmp = currentSpan[bufferPos++];
+            long tmp = this.currentSpan[this.bufferPos++];
             if (tmp < 128)
             {
                 return (ulong)tmp;
             }
             long result = tmp & 0x7f;
-            if ((tmp = currentSpan[bufferPos++]) < 128)
+            if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
             {
                 result |= tmp << 7;
             }
             else
             {
                 result |= (tmp & 0x7f) << 7;
-                if ((tmp = currentSpan[bufferPos++]) < 128)
+                if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                 {
                     result |= tmp << 14;
                 }
                 else
                 {
                     result |= (tmp & 0x7f) << 14;
-                    if ((tmp = currentSpan[bufferPos++]) < 128)
+                    if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                     {
                         result |= tmp << 21;
                     }
                     else
                     {
                         result |= (tmp & 0x7f) << 21;
-                        if ((tmp = currentSpan[bufferPos++]) < 128)
+                        if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                         {
                             result |= tmp << 28;
                         }
                         else
                         {
                             result |= (tmp & 0x7f) << 28;
-                            if ((tmp = currentSpan[bufferPos++]) < 128)
+                            if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                             {
                                 result |= tmp << 35;
                             }
                             else
                             {
                                 result |= (tmp & 0x7f) << 35;
-                                if ((tmp = currentSpan[bufferPos++]) < 128)
+                                if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                                 {
                                     result |= tmp << 42;
                                 }
                                 else
                                 {
                                     result |= (tmp & 0x7f) << 42;
-                                    if ((tmp = currentSpan[bufferPos++]) < 128)
+                                    if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                                     {
                                         result |= tmp << 49;
                                     }
                                     else
                                     {
                                         result |= (tmp & 0x7f) << 49;
-                                        if ((tmp = currentSpan[bufferPos++]) < 128)
+                                        if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
                                         {
                                             result |= tmp << 56;
                                         }
                                         else
                                         {
                                             result |= (tmp & 0x7f) << 56;
-                                            result |= (tmp = currentSpan[bufferPos++]) << 63;
+                                            result |= (tmp = this.currentSpan[this.bufferPos++]) << 63;
                                             if (tmp >= 128)
                                             {
                                                 ThrowInsufficientData();

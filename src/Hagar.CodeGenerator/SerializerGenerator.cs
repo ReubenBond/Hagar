@@ -454,8 +454,8 @@ namespace Hagar.CodeGenerator
         {
             public StaticCodecDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
             {
-                UnderlyingType = underlyingType;
-                CodecType = codecType;
+            this.UnderlyingType = underlyingType;
+            this.CodecType = codecType;
             }
 
             public ITypeSymbol UnderlyingType { get; }
