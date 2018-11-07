@@ -25,6 +25,8 @@ namespace Hagar.Configuration
             wellKnownTypes[15] = typeof(Guid);
             wellKnownTypes[16] = typeof(DateTime);
             wellKnownTypes[17] = typeof(TimeSpan);
+            wellKnownTypes[18] = typeof(DateTimeOffset);
+            wellKnownTypes[19] = typeof(object);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace Benchmarks
                 Bool = true,
                 Guid = Guid.NewGuid()
             };
-            this.session = sessionPool.GetSession();
+            this.session = this.sessionPool.GetSession();
             var writer = hagarBuffer.CreateWriter(this.session);
             this.hagarSerializer.Serialize(ref writer, this.value);
             var bytes = new byte[writer.Output.GetMemory().Length];
@@ -79,18 +79,18 @@ namespace Benchmarks
             this.orleansSerializer.Serialize(this.value, writer2);
             this.orleansBytes = writer2.ToBytes();
 
-            this.readBytesLength = Math.Min(bytes.Length, orleansBytes.Sum(x => x.Count));
+            this.readBytesLength = Math.Min(bytes.Length, this.orleansBytes.Sum(x => x.Count));
         }
 
         [Fact]
         public void SerializeComplex()
         {
             var writer = hagarBuffer.CreateWriter(this.session);
-            session.FullReset();
+            this.session.FullReset();
             this.hagarSerializer.Serialize(ref writer, this.value);
 
-            session.FullReset();
-            var reader = new Reader(writer.Output.GetReadOnlySequence(), session);
+            this.session.FullReset();
+            var reader = new Reader(writer.Output.GetReadOnlySequence(), this.session);
             this.hagarSerializer.Deserialize(ref reader);
             hagarBuffer.Reset();
         }
@@ -146,10 +146,10 @@ namespace Benchmarks
         public object HagarSerialize()
         {
             var writer = hagarBuffer.CreateWriter(this.session);
-            session.FullReset();
+            this.session.FullReset();
             this.hagarSerializer.Serialize(ref writer, this.value);
             hagarBuffer.Reset();
-            return session;
+            return this.session;
         }
 
         //[Benchmark]
@@ -180,8 +180,8 @@ namespace Benchmarks
         public int HagarReadEachByte()
         {
             var sum = 0;
-            var reader = new Reader(this.hagarBytes, session);
-            for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
+            var reader = new Reader(this.hagarBytes, this.session);
+            for (var i = 0; i < this.readBytesLength; i++) sum ^= reader.ReadByte();
             return sum;
         }
 
@@ -190,7 +190,7 @@ namespace Benchmarks
         {
             var sum = 0;
             var reader = new BinaryTokenStreamReader(this.orleansBytes);
-            for (var i = 0; i < readBytesLength; i++) sum ^= reader.ReadByte();
+            for (var i = 0; i < this.readBytesLength; i++) sum ^= reader.ReadByte();
             return sum;
         }
     }

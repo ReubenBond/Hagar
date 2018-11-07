@@ -11,8 +11,8 @@ namespace Hagar.Session
         {
             public ReferencePair(uint id, object @object)
             {
-                Id = id;
-                Object = @object;
+                this.Id = id;
+                this.Object = @object;
             }
 
             public uint Id { get; }
@@ -39,9 +39,9 @@ namespace Hagar.Session
             // TODO: Binary search
             for (int i = 0; i < this.referenceToObjectCount; ++i)
             {
-                if (referenceToObject[i].Id == reference)
+                if (this.referenceToObject[i].Id == reference)
                 {
-                    value = referenceToObject[i].Object;
+                    value = this.referenceToObject[i].Object;
                     return true;
                 }
             }
@@ -66,9 +66,9 @@ namespace Hagar.Session
             // TODO: Binary search
             for (int i = 0; i < this.objectToReferenceCount; ++i)
             {
-                if (ReferenceEquals(objectToReference[i].Object, value))
+                if (ReferenceEquals(this.objectToReference[i].Object, value))
                 {
-                    reference = objectToReference[i].Id;
+                    reference = this.objectToReference[i].Id;
                     return true;
                 }
             }
@@ -81,26 +81,26 @@ namespace Hagar.Session
 
         private void AddToReferenceToIdMap(object value, uint reference)
         {
-            if (objectToReferenceCount >= this.objectToReference.Length)
+            if (this.objectToReferenceCount >= this.objectToReference.Length)
             {
-                var old = objectToReference;
-                objectToReference = new ReferencePair[objectToReference.Length * 2];
-                Array.Copy(old, objectToReference, objectToReferenceCount);
+                var old = this.objectToReference;
+                this.objectToReference = new ReferencePair[this.objectToReference.Length * 2];
+                Array.Copy(old, this.objectToReference, this.objectToReferenceCount);
             }
 
-            this.objectToReference[objectToReferenceCount++] = new ReferencePair(reference, value);
+            this.objectToReference[this.objectToReferenceCount++] = new ReferencePair(reference, value);
         }
 
         private void AddToReferences(object value, uint reference)
         {
-            if (referenceToObjectCount >= this.referenceToObject.Length)
+            if (this.referenceToObjectCount >= this.referenceToObject.Length)
             {
-                var old = referenceToObject;
-                referenceToObject = new ReferencePair[referenceToObject.Length * 2];
-                Array.Copy(old, referenceToObject, referenceToObjectCount);
+                var old = this.referenceToObject;
+                this.referenceToObject = new ReferencePair[this.referenceToObject.Length * 2];
+                Array.Copy(old, this.referenceToObject, this.referenceToObjectCount);
             }
 
-            this.referenceToObject[referenceToObjectCount++] = new ReferencePair(reference, value);
+            this.referenceToObject[this.referenceToObjectCount++] = new ReferencePair(reference, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,11 +120,11 @@ namespace Hagar.Session
 
         public void Reset()
         {
-            for (var i = 0; i < referenceToObjectCount; i++)
+            for (var i = 0; i < this.referenceToObjectCount; i++)
             {
                 this.referenceToObject[i] = default;
             }
-            for (var i = 0; i < objectToReferenceCount; i++)
+            for (var i = 0; i < this.objectToReferenceCount; i++)
             {
                 this.objectToReference[i] = default;
             }

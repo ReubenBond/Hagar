@@ -20,7 +20,9 @@ namespace Hagar.Codecs
             if (field.FieldType == ObjectType || field.FieldType == null)
             {
                 reader.ReadVarUInt32();
-                return new object();
+                var result = new object();
+                ReferenceCodec.RecordObject(reader.Session, result);
+                return result;
             }
 
             var specificSerializer = reader.Session.CodecProvider.GetCodec(field.FieldType);

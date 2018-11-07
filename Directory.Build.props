@@ -1,9 +1,4 @@
 <Project>
-  <!-- Set the repository root into a variable -->
-  <PropertyGroup>
-    <SourceRoot>$(MSBuildThisFileDirectory)</SourceRoot>
-  </PropertyGroup>
-
   <!-- Packaging -->
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
@@ -29,7 +24,7 @@
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
     <DelaySign>False</DelaySign>
-    <AssemblyOriginatorKeyFile>$(SourceRoot)SigningKey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)SigningKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <!-- Common compile parameters -->
@@ -49,12 +44,14 @@
 
   <!-- Set output folder for created NuGet packages -->
   <PropertyGroup>
-    <PackageOutputPath Condition=" '$(PackageOutputPath)'=='' ">$(SourceRoot)/Artifacts/$(Configuration)</PackageOutputPath>
+    <PackageOutputPath Condition=" '$(PackageOutputPath)'=='' ">$(MSBuildThisFileDirectory)/Artifacts/$(Configuration)</PackageOutputPath>
   </PropertyGroup>
 
   <!-- SourceLink -->
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02 " PrivateAssets="All" />
   </ItemGroup>
+
+
 
 </Project>

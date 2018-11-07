@@ -8,11 +8,46 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Hagar.UnitTests
 {
+    public class DateTimeTests : FieldCodecTester<DateTime, DateTimeCodec>
+    {
+        protected override DateTime CreateValue() => DateTime.UtcNow;
+        protected override bool Equals(DateTime left, DateTime right) => left.Equals(right);
+        protected override DateTime[] TestValues => new[] { DateTime.MinValue, DateTime.MaxValue, new DateTime(1970, 1, 1, 0, 0, 0) };
+    }
+
+    public class TimeSpanTests : FieldCodecTester<TimeSpan, TimeSpanCodec>
+    {
+        protected override TimeSpan CreateValue() => TimeSpan.FromMilliseconds(Guid.NewGuid().GetHashCode());
+        protected override bool Equals(TimeSpan left, TimeSpan right) => left.Equals(right);
+        protected override TimeSpan[] TestValues => new[] { TimeSpan.MinValue, TimeSpan.MaxValue, TimeSpan.Zero, TimeSpan.FromSeconds(12345) };
+    }
+
+    public class DateTimeOffsetTests : FieldCodecTester<DateTimeOffset, DateTimeOffsetCodec>
+    {
+        protected override DateTimeOffset CreateValue() => DateTime.UtcNow;
+        protected override bool Equals(DateTimeOffset left, DateTimeOffset right) => left.Equals(right);
+
+        protected override DateTimeOffset[] TestValues => new[]
+        {
+            DateTimeOffset.MinValue,
+            DateTime.MaxValue,
+            new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(11.5)),
+            new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(-11.5)),
+        };
+    }
+
     public class StringCodecTests : FieldCodecTester<string, StringCodec>
     {
         protected override string CreateValue() => Guid.NewGuid().ToString();
         protected override bool Equals(string left, string right) => StringComparer.Ordinal.Equals(left, right);
         protected override string[] TestValues => new[] { string.Empty, new string('*', 6), new string('x', 4097), "Hello, World!" };
+    }
+
+    public class ObjectCodecTests : FieldCodecTester<object, ObjectCodec>
+    {
+        protected override object CreateValue() => new object();
+        protected override bool Equals(object left, object right) => ReferenceEquals(left, right) || typeof(object) == left?.GetType() && typeof(object) == right?.GetType();
+        protected override object[] TestValues => new[] { null, new object() };
     }
 
     public class ByteArrayCodecTests : FieldCodecTester<byte[], ByteArrayCodec>

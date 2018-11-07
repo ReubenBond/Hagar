@@ -1,4 +1,4 @@
-﻿using Hagar.Activators;
+using Hagar.Activators;
 using Hagar.Codecs;
 
 namespace Hagar.Configuration
@@ -20,6 +20,10 @@ namespace Hagar.Configuration
             codecs.Add(typeof(Int64Codec));
             codecs.Add(typeof(GuidCodec));
             codecs.Add(typeof(StringCodec));
+
+            codecs.Add(typeof(DateTimeCodec));
+            codecs.Add(typeof(TimeSpanCodec));
+            codecs.Add(typeof(DateTimeOffsetCodec));
 
 #warning need to also handle RuntimeType, not just Type
             codecs.Add(typeof(TypeSerializerCodec));

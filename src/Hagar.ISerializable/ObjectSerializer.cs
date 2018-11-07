@@ -42,9 +42,9 @@ namespace Hagar.ISerializable
         {
             var type = value.GetType();
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);
-            var info = new SerializationInfo(type, formatterConverter);
-            callbacks.OnSerializing?.Invoke(value, streamingContext);
-            ((System.Runtime.Serialization.ISerializable) value).GetObjectData(info, streamingContext);
+            var info = new SerializationInfo(type, this.formatterConverter);
+            callbacks.OnSerializing?.Invoke(value, this.streamingContext);
+            ((System.Runtime.Serialization.ISerializable) value).GetObjectData(info, this.streamingContext);
 
             var first = true;
             foreach (var field in info)
@@ -54,7 +54,7 @@ namespace Hagar.ISerializable
                 if (first) first = false;
             }
             
-            callbacks.OnSerialized?.Invoke(value, streamingContext);
+            callbacks.OnSerialized?.Invoke(value, this.streamingContext);
         }
 
         [SecurityCritical]
@@ -62,11 +62,11 @@ namespace Hagar.ISerializable
         {
             var callbacks = this.serializationCallbacks.GetReferenceTypeCallbacks(type);
 
-            var info = new SerializationInfo(type, formatterConverter);
+            var info = new SerializationInfo(type, this.formatterConverter);
             var result = FormatterServices.GetUninitializedObject(type);
 
             ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
-            callbacks.OnDeserializing?.Invoke(result, streamingContext);
+            callbacks.OnDeserializing?.Invoke(result, this.streamingContext);
 
             uint fieldId = 0;
             while (true)
@@ -82,11 +82,11 @@ namespace Hagar.ISerializable
             }
 
             var constructor = this.constructors.GetOrAdd(info.ObjectType, this.createConstructorDelegate);
-            constructor(result, info, streamingContext);
-            callbacks.OnDeserialized?.Invoke(result, streamingContext);
+            constructor(result, info, this.streamingContext);
+            callbacks.OnDeserialized?.Invoke(result, this.streamingContext);
             if (result is IDeserializationCallback callback)
             {
-                callback.OnDeserialization(streamingContext.Context);
+                callback.OnDeserialization(this.streamingContext.Context);
             }
 
             return result;
