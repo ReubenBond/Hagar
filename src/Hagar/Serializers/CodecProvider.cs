@@ -30,10 +30,11 @@ namespace Hagar.Serializers
         public CodecProvider(IServiceProvider serviceProvider, IConfiguration<SerializerConfiguration> codecConfiguration)
         {
             this.serviceProvider = serviceProvider;
+
+            // Hard-code the object codec because many codecs implement IFieldCodec<object> and this is cleaner
+            // than adding some filtering logic to find "the object codec" below.
             this.fieldCodecs[typeof(object)] = typeof(ObjectCodec);
-            
-            // ReSharper disable once PossibleMistakenCallToGetType.2
-            this.fieldCodecs[typeof(Type).GetType()] = typeof(TypeSerializerCodec);
+
             this.ConsumeMetadata(codecConfiguration);
         }
         
@@ -62,16 +63,18 @@ namespace Hagar.Serializers
 
                 foreach (var type in metadataCollection)
                 {
-                    foreach (var iface in type.GetInterfaces())
+                    var interfaces = type.GetInterfaces();
+                    foreach (var @interface in interfaces)
                     {
-                        if (!iface.IsGenericType) continue;
-                        if (genericType != iface.GetGenericTypeDefinition()) continue;
-                        var genericArgument = iface.GetGenericArguments()[0];
+                        if (!@interface.IsGenericType) continue;
+                        if (genericType != @interface.GetGenericTypeDefinition()) continue;
+                        var genericArgument = @interface.GetGenericArguments()[0];
                         if (typeof(object) == genericArgument) continue;
                         if (genericArgument.IsConstructedGenericType && genericArgument.GenericTypeArguments.Any(arg => arg.IsGenericParameter))
                         {
                             genericArgument = genericArgument.GetGenericTypeDefinition();
                         }
+
                         resultCollection[genericArgument] = type;
                     }
                 }
@@ -90,13 +93,12 @@ namespace Hagar.Serializers
         {
             if (!this.initialized) this.Initialize();
             var resultFieldType = typeof(TField);
-            bool wasCreated = false;
+            var wasCreated = false;
 
             // Try to find the codec from the configured codecs.
             IFieldCodec untypedResult;
 
             // If the field type is unavailable, return the void codec which can at least handle references.
-            // TODO: Is there a more appropriate codec, eg to consume fields?
             if (fieldType == null) untypedResult = this.voidCodec;
             else if (!this.adaptedCodecs.TryGetValue((fieldType, resultFieldType), out untypedResult))
             {
@@ -124,7 +126,7 @@ namespace Hagar.Serializers
 
                 if (untypedResult == null && (fieldType.IsInterface || fieldType.IsAbstract))
                 {
-                    untypedResult = (IFieldCodec)GetServiceOrCreateInstance(typeof(AbstractTypeSerializer<>).MakeGenericType(fieldType));
+                    untypedResult = (IFieldCodec)this.GetServiceOrCreateInstance(typeof(AbstractTypeSerializer<>).MakeGenericType(fieldType));
                 }
 
                 wasCreated = untypedResult != null;
@@ -218,7 +220,7 @@ namespace Hagar.Serializers
             if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(concreteType.GetGenericArguments());
             if (!this.instantiatedPartialSerializers.TryGetValue(serializerType, out var result))
             {
-                result = GetServiceOrCreateInstance(serializerType);
+                result = this.GetServiceOrCreateInstance(serializerType);
                 this.instantiatedPartialSerializers.TryAdd(serializerType, result);
             }
 
@@ -231,7 +233,7 @@ namespace Hagar.Serializers
             if (serializerType.IsGenericTypeDefinition) serializerType = serializerType.MakeGenericType(concreteType.GetGenericArguments());
             if (!this.instantiatedValueSerializers.TryGetValue(serializerType, out var result))
             {
-                result = GetServiceOrCreateInstance(serializerType);
+                result = this.GetServiceOrCreateInstance(serializerType);
                 this.instantiatedValueSerializers.TryAdd(serializerType, result);
             }
 
@@ -281,7 +283,7 @@ namespace Hagar.Serializers
 
                 // If there is a partial serializer for this type, create a codec which will then accept that partial serializer.
                 codecType = typeof(ConcreteTypeSerializer<,>).MakeGenericType(fieldType, partialSerializerType);
-                constructorArguments = new[] { GetServiceOrCreateInstance(partialSerializerType) };
+                constructorArguments = new[] {this.GetServiceOrCreateInstance(partialSerializerType) };
             }
             else if (this.valueSerializers.TryGetValue(searchType, out var valueSerializerType))
             {
@@ -289,7 +291,7 @@ namespace Hagar.Serializers
 
                 // If there is a value serializer for this type, create a codec which will then accept that value serializer.
                 codecType = typeof(ValueSerializer<,>).MakeGenericType(fieldType, valueSerializerType);
-                constructorArguments = new[] { GetServiceOrCreateInstance(valueSerializerType) };
+                constructorArguments = new[] {this.GetServiceOrCreateInstance(valueSerializerType) };
             }
             else if (fieldType.IsArray)
             {
@@ -298,26 +300,19 @@ namespace Hagar.Serializers
                 codecType = arrayCodecType.MakeGenericType(fieldType.GetElementType());
             }
 
-            return codecType != null ? (IFieldCodec) GetServiceOrCreateInstance(codecType, constructorArguments) : null;
+            return codecType != null ? (IFieldCodec)this.GetServiceOrCreateInstance(codecType, constructorArguments) : null;
         }
 
-        private static void ThrowPointerType(Type fieldType)
-        {
-            throw new NotSupportedException($"Type {fieldType} is a pointer type and is therefore not supported.");
-        }
+        private static void ThrowPointerType(Type fieldType) => throw new NotSupportedException($"Type {fieldType} is a pointer type and is therefore not supported.");
 
-        private static void ThrowByRefType(Type fieldType)
-        {
-            throw new NotSupportedException($"Type {fieldType} is a by-ref type and is therefore not supported.");
-        }
-        
-        private static void ThrowGenericTypeDefinition(Type fieldType)
-        {
-            throw new InvalidOperationException($"Type {fieldType} is a non-constructed generic type and is therefore unsupported.");
-        }
-        
+        private static void ThrowByRefType(Type fieldType) => throw new NotSupportedException($"Type {fieldType} is a by-ref type and is therefore not supported.");
+
+        private static void ThrowGenericTypeDefinition(Type fieldType) => throw new InvalidOperationException($"Type {fieldType} is a non-constructed generic type and is therefore unsupported.");
+
         private static IFieldCodec<TField> ThrowCodecNotFound<TField>(Type fieldType) => throw new CodecNotFoundException($"Could not find a codec for type {fieldType}.");
+
         private static IPartialSerializer<TField> ThrowPartialSerializerNotFound<TField>(Type fieldType) where TField : class => throw new KeyNotFoundException($"Could not find a partial serializer for type {fieldType}.");
+
         private static IValueSerializer<TField> ThrowValueSerializerNotFound<TField>(Type fieldType) where TField : struct => throw new KeyNotFoundException($"Could not find a value serializer for type {fieldType}.");
     }
 }

@@ -93,7 +93,7 @@ namespace Hagar.TestKit
             foreach (var original in this.TestValues)
             {
                 var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
-                
+
                 var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, this.sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
@@ -101,6 +101,32 @@ namespace Hagar.TestKit
                 var deserialized = serializer.Deserialize(ref reader);
 
                 Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void CanRoundTripViaObjectSerializer()
+        {
+            var serializer = this.serviceProvider.GetRequiredService<Serializer<object>>();
+
+            foreach (var original in this.TestValues)
+            {
+                var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
+
+                var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, this.sessionPool.GetSession());
+                serializer.Serialize(ref writer, original);
+
+                var reader = new Reader(buffer.GetReadOnlySequence(0), this.sessionPool.GetSession());
+                var deserializedObject = serializer.Deserialize(ref reader);
+                if (original != null)
+                {
+                    var deserialized = Assert.IsAssignableFrom<TValue>(deserializedObject);
+                    Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                }
+                else
+                {
+                    Assert.Null(deserializedObject);
+                }
             }
         }
 
