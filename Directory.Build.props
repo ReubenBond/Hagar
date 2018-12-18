@@ -5,7 +5,7 @@
     <Product>Hagar</Product>
     <VersionPrefix>0.2.1</VersionPrefix>
     <Copyright>Copyright © Reuben Bond 2018</Copyright>
-    <PackageLicenseUrl>https://github.com/ReubenBond/Hagar/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/dotnet/orleans/gh-pages/assets/logo_128.png</PackageIconUrl>
     <PackageTags>Serializer Span</PackageTags>
@@ -51,7 +51,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02 " PrivateAssets="All" />
   </ItemGroup>
-
-
 
 </Project>
