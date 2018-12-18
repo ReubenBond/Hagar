@@ -30,7 +30,7 @@ namespace Hagar.UnitTests
         protected override DateTimeOffset[] TestValues => new[]
         {
             DateTimeOffset.MinValue,
-            DateTime.MaxValue,
+            DateTimeOffset.MaxValue,
             new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(11.5)),
             new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(-11.5)),
         };
