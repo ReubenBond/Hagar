@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -175,7 +175,7 @@ namespace Hagar.CodeGenerator
                 {
                     if (prop.IsReadOnly || prop.IsWriteOnly)
                     {
-#warning add diagnostic: not read/write property.
+                        // TODO: add diagnostic: read-only property
                         continue;
                     }
 
@@ -186,7 +186,7 @@ namespace Hagar.CodeGenerator
                 {
                     if (field.IsConst || field.IsReadOnly)
                     {
-#warning add diagnostic: readonly field.
+                        // TODO: add diagnostic: read-only field 
                         continue;
                     }
                     

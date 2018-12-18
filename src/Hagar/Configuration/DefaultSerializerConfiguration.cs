@@ -1,3 +1,4 @@
+using System;
 using Hagar.Activators;
 using Hagar.Codecs;
 
@@ -25,7 +26,12 @@ namespace Hagar.Configuration
             codecs.Add(typeof(TimeSpanCodec));
             codecs.Add(typeof(DateTimeOffsetCodec));
 
-#warning need to also handle RuntimeType, not just Type
+            // Add Type and RuntimeType codecs.
+            // RuntimeType needs special handling because it is not accessible.
+            // ReSharper disable once PossibleMistakenCallToGetType.2
+            var runtimeType = typeof(Type).GetType();
+            codecs.Add(typeof(AbstractCodecAdapter<,,>).MakeGenericType(runtimeType, typeof(Type),
+                typeof(TypeSerializerCodec)));
             codecs.Add(typeof(TypeSerializerCodec));
 
             codecs.Add(typeof(ArrayCodec<>));
