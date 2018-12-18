@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
 namespace Hagar
@@ -218,6 +218,17 @@ namespace Hagar
         }
 
         protected RequiredFieldMissingException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+    }
+    [Serializable]
+    public class CodecNotFoundException : HagarException
+    {
+        public CodecNotFoundException(string message) : base(message)
+        {
+        }
+
+        protected CodecNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
