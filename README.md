@@ -111,3 +111,7 @@ Version Tolerance is supported provided the developer follows a set of rules whe
   * They are only used for newly added fields.
   * They are never used on older versions which do not have access to that type.
 * Type names cannot be changed unless the type was always registered as a `WellKnown` type or a `TypeCodec` is used to translate between the old and new name.
+
+## Packages
+
+Hagar is still in development and pakages have not been published yet. Running `build.ps1` will build and locally publish packages for testing purposes.
