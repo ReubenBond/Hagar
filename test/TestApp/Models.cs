@@ -1,8 +1,38 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Hagar;
+using Hagar.Invocation;
+using TestApp;
 
 namespace MyPocos
 {
+    public abstract class MyProxyBaseClass
+    {
+        public List<IInvokable> Invocations { get; } = new List<IInvokable>();
+
+        // The only required method is Invoke and it must have this signature.
+        protected ValueTask Invoke<TInvokable>(TInvokable invokable) where TInvokable : IInvokable
+        {
+            this.Invocations.Add(invokable);
+            return default;
+        }
+    }
+
+    public interface IMyInvokable : IGrain
+    {
+        ValueTask<int> Multiply(int a, int b, object c);
+    }
+
+    public interface IMyInvokable<T> : IGrain
+    {
+        Task DoStuff<TU>();
+    }
+
+    public interface IMyExtension : IGrainExtension
+    {
+        ValueTask Add(int a);
+    }
+
     [GenerateSerializer]
     public class SomeClassWithSerialzers
     {

@@ -92,7 +92,7 @@ namespace Hagar.Buffers
             }
             else
             {
-                WriteMultiSegment(in value);
+                this.WriteMultiSegment(in value);
             }
         }
 

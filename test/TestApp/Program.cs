@@ -1,12 +1,17 @@
-﻿using System;
+using System;
 using System.IO.Pipelines;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using Hagar.Serializers;
 using Hagar.Session;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Codecs;
+using Hagar.Configuration;
+using Hagar.Invocation;
 using Hagar.ISerializable;
 using Hagar.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +21,84 @@ using NodaTime;
 
 namespace TestApp
 {
+    [GenerateMethodSerializers(typeof(MyProxyBaseClass))]
+    public interface IGrain { }
+
+    [GenerateMethodSerializers(typeof(MyProxyBaseClass), isExtension: true)]
+    public interface IGrainExtension { }
+
     public class Program
     {
+        public static async Task TestRpc()
+        {
+            Console.WriteLine("Hello World!");
+            var serviceProvider = new ServiceCollection()
+                .AddHagar()
+                .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
+                .BuildServiceProvider();
+
+            var config = serviceProvider.GetRequiredService<IConfiguration<SerializerConfiguration>>();
+            var allProxies = config.Value.InterfaceProxies;
+
+            var proxy = GetProxy<IMyInvokable>();
+            await proxy.Multiply(4, 5, "hello");
+            var proxyBase = proxy as MyProxyBaseClass;
+            var invocation = proxyBase.Invocations.First();
+            invocation.SetTarget(new TargetHolder(new MyImplementation()));
+            await invocation.Invoke();
+            invocation.Reset();
+
+            var generic = GetProxy<IMyInvokable<int>>();
+            //((MyProxyBaseClass)generic).Invocations.Find()
+            await generic.DoStuff<string>();
+
+            TInterface GetProxy<TInterface>()
+            {
+                if (typeof(TInterface).IsGenericType)
+                {
+                    var unbound = typeof(TInterface).GetGenericTypeDefinition();
+                    var parameters = typeof(TInterface).GetGenericArguments();
+                    foreach (var proxyType in allProxies)
+                    {
+                        if (!proxyType.IsGenericType) continue;
+                        var matching = proxyType.FindInterfaces(
+                            (type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition() == (Type)criteria,
+                            unbound).FirstOrDefault();
+                        if (matching != null)
+                        {
+                            return (TInterface)Activator.CreateInstance(proxyType.GetGenericTypeDefinition().MakeGenericType(parameters));
+                        }
+                    }
+                }
+
+                return (TInterface)Activator.CreateInstance(
+                    allProxies.First(p => typeof(TInterface).IsAssignableFrom(p)));
+            }
+        }
+
+        internal struct TargetHolder : ITargetHolder
+        {
+            private readonly object target;
+
+            public TargetHolder(object target)
+            {
+                this.target = target;
+            }
+
+            public TTarget GetTarget<TTarget>() => (TTarget)this.target;
+
+            public TExtension GetExtension<TExtension>() => throw new NotImplementedException();
+        }
+
+        internal class MyImplementation : IMyInvokable
+        {
+            public ValueTask<int> Multiply(int a, int b, object c) => new ValueTask<int>(a * b);
+        }
+        internal class MyImplementation<T> : IMyInvokable<T>
+        {
+            public Task DoStuff<TU>() => Task.CompletedTask;
+        }
+
         public static void TestOne()
         {
             Console.WriteLine("Hello World!");
@@ -75,6 +156,8 @@ namespace TestApp
 
         public static void Main(string[] args)
         {
+            TestRpc().GetAwaiter().GetResult();
+            return;
             TestOne();
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHagar(configuration =>

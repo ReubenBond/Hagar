@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Hagar.Configuration
@@ -10,6 +10,8 @@ namespace Hagar.Configuration
         public HashSet<Type> FieldCodecs { get; } = new HashSet<Type>();
 
         public HashSet<Type> Serializers { get; } = new HashSet<Type>();
+
+        public HashSet<Type> InterfaceProxies { get; } = new HashSet<Type>();
     }
 
     public sealed class TypeConfiguration
