@@ -8,7 +8,10 @@ namespace Hagar.Buffers
 {
     public ref struct Reader
     {
+        // ReSharper disable FieldCanBeMadeReadOnly.Local
         private ReadOnlySequence<byte> input;
+        // ReSharper restore FieldCanBeMadeReadOnly.Local
+
         private ReadOnlySpan<byte> currentSpan;
         private SequencePosition nextSequencePosition;
         private int bufferPos;
@@ -45,7 +48,7 @@ namespace Hagar.Buffers
                 }
                 else
                 {
-                    MoveNext();
+                    this.MoveNext();
                 }
             }
         }
@@ -77,15 +80,12 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte()
         {
-            if (this.bufferPos == this.bufferSize) MoveNext();
+            if (this.bufferPos == this.bufferSize) this.MoveNext();
             return this.currentSpan[this.bufferPos++];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ReadInt32()
-        {
-            return (int)ReadUInt32();
-        }
+        public int ReadInt32() => (int)this.ReadUInt32();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadUInt32()
@@ -109,10 +109,7 @@ namespace Hagar.Buffers
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long ReadInt64()
-        {
-            return (long)ReadUInt64();
-        }
+        public long ReadInt64() => (long)this.ReadUInt64();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadUInt64()
@@ -141,28 +138,25 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowInsufficientData()
-        {
-            throw new InvalidOperationException("Insufficient data present in buffer.");
-        }
+        private static void ThrowInsufficientData() => throw new InvalidOperationException("Insufficient data present in buffer.");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NETCOREAPP2_1
         public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 #else
-        public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
+        public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(this.ReadInt32()), 0);
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NETCOREAPP2_1
         public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
 #else
-        public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(ReadInt64()), 0);
+        public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(this.ReadInt64()), 0);
 #endif
 
         public decimal ReadDecimal()
         {
-            var parts = new[] { ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32() };
+            var parts = new[] {this.ReadInt32(), this.ReadInt32(), this.ReadInt32(), this.ReadInt32() };
             return new decimal(parts);
         }
         
@@ -175,7 +169,7 @@ namespace Hagar.Buffers
 
             var bytes = new byte[count];
             var destination = new Span<byte>(bytes);
-            ReadBytes(in destination);
+            this.ReadBytes(in destination);
             return bytes;
         }
         
@@ -225,7 +219,7 @@ namespace Hagar.Buffers
         {
             if (this.bufferPos + 5 > this.bufferSize)
             {
-                return ReadVarUInt32Slow();
+                return this.ReadVarUInt32Slow();
             }
 
             int tmp = this.currentSpan[this.bufferPos++];
@@ -264,7 +258,7 @@ namespace Hagar.Buffers
                             // use the fast path in more cases, and we rarely hit this section of code.
                             for (int i = 0; i < 5; i++)
                             {
-                                if (ReadByte() < 128)
+                                if (this.ReadByte() < 128)
                                 {
                                     return (uint)result;
                                 }
@@ -281,40 +275,40 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private uint ReadVarUInt32Slow()
         {
-            int tmp = ReadByte();
+            int tmp = this.ReadByte();
             if (tmp < 128)
             {
                 return (uint)tmp;
             }
             int result = tmp & 0x7f;
-            if ((tmp = ReadByte()) < 128)
+            if ((tmp = this.ReadByte()) < 128)
             {
                 result |= tmp << 7;
             }
             else
             {
                 result |= (tmp & 0x7f) << 7;
-                if ((tmp = ReadByte()) < 128)
+                if ((tmp = this.ReadByte()) < 128)
                 {
                     result |= tmp << 14;
                 }
                 else
                 {
                     result |= (tmp & 0x7f) << 14;
-                    if ((tmp = ReadByte()) < 128)
+                    if ((tmp = this.ReadByte()) < 128)
                     {
                         result |= tmp << 21;
                     }
                     else
                     {
                         result |= (tmp & 0x7f) << 21;
-                        result |= (tmp = ReadByte()) << 28;
+                        result |= (tmp = this.ReadByte()) << 28;
                         if (tmp >= 128)
                         {
                             // Discard upper 32 bits.
                             for (int i = 0; i < 5; i++)
                             {
-                                if (ReadByte() < 128)
+                                if (this.ReadByte() < 128)
                                 {
                                     return (uint)result;
                                 }
@@ -334,7 +328,7 @@ namespace Hagar.Buffers
         {
             if (this.bufferPos + 10 > this.bufferSize)
             {
-                return ReadVarUInt64Slow();
+                return this.ReadVarUInt64Slow();
             }
 
             long tmp = this.currentSpan[this.bufferPos++];
@@ -424,7 +418,7 @@ namespace Hagar.Buffers
             ulong result = 0;
             while (shift < 64)
             {
-                byte b = ReadByte();
+                byte b = this.ReadByte();
                 result |= (ulong)(b & 0x7F) << shift;
                 if ((b & 0x80) == 0)
                 {

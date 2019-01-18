@@ -7,9 +7,11 @@ namespace Hagar.CodeGenerator
 {
     internal class LibraryTypes
     {
+        private readonly Compilation compilation;
+
         public static LibraryTypes FromCompilation(Compilation compilation)
         {
-            return new LibraryTypes
+            return new LibraryTypes(compilation)
             {
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
@@ -20,11 +22,23 @@ namespace Hagar.CodeGenerator
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 Reader = Type("Hagar.Buffers.Reader"),
                 SerializerSession = Type("Hagar.Session.SerializerSession"),
+                Invokable = Type("Hagar.Invocation.Invokable"),
                 Object = compilation.GetSpecialType(SpecialType.System_Object),
                 Type = Type("System.Type"),
                 SerializerConfiguration = Type("Hagar.Configuration.SerializerConfiguration"),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
-                StaticCodecs = new List<StaticCodecDescription>()
+                GenerateMethodSerializersAttribute = Type("Hagar.GenerateMethodSerializersAttribute"),
+                GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
+                MetadataProviderAttribute = Type("Hagar.Configuration.MetadataProviderAttribute"),
+                IdAttribute = Type("Hagar.IdAttribute"),
+                IInvokable = Type("Hagar.Invocation.IInvokable"),
+                ITargetHolder = Type("Hagar.Invocation.ITargetHolder"),
+                ValueTask = Type("System.Threading.Tasks.ValueTask"),
+                Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
+                NonSerializedAttribute = Type("System.NonSerializedAttribute"),
+                InvalidOperationException = Type("System.InvalidOperationException"),
+                Void = compilation.GetSpecialType(SpecialType.System_Void),
+                StaticCodecs = new List<StaticCodecDescription>
                 {
                     new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Boolean), Type("Hagar.Codecs.BoolCodec")),
                     new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Char), Type("Hagar.Codecs.CharCodec")),
@@ -58,6 +72,22 @@ namespace Hagar.CodeGenerator
             }
         }
 
+        public INamedTypeSymbol InvalidOperationException { get; private set; }
+
+        public INamedTypeSymbol ITargetHolder { get; private set; }
+
+        public INamedTypeSymbol NonSerializedAttribute { get; private set; }
+
+        public INamedTypeSymbol Int32 { get; private set; }
+
+        private LibraryTypes(Compilation compilation) => this.compilation = compilation;
+
+        public INamedTypeSymbol MetadataProviderAttribute { get; private set; }
+
+        public INamedTypeSymbol IdAttribute { get; private set; }
+
+        public INamedTypeSymbol GenerateSerializerAttribute { get; private set; }
+
         public List<StaticCodecDescription> StaticCodecs { get; private set; }
 
         public INamedTypeSymbol TypedCodecProvider { get; private set; }
@@ -82,7 +112,15 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol PartialSerializer { get; private set; }
 
+        public INamedTypeSymbol Invokable { get; private set; }
+
         public INamedTypeSymbol ValueSerializer { get; private set; }
+
         public INamedTypeSymbol Byte { get; private set; }
+
+        public INamedTypeSymbol GenerateMethodSerializersAttribute { get; private set; }
+        public INamedTypeSymbol IInvokable { get; private set; }
+        public INamedTypeSymbol ValueTask { get; private set; }
+        public INamedTypeSymbol Void { get; private set; }
     }
 }

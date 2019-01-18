@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Hagar.Serializers;
 
@@ -76,5 +77,8 @@ namespace Hagar.GeneratedCodeHelpers
 
             return null;
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static TArgument InvokableThrowArgumentOutOfRange<TArgument>(int index, int maxArgs) => throw new ArgumentOutOfRangeException($"The argument index value {index} must be between 0 and {maxArgs}");
     }
 }
