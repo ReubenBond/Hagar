@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,173 +10,6 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
-    internal class MetadataModel
-    {
-        public List<ISerializableTypeDescription> SerializableTypes { get; } =
-            new List<ISerializableTypeDescription>(1024);
-
-        public List<IInvokableInterfaceDescription> InvokableInterfaces { get; } =
-            new List<IInvokableInterfaceDescription>(1024);
-        public Dictionary<MethodDescription, IGeneratedInvokerDescription> GeneratedInvokables { get; } = new Dictionary<MethodDescription, IGeneratedInvokerDescription>();
-        public List<IGeneratedProxyDescription> GeneratedProxies { get; } = new List<IGeneratedProxyDescription>(1024);
-    }
-
-    internal interface IMemberDescription
-    {
-        uint FieldId { get; }
-        ISymbol Member { get; }
-        ITypeSymbol Type { get; }
-        string Name { get; }
-    }
-
-    internal class FieldDescription : IMemberDescription
-    {
-        public FieldDescription(uint fieldId, IFieldSymbol field)
-        {
-            this.FieldId = fieldId;
-            this.Field = field;
-        }
-
-        public IFieldSymbol Field { get; }
-        public uint FieldId { get; }
-        public ISymbol Member => this.Field;
-        public ITypeSymbol Type => this.Field.Type;
-        public string Name => this.Field.Name;
-    }
-
-    internal class PropertyDescription : IMemberDescription
-    {
-        public PropertyDescription(uint fieldId, IPropertySymbol property)
-        {
-            this.FieldId = fieldId;
-            this.Property = property;
-        }
-
-        public uint FieldId { get; }
-        public ISymbol Member => this.Property;
-        public ITypeSymbol Type => this.Property.Type;
-        public IPropertySymbol Property { get; }
-        public string Name => this.Property.Name;
-    }
-
-    internal interface ISerializableTypeDescription
-    {
-        TypeSyntax TypeSyntax { get; }
-        TypeSyntax UnboundTypeSyntax { get; }
-        bool HasComplexBaseType { get; }
-        INamedTypeSymbol BaseType { get; }
-        string Name { get; }
-        bool IsValueType { get; }
-        bool IsGenericType { get; }
-        ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
-        List<IMemberDescription> Members { get; }
-    }
-
-    internal interface IGeneratedInvokerDescription : ISerializableTypeDescription
-    {
-        IInvokableInterfaceDescription InterfaceDescription { get; }
-    }
-
-    internal interface IInvokableInterfaceDescription
-    {
-        INamedTypeSymbol InterfaceType { get; }
-        List<MethodDescription> Methods { get; }
-        INamedTypeSymbol ProxyBaseType { get; }
-        bool IsExtension { get; }
-    }
-
-
-    internal interface IGeneratedProxyDescription
-    {
-        TypeSyntax TypeSyntax { get; }
-        IInvokableInterfaceDescription InterfaceDescription { get; }
-    }
-
-    internal class InvokableInterfaceDescription : IInvokableInterfaceDescription
-    {
-        public InvokableInterfaceDescription(
-            LibraryTypes libraryTypes,
-            INamedTypeSymbol interfaceType,
-            IEnumerable<MethodDescription> methods,
-            INamedTypeSymbol proxyBaseType,
-            bool isExtension)
-        {
-            this.ValidateBaseClass(libraryTypes, proxyBaseType);
-            this.InterfaceType = interfaceType;
-            this.ProxyBaseType = proxyBaseType;
-            this.IsExtension = isExtension;
-            this.Methods = methods.ToList();
-        }
-
-        void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
-        {
-            var found = false;
-            foreach (var member in baseClass.GetMembers("Invoke"))
-            {
-                if (!(member is IMethodSymbol method)) continue;
-                if (method.TypeParameters.Length != 1) continue;
-                if (method.Parameters.Length != 1) continue;
-                if (!method.Parameters[0].Type.Equals(method.TypeParameters[0])) continue;
-                if (!method.TypeParameters[0].ConstraintTypes.Contains(l.IInvokable)) continue;
-                if (!method.ReturnType.Equals(l.ValueTask)) continue;
-                found = true;
-            }
-
-            if (!found)
-            {
-                throw new InvalidOperationException(
-                    $"Proxy base class {baseClass} does not contain a definition for ValueTask Invoke<T>(T) where T : IInvokable");
-            }
-        }
-
-        public INamedTypeSymbol InterfaceType { get; }
-        public List<MethodDescription> Methods { get; }
-        public INamedTypeSymbol ProxyBaseType { get; }
-        public bool IsExtension { get; }
-    }
-
-    internal class SerializableTypeDescription : ISerializableTypeDescription
-    {
-        public SerializableTypeDescription(INamedTypeSymbol type, IEnumerable<IMemberDescription> members)
-        {
-            this.Type = type;
-            this.Members = members.ToList();
-        }
-
-        private INamedTypeSymbol Type { get; }
-
-        public TypeSyntax TypeSyntax => this.Type.ToTypeSyntax();
-        public TypeSyntax UnboundTypeSyntax => this.Type.ToTypeSyntax();
-
-        public bool HasComplexBaseType => !this.IsValueType &&
-                                          this.Type.BaseType != null &&
-                                          this.Type.BaseType.SpecialType != SpecialType.System_Object;
-
-        public INamedTypeSymbol BaseType => this.Type.BaseType;
-
-        public string Name => this.Type.Name;
-
-        public bool IsValueType => this.Type.IsValueType;
-
-        public bool IsGenericType => this.Type.IsGenericType;
-
-        public ImmutableArray<ITypeParameterSymbol> TypeParameters => this.Type.TypeParameters;
-
-        public List<IMemberDescription> Members { get; }
-    }
-
-    internal class MethodDescription
-    {
-        public MethodDescription(IMethodSymbol method)
-        {
-            this.Method = method;
-        }
-
-        public IMethodSymbol Method { get; }
-
-        public override int GetHashCode() => this.Method.GetHashCode();
-    }
-
     public class CodeGenerator
     {
         internal const string CodeGeneratorName = "HagarGen";
@@ -255,7 +86,7 @@ namespace Hagar.CodeGenerator
 
                     if (this.HasAttribute(symbol, this.libraryTypes.GenerateSerializerAttribute, inherited: true) != null)
                     {
-                        var typeDescription = new SerializableTypeDescription(symbol, this.GetDataMembers(symbol));
+                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, this.GetDataMembers(symbol));
                         metadataModel.SerializableTypes.Add(typeDescription);
                     }
 
@@ -271,6 +102,7 @@ namespace Hagar.CodeGenerator
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
                             var description = new InvokableInterfaceDescription(
                                 this.libraryTypes,
+                                semanticModel,
                                 symbol,
                                 this.GetMethods(symbol),
                                 baseClass,
@@ -320,30 +152,34 @@ namespace Hagar.CodeGenerator
                 // Only consider fields and properties.
                 if (!(member is IFieldSymbol || member is IPropertySymbol)) continue;
 
-                var idAttr = member.GetAttributes().SingleOrDefault(attr => attr.AttributeClass.Equals(this.libraryTypes.IdAttribute));
-                if (idAttr == null) continue;
-                var id = (uint)idAttr.ConstructorArguments.First().Value;
+                uint? GetId(ISymbol memberSymbol)
+                {
+                    var idAttr = memberSymbol.GetAttributes().SingleOrDefault(attr => attr.AttributeClass.Equals(this.libraryTypes.IdAttribute));
+                    if (idAttr == null) return null;
+                    var id = (uint)idAttr.ConstructorArguments.First().Value;
+                    return id;
+                }
 
                 if (member is IPropertySymbol prop)
                 {
-                    if (prop.IsReadOnly || prop.IsWriteOnly)
-                    {
-                        // TODO: add diagnostic: read-only property
-                        continue;
-                    }
-
-                    yield return new PropertyDescription(id, prop);
+                    var id = GetId(prop);
+                    if (!id.HasValue) continue;
+                    yield return new PropertyDescription(id.Value, prop);
                 }
 
                 if (member is IFieldSymbol field)
                 {
-                    if (field.IsConst || field.IsReadOnly)
+                    var id = GetId(field);
+                    if (!id.HasValue)
                     {
-                        // TODO: add diagnostic: read-only field 
-                        continue;
+                        prop = PropertyUtility.GetMatchingProperty(field);
+                        if (prop == null) continue;
+                        id = GetId(prop);
                     }
 
-                    yield return new FieldDescription(id, field);
+                    if (!id.HasValue) continue;
+
+                    yield return new FieldDescription(id.Value, field);
                 }
             }
         }

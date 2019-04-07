@@ -563,6 +563,7 @@ namespace Hagar.CodeGenerator
             public ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
             public List<IMemberDescription> Members { get; }
             public IInvokableInterfaceDescription InterfaceDescription { get; }
+            public SemanticModel SemanticModel => this.InterfaceDescription.SemanticModel;
         }
 
         public static string GetSimpleClassName(IMethodSymbol method)

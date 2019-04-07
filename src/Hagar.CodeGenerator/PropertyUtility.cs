@@ -1,0 +1,27 @@
+﻿using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+
+namespace Hagar.CodeGenerator
+{
+    public static class PropertyUtility
+    {
+        public static IPropertySymbol GetMatchingProperty(IFieldSymbol field)
+        {
+            var propertyName = Regex.Match(field.Name, "^<([^>]+)>.*$");
+            if (!propertyName.Success || field.ContainingType == null) return null;
+
+            var name = propertyName.Groups[1].Value;
+            var candidates = field.ContainingType
+                .GetMembers()
+                .OfType<IPropertySymbol>()
+                .Where(p => string.Equals(name, p.Name, StringComparison.Ordinal) && !p.IsAbstract)
+                .ToArray();
+
+            if (candidates.Length > 1) return null;
+            if (!field.Type.Equals(candidates[0].Type)) return null;
+            return candidates[0];
+        }
+    }
+}
