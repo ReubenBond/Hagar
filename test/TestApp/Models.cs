@@ -52,6 +52,52 @@ namespace MyPocos
     }
 
     [GenerateSerializer]
+    public class ImmutableClass
+    {
+        public ImmutableClass(int intProperty, int intField, int unmarkedField, int unmarkedProperty)
+        {
+            this.IntProperty = intProperty;
+            this.IntField = intField;
+            this.UnmarkedField = unmarkedField;
+            this.UnmarkedProperty = unmarkedProperty;
+        }
+
+        [Id(0)]
+        public int IntProperty { get; }
+
+        [Id(1)] private readonly int IntField;
+
+        public readonly int UnmarkedField;
+
+        public int UnmarkedProperty { get; }
+
+        public override string ToString()
+        {
+            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
+        }
+    }
+
+    [GenerateSerializer]
+    public struct ImmutableStruct
+    {
+        public ImmutableStruct(int intProperty, int intField)
+        {
+            this.IntProperty = intProperty;
+            this.IntField = intField;
+        }
+
+        [Id(0)]
+        public int IntProperty { get; }
+
+        [Id(1)] public readonly int IntField;
+
+        public override string ToString()
+        {
+            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
+        }
+    }
+
+    [GenerateSerializer]
     public class SerializableClassWithCompiledBase : List<int>
     {
         [Id(0)]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,29 +16,38 @@ namespace Hagar.CodeGenerator
         private const string SerializeMethodName = "Serialize";
         private const string DeserializeMethodName = "Deserialize";
 
-        public static ClassDeclarationSyntax GenerateSerializer(Compilation compilation, LibraryTypes libraryTypes, ISerializableTypeDescription serializableTypeDescription)
+        public static ClassDeclarationSyntax GenerateSerializer(Compilation compilation, LibraryTypes libraryTypes, ISerializableTypeDescription type)
         {
-            var simpleClassName = GetSimpleClassName(serializableTypeDescription);
+            var simpleClassName = GetSimpleClassName(type);
 
-            var serializerInterface = serializableTypeDescription.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer;
-            var baseInterface = serializerInterface.ToTypeSyntax(serializableTypeDescription.TypeSyntax);
+            var serializerInterface = type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer;
+            var baseInterface = serializerInterface.ToTypeSyntax(type.TypeSyntax);
 
-            var fieldDescriptions = GetFieldDescriptions(serializableTypeDescription, libraryTypes);
-            var fields = GetFieldDeclarations(fieldDescriptions);
+            var members = new List<SerializableMember>();
+            foreach (var member in type.Members)
+            {
+                if (member.Member is IFieldSymbol field)
+                {
+                    members.Add(new SerializableMember(libraryTypes, type, member, members.Count));
+                }
+            }
+
+            var fieldDescriptions = GetFieldDescriptions(type, members, libraryTypes);
+            var fieldDeclarations = GetFieldDeclarations(fieldDescriptions);
             var ctor = GenerateConstructor(simpleClassName, fieldDescriptions);
 
-            var serializeMethod = GenerateSerializeMethod(serializableTypeDescription, fieldDescriptions, libraryTypes);
-            var deserializeMethod = GenerateDeserializeMethod(serializableTypeDescription, fieldDescriptions, libraryTypes);
+            var serializeMethod = GenerateSerializeMethod(type, fieldDescriptions, members, libraryTypes);
+            var deserializeMethod = GenerateDeserializeMethod(type, fieldDescriptions, members, libraryTypes);
 
             var classDeclaration = ClassDeclaration(simpleClassName)
                 .AddBaseListTypes(SimpleBaseType(baseInterface))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
-                .AddMembers(fields)
+                .AddMembers(fieldDeclarations)
                 .AddMembers(ctor, serializeMethod, deserializeMethod);
-            if (serializableTypeDescription.IsGenericType)
+            if (type.IsGenericType)
             {
-                classDeclaration = AddGenericTypeConstraints(classDeclaration, serializableTypeDescription);
+                classDeclaration = AddGenericTypeConstraints(classDeclaration, type);
             }
 
             return classDeclaration;
@@ -99,6 +109,26 @@ namespace Hagar.CodeGenerator
                                     SingletonSeparatedList(VariableDeclarator(type.FieldName)
                                         .WithInitializer(EqualsValueClause(TypeOfExpression(type.UnderlyingType.ToTypeSyntax()))))))
                             .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword));
+                    case SetterFieldDescription setter:
+                        {
+                            var fieldSetterVariable = VariableDeclarator(setter.FieldName);
+
+                            return
+                                FieldDeclaration(VariableDeclaration(setter.FieldType).AddVariables(fieldSetterVariable))
+                                    .AddModifiers(
+                                        Token(SyntaxKind.PrivateKeyword),
+                                        Token(SyntaxKind.ReadOnlyKeyword));
+                        }
+                    case GetterFieldDescription getter:
+                        {
+                            var fieldGetterVariable = VariableDeclarator(getter.FieldName);
+
+                            return
+                                FieldDeclaration(VariableDeclaration(getter.FieldType).AddVariables(fieldGetterVariable))
+                                    .AddModifiers(
+                                        Token(SyntaxKind.PrivateKeyword),
+                                        Token(SyntaxKind.ReadOnlyKeyword));
+                        }
                     default:
                         return FieldDeclaration(VariableDeclaration(description.FieldType, SingletonSeparatedList(VariableDeclarator(description.FieldName))))
                             .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword));
@@ -110,30 +140,93 @@ namespace Hagar.CodeGenerator
         {
             var injected = fieldDescriptions.Where(f => f.IsInjected).ToList();
             var parameters = injected.Select(f => Parameter(f.FieldName.ToIdentifier()).WithType(f.FieldType));
-            var body = injected.Select(
-                f => (StatementSyntax) ExpressionStatement(
-                    AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        ThisExpression().Member(f.FieldName.ToIdentifierName()),
-                        Unwrapped(f.FieldName.ToIdentifierName()))));
+
+            var fieldAccessorUtility = AliasQualifiedName("global", IdentifierName("Hagar")).Member("Utilities").Member("FieldAccessor");
+
+            IEnumerable<StatementSyntax> GetStatements()
+            {
+                foreach (var field in fieldDescriptions)
+                {
+                    switch (field)
+                    {
+                        case GetterFieldDescription getter:
+                            yield return InitializeGetterField(getter);
+                            break;
+
+                        case SetterFieldDescription setter:
+                            yield return InitializeSetterField(setter);
+                            break;
+
+                        case FieldDescription _ when field.IsInjected:
+                            yield return ExpressionStatement(
+                                AssignmentExpression(
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    ThisExpression().Member(field.FieldName.ToIdentifierName()),
+                                    Unwrapped(field.FieldName.ToIdentifierName())));
+                            break;
+                    }
+                }
+            }
+
+            StatementSyntax InitializeGetterField(GetterFieldDescription getter)
+            {
+                var fieldInfo = GetFieldInfo(getter.Member.Field.ContainingType, getter.Member.Field.Name);
+                var accessorInvoke = CastExpression(
+                    getter.FieldType,
+                    InvocationExpression(fieldAccessorUtility.Member("GetGetter")).AddArgumentListArguments(Argument(fieldInfo)));
+
+                return ExpressionStatement(
+                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(getter.FieldName), accessorInvoke));
+            }
+
+            StatementSyntax InitializeSetterField(SetterFieldDescription setter)
+            {
+                var field = setter.Member.Field;
+                var fieldInfo = GetFieldInfo(field.ContainingType, field.Name);
+                var accessorMethod = setter.IsContainedByValueType ? "GetValueSetter" : "GetReferenceSetter";
+                var accessorInvoke = CastExpression(
+                    setter.FieldType,
+                    InvocationExpression(fieldAccessorUtility.Member(accessorMethod))
+                        .AddArgumentListArguments(Argument(fieldInfo)));
+
+                return ExpressionStatement(
+                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(setter.FieldName), accessorInvoke));
+            }
+
+            InvocationExpressionSyntax GetFieldInfo(INamedTypeSymbol containingType, string fieldName)
+            {
+                var bindingFlags = SymbolSyntaxExtensions.GetBindingFlagsParenthesizedExpressionSyntax(
+                    SyntaxKind.BitwiseOrExpression,
+                    BindingFlags.Instance,
+                    BindingFlags.NonPublic,
+                    BindingFlags.Public);
+                return InvocationExpression(TypeOfExpression(containingType.ToTypeSyntax()).Member("GetField"))
+                            .AddArgumentListArguments(
+                                Argument(fieldName.GetLiteralExpression()),
+                                Argument(bindingFlags));
+            }
+
             return ConstructorDeclaration(simpleClassName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters.ToArray())
-                .AddBodyStatements(body.ToArray());
+                .AddBodyStatements(GetStatements().ToArray());
 
             ExpressionSyntax Unwrapped(ExpressionSyntax expr)
             {
                 return InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("HagarGeneratedCodeHelper"), IdentifierName("UnwrapService")),
-                    ArgumentList(SeparatedList(new [] {Argument(ThisExpression()), Argument(expr)})));
+                    ArgumentList(SeparatedList(new[] { Argument(ThisExpression()), Argument(expr) })));
             }
         }
 
-        private static List<FieldDescription> GetFieldDescriptions(ISerializableTypeDescription serializableTypeDescription, LibraryTypes libraryTypes)
+        private static List<FieldDescription> GetFieldDescriptions(
+            ISerializableTypeDescription serializableTypeDescription,
+            List<SerializableMember> members,
+            LibraryTypes libraryTypes)
         {
             var fields = new List<FieldDescription>();
             fields.AddRange(serializableTypeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct().Select(GetTypeDescription));
-            
+
             if (serializableTypeDescription.HasComplexBaseType)
             {
                 fields.Add(new InjectedFieldDescription(libraryTypes.PartialSerializer.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeSerializerFieldName));
@@ -144,6 +237,20 @@ namespace Hagar.CodeGenerator
                 .Select(m => GetExpectedType(m.Type)).Distinct()
                 .Where(t => !libraryTypes.StaticCodecs.Any(c => c.UnderlyingType.Equals(t)))
                 .Select(GetCodecDescription));
+
+            foreach (var member in members)
+            {
+                if (!member.HasAccessibleGetter)
+                {
+                    fields.Add(GetGetterDescription(member));
+                }
+
+                if (!member.HasAccessibleSetter)
+                {
+                    fields.Add(GetSetterDescription(member));
+                }
+            }
+
             return fields;
 
             CodecFieldDescription GetCodecDescription(ITypeSymbol t)
@@ -157,6 +264,29 @@ namespace Hagar.CodeGenerator
             {
                 var fieldName = ToLowerCamelCase(t.GetValidIdentifier()) + "Type";
                 return new TypeFieldDescription(libraryTypes.Type.ToTypeSyntax(), fieldName, t);
+            }
+
+            GetterFieldDescription GetGetterDescription(SerializableMember member)
+            {
+                var containingType = member.Field.ContainingType;
+                var getterType = libraryTypes.Func_2.Construct(containingType, member.SafeType).ToTypeSyntax();
+                return new GetterFieldDescription(getterType, member.GetterFieldName, member.Field.Type, member);
+            }
+
+            SetterFieldDescription GetSetterDescription(SerializableMember member)
+            {
+                var containingType = member.Field.ContainingType;
+                TypeSyntax fieldType;
+                if (containingType != null && containingType.IsValueType)
+                {
+                    fieldType = libraryTypes.ValueTypeSetter_2.Construct(containingType, member.SafeType).ToTypeSyntax();
+                }
+                else
+                {
+                    fieldType = libraryTypes.Action_2.Construct(containingType, member.SafeType).ToTypeSyntax();
+                }
+
+                return new SetterFieldDescription(fieldType, member.SetterFieldName, member.Field.Type, member);
             }
 
             string ToLowerCamelCase(string input) => char.IsLower(input, 0) ? input : char.ToLowerInvariant(input[0]) + input.Substring(1);
@@ -177,8 +307,9 @@ namespace Hagar.CodeGenerator
         }
 
         private static MemberDeclarationSyntax GenerateSerializeMethod(
-            ISerializableTypeDescription serializableTypeDescription,
-            List<FieldDescription> fieldDescriptions,
+            ISerializableTypeDescription type,
+            List<FieldDescription> serializerFields,
+            List<SerializableMember> members,
             LibraryTypes libraryTypes)
         {
             var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
@@ -187,7 +318,7 @@ namespace Hagar.CodeGenerator
             var instanceParam = "instance".ToIdentifierName();
 
             var body = new List<StatementSyntax>();
-            if (serializableTypeDescription.HasComplexBaseType)
+            if (type.HasComplexBaseType)
             {
                 body.Add(
                     ExpressionStatement(
@@ -199,14 +330,15 @@ namespace Hagar.CodeGenerator
 
             // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
             uint previousFieldId = 0;
-            foreach (var member in serializableTypeDescription.Members.OrderBy(m => m.FieldId))
+            foreach (var member in members.OrderBy(m => m.Description.FieldId))
             {
-                var fieldIdDelta = member.FieldId - previousFieldId;
-                previousFieldId = member.FieldId;
+                var description = member.Description;
+                var fieldIdDelta = description.FieldId - previousFieldId;
+                previousFieldId = description.FieldId;
 
                 // Codecs can either be static classes or injected into the constructor.
                 // Either way, the member signatures are the same.
-                var memberType = GetExpectedType(member.Type);
+                var memberType = GetExpectedType(description.Type);
                 var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => c.UnderlyingType.Equals(memberType));
                 ExpressionSyntax codecExpression;
                 if (staticCodec != null)
@@ -215,11 +347,11 @@ namespace Hagar.CodeGenerator
                 }
                 else
                 {
-                    var instanceCodec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
+                    var instanceCodec = serializerFields.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
                     codecExpression = ThisExpression().Member(instanceCodec.FieldName);
                 }
 
-                var expectedType = fieldDescriptions.OfType<TypeFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
+                var expectedType = serializerFields.OfType<TypeFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
                 body.Add(
                     ExpressionStatement(
                         InvocationExpression(
@@ -231,17 +363,17 @@ namespace Hagar.CodeGenerator
                                         Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
                                         Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(fieldIdDelta))),
                                         Argument(expectedType.FieldName.ToIdentifierName()),
-                                        Argument(instanceParam.Member(member.Name))
+                                        Argument(member.GetGetter(instanceParam))
                                     })))));
             }
 
             var parameters = new[]
             {
                 Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
-                Parameter("instance".ToIdentifier()).WithType(serializableTypeDescription.TypeSyntax)
+                Parameter("instance".ToIdentifier()).WithType(type.TypeSyntax)
             };
 
-            if (serializableTypeDescription.IsValueType)
+            if (type.IsValueType)
             {
                 parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.InKeyword)));
             }
@@ -255,8 +387,9 @@ namespace Hagar.CodeGenerator
         }
 
         private static MemberDeclarationSyntax GenerateDeserializeMethod(
-            ISerializableTypeDescription serializableTypeDescription,
-            List<FieldDescription> fieldDescriptions,
+            ISerializableTypeDescription type,
+            List<FieldDescription> serializerFields,
+            List<SerializableMember> members,
             LibraryTypes libraryTypes)
         {
             var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
@@ -276,7 +409,7 @@ namespace Hagar.CodeGenerator
                             .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))))
             };
 
-            if (serializableTypeDescription.HasComplexBaseType)
+            if (type.HasComplexBaseType)
             {
                 // C#: this.baseTypeSerializer.Deserialize(ref reader, instance);
                 body.Add(
@@ -295,10 +428,10 @@ namespace Hagar.CodeGenerator
             var parameters = new[]
             {
                 Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
-                Parameter(instanceParam.Identifier).WithType(serializableTypeDescription.TypeSyntax)
+                Parameter(instanceParam.Identifier).WithType(type.TypeSyntax)
             };
-            
-            if (serializableTypeDescription.IsValueType)
+
+            if (type.IsValueType)
             {
                 parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
             }
@@ -342,19 +475,21 @@ namespace Hagar.CodeGenerator
             List<SwitchSectionSyntax> GetSwitchSections()
             {
                 var switchSections = new List<SwitchSectionSyntax>();
-                foreach (var member in serializableTypeDescription.Members)
+                foreach (var member in members)
                 {
+                    var description = member.Description;
+
                     // C#: case <fieldId>:
-                    var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(member.FieldId)));
+                    var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(description.FieldId)));
 
                     // C#: instance.<member> = this.<codec>.ReadValue(ref reader, header);
-                    var codec = fieldDescriptions.OfType<ICodecDescription>()
+                    var codec = serializerFields.OfType<ICodecDescription>()
                         .Concat(libraryTypes.StaticCodecs)
-                        .First(f => f.UnderlyingType.Equals(GetExpectedType(member.Type)));
-                    
+                        .First(f => f.UnderlyingType.Equals(GetExpectedType(description.Type)));
+
                     // Codecs can either be static classes or injected into the constructor.
                     // Either way, the member signatures are the same.
-                    var memberType = GetExpectedType(member.Type);
+                    var memberType = GetExpectedType(description.Type);
                     var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => c.UnderlyingType.Equals(memberType));
                     ExpressionSyntax codecExpression;
                     if (staticCodec != null)
@@ -363,21 +498,20 @@ namespace Hagar.CodeGenerator
                     }
                     else
                     {
-                        var instanceCodec = fieldDescriptions.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
+                        var instanceCodec = serializerFields.OfType<CodecFieldDescription>().First(f => f.UnderlyingType.Equals(memberType));
                         codecExpression = ThisExpression().Member(instanceCodec.FieldName);
                     }
 
                     ExpressionSyntax readValueExpression = InvocationExpression(
                         codecExpression.Member("ReadValue"),
-                        ArgumentList(SeparatedList(new[] {Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(headerVar)})));
+                        ArgumentList(SeparatedList(new[] { Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(headerVar) })));
                     if (!codec.UnderlyingType.Equals(member.Type))
                     {
                         // If the member type type differs from the codec type (eg because the member is an array), cast the result.
-                        readValueExpression = CastExpression(member.Type.ToTypeSyntax(), readValueExpression);
+                        readValueExpression = CastExpression(description.Type.ToTypeSyntax(), readValueExpression);
                     }
 
-                    var memberAssignment =
-                        ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, instanceParam.Member(member.Name), readValueExpression));
+                    var memberAssignment = ExpressionStatement(member.GetSetter(instanceParam, readValueExpression));
                     var caseBody = List(new StatementSyntax[] { memberAssignment, BreakStatement() });
 
                     // Create the switch section with a break at the end.
@@ -415,7 +549,7 @@ namespace Hagar.CodeGenerator
 
             public override bool IsInjected => true;
         }
-        
+
         internal class CodecFieldDescription : FieldDescription, ICodecDescription
         {
             public CodecFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
@@ -437,22 +571,225 @@ namespace Hagar.CodeGenerator
             public ITypeSymbol UnderlyingType { get; }
             public override bool IsInjected => false;
         }
-    }
-        internal interface ICodecDescription
-        {
-            ITypeSymbol UnderlyingType { get; }
-        }
 
-        internal class StaticCodecDescription : ICodecDescription
+        internal class SetterFieldDescription : FieldDescription
         {
-            public StaticCodecDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
+            public SetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, SerializableMember member) : base(fieldType, fieldName)
             {
-            this.UnderlyingType = underlyingType;
-            this.CodecType = codecType;
+                this.TargetFieldType = targetFieldType;
+                this.Member = member;
             }
 
-            public ITypeSymbol UnderlyingType { get; }
+            public SerializableMember Member { get; }
 
-            public INamedTypeSymbol CodecType { get; }
+            public ITypeSymbol TargetFieldType { get; }
+
+            public override bool IsInjected => false;
+
+            public bool IsContainedByValueType => this.Member.Field.ContainingType != null && this.Member.Field.ContainingType.IsValueType;
         }
+
+        internal class GetterFieldDescription : FieldDescription
+        {
+            public GetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, SerializableMember member) : base(fieldType, fieldName)
+            {
+                this.TargetFieldType = targetFieldType;
+                this.Member = member;
+            }
+
+            public SerializableMember Member { get; }
+            public ITypeSymbol TargetFieldType { get; }
+
+            public override bool IsInjected => false;
+        }
+    }
+
+    /// <summary>
+    /// Represents a serializable member (field/property) of a type.
+    /// </summary>
+    internal class SerializableMember
+    {
+        private readonly SemanticModel model;
+        private readonly LibraryTypes wellKnownTypes;
+        private IPropertySymbol property;
+
+        /// <summary>
+        /// The ordinal assigned to this field.
+        /// </summary>
+        private readonly int ordinal;
+
+        public SerializableMember(LibraryTypes wellKnownTypes, ISerializableTypeDescription type, IMemberDescription member, int ordinal)
+        {
+            this.wellKnownTypes = wellKnownTypes;
+            this.model = type.SemanticModel;
+            this.Description = member;
+            this.ordinal = ordinal;
+        }
+
+        public IMemberDescription Description { get; }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Field"/> instance.
+        /// </summary>
+        public IFieldSymbol Field => (IFieldSymbol)this.Description.Member;
+
+        /// <summary>
+        /// Gets a usable representation of the field type.
+        /// </summary>
+        /// <remarks>
+        /// If the field is of type 'dynamic', we represent it as 'object' because 'dynamic' cannot appear in typeof expressions.
+        /// </remarks>
+        public ITypeSymbol SafeType => this.Field.Type.TypeKind == TypeKind.Dynamic
+            ? this.wellKnownTypes.Object
+            : this.Field.Type;
+
+        /// <summary>
+        /// Gets the name of the getter field.
+        /// </summary>
+        public string GetterFieldName => "getField" + this.ordinal;
+
+        /// <summary>
+        /// Gets the name of the setter field.
+        /// </summary>
+        public string SetterFieldName => "setField" + this.ordinal;
+
+        public bool HasAccessibleGetter => !this.IsObsolete && (this.IsGettableProperty || this.IsGettableField);
+
+        private bool IsGettableField => IsDeclaredAccessible(this.Field) && this.model.IsAccessible(0, this.Field);
+
+        /// <summary>
+        /// Gets a value indicating whether or not this field represents a property with an accessible, non-obsolete getter. 
+        /// </summary>
+        private bool IsGettableProperty => this.Property?.GetMethod != null && this.model.IsAccessible(0, this.Property.GetMethod) && !this.IsObsolete;
+
+        public bool HasAccessibleSetter => this.IsSettableProperty || this.IsSettableField;
+
+        private bool IsSettableField => !this.Field.IsReadOnly && IsDeclaredAccessible(this.Field) && this.model.IsAccessible(0, this.Field);
+
+        /// <summary>
+        /// Gets a value indicating whether or not this field represents a property with an accessible, non-obsolete setter. 
+        /// </summary>
+        private bool IsSettableProperty => this.Property?.SetMethod != null && this.model.IsAccessible(0, this.Property.SetMethod) && !this.IsObsolete;
+
+        /// <summary>
+        /// Gets syntax representing the type of this field.
+        /// </summary>
+        public TypeSyntax Type => this.SafeType.ToTypeSyntax();
+
+        /// <summary>
+        /// Gets the <see cref="Property"/> which this field is the backing property for, or
+        /// <see langword="null" /> if this is not the backing field of an auto-property.
+        /// </summary>
+        private IPropertySymbol Property
+        {
+            get
+            {
+                if (this.property != null)
+                {
+                    return this.property;
+                }
+
+                return this.property = PropertyUtility.GetMatchingProperty(this.Field);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether or not this field is obsolete.
+        /// </summary>
+        private bool IsObsolete => this.Field.HasAttribute(this.wellKnownTypes.ObsoleteAttribute) ||
+                                   this.Property != null && this.Property.HasAttribute(this.wellKnownTypes.ObsoleteAttribute);
+
+        /// <summary>
+        /// Returns syntax for retrieving the value of this field, deep copying it if necessary.
+        /// </summary>
+        /// <param name="instance">The instance of the containing type.</param>
+        /// <param name="serializationContextExpression">The expression used to retrieve the serialization context.</param>
+        /// <param name="forceAvoidCopy">Whether or not to ensure that no copy of the field is made.</param>
+        /// <returns>Syntax for retrieving the value of this field.</returns>
+        public ExpressionSyntax GetGetter(ExpressionSyntax instance)
+        {
+            // If the field is the backing field for an accessible auto-property use the property directly.
+            ExpressionSyntax result;
+            if (this.IsGettableProperty)
+            {
+                result = instance.Member(this.Property.Name);
+            }
+            else if (this.IsGettableField)
+            {
+                result = instance.Member(this.Field.Name);
+            }
+            else
+            {
+                // Retrieve the field using the generated getter.
+                result =
+                    InvocationExpression(IdentifierName(this.GetterFieldName))
+                        .AddArgumentListArguments(Argument(instance));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns syntax for setting the value of this field.
+        /// </summary>
+        /// <param name="instance">The instance of the containing type.</param>
+        /// <param name="value">Syntax for the new value.</param>
+        /// <returns>Syntax for setting the value of this field.</returns>
+        public ExpressionSyntax GetSetter(ExpressionSyntax instance, ExpressionSyntax value)
+        {
+            // If the field is the backing field for an accessible auto-property use the property directly.
+            if (this.IsSettableProperty)
+            {
+                return AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    instance.Member(this.Property.Name),
+                    value);
+            }
+
+            if (this.IsSettableField)
+            {
+                return AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    instance.Member(this.Field.Name),
+                    value);
+            }
+
+            var instanceArg = Argument(instance);
+            if (this.Field.ContainingType != null && this.Field.ContainingType.IsValueType)
+            {
+                instanceArg = instanceArg.WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword));
+            }
+
+            return
+                InvocationExpression(IdentifierName(this.SetterFieldName))
+                    .AddArgumentListArguments(instanceArg, Argument(value));
+        }
+
+        private bool IsDeclaredAccessible(ISymbol symbol)
+        {
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Public:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// A comparer for <see cref="SerializableMember"/> which compares by name.
+        /// </summary>
+        public class Comparer : IComparer<SerializableMember>
+        {
+            /// <summary>
+            /// Gets the singleton instance of this class.
+            /// </summary>
+            public static Comparer Instance { get; } = new Comparer();
+
+            public int Compare(SerializableMember x, SerializableMember y)
+            {
+                return string.Compare(x?.Field.Name, y?.Field.Name, StringComparison.Ordinal);
+            }
+        }
+    }
 }

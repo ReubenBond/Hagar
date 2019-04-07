@@ -41,9 +41,30 @@ namespace Hagar.UnitTests
         public void GeneratedSerializersRoundTripThroughSerializer()
         {
             var original = new SomeClassWithSerializers { IntField = 2, IntProperty = 30 };
-            var result = (SomeClassWithSerializers) this.RoundTripThroughUntypedSerializer(original);
+            var result = (SomeClassWithSerializers)this.RoundTripThroughUntypedSerializer(original);
 
             Assert.Equal(original.IntField, result.IntField);
+            Assert.Equal(original.IntProperty, result.IntProperty);
+        }
+
+        [Fact]
+        public void GeneratedSerializersRoundTripThroughSerializer_ImmutableClass()
+        {
+            var original = new ImmutableClass(30, 2, 88, 99);
+            var result = (ImmutableClass)this.RoundTripThroughUntypedSerializer(original);
+
+            Assert.Equal(original.GetIntField(), result.GetIntField());
+            Assert.Equal(original.IntProperty, result.IntProperty);
+            Assert.Equal(0, result.UnmarkedField);
+            Assert.Equal(0, result.UnmarkedProperty);
+        }
+        [Fact]
+        public void GeneratedSerializersRoundTripThroughSerializer_ImmutableStruct()
+        {
+            var original = new ImmutableStruct(30, 2);
+            var result = (ImmutableStruct)this.RoundTripThroughUntypedSerializer(original);
+
+            Assert.Equal(original.GetIntField(), result.GetIntField());
             Assert.Equal(original.IntProperty, result.IntProperty);
         }
 

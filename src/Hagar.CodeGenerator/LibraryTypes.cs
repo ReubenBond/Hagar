@@ -13,6 +13,7 @@ namespace Hagar.CodeGenerator
         {
             return new LibraryTypes(compilation)
             {
+                Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
                 ValueSerializer = Type("Hagar.Serializers.IValueSerializer`1"),
@@ -38,6 +39,9 @@ namespace Hagar.CodeGenerator
                 NonSerializedAttribute = Type("System.NonSerializedAttribute"),
                 InvalidOperationException = Type("System.InvalidOperationException"),
                 Void = compilation.GetSpecialType(SpecialType.System_Void),
+                ObsoleteAttribute = Type("System.ObsoleteAttribute"),
+                Func_2 = Type("System.Func`2"),
+                ValueTypeSetter_2 = Type("Hagar.Utilities.ValueTypeSetter`2"),
                 StaticCodecs = new List<StaticCodecDescription>
                 {
                     new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Boolean), Type("Hagar.Codecs.BoolCodec")),
@@ -75,6 +79,10 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol InvalidOperationException { get; private set; }
 
         public INamedTypeSymbol ITargetHolder { get; private set; }
+        public INamedTypeSymbol ObsoleteAttribute { get; private set; }
+        public INamedTypeSymbol Action_2 { get; private set; }
+        public INamedTypeSymbol Func_2 { get; private set; }
+        public INamedTypeSymbol ValueTypeSetter_2 { get; private set; }
 
         public INamedTypeSymbol NonSerializedAttribute { get; private set; }
 
