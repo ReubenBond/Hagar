@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Hagar.CodeGenerator.SyntaxGeneration;
@@ -10,16 +11,30 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
+    public class CodeGeneratorOptions
+    {
+        public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
+
+        public bool GenerateFieldIds { get; set; } = true;
+    }
+
     public class CodeGenerator
     {
         internal const string CodeGeneratorName = "HagarGen";
         private readonly Compilation compilation;
         private readonly LibraryTypes libraryTypes;
+        private readonly CodeGeneratorOptions options;
+        private INamedTypeSymbol[] generateSerializerAttributes;
 
-        public CodeGenerator(Compilation compilation)
+        public CodeGenerator(Compilation compilation, CodeGeneratorOptions options)
         {
             this.compilation = compilation;
+            this.options = options;
             this.libraryTypes = LibraryTypes.FromCompilation(compilation);
+            if (options.GenerateSerializerAttributes != null)
+            {
+                this.generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
+            }
         }
 
         public async Task<CompilationUnitSyntax> GenerateCode(CancellationToken cancellationToken)
@@ -84,7 +99,21 @@ namespace Hagar.CodeGenerator
                 {
                     var symbol = semanticModel.GetDeclaredSymbol(node);
 
-                    if (this.HasAttribute(symbol, this.libraryTypes.GenerateSerializerAttribute, inherited: true) != null)
+                    bool ShouldGenerateSerializer(INamedTypeSymbol t)
+                    {
+                        if (this.HasAttribute(t, this.libraryTypes.GenerateSerializerAttribute, inherited: true) != null) return true;
+                        if (this.generateSerializerAttributes != null)
+                        {
+                            foreach (var attr in this.generateSerializerAttributes)
+                            {
+                                if (this.HasAttribute(t, attr, inherited: true) != null) return true;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    if (ShouldGenerateSerializer(symbol))
                     {
                         var typeDescription = new SerializableTypeDescription(semanticModel, symbol, this.GetDataMembers(symbol));
                         metadataModel.SerializableTypes.Add(typeDescription);
@@ -147,10 +176,30 @@ namespace Hagar.CodeGenerator
         // Returns descriptions of all data members (fields and properties) 
         private IEnumerable<IMemberDescription> GetDataMembers(INamedTypeSymbol symbol)
         {
+            var hasAttributes = false;
+            foreach (var member in symbol.GetMembers())
+            {
+                if (member.HasAttribute(this.libraryTypes.NonSerializedAttribute))
+                {
+                    continue;
+                }
+
+                if (member.HasAttribute(this.libraryTypes.IdAttribute))
+                {
+                    hasAttributes = true;
+                    break;
+                }
+            }
+
             foreach (var member in symbol.GetMembers())
             {
                 // Only consider fields and properties.
                 if (!(member is IFieldSymbol || member is IPropertySymbol)) continue;
+
+                if (member.HasAttribute(this.libraryTypes.NonSerializedAttribute))
+                {
+                    continue;
+                }
 
                 uint? GetId(ISymbol memberSymbol)
                 {
@@ -163,7 +212,12 @@ namespace Hagar.CodeGenerator
                 if (member is IPropertySymbol prop)
                 {
                     var id = GetId(prop);
-                    if (!id.HasValue) continue;
+                    if (!id.HasValue)
+                    {
+                        if (hasAttributes || !this.options.GenerateFieldIds) continue;
+                        id = JenkinsHash.ComputeHash(Encoding.UTF8.GetBytes(member.MetadataName));
+                    }
+
                     yield return new PropertyDescription(id.Value, prop);
                 }
 
@@ -173,11 +227,22 @@ namespace Hagar.CodeGenerator
                     if (!id.HasValue)
                     {
                         prop = PropertyUtility.GetMatchingProperty(field);
+
                         if (prop == null) continue;
+
+                        if (prop.HasAttribute(this.libraryTypes.NonSerializedAttribute))
+                        {
+                            continue;
+                        }
+
                         id = GetId(prop);
                     }
 
-                    if (!id.HasValue) continue;
+                    if (!id.HasValue)
+                    {
+                        if (hasAttributes || !this.options.GenerateFieldIds) continue;
+                        id = JenkinsHash.ComputeHash(Encoding.UTF8.GetBytes(member.MetadataName));
+                    }
 
                     yield return new FieldDescription(id.Value, field);
                 }

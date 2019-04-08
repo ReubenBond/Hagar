@@ -58,6 +58,7 @@ namespace Hagar.UnitTests
             Assert.Equal(0, result.UnmarkedField);
             Assert.Equal(0, result.UnmarkedProperty);
         }
+
         [Fact]
         public void GeneratedSerializersRoundTripThroughSerializer_ImmutableStruct()
         {

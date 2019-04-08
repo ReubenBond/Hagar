@@ -602,193 +602,193 @@ namespace Hagar.CodeGenerator
 
             public override bool IsInjected => false;
         }
-    }
-
-    /// <summary>
-    /// Represents a serializable member (field/property) of a type.
-    /// </summary>
-    internal class SerializableMember
-    {
-        private readonly SemanticModel model;
-        private readonly LibraryTypes wellKnownTypes;
-        private IPropertySymbol property;
 
         /// <summary>
-        /// The ordinal assigned to this field.
+        /// Represents a serializable member (field/property) of a type.
         /// </summary>
-        private readonly int ordinal;
-
-        public SerializableMember(LibraryTypes wellKnownTypes, ISerializableTypeDescription type, IMemberDescription member, int ordinal)
+        internal class SerializableMember
         {
-            this.wellKnownTypes = wellKnownTypes;
-            this.model = type.SemanticModel;
-            this.Description = member;
-            this.ordinal = ordinal;
-        }
+            private readonly SemanticModel model;
+            private readonly LibraryTypes wellKnownTypes;
+            private IPropertySymbol property;
 
-        public IMemberDescription Description { get; }
+            /// <summary>
+            /// The ordinal assigned to this field.
+            /// </summary>
+            private readonly int ordinal;
 
-        /// <summary>
-        /// Gets the underlying <see cref="Field"/> instance.
-        /// </summary>
-        public IFieldSymbol Field => (IFieldSymbol)this.Description.Member;
-
-        /// <summary>
-        /// Gets a usable representation of the field type.
-        /// </summary>
-        /// <remarks>
-        /// If the field is of type 'dynamic', we represent it as 'object' because 'dynamic' cannot appear in typeof expressions.
-        /// </remarks>
-        public ITypeSymbol SafeType => this.Field.Type.TypeKind == TypeKind.Dynamic
-            ? this.wellKnownTypes.Object
-            : this.Field.Type;
-
-        /// <summary>
-        /// Gets the name of the getter field.
-        /// </summary>
-        public string GetterFieldName => "getField" + this.ordinal;
-
-        /// <summary>
-        /// Gets the name of the setter field.
-        /// </summary>
-        public string SetterFieldName => "setField" + this.ordinal;
-
-        public bool HasAccessibleGetter => !this.IsObsolete && (this.IsGettableProperty || this.IsGettableField);
-
-        private bool IsGettableField => IsDeclaredAccessible(this.Field) && this.model.IsAccessible(0, this.Field);
-
-        /// <summary>
-        /// Gets a value indicating whether or not this field represents a property with an accessible, non-obsolete getter. 
-        /// </summary>
-        private bool IsGettableProperty => this.Property?.GetMethod != null && this.model.IsAccessible(0, this.Property.GetMethod) && !this.IsObsolete;
-
-        public bool HasAccessibleSetter => this.IsSettableProperty || this.IsSettableField;
-
-        private bool IsSettableField => !this.Field.IsReadOnly && IsDeclaredAccessible(this.Field) && this.model.IsAccessible(0, this.Field);
-
-        /// <summary>
-        /// Gets a value indicating whether or not this field represents a property with an accessible, non-obsolete setter. 
-        /// </summary>
-        private bool IsSettableProperty => this.Property?.SetMethod != null && this.model.IsAccessible(0, this.Property.SetMethod) && !this.IsObsolete;
-
-        /// <summary>
-        /// Gets syntax representing the type of this field.
-        /// </summary>
-        public TypeSyntax Type => this.SafeType.ToTypeSyntax();
-
-        /// <summary>
-        /// Gets the <see cref="Property"/> which this field is the backing property for, or
-        /// <see langword="null" /> if this is not the backing field of an auto-property.
-        /// </summary>
-        private IPropertySymbol Property
-        {
-            get
+            public SerializableMember(LibraryTypes wellKnownTypes, ISerializableTypeDescription type, IMemberDescription member, int ordinal)
             {
-                if (this.property != null)
+                this.wellKnownTypes = wellKnownTypes;
+                this.model = type.SemanticModel;
+                this.Description = member;
+                this.ordinal = ordinal;
+            }
+
+            public IMemberDescription Description { get; }
+
+            /// <summary>
+            /// Gets the underlying <see cref="Field"/> instance.
+            /// </summary>
+            public IFieldSymbol Field => (IFieldSymbol)this.Description.Member;
+
+            /// <summary>
+            /// Gets a usable representation of the field type.
+            /// </summary>
+            /// <remarks>
+            /// If the field is of type 'dynamic', we represent it as 'object' because 'dynamic' cannot appear in typeof expressions.
+            /// </remarks>
+            public ITypeSymbol SafeType => this.Field.Type.TypeKind == TypeKind.Dynamic
+                ? this.wellKnownTypes.Object
+                : this.Field.Type;
+
+            /// <summary>
+            /// Gets the name of the getter field.
+            /// </summary>
+            public string GetterFieldName => "getField" + this.ordinal;
+
+            /// <summary>
+            /// Gets the name of the setter field.
+            /// </summary>
+            public string SetterFieldName => "setField" + this.ordinal;
+
+            public bool HasAccessibleGetter => !this.IsObsolete && (this.IsGettableProperty || this.IsGettableField);
+
+            private bool IsGettableField => IsDeclaredAccessible(this.Field) && this.model.IsAccessible(0, this.Field);
+
+            /// <summary>
+            /// Gets a value indicating whether or not this field represents a property with an accessible, non-obsolete getter. 
+            /// </summary>
+            private bool IsGettableProperty => this.Property?.GetMethod != null && this.model.IsAccessible(0, this.Property.GetMethod) && !this.IsObsolete;
+
+            public bool HasAccessibleSetter => this.IsSettableProperty || this.IsSettableField;
+
+            private bool IsSettableField => !this.Field.IsReadOnly && IsDeclaredAccessible(this.Field) && this.model.IsAccessible(0, this.Field);
+
+            /// <summary>
+            /// Gets a value indicating whether or not this field represents a property with an accessible, non-obsolete setter. 
+            /// </summary>
+            private bool IsSettableProperty => this.Property?.SetMethod != null && this.model.IsAccessible(0, this.Property.SetMethod) && !this.IsObsolete;
+
+            /// <summary>
+            /// Gets syntax representing the type of this field.
+            /// </summary>
+            public TypeSyntax Type => this.SafeType.ToTypeSyntax();
+
+            /// <summary>
+            /// Gets the <see cref="Property"/> which this field is the backing property for, or
+            /// <see langword="null" /> if this is not the backing field of an auto-property.
+            /// </summary>
+            private IPropertySymbol Property
+            {
+                get
                 {
-                    return this.property;
+                    if (this.property != null)
+                    {
+                        return this.property;
+                    }
+
+                    return this.property = PropertyUtility.GetMatchingProperty(this.Field);
+                }
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether or not this field is obsolete.
+            /// </summary>
+            private bool IsObsolete => this.Field.HasAttribute(this.wellKnownTypes.ObsoleteAttribute) ||
+                                       this.Property != null && this.Property.HasAttribute(this.wellKnownTypes.ObsoleteAttribute);
+
+            /// <summary>
+            /// Returns syntax for retrieving the value of this field, deep copying it if necessary.
+            /// </summary>
+            /// <param name="instance">The instance of the containing type.</param>
+            /// <param name="serializationContextExpression">The expression used to retrieve the serialization context.</param>
+            /// <param name="forceAvoidCopy">Whether or not to ensure that no copy of the field is made.</param>
+            /// <returns>Syntax for retrieving the value of this field.</returns>
+            public ExpressionSyntax GetGetter(ExpressionSyntax instance)
+            {
+                // If the field is the backing field for an accessible auto-property use the property directly.
+                ExpressionSyntax result;
+                if (this.IsGettableProperty)
+                {
+                    result = instance.Member(this.Property.Name);
+                }
+                else if (this.IsGettableField)
+                {
+                    result = instance.Member(this.Field.Name);
+                }
+                else
+                {
+                    // Retrieve the field using the generated getter.
+                    result =
+                        InvocationExpression(IdentifierName(this.GetterFieldName))
+                            .AddArgumentListArguments(Argument(instance));
                 }
 
-                return this.property = PropertyUtility.GetMatchingProperty(this.Field);
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether or not this field is obsolete.
-        /// </summary>
-        private bool IsObsolete => this.Field.HasAttribute(this.wellKnownTypes.ObsoleteAttribute) ||
-                                   this.Property != null && this.Property.HasAttribute(this.wellKnownTypes.ObsoleteAttribute);
-
-        /// <summary>
-        /// Returns syntax for retrieving the value of this field, deep copying it if necessary.
-        /// </summary>
-        /// <param name="instance">The instance of the containing type.</param>
-        /// <param name="serializationContextExpression">The expression used to retrieve the serialization context.</param>
-        /// <param name="forceAvoidCopy">Whether or not to ensure that no copy of the field is made.</param>
-        /// <returns>Syntax for retrieving the value of this field.</returns>
-        public ExpressionSyntax GetGetter(ExpressionSyntax instance)
-        {
-            // If the field is the backing field for an accessible auto-property use the property directly.
-            ExpressionSyntax result;
-            if (this.IsGettableProperty)
-            {
-                result = instance.Member(this.Property.Name);
-            }
-            else if (this.IsGettableField)
-            {
-                result = instance.Member(this.Field.Name);
-            }
-            else
-            {
-                // Retrieve the field using the generated getter.
-                result =
-                    InvocationExpression(IdentifierName(this.GetterFieldName))
-                        .AddArgumentListArguments(Argument(instance));
+                return result;
             }
 
-            return result;
-        }
-
-        /// <summary>
-        /// Returns syntax for setting the value of this field.
-        /// </summary>
-        /// <param name="instance">The instance of the containing type.</param>
-        /// <param name="value">Syntax for the new value.</param>
-        /// <returns>Syntax for setting the value of this field.</returns>
-        public ExpressionSyntax GetSetter(ExpressionSyntax instance, ExpressionSyntax value)
-        {
-            // If the field is the backing field for an accessible auto-property use the property directly.
-            if (this.IsSettableProperty)
-            {
-                return AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    instance.Member(this.Property.Name),
-                    value);
-            }
-
-            if (this.IsSettableField)
-            {
-                return AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    instance.Member(this.Field.Name),
-                    value);
-            }
-
-            var instanceArg = Argument(instance);
-            if (this.Field.ContainingType != null && this.Field.ContainingType.IsValueType)
-            {
-                instanceArg = instanceArg.WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword));
-            }
-
-            return
-                InvocationExpression(IdentifierName(this.SetterFieldName))
-                    .AddArgumentListArguments(instanceArg, Argument(value));
-        }
-
-        private bool IsDeclaredAccessible(ISymbol symbol)
-        {
-            switch (symbol.DeclaredAccessibility)
-            {
-                case Accessibility.Public:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
-        /// A comparer for <see cref="SerializableMember"/> which compares by name.
-        /// </summary>
-        public class Comparer : IComparer<SerializableMember>
-        {
             /// <summary>
-            /// Gets the singleton instance of this class.
+            /// Returns syntax for setting the value of this field.
             /// </summary>
-            public static Comparer Instance { get; } = new Comparer();
-
-            public int Compare(SerializableMember x, SerializableMember y)
+            /// <param name="instance">The instance of the containing type.</param>
+            /// <param name="value">Syntax for the new value.</param>
+            /// <returns>Syntax for setting the value of this field.</returns>
+            public ExpressionSyntax GetSetter(ExpressionSyntax instance, ExpressionSyntax value)
             {
-                return string.Compare(x?.Field.Name, y?.Field.Name, StringComparison.Ordinal);
+                // If the field is the backing field for an accessible auto-property use the property directly.
+                if (this.IsSettableProperty)
+                {
+                    return AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        instance.Member(this.Property.Name),
+                        value);
+                }
+
+                if (this.IsSettableField)
+                {
+                    return AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        instance.Member(this.Field.Name),
+                        value);
+                }
+
+                var instanceArg = Argument(instance);
+                if (this.Field.ContainingType != null && this.Field.ContainingType.IsValueType)
+                {
+                    instanceArg = instanceArg.WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword));
+                }
+
+                return
+                    InvocationExpression(IdentifierName(this.SetterFieldName))
+                        .AddArgumentListArguments(instanceArg, Argument(value));
+            }
+
+            private bool IsDeclaredAccessible(ISymbol symbol)
+            {
+                switch (symbol.DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            /// <summary>
+            /// A comparer for <see cref="SerializableMember"/> which compares by name.
+            /// </summary>
+            public class Comparer : IComparer<SerializableMember>
+            {
+                /// <summary>
+                /// Gets the singleton instance of this class.
+                /// </summary>
+                public static Comparer Instance { get; } = new Comparer();
+
+                public int Compare(SerializableMember x, SerializableMember y)
+                {
+                    return string.Compare(x?.Field.Name, y?.Field.Name, StringComparison.Ordinal);
+                }
             }
         }
     }
