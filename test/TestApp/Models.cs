@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hagar;
@@ -6,6 +7,13 @@ using TestApp;
 
 namespace MyPocos
 {
+    [Serializable]
+    public class ClassWithoutGenerateSerializers
+    {
+        public int MyInt { get; set; }
+        public int MyInt2 { get; set; }
+    }
+
     public abstract class MyProxyBaseClass
     {
         public List<IInvokable> Invocations { get; } = new List<IInvokable>();

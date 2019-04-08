@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -114,7 +114,7 @@ namespace Hagar.CodeGenerator.MSBuild
 
                 if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName)) return false;
 
-                var generator = new CodeGenerator(compilation);
+                var generator = new CodeGenerator(compilation, new CodeGeneratorOptions());
                 stopwatch.Restart();
                 var syntax = await generator.GenerateCode(cancellationToken);
                 this.Log.LogInformation($"GenerateCode completed in {stopwatch.ElapsedMilliseconds}ms.");

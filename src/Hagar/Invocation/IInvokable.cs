@@ -46,14 +46,7 @@ namespace Hagar.Invocation
         /// <typeparam name="TResult">The result type.</typeparam>
         /// <param name="value">The result value.</param>
         void SetResult<TResult>(in TResult value);
-
-        /// <summary>
-        /// Serializes the result to the provided <paramref name="writer"/>.
-        /// </summary>
-        /// <typeparam name="TBufferWriter">The underlying buffer writer type.</typeparam>
-        /// <param name="writer">The buffer writer.</param>
-        //void SerializeResult<TBufferWriter>(ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>;
-
+        
         /// <summary>
         /// Gets the number of arguments.
         /// </summary>
