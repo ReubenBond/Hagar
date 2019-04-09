@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -16,10 +16,10 @@ namespace Hagar.CodeGenerator
             var candidates = field.ContainingType
                 .GetMembers()
                 .OfType<IPropertySymbol>()
-                .Where(p => string.Equals(name, p.Name, StringComparison.Ordinal) && !p.IsAbstract)
+                .Where(p => string.Equals(name, p.Name, StringComparison.Ordinal) && !p.IsAbstract && !p.IsStatic)
                 .ToArray();
 
-            if (candidates.Length > 1) return null;
+            if (candidates.Length != 1) return null;
             if (!field.Type.Equals(candidates[0].Type)) return null;
             return candidates[0];
         }

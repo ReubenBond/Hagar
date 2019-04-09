@@ -101,6 +101,7 @@ namespace Hagar.CodeGenerator
 
                     bool ShouldGenerateSerializer(INamedTypeSymbol t)
                     {
+                        if (!semanticModel.IsAccessible(0, t)) return false;
                         if (this.HasAttribute(t, this.libraryTypes.GenerateSerializerAttribute, inherited: true) != null) return true;
                         if (this.generateSerializerAttributes != null)
                         {
@@ -179,6 +180,7 @@ namespace Hagar.CodeGenerator
             var hasAttributes = false;
             foreach (var member in symbol.GetMembers())
             {
+                if (member.IsStatic) continue;
                 if (member.HasAttribute(this.libraryTypes.NonSerializedAttribute))
                 {
                     continue;
@@ -191,7 +193,8 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            foreach (var member in symbol.GetMembers())
+            var nextFieldId = 0U;
+            foreach (var member in symbol.GetMembers().OrderBy(m => m.MetadataName))
             {
                 // Only consider fields and properties.
                 if (!(member is IFieldSymbol || member is IPropertySymbol)) continue;
@@ -215,7 +218,7 @@ namespace Hagar.CodeGenerator
                     if (!id.HasValue)
                     {
                         if (hasAttributes || !this.options.GenerateFieldIds) continue;
-                        id = JenkinsHash.ComputeHash(Encoding.UTF8.GetBytes(member.MetadataName));
+                        id = ++nextFieldId;
                     }
 
                     yield return new PropertyDescription(id.Value, prop);
@@ -241,7 +244,7 @@ namespace Hagar.CodeGenerator
                     if (!id.HasValue)
                     {
                         if (hasAttributes || !this.options.GenerateFieldIds) continue;
-                        id = JenkinsHash.ComputeHash(Encoding.UTF8.GetBytes(member.MetadataName));
+                        id = nextFieldId++;
                     }
 
                     yield return new FieldDescription(id.Value, field);
