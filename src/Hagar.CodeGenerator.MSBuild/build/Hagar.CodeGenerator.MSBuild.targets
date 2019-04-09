@@ -57,7 +57,12 @@
       Update the file which captures the total set of all inputs to the code generator.
       This is based on the _GenerateCompileDependencyCache target from the .NET project system.
   -->
-  <Target Name="HagarGenerateInputCache" DependsOnTargets="ResolveAssemblyReferences" BeforeTargets="HagarGenerateCode">
+  <Target
+    Name="HagarGenerateInputCache"
+    DependsOnTargets="ResolveAssemblyReferences"
+    BeforeTargets="HagarGenerateCode"
+    Inputs="$(Hagar_CodeGenInputs)"
+    Outputs="$(Hagar_CodeGenInputCache)">
 
     <Hash ItemsToHash="@(Hagar_CodeGenInputs)">
       <Output TaskParameter="HashResult" PropertyName="Hagar_UpdatedInputCacheContents" />
