@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <LangVersion>latest</LangVersion>
     <HagarCodeGen>true</HagarCodeGen>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
