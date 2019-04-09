@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -55,7 +56,8 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(ISerializableTypeDescription serializableType)
         {
-            return $"{CodeGenerator.CodeGeneratorName}_Serializer_{serializableType.Name}";
+            var uniquifier = RuntimeHelpers.GetHashCode(serializableType).ToString("X");
+            return $"{CodeGenerator.CodeGeneratorName}_Serializer_{serializableType.Name}_{uniquifier}";
         }
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(ClassDeclarationSyntax classDeclaration, ISerializableTypeDescription serializableType)
