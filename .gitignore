@@ -265,3 +265,4 @@ __pycache__/
 *.binlog
 /_site/
 /docs/api/.manifest
+.ionide/
