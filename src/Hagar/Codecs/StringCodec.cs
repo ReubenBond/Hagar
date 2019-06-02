@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Hagar.Buffers;
@@ -23,7 +24,7 @@ namespace Hagar.Codecs
             var length = reader.ReadVarUInt32();
 
             string result;
-#if NETCOREAPP2_1
+#if NETCOREAPP2_2
             if (reader.TryReadBytes((int) length, out var span))
             {
                 result = Encoding.UTF8.GetString(span);
@@ -50,10 +51,31 @@ namespace Hagar.Codecs
             if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
-            // TODO: use Span<byte>
+#if NETCOREAPP2_2
+            var numBytes = Encoding.UTF8.GetByteCount(value);
+            writer.WriteVarInt((uint)numBytes);
+            if (numBytes < 512) writer.EnsureContiguous(numBytes);
+            var currentSpan = writer.WritableSpan;
+
+            // If there is enough room in the current span for the encoded data,
+            // then encode directly into the output buffer.
+            if (numBytes <= currentSpan.Length)
+            {
+                Encoding.UTF8.GetBytes(value, currentSpan);
+                writer.AdvanceSpan(numBytes);
+            }
+            else
+            {
+                // Note: there is room for optimization here.
+                Span<byte> bytes = Encoding.UTF8.GetBytes(value);
+                writer.Write(bytes);
+            }
+#else
             var bytes = Encoding.UTF8.GetBytes(value);
             writer.WriteVarInt((uint) bytes.Length);
             writer.Write(bytes);
+#endif
+
         }
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(

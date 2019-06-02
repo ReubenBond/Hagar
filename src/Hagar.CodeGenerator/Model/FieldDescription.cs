@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Hagar.CodeGenerator
 {
-    internal class FieldDescription : IMemberDescription
+    internal class FieldDescription : IFieldDescription
     {
         public FieldDescription(uint fieldId, IFieldSymbol field)
         {
@@ -15,4 +15,6 @@ namespace Hagar.CodeGenerator
         public ITypeSymbol Type => this.Field.Type;
         public string Name => this.Field.Name;
     }
+
+    internal interface IFieldDescription : IMemberDescription { }
 }

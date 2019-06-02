@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,12 +33,16 @@ namespace Benchmarks
         private readonly List<ArraySegment<byte>> orleansBytes;
         private readonly long readBytesLength;
         private SimpleStruct structValue;
-        
+
         public ComplexTypeBenchmarks()
         {
             this.orleansSerializer = new ClientBuilder()
                 .ConfigureDefaults()
                 .UseLocalhostClustering()
+                .ConfigureServices(s => s.ToList().ForEach(r =>
+                {
+                    if (r.ServiceType == typeof(IConfigurationValidator)) s.Remove(r);
+                }))
                 .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
                 .Build().ServiceProvider.GetRequiredService<SerializationManager>();
