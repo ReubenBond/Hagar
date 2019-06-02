@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
     <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != '' ">$(TestTargetFrameworks)</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.2</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.2;net472</TargetFrameworks>
