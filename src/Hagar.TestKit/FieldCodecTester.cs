@@ -92,9 +92,9 @@ namespace Hagar.TestKit
 
             foreach (var original in this.TestValues)
             {
-                var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
+                var buffer = new TestMultiSegmentBufferWriter(1024);
 
-                var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, this.sessionPool.GetSession());
+                var writer = new Writer<TestMultiSegmentBufferWriter>(buffer, this.sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
                 var reader = new Reader(buffer.GetReadOnlySequence(0), this.sessionPool.GetSession());

@@ -24,7 +24,7 @@ namespace Hagar.CodeGenerator
         private readonly Compilation compilation;
         private readonly LibraryTypes libraryTypes;
         private readonly CodeGeneratorOptions options;
-        private INamedTypeSymbol[] generateSerializerAttributes;
+        private readonly INamedTypeSymbol[] generateSerializerAttributes;
 
         public CodeGenerator(Compilation compilation, CodeGeneratorOptions options)
         {

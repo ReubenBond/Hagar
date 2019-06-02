@@ -18,7 +18,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(Guid), WireType.Fixed128);
-#if NETCOREAPP2_1
+#if NETCOREAPP2_2
             writer.EnsureContiguous(Width);
             if (value.TryWriteBytes(writer.WritableSpan))
             {
@@ -37,15 +37,14 @@ namespace Hagar.Codecs
         public static Guid ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
-#if NETCOREAPP2_1
+#if NETCOREAPP2_2
             if (reader.TryReadBytes(Width, out var readOnly))
             {
                 return new Guid(readOnly);
             }
 
-            // TODO: stackalloc
-            Span<byte> bytes = new byte[Width];
-            reader.ReadBytes(in bytes);
+            Span<byte> bytes = stackalloc byte[Width];
+            for (var i = 0; i < Width; i++) bytes[i] = reader.ReadByte();
             return new Guid(bytes);
 #else
             return new Guid(reader.ReadBytes(Width));

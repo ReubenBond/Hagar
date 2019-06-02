@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using BenchmarkDotNet.Attributes;
@@ -50,6 +51,10 @@ namespace Benchmarks.Comparison
             OrleansSerializer = new ClientBuilder()
                 .ConfigureDefaults()
                 .UseLocalhostClustering()
+                .ConfigureServices(s => s.ToList().ForEach(r =>
+                {
+                    if (r.ServiceType == typeof(IConfigurationValidator)) s.Remove(r);
+                }))
                 .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
                 .Configure<SerializationProviderOptions>(options => options.FallbackSerializationProvider = typeof(SupportsNothingSerializer).GetTypeInfo())
