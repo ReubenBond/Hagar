@@ -20,7 +20,7 @@ namespace Benchmarks.Utilities
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase) => GetValue(summary, benchmarkCase, null);
 
-        public string GetValue(Summary summary, BenchmarkCase benchmarkCase, ISummaryStyle style) => this.formatter(CallMethod(benchmarkCase));
+        public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style) => this.formatter(CallMethod(benchmarkCase));
 
         private static object CallMethod(BenchmarkCase benchmarkCase)
         {
