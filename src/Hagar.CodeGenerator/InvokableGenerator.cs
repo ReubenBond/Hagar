@@ -170,7 +170,7 @@ namespace Hagar.CodeGenerator
                                                     Literal(
                                                         Math.Max(0, methodDescription.Method.Parameters.Length - 1))))
                                         })))))));
-            var body = SwitchStatement(index, new SyntaxList<SwitchSectionSyntax>(cases));
+            var body = SwitchStatement(ParenthesizedExpression(index), new SyntaxList<SwitchSectionSyntax>(cases));
             return MethodDeclaration(type, "GetArgument")
                 .WithTypeParameterList(TypeParameterList(SingletonSeparatedList(TypeParameter(typeToken))))
                 .WithParameterList(
@@ -249,7 +249,7 @@ namespace Hagar.CodeGenerator
                                             })))),
                             ReturnStatement()
                         })));
-            var body = SwitchStatement(index, new SyntaxList<SwitchSectionSyntax>(cases));
+            var body = SwitchStatement(ParenthesizedExpression(index), new SyntaxList<SwitchSectionSyntax>(cases));
             return MethodDeclaration(libraryTypes.Void.ToTypeSyntax(), "SetArgument")
                 .WithTypeParameterList(TypeParameterList(SingletonSeparatedList(TypeParameter(typeToken))))
                 .WithParameterList(

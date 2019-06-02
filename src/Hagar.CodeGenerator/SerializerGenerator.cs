@@ -469,7 +469,7 @@ namespace Hagar.CodeGenerator
                             MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, headerVar, IdentifierName("FieldIdDelta")))),
 
                     // C#: switch (fieldId) { ... }
-                    SwitchStatement(fieldIdVar, List(GetSwitchSections()))
+                    SwitchStatement(ParenthesizedExpression(fieldIdVar), List(GetSwitchSections()))
                 };
             }
 
