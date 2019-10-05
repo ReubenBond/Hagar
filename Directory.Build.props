@@ -7,7 +7,6 @@
     <Copyright>Copyright © Reuben Bond 2019</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/dotnet/orleans/gh-pages/assets/logo_128.png</PackageIconUrl>
     <PackageTags>Serializer Span</PackageTags>
     <PackageReleaseNotes></PackageReleaseNotes>
     <RepositoryUrl>https://github.com/ReubenBond/Hagar</RepositoryUrl>
@@ -49,9 +48,10 @@
   </PropertyGroup>
 
   <!-- SourceLink -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02 " PrivateAssets="All" />
-  </ItemGroup>
+  <PropertyGroup>
+    <SourceLinkCreate>true</SourceLinkCreate>
+    <SourceLinkOriginUrl>https://github.com/ReubenBond/Hagar</SourceLinkOriginUrl>
+  </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/build/Hagar.CodeGenerator.MSBuild.props" />
 </Project>

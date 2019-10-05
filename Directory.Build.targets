@@ -1,4 +1,8 @@
-<Project TreatAsLocalProperty="Asm">
+<Project>
+
+  <ItemGroup Condition="'$(IsPackable)'=='true' and '$(SourceLinkCreate)'=='true' and '$(IncludeBuildOutput)'=='true'">
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="all" />
+  </ItemGroup>
 
   <!-- Solution bootstrapping for code generation -->
   <PropertyGroup Condition=" '$(HagarCodeGen)' == 'true' ">
