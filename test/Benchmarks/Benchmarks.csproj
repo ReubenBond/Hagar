@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
     <PlatformTarget>x64</PlatformTarget>
@@ -11,20 +11,22 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
-    <PackageReference Include="Hyperion" Version="0.9.8" />
+    <PackageReference Include="Hyperion" Version="0.9.9" />
     <PackageReference Include="MessagePack" Version="1.7.3.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Orleans.Core" Version="2.3.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="2.4.2" />
     <PackageReference Include="protobuf-net" Version="2.4.0" />
-    <PackageReference Include="SpanJson" Version="2.0.14" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="2.3.3" />
+    <PackageReference Include="SpanJson" Version="3.0.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.6.0" />
+    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="2.4.2" />
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.6.0" />
+    <PackageReference Include="System.CodeDom" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>

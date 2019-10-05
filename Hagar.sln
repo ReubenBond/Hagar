@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2A14EA5B-AB5E-4486-A746-B834A1C0F290}"
 EndProject
@@ -25,8 +25,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Abstractions", "src\H
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild", "src\Hagar.CodeGenerator.MSBuild\Hagar.CodeGenerator.MSBuild.csproj", "{E027C482-0B30-4875-8929-CA0B7831C786}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hagar.ObjectModel", "src\Hagar.ObjectModel\Hagar.ObjectModel.fsproj", "{1FCCA413-929B-447A-839D-E69510E9C1E5}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{231D8C82-38D8-44E0-92CC-B52579A5658E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild.Bootstrap", "src\Hagar.CodeGenerator.MSBuild.Bootstrap\Hagar.CodeGenerator.MSBuild.Bootstrap.csproj", "{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}"
@@ -48,7 +46,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild.Tasks", "src\Hagar.CodeGenerator.MSBuild.Tasks\Hagar.CodeGenerator.MSBuild.Tasks.csproj", "{5656539A-233B-45BC-ADF1-9C804820FFCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRpc", "TestRpc\TestRpc.csproj", "{D8C98426-966B-4FCB-AB70-1165444BFFE2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestRpc", "TestRpc\TestRpc.csproj", "{D8C98426-966B-4FCB-AB70-1165444BFFE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,10 +90,6 @@ Global
 		{E027C482-0B30-4875-8929-CA0B7831C786}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E027C482-0B30-4875-8929-CA0B7831C786}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E027C482-0B30-4875-8929-CA0B7831C786}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FCCA413-929B-447A-839D-E69510E9C1E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1FCCA413-929B-447A-839D-E69510E9C1E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FCCA413-929B-447A-839D-E69510E9C1E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1FCCA413-929B-447A-839D-E69510E9C1E5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -126,7 +120,6 @@ Global
 		{8D7C998B-6B7C-48A5-A83C-7650959F2DDA} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{BDD7F440-A1E4-46B8-8A66-2F8E96FF3F08} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{E027C482-0B30-4875-8929-CA0B7831C786} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
-		{1FCCA413-929B-447A-839D-E69510E9C1E5} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{633EF412-DF66-4FD5-8D0B-D5CD91E1D208} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{6023811E-B6F6-4879-ABB2-77515FEA6C5F} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
 		{5656539A-233B-45BC-ADF1-9C804820FFCC} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}

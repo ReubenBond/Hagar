@@ -704,8 +704,6 @@ namespace Hagar.CodeGenerator
             /// Returns syntax for retrieving the value of this field, deep copying it if necessary.
             /// </summary>
             /// <param name="instance">The instance of the containing type.</param>
-            /// <param name="serializationContextExpression">The expression used to retrieve the serialization context.</param>
-            /// <param name="forceAvoidCopy">Whether or not to ensure that no copy of the field is made.</param>
             /// <returns>Syntax for retrieving the value of this field.</returns>
             public ExpressionSyntax GetGetter(ExpressionSyntax instance)
             {

@@ -31,8 +31,6 @@ namespace Benchmarks.Comparison
 
         private static readonly byte[] MsgPackInput = MessagePack.MessagePackSerializer.Serialize(IntClass.Create());
 
-        private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(VirtualIntsClass.Create());
-
         private static readonly string NewtonsoftJsonInput = JsonConvert.SerializeObject(IntClass.Create());
 
         private static readonly byte[] SpanJsonInput = SpanJson.JsonSerializer.Generic.Utf8.Serialize(IntClass.Create());
@@ -147,12 +145,6 @@ namespace Benchmarks.Comparison
         {
             HyperionInput.Position = 0;
             return SumResult(HyperionSerializer.Deserialize<IntClass>(HyperionInput));
-        }
-
-        [Benchmark]
-        public int ZeroFormatter()
-        {
-            return SumResult(ZeroFormatterSerializer.Deserialize<VirtualIntsClass>(ZeroFormatterInput));
         }
 
         [Benchmark]

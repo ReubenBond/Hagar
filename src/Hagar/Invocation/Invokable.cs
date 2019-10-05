@@ -27,7 +27,7 @@ namespace Hagar.Invocation
         /// <inheritdoc />
         public abstract void SetResult<TResult>(in TResult value);
 
-        /// <inheritdoc />
+        ///// <inheritdoc />
         //public abstract void SerializeResult<TBufferWriter>(ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>;
 
         /// <inheritdoc />

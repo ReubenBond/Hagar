@@ -3,16 +3,17 @@
   <!-- Solution bootstrapping for code generation -->
   <PropertyGroup Condition=" '$(HagarCodeGen)' == 'true' ">
     <DotNetHost Condition="'$(DotNetHost)' == ''">dotnet</DotNetHost>
-    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/bin/publish/$(Configuration)/netcoreapp2.2/Hagar.CodeGenerator.MSBuild.Bootstrap.dll</HagarCodeGenCoreAssembly>
-    <HagarCodeGenTaskAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/bin/publish/$(Configuration)/netcoreapp2.2/Hagar.CodeGenerator.MSBuild.Tasks.dll</HagarCodeGenTaskAssembly>
+    <HagarCodeGenCoreAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/bin/publish/$(Configuration)/netcoreapp3.0/Hagar.CodeGenerator.MSBuild.Bootstrap.dll</HagarCodeGenCoreAssembly>
+    <HagarCodeGenTaskAssembly>$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/bin/publish/$(Configuration)/netcoreapp3.0/Hagar.CodeGenerator.MSBuild.Tasks.dll</HagarCodeGenTaskAssembly>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(HagarCodeGen)' == 'true' ">
     <ProjectReference Include="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild.Bootstrap/Hagar.CodeGenerator.MSBuild.Bootstrap.csproj" Condition=" '$(HagarCodeGen)' == 'true' ">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <AssetTargetFallback>netcoreapp2.2</AssetTargetFallback>
+      <AssetTargetFallback>netcoreapp3.0</AssetTargetFallback>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <UndefineProperties>TargetFramework</UndefineProperties>
+      <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
 

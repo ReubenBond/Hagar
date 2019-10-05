@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
 
 namespace Hagar.CodeGenerator.MSBuild
@@ -204,10 +203,6 @@ namespace Hagar.CodeGenerator.MSBuild
                 if (languageName == LanguageNames.CSharp)
                 {
                     return new CSharpCompilationOptions(kind.Value);
-                }
-                if (languageName == LanguageNames.VisualBasic)
-                {
-                    return new VisualBasicCompilationOptions(kind.Value);
                 }
             }
 

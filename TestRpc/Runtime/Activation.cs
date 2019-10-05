@@ -9,7 +9,7 @@ namespace TestRpc.Runtime
 {
     internal static class RuntimeActivationContext
     {
-        [ThreadStatic] internal static Activation currentActivation;
+        [ThreadStatic] internal static Activation currentActivation = null;
 
         public static Activation CurrentActivation => currentActivation;
     }

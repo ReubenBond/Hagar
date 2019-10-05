@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Hagar.CodeGenerator.MSBuild
@@ -81,8 +82,9 @@ namespace Hagar.CodeGenerator.MSBuild
                     }
                 }
 
-                loggerFactory.AddConsole(logLevel);
-                cmd.Log = loggerFactory.CreateLogger("Hagar.CodeGenerator");
+                var serviceProvider = new ServiceCollection().AddLogging(logging => logging.AddConsole().SetMinimumLevel(logLevel)).BuildServiceProvider();
+                
+                cmd.Log = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Hagar.CodeGenerator");
                 var stopwatch = Stopwatch.StartNew();
                 var ok = cmd.Execute(CancellationToken.None).GetAwaiter().GetResult();
                 cmd.Log.LogInformation($"Code generation completed in {stopwatch.ElapsedMilliseconds}ms.");
