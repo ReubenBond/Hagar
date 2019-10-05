@@ -209,7 +209,7 @@ namespace Hagar.CodeGenerator
                 uint? GetId(ISymbol memberSymbol)
                 {
                     var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => this.libraryTypes.IdAttributeTypes.Any(t => t.Equals(attr.AttributeClass)));
-                    if (idAttr == null) return null;
+                    if (idAttr is null) return null;
                     var id = (uint)idAttr.ConstructorArguments.First().Value;
                     return id;
                 }
@@ -233,7 +233,7 @@ namespace Hagar.CodeGenerator
                     {
                         prop = PropertyUtility.GetMatchingProperty(field);
 
-                        if (prop == null) continue;
+                        if (prop is null) continue;
 
                         if (prop.HasAttribute(this.libraryTypes.NonSerializedAttribute))
                         {

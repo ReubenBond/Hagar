@@ -39,7 +39,7 @@ namespace Hagar.Utilities
         private static Delegate GetGetDelegate(FieldInfo field, Type delegateType, Type[] parameterTypes)
         {
             var declaringType = field.DeclaringType;
-            if (declaringType == null)
+            if (declaringType is null)
             {
                 throw new InvalidOperationException("Field " + field.Name + " does not have a declaring type.");
             }
@@ -78,7 +78,7 @@ namespace Hagar.Utilities
         public static Delegate GetValueSetter(FieldInfo field)
         {
             var declaringType = field.DeclaringType;
-            if (declaringType == null)
+            if (declaringType is null)
             {
                 throw new InvalidOperationException("Field " + field.Name + " does not have a declaring type.");
             }
@@ -102,7 +102,7 @@ namespace Hagar.Utilities
         private static Delegate GetSetDelegate(FieldInfo field, Type delegateType, Type[] parameterTypes)
         {
             var declaringType = field.DeclaringType;
-            if (declaringType == null)
+            if (declaringType is null)
             {
                 throw new InvalidOperationException("Field " + field.Name + " does not have a declaring type.");
             }

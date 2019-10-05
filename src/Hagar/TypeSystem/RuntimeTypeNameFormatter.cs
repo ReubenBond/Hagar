@@ -35,7 +35,7 @@ namespace Hagar.TypeSystem
         /// </returns>
         public static string Format(TypeInfo type)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (type is null) throw new ArgumentNullException(nameof(type));
 
             if (!Cache.TryGetValue(type, out var result))
             {

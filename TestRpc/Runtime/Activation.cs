@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace TestRpc.Runtime
         private readonly Dictionary<Type, object> extensions = new Dictionary<Type, object>();
         private readonly ChannelReader<Message> pending;
         private readonly ChannelWriter<Message> incoming;
-        private readonly Dictionary<int, Invokable> callbacks = new Dictionary<int, Invokable>();
+        private readonly Dictionary<int, IResponseCompletionSource> callbacks = new Dictionary<int, IResponseCompletionSource>();
         private int nextMessageId;
 
         public Activation(ActivationId id, object activation, IRuntimeClient runtimeClient)
@@ -40,7 +41,7 @@ namespace TestRpc.Runtime
 
         public TTarget GetTarget<TTarget>() => (TTarget)this.activation;
 
-        public TExtension GetExtension<TExtension>() => (TExtension)this.extensions[typeof(TExtension)];
+        public TComponent GetComponent<TComponent>() => (TComponent)this.extensions[typeof(TComponent)];
 
         public void OnSendMessage(Message message)
         {
@@ -48,11 +49,9 @@ namespace TestRpc.Runtime
             message.Source = this.ActivationId;
         }
 
-        public ValueTask EnqueueMessage(Message request)
+        public bool TryEnqueueMessage(Message request)
         {
-            if (this.incoming.TryWrite(request)) return default;
-
-            return this.incoming.WriteAsync(request);
+            return this.incoming.TryWrite(request);
         }
 
         public async Task Run(CancellationToken cancellation)
@@ -61,45 +60,63 @@ namespace TestRpc.Runtime
             {
                 while (this.pending.TryRead(out var message))
                 {
-                    var result = HandleMessage(message);
-                    if (result.IsCompletedSuccessfully) continue;
-                    await result;
+                    HandleMessage(message);
                 }
             }
         }
 
-        private ValueTask HandleMessage(Message message)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void HandleMessage(Message message)
         {
             switch (message.Direction)
             {
                 case Direction.Request:
-                {
-                    var invokable = (Invokable)message.Body;
-                    invokable.SetTarget(this);
-                    var resultTask = invokable.Invoke();
-                    if (resultTask.IsCompletedSuccessfully)
                     {
-                        return this.runtimeClient.SendResponse(message.Source, invokable.Result);
+                        var invokable = (IInvokable)message.Body;
+                        invokable.SetTarget(this);
+                        var responseTask = invokable.Invoke();
+                        if (responseTask.IsCompleted)
+                        {
+                            // Ensure the message is disposed upon leaving this scope.
+                            using var _ = message;
+
+                            this.runtimeClient.SendResponse(message.MessageId, message.Source, responseTask.Result);
+                            return;
+                        }
+
+                        _ = HandleRequestAsync();
+                        return;
+
+                        async ValueTask HandleRequestAsync()
+                        {
+                            // Ensure the message is disposed upon leaving this scope.
+                            using var _ = message;
+
+                            runtimeClient.SendResponse(message.MessageId, message.Source, await responseTask);
+                        }
                     }
 
-                    return HandleRequestAsync(resultTask);
-
-                    async ValueTask HandleRequestAsync(ValueTask invokeTask)
-                    {
-                        await invokeTask;
-                        await this.runtimeClient.SendResponse(message.Source, invokable.Result);
-                    }
-                }
                 case Direction.Response:
-                {
-                    var invokable = this.callbacks[message.MessageId];
-                    invokable.SetResult(message.Body);
-                    // TODO: run continuation....
-                    return default;
-                }
+                    {
+                        // Ensure the message is disposed upon leaving this scope.
+                        using var _ = message;
+
+                        var completion = this.callbacks[message.MessageId];
+                        completion.Complete((Response)message.Body);
+                        return;
+                    }
+
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    {
+                        // Ensure the message is disposed upon leaving this scope.
+                        using var _ = message;
+                        ThrowArgumentOutOfRange();
+                        return;
+                    }
             }
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void ThrowArgumentOutOfRange() => throw new ArgumentOutOfRangeException();
     }
 }

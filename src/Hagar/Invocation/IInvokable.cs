@@ -1,11 +1,13 @@
+using System;
 using System.Threading.Tasks;
 
 namespace Hagar.Invocation
 {
+
     /// <summary>
     /// Represents an object which can be invoked asynchronously.
     /// </summary>
-    public interface IInvokable
+    public interface IInvokable : IDisposable
     {
         /// <summary>
         /// Gets the invocation target.
@@ -24,29 +26,8 @@ namespace Hagar.Invocation
         /// <summary>
         /// Invoke the object.
         /// </summary>
-        /// <returns>A <see cref="ValueTask"/> which will complete when the invocation is complete.</returns>
-        ValueTask Invoke();
+        ValueTask<Response> Invoke();
 
-        /// <summary>
-        /// Gets or sets the result of invocation.
-        /// </summary>
-        /// <remarks>This property is internally set by <see cref="Invoke"/>.</remarks>
-        object Result { get; set; }
-
-        /// <summary>
-        /// Gets the result.
-        /// </summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <returns>The result.</returns>
-        TResult GetResult<TResult>();
-
-        /// <summary>
-        /// Sets the result.
-        /// </summary>
-        /// <typeparam name="TResult">The result type.</typeparam>
-        /// <param name="value">The result value.</param>
-        void SetResult<TResult>(in TResult value);
-        
         /// <summary>
         /// Gets the number of arguments.
         /// </summary>
@@ -67,10 +48,5 @@ namespace Hagar.Invocation
         /// <param name="index">The argument index.</param>
         /// <param name="value">The argument value</param>
         void SetArgument<TArgument>(int index, in TArgument value);
-
-        /// <summary>
-        /// Resets this instance.
-        /// </summary>
-        void Reset();
     }
 }

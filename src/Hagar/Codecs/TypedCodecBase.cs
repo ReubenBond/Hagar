@@ -11,7 +11,7 @@ namespace Hagar.Codecs
         public TypedCodecBase()
         {
             this.codec = this as TCodec;
-            if (this.codec == null) ThrowInvalidSubclass();
+            if (this.codec is null) ThrowInvalidSubclass();
         }
 
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value)

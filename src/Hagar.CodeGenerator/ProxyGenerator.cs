@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Hagar.CodeGenerator.SyntaxGeneration;
-using Hagar.CodeGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -222,7 +221,7 @@ namespace Hagar.CodeGenerator
             {
                 var method = methodDescription.Method;
                 var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(), method.Name)
-                    .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword))
+                    .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddParameterListParameters(method.Parameters.Select(GetParameterSyntax).ToArray())
                     .WithBody(
                         CreateProxyMethodBody(libraryTypes, metadataModel, interfaceDescription, methodDescription));
@@ -254,12 +253,12 @@ namespace Hagar.CodeGenerator
             MethodDescription methodDescription)
         {
             var statements = new List<StatementSyntax>();
-
-            // Create request object
+            
+            var completionVar = IdentifierName("completion");
             var requestVar = IdentifierName("request");
 
             var requestDescription = metadataModel.GeneratedInvokables[methodDescription];
-            var createRequestExpr = ObjectCreationExpression(requestDescription.TypeSyntax)
+            var createRequestExpr = InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", requestDescription.TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
 
             statements.Add(
@@ -286,19 +285,55 @@ namespace Hagar.CodeGenerator
                 parameterIndex++;
             }
 
+            ITypeSymbol returnType;
+            var methodReturnType = (INamedTypeSymbol)methodDescription.Method.ReturnType;
+            if (methodReturnType.TypeParameters.Length == 1)
+            {
+                returnType = methodReturnType.TypeArguments[0];
+            }
+            else
+            {
+                returnType = libraryTypes.Object;
+            }
+
+            var createCompletionExpr = InvocationExpression(libraryTypes.ResponseCompletionSourcePool.ToTypeSyntax().Member("Get", returnType.ToTypeSyntax()))
+                .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
+            statements.Add(
+                LocalDeclarationStatement(
+                    VariableDeclaration(
+                        ParseTypeName("var"),
+                        SingletonSeparatedList(
+                            VariableDeclarator(
+                                    Identifier("completion"))
+                                .WithInitializer(
+                                    EqualsValueClause(createCompletionExpr))))));
+
             // Issue request
             statements.Add(
                 ExpressionStatement(
-                    AwaitExpression(
                         InvocationExpression(
-                            BaseExpression().Member("Invoke"),
-                            ArgumentList(SingletonSeparatedList(Argument(requestVar)))))));
+                            BaseExpression().Member("SendRequest"),
+                            ArgumentList(SeparatedList(new[] { Argument(completionVar), Argument(requestVar) })))));
 
             // Return result
-            if (methodDescription.Method.ReturnType is INamedTypeSymbol named && named.TypeParameters.Length == 1)
+            string valueTaskMethodName;
+            if (methodReturnType.TypeArguments.Length == 1)
             {
-                statements.Add(ReturnStatement(requestVar.Member("result")));
+                valueTaskMethodName = "AsValueTask";
             }
+            else
+            {
+                valueTaskMethodName = "AsVoidValueTask";
+            }
+
+            var returnVal = InvocationExpression(completionVar.Member(valueTaskMethodName));
+
+            if (methodReturnType.ConstructedFrom.Equals(libraryTypes.Task_1) || methodReturnType.Equals(libraryTypes.Task))
+            {
+                returnVal = InvocationExpression(returnVal.Member("AsTask"));
+            }
+
+            statements.Add(ReturnStatement(returnVal));
 
             return Block(statements);
         }
@@ -324,34 +359,6 @@ namespace Hagar.CodeGenerator
             }
 
             return result;
-        }
-
-        private static List<FieldDescription> GetFieldDescriptions(IMethodSymbol method, LibraryTypes libraryTypes)
-        {
-            var fields = new List<FieldDescription>();
-
-            uint fieldId = 0;
-            foreach (var parameter in method.Parameters)
-            {
-                fields.Add(new MethodParameterFieldDescription(parameter, $"arg{fieldId}", fieldId));
-                fieldId++;
-            }
-
-            return fields;
-        }
-
-        /// <summary>
-        /// Returns the "expected" type for <paramref name="type"/> which is used for selecting the correct codec.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private static ITypeSymbol GetExpectedType(ITypeSymbol type)
-        {
-            if (type is IArrayTypeSymbol)
-                return type;
-            if (type is IPointerTypeSymbol pointerType)
-                throw new NotSupportedException($"Cannot serialize pointer type {pointerType.Name}");
-            return type;
         }
 
         internal abstract class FieldDescription

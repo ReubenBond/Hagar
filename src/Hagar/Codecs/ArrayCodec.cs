@@ -58,7 +58,7 @@ namespace Hagar.Codecs
                         ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
                     case 1:
-                        if (result == null) return ThrowLengthFieldMissing();
+                        if (result is null) return ThrowLengthFieldMissing();
                         if (index >= length) return ThrowIndexOutOfRangeException(length);
                         result[index] = this.fieldCodec.ReadValue(ref reader, header);
                         ++index;

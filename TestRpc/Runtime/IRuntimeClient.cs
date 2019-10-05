@@ -5,7 +5,7 @@ namespace TestRpc.Runtime
 {
     public interface IRuntimeClient
     {
-        ValueTask SendRequest<TInvokable>(ActivationId activationId, TInvokable request) where TInvokable : IInvokable;
-        ValueTask SendResponse(ActivationId activationId, object response);
+        void SendRequest(ActivationId activationId, IResponseCompletionSource completion, IInvokable request);
+        void SendResponse(int requestMessageId, ActivationId requestMessageSource, Response response);
     }
 }

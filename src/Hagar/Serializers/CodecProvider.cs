@@ -99,7 +99,7 @@ namespace Hagar.Serializers
             IFieldCodec untypedResult;
 
             // If the field type is unavailable, return the void codec which can at least handle references.
-            if (fieldType == null) untypedResult = this.voidCodec;
+            if (fieldType is null) untypedResult = this.voidCodec;
             else if (!this.adaptedCodecs.TryGetValue((fieldType, resultFieldType), out untypedResult))
             {
                 ThrowIfUnsupportedType(fieldType);
@@ -111,7 +111,7 @@ namespace Hagar.Serializers
                 else
                 {
                     untypedResult = this.CreateCodecInstance(fieldType, fieldType);
-                    if (untypedResult == null)
+                    if (untypedResult is null)
                     {
                         foreach (var dynamicCodec in this.generalized)
                         {
@@ -124,7 +124,7 @@ namespace Hagar.Serializers
                     }
                 }
 
-                if (untypedResult == null && (fieldType.IsInterface || fieldType.IsAbstract))
+                if (untypedResult is null && (fieldType.IsInterface || fieldType.IsAbstract))
                 {
                     untypedResult = (IFieldCodec)this.GetServiceOrCreateInstance(typeof(AbstractTypeSerializer<>).MakeGenericType(fieldType));
                 }
@@ -162,7 +162,7 @@ namespace Hagar.Serializers
                 untypedResult = typedResult;
                 typedResult = (IFieldCodec<TField>) this.adaptedCodecs.GetOrAdd((fieldType, resultFieldType), _ => untypedResult);
             }
-            else if (typedResult == null)
+            else if (typedResult is null)
             {
                 ThrowCannotConvert(untypedResult);
             }

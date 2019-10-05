@@ -56,7 +56,7 @@ namespace Hagar.ISerializable
         private TConstructor GetSerializationConstructorInvoker<TOwner, TConstructor>(Type type)
         {
             var constructor = GetSerializationConstructor(type);
-            if (constructor == null) throw new SerializationException($"{nameof(ISerializable)} constructor not found on type {type}.");
+            if (constructor is null) throw new SerializationException($"{nameof(ISerializable)} constructor not found on type {type}.");
 
             Type[] parameterTypes;
             if (typeof(TOwner).IsValueType) parameterTypes = new[] {typeof(TOwner).MakeByRefType(), typeof(SerializationInfo), typeof(StreamingContext)};

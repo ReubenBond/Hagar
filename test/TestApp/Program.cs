@@ -42,10 +42,9 @@ namespace TestApp
             var proxy = GetProxy<IMyInvokable>();
             await proxy.Multiply(4, 5, "hello");
             var proxyBase = proxy as MyProxyBaseClass;
-            var invocation = proxyBase.Invocations.First();
+            using var invocation = proxyBase.Invocations.First();
             invocation.SetTarget(new TargetHolder(new MyImplementation()));
             await invocation.Invoke();
-            invocation.Reset();
 
             var generic = GetProxy<IMyInvokable<int>>();
             //((MyProxyBaseClass)generic).Invocations.Find()
@@ -86,7 +85,7 @@ namespace TestApp
 
             public TTarget GetTarget<TTarget>() => (TTarget)this.target;
 
-            public TExtension GetExtension<TExtension>() => throw new NotImplementedException();
+            public TExtension GetComponent<TExtension>() => throw new NotImplementedException();
         }
 
         internal class MyImplementation : IMyInvokable
@@ -285,4 +284,6 @@ namespace TestApp
 
         public override string ToString() => JsonConvert.SerializeObject(this);
     }
+
+
 }
