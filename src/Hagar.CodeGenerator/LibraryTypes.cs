@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 // ReSharper disable InconsistentNaming
 
@@ -9,7 +10,7 @@ namespace Hagar.CodeGenerator
     {
         private readonly Compilation compilation;
 
-        public static LibraryTypes FromCompilation(Compilation compilation)
+        public static LibraryTypes FromCompilation(Compilation compilation, CodeGeneratorOptions options)
         {
             return new LibraryTypes(compilation)
             {
@@ -31,7 +32,7 @@ namespace Hagar.CodeGenerator
                 GenerateMethodSerializersAttribute = Type("Hagar.GenerateMethodSerializersAttribute"),
                 GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
                 MetadataProviderAttribute = Type("Hagar.Configuration.MetadataProviderAttribute"),
-                IdAttribute = Type("Hagar.IdAttribute"),
+                IdAttributeTypes = options.IdAttributeTypes.Select(Type).ToList(),
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
                 ITargetHolder = Type("Hagar.Invocation.ITargetHolder"),
                 ValueTask = Type("System.Threading.Tasks.ValueTask"),
@@ -92,7 +93,7 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol MetadataProviderAttribute { get; private set; }
 
-        public INamedTypeSymbol IdAttribute { get; private set; }
+        public List<INamedTypeSymbol> IdAttributeTypes { get; private set; }
 
         public INamedTypeSymbol GenerateSerializerAttribute { get; private set; }
 

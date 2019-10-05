@@ -649,7 +649,7 @@ namespace Hagar.CodeGenerator
                         AttributeList()
                             .AddAttributes(
                                 Attribute(
-                                    libraryTypes.IdAttribute.ToNameSyntax(),
+                                    libraryTypes.IdAttributeTypes.First().ToNameSyntax(),
                                     AttributeArgumentList()
                                         .AddArguments(
                                             AttributeArgument(

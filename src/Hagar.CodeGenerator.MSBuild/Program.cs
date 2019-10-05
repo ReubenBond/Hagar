@@ -69,6 +69,9 @@ namespace Hagar.CodeGenerator.MSBuild
                         case nameof(cmd.CodeGenOutputFile):
                             cmd.CodeGenOutputFile = value;
                             break;
+                        case nameof(cmd.IdAttributeTypes):
+                            cmd.IdAttributeTypes = value.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
+                            break;
                         case "LogLevel":
                             if (!Enum.TryParse(ignoreCase: true, value: value, result: out logLevel))
                             {

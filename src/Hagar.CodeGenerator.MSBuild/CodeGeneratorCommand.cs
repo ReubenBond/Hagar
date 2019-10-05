@@ -32,7 +32,7 @@ namespace Hagar.CodeGenerator.MSBuild
         public ILogger Log { get; set; }
         
         /// <summary>
-        /// The MSBuild project path.
+        /// The MS Build project path.
         /// </summary>
         public string ProjectPath { get; set; }
 
@@ -65,6 +65,11 @@ namespace Hagar.CodeGenerator.MSBuild
         /// The file which holds the generated code.
         /// </summary>
         public string CodeGenOutputFile { get; set; }
+
+        /// <summary>
+        /// The metadata name of the attribute used to specify ids.
+        /// </summary>
+        public List<string> IdAttributeTypes { get; set; }
 
         public async Task<bool> Execute(CancellationToken cancellationToken)
         {
@@ -113,7 +118,11 @@ namespace Hagar.CodeGenerator.MSBuild
 
                 if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName)) return false;
 
-                var generator = new CodeGenerator(compilation, new CodeGeneratorOptions());
+                var codeGeneratorOptions = new CodeGeneratorOptions
+                {
+                    IdAttributeTypes = this.IdAttributeTypes
+                };
+                var generator = new CodeGenerator(compilation, codeGeneratorOptions);
                 stopwatch.Restart();
                 var syntax = await generator.GenerateCode(cancellationToken);
                 this.Log.LogInformation($"GenerateCode completed in {stopwatch.ElapsedMilliseconds}ms.");

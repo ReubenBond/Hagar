@@ -94,6 +94,7 @@
       <Hagar_CodeGenArgs Include="OutputType:$(OutputType)"/>
       <Hagar_CodeGenArgs Include="TargetPath:$(TargetPath)"/>
       <Hagar_CodeGenArgs Include="CodeGenOutputFile:$(Hagar_OutputFileName)"/>
+      <Hagar_CodeGenArgs Include="IdAttributeTypes:$(HagarIdAttributeTypes)" Condition="'$(HagarIdAttributeTypes)' != ''"/>
       <Hagar_CodeGenArgs Include="@(Compile -> 'Compile:%(FullPath)')"/>
       <Hagar_CodeGenArgs Include="@(ReferencePath -> 'Reference:%(FullPath)')"/>
     </ItemGroup>

@@ -15,6 +15,8 @@ namespace Hagar.CodeGenerator
     {
         public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
 
+        public List<string> IdAttributeTypes { get; set; }
+
         public bool GenerateFieldIds { get; set; } = true;
     }
 
@@ -186,7 +188,7 @@ namespace Hagar.CodeGenerator
                     continue;
                 }
 
-                if (member.HasAttribute(this.libraryTypes.IdAttribute))
+                if (this.libraryTypes.IdAttributeTypes.Any(t => member.HasAttribute(t)))
                 {
                     hasAttributes = true;
                     break;
@@ -206,7 +208,7 @@ namespace Hagar.CodeGenerator
 
                 uint? GetId(ISymbol memberSymbol)
                 {
-                    var idAttr = memberSymbol.GetAttributes().SingleOrDefault(attr => attr.AttributeClass.Equals(this.libraryTypes.IdAttribute));
+                    var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => this.libraryTypes.IdAttributeTypes.Any(t => t.Equals(attr.AttributeClass)));
                     if (idAttr == null) return null;
                     var id = (uint)idAttr.ConstructorArguments.First().Value;
                     return id;
