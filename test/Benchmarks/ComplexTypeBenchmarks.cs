@@ -48,9 +48,7 @@ namespace Benchmarks
                 .Build().ServiceProvider.GetRequiredService<SerializationManager>();
             var services = new ServiceCollection();
             services
-                .AddHagar()
-                .AddISerializableSupport()
-                .AddSerializers(typeof(Program).Assembly);
+                .AddHagar(hagar => hagar.AddISerializableSupport().AddAssembly(typeof(Program).Assembly));
             var serviceProvider = services.BuildServiceProvider();
             this.hagarSerializer = serviceProvider.GetRequiredService<Serializer<ComplexClass>>();
             this.structSerializer = serviceProvider.GetRequiredService<Serializer<SimpleStruct>>();

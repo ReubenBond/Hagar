@@ -300,9 +300,9 @@ namespace Hagar.UnitTests
 
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
-        protected override void ConfigureServices(IServiceCollection services)
+        protected override void Configure(IHagarBuilder builder)
         {
-            services.AddISerializableSupport();
+            builder.AddISerializableSupport();
         }
 
         protected override Dictionary<string, int> CreateValue()

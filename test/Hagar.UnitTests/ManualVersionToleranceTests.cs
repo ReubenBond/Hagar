@@ -27,10 +27,13 @@ namespace Hagar.UnitTests
         {
             this.log = log;
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHagar(configuration =>
+            serviceCollection.AddHagar(builder =>
             {
-                configuration.Serializers.Add(typeof(SubTypeSerializer));
-                configuration.Serializers.Add(typeof(BaseTypeSerializer));
+                builder.Configure(configuration =>
+                {
+                    configuration.Serializers.Add(typeof(SubTypeSerializer));
+                    configuration.Serializers.Add(typeof(BaseTypeSerializer));
+                });
             });
             //serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
             //serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();

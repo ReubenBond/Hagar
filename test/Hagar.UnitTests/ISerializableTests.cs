@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -22,8 +22,7 @@ namespace Hagar.UnitTests
         public ISerializableTests()
         {
             var services = new ServiceCollection();
-            services.AddHagar();
-            services.AddISerializableSupport();
+            services.AddHagar(hagar => hagar.AddISerializableSupport());
 
             this.serviceProvider = services.BuildServiceProvider();
             this.sessionPool = this.serviceProvider.GetService<SessionPool>();

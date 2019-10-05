@@ -22,11 +22,11 @@ namespace Hagar.TestKit
         protected FieldCodecTester()
         {
             var services = new ServiceCollection();
-            services.AddHagar(hagar => hagar.FieldCodecs.Add(typeof(TCodec)));
+            services.AddHagar(hagar => hagar.Configure(config => config.FieldCodecs.Add(typeof(TCodec))));
             services.AddSingleton<TCodec>();
 
             // ReSharper disable once VirtualMemberCallInConstructor
-            this.ConfigureServices(services);
+            services.AddHagar(this.Configure);
 
             this.serviceProvider = services.BuildServiceProvider();
             this.sessionPool = this.serviceProvider.GetService<SessionPool>();
@@ -34,7 +34,7 @@ namespace Hagar.TestKit
 
         private int[] MaxSegmentSizes => new[] { 0, 1, 4, 16 };
 
-        protected virtual void ConfigureServices(IServiceCollection services)
+        protected virtual void Configure(IHagarBuilder builder)
         {
         }
 
