@@ -1,6 +1,7 @@
 using System;
 using Hagar.Activators;
 using Hagar.Codecs;
+using Hagar.Invocation;
 
 namespace Hagar.Configuration
 {
@@ -9,6 +10,9 @@ namespace Hagar.Configuration
         public void Configure(SerializerConfiguration configuration)
         {
             var codecs = configuration.FieldCodecs;
+            var serializers = configuration.Serializers;
+            var activators = configuration.Activators;
+
             codecs.Add(typeof(BoolCodec));
             codecs.Add(typeof(CharCodec));
             codecs.Add(typeof(ByteCodec));
@@ -62,6 +66,10 @@ namespace Hagar.Configuration
             codecs.Add(typeof(ValueTupleCodec<,,,,,>));
             codecs.Add(typeof(ValueTupleCodec<,,,,,,>));
             codecs.Add(typeof(ValueTupleCodec<,,,,,,,>));
+            
+            // Invocation
+            serializers.Add(typeof(PooledResponseCodec<>));
+            activators.Add(typeof(PooledResponseActivator<>));
         }
     }
 }

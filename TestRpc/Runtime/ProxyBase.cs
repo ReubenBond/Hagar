@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Hagar.Invocation;
 
 namespace TestRpc.Runtime
@@ -17,6 +16,6 @@ namespace TestRpc.Runtime
 
         public ActivationId ActivationId { get; }
 
-        protected ValueTask Invoke<T>(T request) where T : IInvokable => this.runtimeClient.SendRequest(this.ActivationId, request);
+        protected void SendRequest(IResponseCompletionSource callback, IInvokable body) => this.runtimeClient.SendRequest(this.ActivationId, callback, body);
     }
 }

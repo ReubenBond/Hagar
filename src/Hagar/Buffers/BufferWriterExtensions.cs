@@ -10,7 +10,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<TBufferWriter> CreateWriter<TBufferWriter>(this TBufferWriter buffer, SerializerSession session) where TBufferWriter : IBufferWriter<byte>
         {
-            if (session == null) ThrowSessionNull();
+            if (session is null) ThrowSessionNull();
             return new Writer<TBufferWriter>(buffer, session);
 
             void ThrowSessionNull() => throw new ArgumentNullException(nameof(session));

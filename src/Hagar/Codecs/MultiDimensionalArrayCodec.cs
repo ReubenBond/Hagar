@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
@@ -97,7 +97,7 @@ namespace Hagar.Codecs
                     }
                     case 1:
                     {
-                        if (result == null) return ThrowLengthsFieldMissing();
+                        if (result is null) return ThrowLengthsFieldMissing();
                         var element = this.elementCodec.ReadValue(ref reader, header);
                         result.SetValue(element, indices);
 

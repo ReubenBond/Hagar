@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Hagar.Activators;
 using Hagar.Buffers;
@@ -69,7 +69,7 @@ namespace Hagar.Codecs
                         comparer = this.comparerCodec.ReadValue(ref reader, header);
                         break;
                     case 1:
-                        if (result == null)
+                        if (result is null)
                         {
                             result = CreateInstance(comparer, reader.Session, placeholderReferenceId);
                         }
@@ -84,9 +84,9 @@ namespace Hagar.Codecs
                 }
             }
 
-            if (result == null)
+            if (result is null)
             {
-                result = CreateInstance(comparer, reader.Session, placeholderReferenceId);
+                result = this.CreateInstance(comparer, reader.Session, placeholderReferenceId);
             }
 
             return result;

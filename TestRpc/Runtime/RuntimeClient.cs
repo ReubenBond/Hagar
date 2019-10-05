@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,7 +15,7 @@ namespace TestRpc.Runtime
         private readonly ConnectionHandler connection;
         private readonly Catalog catalog;
         private readonly ChannelReader<Message> incomingMessages;
-        private readonly ConcurrentDictionary<int, IInvokable> pendingRequests = new ConcurrentDictionary<int, IInvokable>();
+        private readonly ConcurrentDictionary<int, IResponseCompletionSource> pendingRequests = new ConcurrentDictionary<int, IResponseCompletionSource>();
 
         private int messageId;
 
@@ -24,39 +26,37 @@ namespace TestRpc.Runtime
             this.incomingMessages = incomingMessages;
         }
 
-        public ValueTask SendRequest<TInvokable>(ActivationId activationId, TInvokable request) where TInvokable : IInvokable
+        public void SendRequest(ActivationId activationId, IResponseCompletionSource completion, IInvokable body)
         {
-            var message = new Message
-            {
-                Direction = Direction.Request,
-                Target = activationId,
-                Body = request
-            };
+            var message = MessagePool.Get();
+            message.Direction = Direction.Request;
+            message.Target = activationId;
+            message.Body = body;
+
             var currentActivation = RuntimeActivationContext.CurrentActivation;
             if (currentActivation != null)
             {
-                currentActivation.OnSendMessage(message);
+                currentActivation.OnSendMessage(message, completion);
             }
             else
             {
                 message.MessageId = Interlocked.Increment(ref this.messageId);
                 message.Source = default;
-                this.pendingRequests[message.MessageId] = request;
+                this.pendingRequests[message.MessageId] = completion;
             }
 
-            return this.connection.SendMessage(message, CancellationToken.None);
+            this.connection.SendMessage(message);
         }
 
-        public ValueTask SendResponse(ActivationId activationId, object response)
+        public void SendResponse(int requestMessageId, ActivationId requestMessageSource, Response response)
         {
-            var message = new Message
-            {
-                Direction = Direction.Response,
-                Target = activationId,
-                Body = response
-            };
+            var message = MessagePool.Get();
+            message.MessageId = requestMessageId;
+            message.Direction = Direction.Response;
+            message.Target = requestMessageSource;
+            message.Body = response;
 
-            return this.connection.SendMessage(message, CancellationToken.None);
+            this.connection.SendMessage(message);
         }
 
         public async Task Run(CancellationToken cancellation)
@@ -65,27 +65,42 @@ namespace TestRpc.Runtime
             {
                 while (this.incomingMessages.TryRead(out var message))
                 {
-                    var handleMessage = this.HandleMessage(message);
-                    if (handleMessage.IsCompletedSuccessfully) continue;
-                    await handleMessage;
+                    this.HandleMessage(message);
                 }
             }
         }
 
-        public ValueTask HandleMessage(Message message)
+        public void HandleMessage(Message message)
         {
             if (message.Target == default)
             {
-                var request = this.pendingRequests[message.MessageId];
-                request.Result = message.Body;
-                // TODO: async completion.
-                return default;
+                // Ensure the message is disposed upon leaving this scope.
+                using var _ = message;
+
+                if (!this.pendingRequests.TryRemove(message.MessageId, out var request))
+                {
+                    ThrowMessageNotFound(message);
+                    return;
+                }
+
+                request.Complete((Response)message.Body);
             }
             else
             {
                 var activation = this.catalog.GetActivation(message.Target);
-                return activation.EnqueueMessage(message);
+                if (!activation.TryEnqueueMessage(message))
+                {
+                    // Ensure the message is disposed upon leaving this scope.
+                    using var _ = message;
+                    ThrowActivationCouldNotEnqueueMessage(activation, message);
+                }
             }
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowActivationCouldNotEnqueueMessage(Activation activation, Message message) => throw new InvalidOperationException($"Activation {activation} could not enqueue message {message}");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowMessageNotFound(Message message) => throw new InvalidOperationException($"No pending request for message {message}");
     }
 }

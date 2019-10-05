@@ -38,9 +38,7 @@ namespace TestRpc.IO
 
         public Task Run(CancellationToken cancellation) => Task.WhenAll(this.SendPump(cancellation), this.ReceivePump(cancellation));
 
-        public ValueTask SendMessage(Message message, CancellationToken cancellation) => this.outgoingWriter.TryWrite(message)
-            ? default
-            : this.outgoingWriter.WriteAsync(message, cancellation);
+        public void SendMessage(Message message) => this.outgoingWriter.TryWrite(message);
 
         private async Task ReceivePump(CancellationToken cancellation)
         {
@@ -58,6 +56,7 @@ namespace TestRpc.IO
                         if (result.Buffer.IsEmpty && result.IsCompleted) break;
 
                         var message = ReadMessage(result.Buffer, session, out var consumedTo);
+                        session.PartialReset();
                         input.AdvanceTo(consumedTo);
                         if (!this.incoming.TryWrite(message)) await this.incoming.WriteAsync(message, cancellation);
                     }
@@ -85,19 +84,17 @@ namespace TestRpc.IO
                     while (this.outgoingReader.TryRead(out var item))
                     {
                         WriteMessage(item, session);
+                        if (item.Body is IDisposable disposable)
+                        {
+                            disposable.Dispose();
+                        }
+
+                        MessagePool.Return(item);
+
                         session.PartialReset();
                         
-                        var flushTask = this.connection.Output.FlushAsync(cancellation);
-                        if (flushTask.IsCompletedSuccessfully)
-                        {
-                            var flushResult = flushTask.GetAwaiter().GetResult();
-                            if (flushResult.IsCanceled || flushResult.IsCompleted) return;
-                        }
-                        else
-                        {
-                            var flushResult = await flushTask;
-                            if (flushResult.IsCanceled || flushResult.IsCompleted) return;
-                        }
+                        var flushResult = await this.connection.Output.FlushAsync(cancellation);
+                        if (flushResult.IsCanceled || flushResult.IsCompleted) return;
                     }
                 }
             }

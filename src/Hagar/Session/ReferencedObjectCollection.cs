@@ -139,7 +139,7 @@ namespace Hagar.Session
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object value, uint referenceId)
         {
-            if (value == null) return;
+            if (value is null) return;
             AddToReferences(value, referenceId);
         }
 

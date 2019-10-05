@@ -13,10 +13,10 @@ namespace Hagar.Invocation
         TTarget GetTarget<TTarget>();
 
         /// <summary>
-        /// Gets the extension object with the specified type.
+        /// Gets the component with the specified type.
         /// </summary>
-        /// <typeparam name="TExtension">The extension type.</typeparam>
-        /// <returns>The extension object with the specified type.</returns>
-        TExtension GetExtension<TExtension>();
+        /// <typeparam name="TComponent">The component type.</typeparam>
+        /// <returns>The component with the specified type.</returns>
+        TComponent GetComponent<TComponent>();
     }
 }

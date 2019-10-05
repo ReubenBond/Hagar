@@ -16,5 +16,8 @@ namespace Hagar.CodeGenerator
         public string Name => this.Field.Name;
     }
 
-    internal interface IFieldDescription : IMemberDescription { }
+    internal interface IFieldDescription : IMemberDescription
+    {
+    }
+
 }

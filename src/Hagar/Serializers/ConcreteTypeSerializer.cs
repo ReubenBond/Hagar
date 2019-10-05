@@ -52,7 +52,7 @@ namespace Hagar.Serializers
         {
             if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(ref reader, field);
             var fieldType = field.FieldType;
-            if (fieldType == null || fieldType == CodecFieldType)
+            if (fieldType is null || fieldType == CodecFieldType)
             {
                 var result = this.activator.Create();
                 ReferenceCodec.RecordObject(reader.Session, result);

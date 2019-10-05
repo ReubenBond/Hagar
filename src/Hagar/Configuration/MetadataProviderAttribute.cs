@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 
 namespace Hagar.Configuration
@@ -15,7 +15,7 @@ namespace Hagar.Configuration
         /// <param name="providerType">The metadata provider type.</param>
         public MetadataProviderAttribute(Type providerType)
         {
-            if (providerType == null) throw new ArgumentNullException(nameof(providerType));
+            if (providerType is null) throw new ArgumentNullException(nameof(providerType));
             if (!providerType.GetInterfaces().Any(iface => iface.IsConstructedGenericType && typeof(IConfigurationProvider<>).IsAssignableFrom(iface.GetGenericTypeDefinition())))
             {
                 throw new ArgumentException($"Provided type {providerType} must implement {typeof(IConfigurationProvider<>)}", nameof(providerType));

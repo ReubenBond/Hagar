@@ -38,7 +38,7 @@ namespace Hagar.Serializers
         {
             if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(ref reader, field);
             var fieldType = field.FieldType;
-            if (fieldType == null) ThrowMissingFieldType();
+            if (fieldType is null) ThrowMissingFieldType();
 
             var specificSerializer = reader.Session.CodecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
