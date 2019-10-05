@@ -8,9 +8,9 @@ namespace Hagar
     public static class ServiceCollectionExtensions
     {
         [SecurityCritical]
-        public static IServiceCollection AddISerializableSupport(this IServiceCollection services)
+        public static IHagarBuilder AddISerializableSupport(this IHagarBuilder builder)
         {
-            return services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
+            return ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>());
         }
     }
 }

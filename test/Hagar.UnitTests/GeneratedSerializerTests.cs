@@ -20,8 +20,7 @@ namespace Hagar.UnitTests
         public GeneratedSerializerTests()
         {
             this.serviceProvider = new ServiceCollection()
-                .AddHagar()
-                .AddSerializers(typeof(GeneratedSerializerTests).Assembly)
+                .AddHagar(hagar => hagar.AddSerializers(typeof(GeneratedSerializerTests).Assembly))
                 .BuildServiceProvider();
             this.codecProvider = this.serviceProvider.GetRequiredService<ITypedCodecProvider>();
             this.sessionPool = this.serviceProvider.GetRequiredService<SessionPool>();

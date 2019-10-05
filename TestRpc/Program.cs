@@ -42,8 +42,8 @@ namespace TestRpc
             out RuntimeClient runtimeClient) where TConnection : IDuplexPipe
         {
             var chan = Channel.CreateUnbounded<Message>();
-            var services = new ServiceCollection().AddHagar()
-                .AddSerializers(typeof(Program).Assembly)
+            var services = new ServiceCollection()
+                .AddHagar(hagar => hagar.AddSerializers(typeof(Program).Assembly))
                 .AddSingleton<Catalog>()
                 .AddSingleton<ProxyFactory>()
                 .AddSingleton(sp => ActivatorUtilities.CreateInstance<ConnectionHandler>(sp, connection, chan.Writer))
