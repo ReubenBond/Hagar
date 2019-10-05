@@ -78,8 +78,11 @@ namespace Hagar.Codecs
             var specificSerializer = session.CodecProvider.GetCodec(fieldType);
 
             // Reset the session's reference id so that the deserialized object overwrites the marker.
-            var originalCurrentReferenceId = session.ReferencedObjects.CurrentReferenceId;
-            session.ReferencedObjects.CurrentReferenceId = reference - 1;
+            var referencedObjects = session.ReferencedObjects;
+            var originalCurrentReferenceId = referencedObjects.CurrentReferenceId;
+            var originalReferenceToObjectCount = referencedObjects.ReferenceToObjectCount;
+            referencedObjects.CurrentReferenceId = reference - 1;
+            referencedObjects.ReferenceToObjectCount = referencedObjects.GetReferenceIndex(marker);
 
             // Deserialize the object, replacing the marker in the session.
             try
@@ -89,7 +92,8 @@ namespace Hagar.Codecs
             finally
             {
                 // Revert the reference id.
-                session.ReferencedObjects.CurrentReferenceId = originalCurrentReferenceId;
+                referencedObjects.CurrentReferenceId = originalCurrentReferenceId;
+                referencedObjects.ReferenceToObjectCount = originalReferenceToObjectCount;
             }
         }
 

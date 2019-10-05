@@ -141,14 +141,14 @@ namespace Hagar.Buffers
         private static void ThrowInsufficientData() => throw new InvalidOperationException("Insufficient data present in buffer.");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#if NETCOREAPP2_2
+#if NETCOREAPP
         public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 #else
         public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(this.ReadInt32()), 0);
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#if NETCOREAPP2_2
+#if NETCOREAPP
         public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
 #else
         public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(this.ReadInt64()), 0);

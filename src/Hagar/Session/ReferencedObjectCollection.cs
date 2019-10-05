@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Hagar.Codecs;
 
 namespace Hagar.Session
 {
@@ -20,7 +21,7 @@ namespace Hagar.Session
             public object Object { get; }
         }
 
-        private int referenceToObjectCount;
+        public int ReferenceToObjectCount { get; set; }
         private ReferencePair[] referenceToObject = new ReferencePair[64];
 
         private int objectToReferenceCount;
@@ -37,7 +38,7 @@ namespace Hagar.Session
             }
 
             // TODO: Binary search
-            for (int i = 0; i < this.referenceToObjectCount; ++i)
+            for (int i = 0; i < this.ReferenceToObjectCount; ++i)
             {
                 if (this.referenceToObject[i].Id == reference)
                 {
@@ -57,7 +58,7 @@ namespace Hagar.Session
         public bool GetOrAddReference(object value, out uint reference)
         {
             // Null is always at reference 0
-            if (value == null)
+            if (value is null)
             {
                 reference = 0;
                 return true;
@@ -79,6 +80,26 @@ namespace Hagar.Session
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetReferenceIndex(object value)
+        {
+            if (value is null)
+            {
+                return -1;
+            }
+
+            // TODO: Binary search
+            for (var i = 0; i < this.ReferenceToObjectCount; ++i)
+            {
+                if (ReferenceEquals(this.referenceToObject[i].Object, value))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         private void AddToReferenceToIdMap(object value, uint reference)
         {
             if (this.objectToReferenceCount >= this.objectToReference.Length)
@@ -93,15 +114,24 @@ namespace Hagar.Session
 
         private void AddToReferences(object value, uint reference)
         {
-            if (this.referenceToObjectCount >= this.referenceToObject.Length)
+            if (this.ReferenceToObjectCount >= this.referenceToObject.Length)
             {
                 var old = this.referenceToObject;
                 this.referenceToObject = new ReferencePair[this.referenceToObject.Length * 2];
-                Array.Copy(old, this.referenceToObject, this.referenceToObjectCount);
+                Array.Copy(old, this.referenceToObject, this.ReferenceToObjectCount);
             }
 
-            this.referenceToObject[this.referenceToObjectCount++] = new ReferencePair(reference, value);
+            if (TryGetReferencedObject(reference, out var existing) && !(existing is UnknownFieldMarker) && !(value is UnknownFieldMarker))
+            {
+                // Unknown field markers can be replaced once the type is known.
+                ThrowReferenceExistsException(reference);
+                return;
+            }
+
+            this.referenceToObject[this.ReferenceToObjectCount++] = new ReferencePair(reference, value);
         }
+
+        private static void ThrowReferenceExistsException(uint reference) => throw new InvalidOperationException($"Reference {reference} already exists");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object value) => RecordReferenceField(value, ++this.CurrentReferenceId);
@@ -113,14 +143,14 @@ namespace Hagar.Session
             AddToReferences(value, referenceId);
         }
 
-        public Dictionary<uint, object> CopyReferenceTable() => this.referenceToObject.Take(this.referenceToObjectCount).ToDictionary(r => r.Id, r => r.Object);
+        public Dictionary<uint, object> CopyReferenceTable() => this.referenceToObject.Take(this.ReferenceToObjectCount).ToDictionary(r => r.Id, r => r.Object);
         public Dictionary<object, uint> CopyIdTable() => this.objectToReference.Take(this.objectToReferenceCount).ToDictionary(r => r.Object, r => r.Id);
 
         public uint CurrentReferenceId { get; set; }
 
         public void Reset()
         {
-            for (var i = 0; i < this.referenceToObjectCount; i++)
+            for (var i = 0; i < this.ReferenceToObjectCount; i++)
             {
                 this.referenceToObject[i] = default;
             }
@@ -128,7 +158,7 @@ namespace Hagar.Session
             {
                 this.objectToReference[i] = default;
             }
-            this.referenceToObjectCount = 0;
+            this.ReferenceToObjectCount = 0;
             this.objectToReferenceCount = 0;
             this.CurrentReferenceId = 0;
         }

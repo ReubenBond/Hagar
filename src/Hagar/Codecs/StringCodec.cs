@@ -24,7 +24,7 @@ namespace Hagar.Codecs
             var length = reader.ReadVarUInt32();
 
             string result;
-#if NETCOREAPP2_2
+#if NETCOREAPP
             if (reader.TryReadBytes((int) length, out var span))
             {
                 result = Encoding.UTF8.GetString(span);
@@ -51,7 +51,7 @@ namespace Hagar.Codecs
             if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
-#if NETCOREAPP2_2
+#if NETCOREAPP
             var numBytes = Encoding.UTF8.GetByteCount(value);
             writer.WriteVarInt((uint)numBytes);
             if (numBytes < 512) writer.EnsureContiguous(numBytes);

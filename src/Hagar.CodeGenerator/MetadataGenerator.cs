@@ -10,7 +10,7 @@ namespace Hagar.CodeGenerator
 {
     internal static class MetadataGenerator
     {
-        public static ClassDeclarationSyntax GenerateMetadata(Compilation compilation, MetadataModel metadataModel)
+        public static ClassDeclarationSyntax GenerateMetadata(Compilation compilation, MetadataModel metadataModel, LibraryTypes libraryTypes)
         {
             var configParam = "config".ToIdentifierName();
             var addSerializerMethod = configParam.Member("Serializers").Member("Add");
@@ -37,7 +37,6 @@ namespace Hagar.CodeGenerator
                                         Argument(TypeOfExpression(type.TypeSyntax))))))
                 ));
 
-            var libraryTypes = LibraryTypes.FromCompilation(compilation);
             var configType = libraryTypes.SerializerConfiguration;
             var configureMethod = MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Configure")
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))

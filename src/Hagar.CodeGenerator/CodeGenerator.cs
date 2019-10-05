@@ -32,7 +32,7 @@ namespace Hagar.CodeGenerator
         {
             this.compilation = compilation;
             this.options = options;
-            this.libraryTypes = LibraryTypes.FromCompilation(compilation);
+            this.libraryTypes = LibraryTypes.FromCompilation(compilation, options);
             if (options.GenerateSerializerAttributes != null)
             {
                 this.generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
@@ -70,7 +70,7 @@ namespace Hagar.CodeGenerator
             }
             
             // Generate metadata.
-            var metadataClass = MetadataGenerator.GenerateMetadata(this.compilation, metadataModel);
+            var metadataClass = MetadataGenerator.GenerateMetadata(this.compilation, metadataModel, this.libraryTypes);
             members.Add(metadataClass);
 
             var metadataAttribute = AttributeList()

@@ -133,17 +133,10 @@ namespace TestApp
                              0,
                              typeof(SomeClassWithSerialzers),
                              new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
-
+            writer.Commit();
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             pipe.Reader.TryRead(out var readResult);
-            using (var readerSession = sessionPool.GetSession())
-            {
-                var reader = new Reader(readResult.Buffer, readerSession);
-                pipe.Reader.AdvanceTo(readResult.Buffer.End);
-                pipe.Reader.Complete();
-                //Console.WriteLine(string.Join(" ", TokenStreamParser.Parse(reader, readerSession)));
-            }
 
             using (var readerSession = sessionPool.GetSession())
             {
@@ -156,9 +149,6 @@ namespace TestApp
 
         public static void Main(string[] args)
         {
-            TestRpc().GetAwaiter().GetResult();
-            return;
-            TestOne();
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHagar(configuration =>
             {
@@ -174,6 +164,22 @@ namespace TestApp
             var serializer = codecProvider.GetCodec<SubType>();
             SerializerSession GetSession() => serviceProvider.GetRequiredService<SessionPool>().GetSession();
             var testString = "hello, hagar";
+
+
+            Test(
+                GetSession,
+                serializer,
+                new SubType
+                {
+                    BaseTypeString = "HOHOHO",
+                    AddedLaterString = testString,
+                    String = null,
+                    Int = 1,
+                    Ref = testString
+                });
+            TestRpc().GetAwaiter().GetResult();
+            //return;
+            TestOne();
             Test(
                 GetSession,
                 serializer,
@@ -229,17 +235,6 @@ namespace TestApp
                     BaseTypeString = testString,
                     String = null,
                     Int = 1
-                });
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = "HOHOHO",
-                    AddedLaterString = testString,
-                    String = null,
-                    Int = 1,
-                    Ref = testString
                 });
             
             var self = new SubType
@@ -344,9 +339,11 @@ namespace TestApp
             var writer = new Writer<PipeWriter>(pipe.Writer, session);
 
             serializer.WriteField(ref writer, 0, typeof(T), expected);
+            writer.Commit();
 
             Console.WriteLine($"Size: {writer.Position} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
+
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             pipe.Reader.TryRead(out var readResult);
@@ -390,6 +387,7 @@ namespace TestApp
             var writer = new Writer<PipeWriter>(pipe.Writer, session);
 
             serializer.WriteField(ref writer, 0, typeof(SubType), expected);
+            writer.Commit();
 
             pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
@@ -415,6 +413,9 @@ namespace TestApp
         }
     }
 
+    /// <summary>
+    /// NOTE: The serializer for this type is HAND-ROLLED. See <see cref="SubTypeSerializer" />
+    /// </summary>
     public class SubType : BaseType
     {
         // 0
