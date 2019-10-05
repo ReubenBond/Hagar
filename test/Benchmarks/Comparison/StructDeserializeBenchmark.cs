@@ -53,7 +53,7 @@ namespace Benchmarks.Comparison
 
             // Hagar
             var services = new ServiceCollection()
-                .AddHagar(hagar => hagar.AddSerializers(typeof(Program).Assembly))
+                .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
             Session = services.GetRequiredService<SessionPool>().GetSession();

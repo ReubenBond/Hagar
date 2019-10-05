@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Reflection;
 using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
@@ -14,69 +13,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Hagar
 {
-    public interface IHagarBuilderImplementation : IHagarBuilder
-    {
-        IHagarBuilderImplementation ConfigureServices(Action<IServiceCollection> configureDelegate);
-    }
-
-    public interface IHagarBuilder 
-    {
-    }
-
-    public class HagarBuilder : IHagarBuilderImplementation
-    {
-        private readonly IServiceCollection services;
-        public HagarBuilder(IServiceCollection services) => this.services = services;
-
-        public IHagarBuilderImplementation ConfigureServices(Action<IServiceCollection> configureDelegate)
-        {
-            configureDelegate(this.services);
-            return this;
-        }
-    }
-
-    public static class HagarBuilderExtensions
-    {
-        public static IHagarBuilder AddProvider(this IHagarBuilder builder, Func<IServiceProvider, IConfigurationProvider<SerializerConfiguration>> factory)
-        {
-            return ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.AddTransient(sp => factory(sp)));
-        }
-
-        public static IHagarBuilder AddProvider(this IHagarBuilder builder, IConfigurationProvider<SerializerConfiguration> provider)
-        {
-            return ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.AddSingleton(provider));
-        }
-
-        public static IHagarBuilder Configure(this IHagarBuilder builder, Action<SerializerConfiguration> configure)
-        {
-            return builder.AddProvider(new DelegateConfigurationProvider<SerializerConfiguration>(configure));
-        }
-
-        public static IHagarBuilder AddSerializers(this IHagarBuilder builder, Assembly assembly)
-        {
-            var attrs = assembly.GetCustomAttributes<MetadataProviderAttribute>();
-            foreach (var attr in attrs)
-            {
-                if (!typeof(IConfigurationProvider<SerializerConfiguration>).IsAssignableFrom(attr.ProviderType)) continue;
-                builder.AddProvider(sp => (IConfigurationProvider<SerializerConfiguration>)ActivatorUtilities.GetServiceOrCreateInstance(sp, attr.ProviderType));
-            }
-
-            return builder;
-        }
-
-        private sealed class DelegateConfigurationProvider<TOptions> : IConfigurationProvider<TOptions>
-        {
-            private readonly Action<TOptions> configure;
-
-            public DelegateConfigurationProvider(Action<TOptions> configure)
-            {
-                this.configure = configure;
-            }
-
-            public void Configure(TOptions configuration) => this.configure(configuration);
-        }
-    }
-
     public static class ServiceProviderExtensions
     {
         public static IServiceCollection AddHagar(this IServiceCollection services, Action<IHagarBuilder> configure = null)
@@ -134,7 +70,20 @@ namespace Hagar
 
             public ServiceDescriptor CreateServiceDescriptor() => new ServiceDescriptor(typeof(HagarConfigurationContext), this);
 
-            public HagarBuilder Builder { get; }
+            public IHagarBuilder Builder { get; }
+        }
+
+        private class HagarBuilder : IHagarBuilderImplementation
+        {
+            private readonly IServiceCollection services;
+
+            public HagarBuilder(IServiceCollection services) => this.services = services;
+
+            public IHagarBuilderImplementation ConfigureServices(Action<IServiceCollection> configureDelegate)
+            {
+                configureDelegate(this.services);
+                return this;
+            }
         }
 
         private sealed class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>
