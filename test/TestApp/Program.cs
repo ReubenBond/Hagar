@@ -105,21 +105,7 @@ namespace TestApp
             var serviceProvider = new ServiceCollection()
                 .AddHagar()
                 .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
-                .AddHagar(options =>
-                {
-                    options.Serializers.Add(typeof(SubTypeSerializer));
-                    options.Serializers.Add(typeof(BaseTypeSerializer));
-                })
                 .BuildServiceProvider();
-
-            using (var serializerSession = serviceProvider.GetRequiredService<SessionPool>().GetSession())
-            {
-                var c = serviceProvider.GetRequiredService<IPartialSerializer<SubType>>();
-                var p = new Pipe();
-                var w = new Writer<PipeWriter>(p.Writer, serializerSession);
-                c.Serialize(ref w, new SubType());
-                p.Writer.Complete();
-            }
 
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
@@ -149,107 +135,16 @@ namespace TestApp
 
         public static void Main(string[] args)
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHagar(configuration =>
-            {
-                configuration.Serializers.Add(typeof(SubTypeSerializer));
-                configuration.Serializers.Add(typeof(BaseTypeSerializer));
-            });
-            serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
-            serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
+            var serviceProvider = new ServiceCollection()
+                .AddHagar()
+                .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
+                .BuildServiceProvider();
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-
-            var codecProvider = serviceProvider.GetRequiredService<CodecProvider>();
-            var serializer = codecProvider.GetCodec<SubType>();
             SerializerSession GetSession() => serviceProvider.GetRequiredService<SessionPool>().GetSession();
-            var testString = "hello, hagar";
-
-
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = "HOHOHO",
-                    AddedLaterString = testString,
-                    String = null,
-                    Int = 1,
-                    Ref = testString
-                });
             TestRpc().GetAwaiter().GetResult();
             //return;
             TestOne();
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = "base",
-                    String = "sub",
-                    Int = 2,
-                });
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = "base",
-                    String = "sub",
-                    Int = int.MinValue,
-                });
-
-            // Tests for duplicates
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = testString,
-                    String = testString,
-                    Int = 10
-                });
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = testString,
-                    String = null,
-                    Int = 1
-                });
-            Test(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = testString,
-                    String = null,
-                    Int = 1
-                });
-            TestSkip(
-                GetSession,
-                serializer,
-                new SubType
-                {
-                    BaseTypeString = testString,
-                    String = null,
-                    Int = 1
-                });
             
-            var self = new SubType
-            {
-                BaseTypeString = "HOHOHO",
-                AddedLaterString = testString,
-                String = null,
-                Int = 1
-            };
-            self.Ref = self;
-            Test(GetSession, serializer, self);
-
-            self.Ref = Guid.NewGuid();
-            Test(GetSession, serializer, self);
-
             Test(
                 GetSession,
                 new AbstractTypeSerializer<object>(),
@@ -299,6 +194,60 @@ namespace TestApp
             Console.ReadKey();
         }
 
+        private static void Test<T>(Func<SerializerSession> getSession, IFieldCodec<T> serializer, T expected)
+        {
+            using var writerSession = getSession();
+            var pipe = new Pipe();
+            var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
+
+            serializer.WriteField(ref writer, 0, typeof(T), expected);
+            writer.Commit();
+
+            Console.WriteLine($"Size: {writer.Position} bytes.");
+            Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
+
+            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+            pipe.Reader.TryRead(out var readResult);
+            using var readerSesssion = getSession();
+            var reader = new Reader(readResult.Buffer, readerSesssion);
+            var initialHeader = reader.ReadFieldHeader();
+
+            Console.WriteLine("Header:");
+            Console.WriteLine(initialHeader.ToString());
+
+            var actual = serializer.ReadValue(ref reader, initialHeader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
+
+            Console.WriteLine($"Expect: {expected}\nActual: {actual}");
+
+            var references = GetReadReferenceTable(reader.Session);
+            Console.WriteLine($"Read references:\n{references}");
+        }
+
+        private static StringBuilder GetReadReferenceTable(SerializerSession session)
+        {
+            var table = session.ReferencedObjects.CopyReferenceTable();
+            var references = new StringBuilder();
+            foreach (var entry in table)
+            {
+                references.AppendLine($"\t[{entry.Key}] {entry.Value}");
+            }
+            return references;
+        }
+
+        private static StringBuilder GetWriteReferenceTable(SerializerSession session)
+        {
+            var table = session.ReferencedObjects.CopyIdTable();
+            var references = new StringBuilder();
+            foreach (var entry in table)
+            {
+                references.AppendLine($"\t[{entry.Value}] {entry.Key}");
+            }
+            return references;
+        }
+
         [Serializable]
         public class MySerializableClass : ISerializable
         {
@@ -329,108 +278,6 @@ namespace TestApp
                 string refString = this.Self == this ? "[this]" : $"[{this.Self?.ToString() ?? "null"}]";
                 return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Integer)}: {this.Integer}, Self: {refString}";
             }
-
-        }
-
-        static void Test<T>(Func<SerializerSession> getSession, IFieldCodec<T> serializer, T expected)
-        {
-            var session = getSession();
-            var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, session);
-
-            serializer.WriteField(ref writer, 0, typeof(T), expected);
-            writer.Commit();
-
-            Console.WriteLine($"Size: {writer.Position} bytes.");
-            Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(session)}");
-
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            pipe.Writer.Complete();
-            pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, getSession());
-            var initialHeader = reader.ReadFieldHeader();
-            //Console.WriteLine(initialHeader);
-            var actual = serializer.ReadValue(ref reader, initialHeader);
-            pipe.Reader.AdvanceTo(readResult.Buffer.End);
-            pipe.Reader.Complete();
-
-            Console.WriteLine($"Expect: {expected}\nActual: {actual}");
-            var references = GetReadReferenceTable(reader.Session);
-            Console.WriteLine($"Read references:\n{references}");
-        }
-
-        private static StringBuilder GetReadReferenceTable(SerializerSession session)
-        {
-            var table = session.ReferencedObjects.CopyReferenceTable();
-            var references = new StringBuilder();
-            foreach (var entry in table)
-            {
-                references.AppendLine($"\t[{entry.Key}] {entry.Value}");
-            }
-            return references;
-        }
-        private static StringBuilder GetWriteReferenceTable(SerializerSession session)
-        {
-            var table = session.ReferencedObjects.CopyIdTable();
-            var references = new StringBuilder();
-            foreach (var entry in table)
-            {
-                references.AppendLine($"\t[{entry.Value}] {entry.Key}");
-            }
-            return references;
-        }
-
-        static void TestSkip(Func<SerializerSession> getSession, IFieldCodec<SubType> serializer, SubType expected)
-        {
-            var session = getSession();
-            var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, session);
-
-            serializer.WriteField(ref writer, 0, typeof(SubType), expected);
-            writer.Commit();
-
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
-            pipe.Writer.Complete();
-            pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, getSession());
-            var initialHeader = reader.ReadFieldHeader();
-            var skipCodec = new SkipFieldCodec();
-            skipCodec.ReadValue(ref reader, initialHeader);
-            pipe.Reader.AdvanceTo(readResult.Buffer.End);
-            pipe.Reader.Complete();
-            Console.WriteLine($"Skipped {reader.Position} bytes.");
-        }
-    }
-
-    public class BaseType
-    {
-        public string BaseTypeString { get; set; }
-        public string AddedLaterString { get; set; }
-
-        public override string ToString()
-        {
-            return $"{nameof(this.BaseTypeString)}: {this.BaseTypeString}";
-        }
-    }
-
-    /// <summary>
-    /// NOTE: The serializer for this type is HAND-ROLLED. See <see cref="SubTypeSerializer" />
-    /// </summary>
-    public class SubType : BaseType
-    {
-        // 0
-        public string String { get; set; }
-
-        // 1
-        public int Int { get; set; }
-        
-        // 3
-        public object Ref { get; set; }
-
-        public override string ToString()
-        {
-            string refString = this.Ref == this ? "[this]" : $"[{this.Ref?.ToString() ?? "null"}]";
-            return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Int)}: {this.Int}, Ref: {refString}";
         }
     }
 
