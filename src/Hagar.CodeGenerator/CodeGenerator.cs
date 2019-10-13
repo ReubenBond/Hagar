@@ -67,6 +67,14 @@ namespace Hagar.CodeGenerator
             {
                 // Generate a partial serializer class for each serializable type.
                 members.Add(SerializerGenerator.GenerateSerializer(this.compilation, this.libraryTypes, type));
+
+                if (type.IsEmptyConstructable)
+                {
+                    metadataModel.ActivatableTypes.Add(type);
+
+                    // Generate a partial serializer class for each serializable type.
+                    members.Add(ActivatorGenerator.GenerateActivator(this.compilation, this.libraryTypes, type));
+                }
             }
             
             // Generate metadata.

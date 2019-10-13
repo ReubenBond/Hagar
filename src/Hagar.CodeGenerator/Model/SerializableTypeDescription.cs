@@ -5,6 +5,8 @@ using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+
 namespace Hagar.CodeGenerator
 {
     internal class SerializableTypeDescription : ISerializableTypeDescription
@@ -37,5 +39,26 @@ namespace Hagar.CodeGenerator
 
         public List<IMemberDescription> Members { get; }
         public SemanticModel SemanticModel { get; }
+
+        public bool IsEmptyConstructable
+        {
+            get
+            {
+                if (this.Type.Constructors.Length == 0) return true;
+                foreach (var ctor in this.Type.Constructors)
+                {
+                    if (ctor.Parameters.Length != 0) continue;
+                    switch (ctor.DeclaredAccessibility)
+                    {
+                        case Accessibility.Public:
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(this.TypeSyntax));
     }
 }

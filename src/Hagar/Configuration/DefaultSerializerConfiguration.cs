@@ -11,6 +11,8 @@ namespace Hagar.Configuration
         {
             var codecs = configuration.FieldCodecs;
             var serializers = configuration.Serializers;
+            var activators = configuration.Activators;
+
             codecs.Add(typeof(BoolCodec));
             codecs.Add(typeof(CharCodec));
             codecs.Add(typeof(ByteCodec));
@@ -67,6 +69,7 @@ namespace Hagar.Configuration
             
             // Invocation
             serializers.Add(typeof(PooledResponseCodec<>));
+            activators.Add(typeof(PooledResponseActivator<>));
         }
     }
 }

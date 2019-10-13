@@ -12,7 +12,7 @@ namespace TestRpc.Runtime
     {
         [ThreadStatic] internal static Activation currentActivation = null;
 
-        public static Activation CurrentActivation => currentActivation;
+        public static Activation CurrentActivation { get => currentActivation; set => currentActivation = value; }
     }
 
     internal class Activation : ITargetHolder
@@ -43,10 +43,11 @@ namespace TestRpc.Runtime
 
         public TComponent GetComponent<TComponent>() => (TComponent)this.extensions[typeof(TComponent)];
 
-        public void OnSendMessage(Message message)
+        public void OnSendMessage(Message message, IResponseCompletionSource completion)
         {
-            message.MessageId = this.nextMessageId++;
+            var id = message.MessageId = this.nextMessageId++;
             message.Source = this.ActivationId;
+            this.callbacks[id] = completion;
         }
 
         public bool TryEnqueueMessage(Message request)
@@ -84,15 +85,16 @@ namespace TestRpc.Runtime
                             return;
                         }
 
-                        _ = HandleRequestAsync();
+                        _ = HandleRequestAsync(runtimeClient, message, responseTask);
                         return;
 
-                        async ValueTask HandleRequestAsync()
+                        static async ValueTask HandleRequestAsync(IRuntimeClient runtimeClient, Message message, ValueTask<Response> responseTask)
                         {
                             // Ensure the message is disposed upon leaving this scope.
                             using var _ = message;
 
-                            runtimeClient.SendResponse(message.MessageId, message.Source, await responseTask);
+                            var response = await responseTask;
+                            runtimeClient.SendResponse(message.MessageId, message.Source, response);
                         }
                     }
 
@@ -101,7 +103,12 @@ namespace TestRpc.Runtime
                         // Ensure the message is disposed upon leaving this scope.
                         using var _ = message;
 
-                        var completion = this.callbacks[message.MessageId];
+                        if (!this.callbacks.Remove(message.MessageId, out var completion))
+                        {
+                            ThrowMessageNotFound(message);
+                            return;
+                        }
+
                         completion.Complete((Response)message.Body);
                         return;
                     }
@@ -118,5 +125,8 @@ namespace TestRpc.Runtime
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void ThrowArgumentOutOfRange() => throw new ArgumentOutOfRangeException();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowMessageNotFound(Message message) => throw new InvalidOperationException($"No pending request for message {message}");
     }
 }

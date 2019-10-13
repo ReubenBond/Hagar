@@ -119,7 +119,7 @@ namespace Benchmarks.Comparison
             return SumResult(HagarSerializer.Deserialize(ref reader));
         }
 
-        [Benchmark]
+        //[Benchmark]
         public int Orleans()
         {
             OrleansBuffer.Reset(OrleansInput);

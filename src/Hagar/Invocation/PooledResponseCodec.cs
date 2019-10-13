@@ -6,11 +6,6 @@ using Hagar.Serializers;
 
 namespace Hagar.Invocation
 {
-    internal sealed class PooledResponseActivator<TResult> : IActivator<PooledResponse<TResult>>
-    {
-        public PooledResponse<TResult> Create() => ResponsePool.Get<TResult>();
-    }
-
     internal sealed class PooledResponseCodec<TResult> : IPartialSerializer<PooledResponse<TResult>>
     {
         private static readonly Type ExceptionType = typeof(Exception);

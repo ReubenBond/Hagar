@@ -79,10 +79,13 @@ namespace TestRpc
                 Task.Run(
                     async () =>
                     {
+
                         var factory = services.GetRequiredService<ProxyFactory>();
                         var proxy = factory.GetProxy<IPingPongGrain>(new ActivationId(7));
+
                         while (true)
                         {
+                            RuntimeActivationContext.CurrentActivation = activation;
                             await proxy.Ping();
                         }
                     }));

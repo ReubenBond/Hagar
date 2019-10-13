@@ -688,7 +688,7 @@ namespace Hagar.CodeGenerator
             /// <summary>
             /// Gets the underlying <see cref="Field"/> instance.
             /// </summary>
-            public IFieldSymbol Field => (IFieldSymbol)this.Description.Member;
+            public IFieldSymbol Field => throw new NotSupportedException();
 
             /// <summary>
             /// Gets a usable representation of the field type.

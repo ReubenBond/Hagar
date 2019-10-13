@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Running;
 using Benchmarks.Comparison;
 
 namespace Benchmarks
@@ -19,6 +19,15 @@ namespace Benchmarks
             if (args.Length > 0 && args[0] == "structloop")
             {
                 var benchmarks = new StructSerializeBenchmark();
+                while (true)
+                {
+                    benchmarks.Hagar();
+                }
+            }
+
+            if (args.Length > 0 && args[0] == "dstructloop")
+            {
+                var benchmarks = new StructDeserializeBenchmark();
                 while (true)
                 {
                     benchmarks.Hagar();

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Hagar.Activators;
 using Hagar.Codecs;
 using Hagar.Configuration;
 using Hagar.GeneratedCodeHelpers;
@@ -19,9 +20,11 @@ namespace Hagar.Serializers
         private readonly ConcurrentDictionary<(Type, Type), IFieldCodec> adaptedCodecs = new ConcurrentDictionary<(Type, Type), IFieldCodec>();
         private readonly ConcurrentDictionary<Type, object> instantiatedPartialSerializers = new ConcurrentDictionary<Type, object>();
         private readonly ConcurrentDictionary<Type, object> instantiatedValueSerializers = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Type, object> instantiatedActivators = new ConcurrentDictionary<Type, object>();
         private readonly Dictionary<Type, Type> partialSerializers = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> valueSerializers = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> fieldCodecs = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> activators = new Dictionary<Type, Type>();
         private readonly List<IGeneralizedCodec> generalized = new List<IGeneralizedCodec>();
         private readonly VoidCodec voidCodec = new VoidCodec();
         private readonly IServiceProvider serviceProvider;
@@ -56,7 +59,8 @@ namespace Hagar.Serializers
             AddFromMetadata(this.partialSerializers, metadata.Serializers, typeof(IPartialSerializer<>));
             AddFromMetadata(this.valueSerializers, metadata.Serializers, typeof(IValueSerializer<>));
             AddFromMetadata(this.fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
-            
+            AddFromMetadata(this.activators, metadata.Activators, typeof(IActivator<>));
+
             void AddFromMetadata(IDictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
             {
                 if (genericType.GetGenericArguments().Length != 1) throw new ArgumentException($"Type {genericType} must have an arity of 1.");
@@ -160,7 +164,15 @@ namespace Hagar.Serializers
             if (typedResult != null && (wasCreated || wasAdapted))
             {
                 untypedResult = typedResult;
-                typedResult = (IFieldCodec<TField>) this.adaptedCodecs.GetOrAdd((fieldType, resultFieldType), _ => untypedResult);
+                var key = (fieldType, resultFieldType);
+                if (this.adaptedCodecs.TryGetValue(key, out var existing))
+                {
+                    typedResult = (IFieldCodec<TField>)existing;
+                }
+                else if (!this.adaptedCodecs.TryAdd(key, untypedResult))
+                {
+                    typedResult = (IFieldCodec<TField>)this.adaptedCodecs[key];
+                }
             }
             else if (typedResult is null)
             {
@@ -192,6 +204,16 @@ namespace Hagar.Serializers
             {
                 throw new InvalidOperationException($"Cannot convert codec of type {rawCodec.GetType()} to codec of type {typeof(IFieldCodec<TField>)}.");
             }
+        }
+
+        public IActivator<T> GetActivator<T>()
+        {
+            if (!this.initialized) this.Initialize();
+            ThrowIfUnsupportedType(typeof(T));
+            var type = typeof(T);
+            var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+
+            return this.GetActivatorInner<T>(type, searchType) ?? ThrowActivatorNotFound<T>(type);
         }
 
         public IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class
@@ -238,6 +260,24 @@ namespace Hagar.Serializers
             }
 
             return (IValueSerializer<TField>)result;
+        }
+
+        private IActivator<T> GetActivatorInner<T>(Type concreteType, Type searchType)
+        {
+            if (!this.activators.TryGetValue(searchType, out var activatorType))
+            {
+                activatorType = typeof(DefaultActivator<>).MakeGenericType(concreteType);
+            }
+
+            if (activatorType.IsGenericTypeDefinition) activatorType = activatorType.MakeGenericType(concreteType.GetGenericArguments());
+
+            if (!this.instantiatedActivators.TryGetValue(activatorType, out var result))
+            {
+                result = this.GetServiceOrCreateInstance(activatorType);
+                this.instantiatedActivators.TryAdd(activatorType, result);
+            }
+
+            return (IActivator<T>)result;
         }
 
         private static void ThrowIfUnsupportedType(Type fieldType)
@@ -314,5 +354,7 @@ namespace Hagar.Serializers
         private static IPartialSerializer<TField> ThrowPartialSerializerNotFound<TField>(Type fieldType) where TField : class => throw new KeyNotFoundException($"Could not find a partial serializer for type {fieldType}.");
 
         private static IValueSerializer<TField> ThrowValueSerializerNotFound<TField>(Type fieldType) where TField : struct => throw new KeyNotFoundException($"Could not find a value serializer for type {fieldType}.");
+
+        private static IActivator<T> ThrowActivatorNotFound<T>(Type type) => throw new KeyNotFoundException($"Could not find an activator for type {type}.");
     }
 }

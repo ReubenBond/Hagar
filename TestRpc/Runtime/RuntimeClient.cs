@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace TestRpc.Runtime
             var currentActivation = RuntimeActivationContext.CurrentActivation;
             if (currentActivation != null)
             {
-                currentActivation.OnSendMessage(message);
+                currentActivation.OnSendMessage(message, completion);
             }
             else
             {
@@ -96,8 +97,10 @@ namespace TestRpc.Runtime
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowActivationCouldNotEnqueueMessage(Activation activation, Message message) => throw new InvalidOperationException($"Activation {activation} could not enqueue message {message}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowMessageNotFound(Message message) => throw new InvalidOperationException($"No pending request for message {message}");
     }
 }

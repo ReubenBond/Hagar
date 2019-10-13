@@ -14,6 +14,7 @@ namespace Hagar.CodeGenerator
         {
             return new LibraryTypes(compilation)
             {
+                IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
@@ -150,5 +151,6 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol IResponseCompletionSource { get; private set; }
         public INamedTypeSymbol InvokablePool { get; private set; }
         public INamedTypeSymbol ResponseCompletionSourcePool { get; private set; }
+        public INamedTypeSymbol IActivator_1 { get; private set; }
     }
 }

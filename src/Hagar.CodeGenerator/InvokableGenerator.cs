@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Threading;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -453,6 +450,11 @@ namespace Hagar.CodeGenerator
             public List<IMemberDescription> Members { get; }
             public IInvokableInterfaceDescription InterfaceDescription { get; }
             public SemanticModel SemanticModel => this.InterfaceDescription.SemanticModel;
+
+            public bool IsEmptyConstructable => true;
+
+            public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", this.TypeSyntax))
+                .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
         }
 
         public static string GetSimpleClassName(IMethodSymbol method)
