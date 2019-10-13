@@ -16,4 +16,4 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release
     - name: Test
-      run: dotnet test .\test\Hagar.UnitTests\Hagar.UnitTests.csproj --configuration Release --framework netcoreapp3.0
+      run: dotnet test test/Hagar.UnitTests/Hagar.UnitTests.csproj --configuration Release --framework netcoreapp3.0
