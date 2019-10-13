@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Hagar;
 
 namespace TestRpc.Runtime
@@ -27,5 +29,13 @@ namespace TestRpc.Runtime
         public static bool operator ==(ActivationId left, ActivationId right) => left.Id == right.Id;
 
         public static bool operator !=(ActivationId left, ActivationId right) => left.Id != right.Id;
+    }
+
+    public sealed class ActivationIdEqualityComparer : EqualityComparer<ActivationId>
+    {
+        public static ActivationIdEqualityComparer Instance { get; } = new ActivationIdEqualityComparer();
+        public override bool Equals([AllowNull] ActivationId x, [AllowNull] ActivationId y) => x.Id == y.Id;
+
+        public override int GetHashCode([DisallowNull] ActivationId obj) => obj.Id;
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,10 +29,42 @@ namespace Hagar.CodeGenerator
             var ctor = GenerateConstructor(generatedClassName, fieldDescriptions);
 
             var targetField = fieldDescriptions.OfType<TargetFieldDescription>().Single();
-            var resultField = fieldDescriptions.OfType<ResultFieldDescription>().FirstOrDefault();
+            var methodReturnType = (INamedTypeSymbol)method.ReturnType;
+
+            ITypeSymbol baseClassType;
+            if (methodReturnType.TypeArguments.Length == 1)
+            {
+                if (methodReturnType.ConstructedFrom.Equals(libraryTypes.ValueTask_1))
+                {
+                    baseClassType = libraryTypes.Request_1.Construct(methodReturnType.TypeArguments[0]);
+                }
+                else if (methodReturnType.ConstructedFrom.Equals(libraryTypes.Task_1))
+                {
+                    baseClassType = libraryTypes.TaskRequest_1.Construct(methodReturnType.TypeArguments[0]);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unsupported return type {methodReturnType}. Constructed from: {methodReturnType.ConstructedFrom}");
+                }
+            }
+            else
+            {
+                if (methodReturnType.Equals(libraryTypes.ValueTask))
+                {
+                    baseClassType = libraryTypes.Request;
+                }
+                else if (methodReturnType.Equals(libraryTypes.Task))
+                {
+                    baseClassType = libraryTypes.TaskRequest;
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unsupported return type {methodReturnType}");
+                }
+            }
 
             var classDeclaration = ClassDeclaration(generatedClassName)
-                .AddBaseListTypes(SimpleBaseType(libraryTypes.Invokable.ToTypeSyntax()))
+                .AddBaseListTypes(SimpleBaseType(baseClassType.ToTypeSyntax()))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(
                     AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
@@ -43,12 +74,10 @@ namespace Hagar.CodeGenerator
                     GenerateGetArgumentCount(libraryTypes, methodDescription),
                     GenerateSetTargetMethod(libraryTypes, interfaceDescription, targetField),
                     GenerateGetTargetMethod(libraryTypes, targetField),
-                    GenerateResetMethod(libraryTypes, fieldDescriptions),
+                    GenerateDisposeMethod(libraryTypes, fieldDescriptions),
                     GenerateGetArgumentMethod(libraryTypes, methodDescription, fieldDescriptions),
                     GenerateSetArgumentMethod(libraryTypes, methodDescription, fieldDescriptions),
-                    GenerateInvokeMethod(libraryTypes, methodDescription, fieldDescriptions, targetField, resultField),
-                    GenerateSetResultProperty(libraryTypes, resultField),
-                    GenerateGetResultProperty(libraryTypes, resultField));
+                    GenerateInvokeInnerMethod(libraryTypes, methodDescription, fieldDescriptions, targetField));
 
             var typeParameters = interfaceDescription.InterfaceType.TypeParameters.Select(tp => (tp, tp.Name))
                 .Concat(method.TypeParameters.Select(tp => (tp, tp.Name)))
@@ -80,7 +109,7 @@ namespace Hagar.CodeGenerator
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         holder,
-                        GenericName(interfaceDescription.IsExtension ? "GetExtension" : "GetTarget")
+                        GenericName(interfaceDescription.IsExtension ? "GetComponent" : "GetTarget")
                             .WithTypeArgumentList(
                                 TypeArgumentList(
                                     SingletonSeparatedList(interfaceDescription.InterfaceType.ToTypeSyntax())))))
@@ -267,15 +296,12 @@ namespace Hagar.CodeGenerator
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)));
         }
 
-        private static MemberDeclarationSyntax GenerateInvokeMethod(
+        private static MemberDeclarationSyntax GenerateInvokeInnerMethod(
             LibraryTypes libraryTypes,
             MethodDescription method,
             List<FieldDescription> fields,
-            TargetFieldDescription target,
-            ResultFieldDescription result)
+            TargetFieldDescription target)
         {
-            var body = new List<StatementSyntax>();
-
             var resultTask = IdentifierName("resultTask");
 
             // C# var resultTask = this.target.{Method}({params});
@@ -299,87 +325,15 @@ namespace Hagar.CodeGenerator
             {
                 methodCall = ThisExpression().Member(target.FieldName).Member(method.Method.Name);
             }
-            
-            body.Add(
-                LocalDeclarationStatement(
-                    VariableDeclaration(
-                        ParseTypeName("var"),
-                        SingletonSeparatedList(
-                            VariableDeclarator(resultTask.Identifier)
-                                .WithInitializer(
-                                    EqualsValueClause(
-                                        InvocationExpression(
-                                            methodCall,
-                                            ArgumentList(args))))))));
 
-            // C#: if (resultTask.IsCompleted) // Even if it failed.
-            // C#: {
-            // C#:     this.result = resultTask.GetAwaiter().GetResult();
-            // C#:     return default; // default(ValueTask) is a successfully completed ValueTask.
-            // C#: }
-            var synchronousCompletionBody = new List<StatementSyntax>();
-            if (result != null)
-            {
-                synchronousCompletionBody.Add(
-                    ExpressionStatement(
-                        AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            ThisExpression().Member(result.FieldName),
-                            InvocationExpression(
-                                InvocationExpression(resultTask.Member("GetAwaiter")).Member("GetResult")))));
-            }
-
-            synchronousCompletionBody.Add(ReturnStatement(DefaultExpression(libraryTypes.ValueTask.ToTypeSyntax())));
-            body.Add(IfStatement(resultTask.Member("IsCompleted"), Block(synchronousCompletionBody)));
-
-            // C#: async ValueTask InvokeAsync(ValueTask<int> asyncValue)
-            // C#: {
-            // C#:     this.result = await asyncValue.ConfigureAwait(false);
-            // C#: }
-            var invokeAsyncParam = IdentifierName("asyncTask");
-            var invokeAsyncBody = new List<StatementSyntax>();
-            var awaitExpression = AwaitExpression(
-                InvocationExpression(
-                    invokeAsyncParam.Member("ConfigureAwait"),
-                    ArgumentList(
-                        SingletonSeparatedList(Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))))));
-            if (result != null)
-            {
-                invokeAsyncBody.Add(
-                    ExpressionStatement(
-                        AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            ThisExpression().Member(result.FieldName),
-                            awaitExpression)));
-            }
-            else
-            {
-                invokeAsyncBody.Add(ExpressionStatement(AwaitExpression(invokeAsyncParam)));
-            }
-
-            var invokeAsync = LocalFunctionStatement(libraryTypes.ValueTask.ToTypeSyntax(), "InvokeAsync")
-                .WithModifiers(TokenList(Token(SyntaxKind.AsyncKeyword)))
-                .WithParameterList(
-                    ParameterList(
-                        SingletonSeparatedList(
-                            Parameter(invokeAsyncParam.Identifier).WithType(method.Method.ReturnType.ToTypeSyntax()))))
-                .WithBody(Block(invokeAsyncBody));
-
-            // C#: return InvokeAsync(resultTask);
-            body.Add(
-                ReturnStatement(
-                    InvocationExpression(
-                        IdentifierName("InvokeAsync"),
-                        ArgumentList(SingletonSeparatedList(Argument(resultTask))))));
-            body.Add(invokeAsync);
-
-            return MethodDeclaration(libraryTypes.ValueTask.ToTypeSyntax(), "Invoke")
+            return MethodDeclaration(method.Method.ReturnType.ToTypeSyntax(), "InvokeInner")
                 .WithParameterList(ParameterList())
-                .WithBody(Block(body))
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)));
+                .WithExpressionBody(ArrowExpressionClause(InvocationExpression(methodCall, ArgumentList(args))))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                .WithModifiers(TokenList(Token(SyntaxKind.ProtectedKeyword), Token(SyntaxKind.OverrideKeyword)));
         }
 
-        private static MemberDeclarationSyntax GenerateResetMethod(
+        private static MemberDeclarationSyntax GenerateDisposeMethod(
             LibraryTypes libraryTypes,
             List<FieldDescription> fields)
         {
@@ -398,7 +352,10 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            return MethodDeclaration(libraryTypes.Void.ToTypeSyntax(), "Reset")
+            body.Add(ExpressionStatement(InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Return"))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList<ArgumentSyntax>(Argument(ThisExpression()))))));
+
+            return MethodDeclaration(libraryTypes.Void.ToTypeSyntax(), "Dispose")
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
                 .WithBody(Block(body));
         }
@@ -443,77 +400,6 @@ namespace Hagar.CodeGenerator
                             getter,
                             setter))
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)));
-        }
-
-        private static MemberDeclarationSyntax GenerateSetResultProperty(
-            LibraryTypes libraryTypes,
-            ResultFieldDescription resultField)
-        {
-
-            var type = IdentifierName("TResult");
-            var typeToken = Identifier("TResult");
-
-            ExpressionSyntax body;
-            if (resultField != null)
-            {
-                body = AssignmentExpression(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    ThisExpression().Member(resultField.FieldName),
-                    CastExpression(
-                        resultField.FieldType.ToTypeSyntax(),
-                        CastExpression(libraryTypes.Object.ToTypeSyntax(), IdentifierName("value"))));
-            }
-            else
-            {
-                body = ThrowExpression(
-                    ObjectCreationExpression(libraryTypes.InvalidOperationException.ToTypeSyntax())
-                        .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument("Method does not have a return value.".GetLiteralExpression())))));
-            }
-
-            return MethodDeclaration(libraryTypes.Void.ToTypeSyntax(), "SetResult")
-                .WithTypeParameterList(TypeParameterList(SingletonSeparatedList(TypeParameter(typeToken))))
-                .WithParameterList(
-                    ParameterList(
-                        SingletonSeparatedList(
-                            Parameter(Identifier("value"))
-                                .WithType(type)
-                                .WithModifiers(TokenList(Token(SyntaxKind.InKeyword))))))
-                .WithExpressionBody(ArrowExpressionClause(body))
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
-                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
-        }
-
-        private static MemberDeclarationSyntax GenerateGetResultProperty(
-            LibraryTypes libraryTypes,
-            ResultFieldDescription resultField)
-        {
-
-            var type = IdentifierName("TResult");
-            var typeToken = Identifier("TResult");
-
-            ExpressionSyntax body;
-            if (resultField != null)
-            {
-                body = CastExpression(
-                    type,
-                    CastExpression(libraryTypes.Object.ToTypeSyntax(), ThisExpression().Member(resultField.FieldName)));
-            }
-            else
-            {
-                body = ThrowExpression(
-                    ObjectCreationExpression(libraryTypes.InvalidOperationException.ToTypeSyntax())
-                        .WithArgumentList(
-                            ArgumentList(
-                                SingletonSeparatedList(
-                                    Argument("Method does not have a return value.".GetLiteralExpression())))));
-            }
-
-            return MethodDeclaration(type, "GetResult")
-                .WithTypeParameterList(TypeParameterList(SingletonSeparatedList(TypeParameter(typeToken))))
-                .WithParameterList(ParameterList())
-                .WithExpressionBody(ArrowExpressionClause(body))
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
-                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
         }
 
         private class GeneratedInvokerDescription : IGeneratedInvokerDescription
@@ -567,7 +453,7 @@ namespace Hagar.CodeGenerator
 
             public bool IsEmptyConstructable => true;
 
-            public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(this.TypeSyntax))
+            public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", this.TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
         }
 
@@ -707,11 +593,6 @@ namespace Hagar.CodeGenerator
             {
                 fields.Add(new MethodParameterFieldDescription(parameter, $"arg{fieldId}", fieldId));
                 fieldId++;
-            }
-
-            if (method.ReturnType is INamedTypeSymbol returnType && returnType.TypeArguments.Length == 1)
-            {
-                fields.Add(new ResultFieldDescription(returnType.TypeArguments[0]));
             }
 
             fields.Add(new TargetFieldDescription(interfaceDescription.InterfaceType));

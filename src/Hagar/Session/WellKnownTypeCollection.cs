@@ -37,7 +37,7 @@ namespace Hagar.Session
 
         public bool TryGetWellKnownTypeId(Type type, out uint typeId)
         {
-            if (type == null)
+            if (type is null)
             {
                 typeId = 0;
                 return true;

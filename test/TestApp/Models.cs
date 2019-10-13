@@ -19,10 +19,9 @@ namespace MyPocos
         public List<IInvokable> Invocations { get; } = new List<IInvokable>();
 
         // The only required method is Invoke and it must have this signature.
-        protected ValueTask Invoke<TInvokable>(TInvokable invokable) where TInvokable : IInvokable
+        protected void SendRequest(IResponseCompletionSource completion, IInvokable request)
         {
-            this.Invocations.Add(invokable);
-            return default;
+            this.Invocations.Add(request);
         }
     }
 

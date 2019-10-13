@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <HagarCodeGen>true</HagarCodeGen>
     <IsPackable>false</IsPackable>
+    <!--<HagarCodeGenWaitForDebugger>true</HagarCodeGenWaitForDebugger>-->
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\src\Hagar\Hagar.csproj" />
   </ItemGroup>
 

@@ -25,7 +25,10 @@ namespace Hagar.CodeGenerator
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 Reader = Type("Hagar.Buffers.Reader"),
                 SerializerSession = Type("Hagar.Session.SerializerSession"),
-                Invokable = Type("Hagar.Invocation.Invokable"),
+                Request = Type("Hagar.Invocation.Request"),
+                Request_1 = Type("Hagar.Invocation.Request`1"),
+                TaskRequest = Type("Hagar.Invocation.TaskRequest"),
+                TaskRequest_1 = Type("Hagar.Invocation.TaskRequest`1"),
                 Object = compilation.GetSpecialType(SpecialType.System_Object),
                 Type = Type("System.Type"),
                 SerializerConfiguration = Type("Hagar.Configuration.SerializerConfiguration"),
@@ -35,8 +38,12 @@ namespace Hagar.CodeGenerator
                 MetadataProviderAttribute = Type("Hagar.Configuration.MetadataProviderAttribute"),
                 IdAttributeTypes = options.IdAttributeTypes.Select(Type).ToList(),
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
+                IResponseCompletionSource = Type("Hagar.Invocation.IResponseCompletionSource"),
                 ITargetHolder = Type("Hagar.Invocation.ITargetHolder"),
                 ValueTask = Type("System.Threading.Tasks.ValueTask"),
+                ValueTask_1 = Type("System.Threading.Tasks.ValueTask`1"),
+                Task = Type("System.Threading.Tasks.Task"),
+                Task_1 = Type("System.Threading.Tasks.Task`1"),
                 Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
                 NonSerializedAttribute = Type("System.NonSerializedAttribute"),
                 InvalidOperationException = Type("System.InvalidOperationException"),
@@ -44,6 +51,8 @@ namespace Hagar.CodeGenerator
                 ObsoleteAttribute = Type("System.ObsoleteAttribute"),
                 Func_2 = Type("System.Func`2"),
                 ValueTypeSetter_2 = Type("Hagar.Utilities.ValueTypeSetter`2"),
+                InvokablePool = Type("Hagar.Invocation.InvokablePool"),
+                ResponseCompletionSourcePool = Type("Hagar.Invocation.ResponseCompletionSourcePool"),
                 StaticCodecs = new List<StaticCodecDescription>
                 {
                     new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Boolean), Type("Hagar.Codecs.BoolCodec")),
@@ -122,7 +131,9 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol PartialSerializer { get; private set; }
 
-        public INamedTypeSymbol Invokable { get; private set; }
+        public INamedTypeSymbol Request { get; private set; }
+
+        public INamedTypeSymbol Request_1 { get; private set; }
 
         public INamedTypeSymbol ValueSerializer { get; private set; }
 
@@ -131,7 +142,15 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol GenerateMethodSerializersAttribute { get; private set; }
         public INamedTypeSymbol IInvokable { get; private set; }
         public INamedTypeSymbol ValueTask { get; private set; }
+        public INamedTypeSymbol ValueTask_1 { get; private set; }
+        public INamedTypeSymbol Task { get; private set; }
+        public INamedTypeSymbol Task_1 { get; private set; }
         public INamedTypeSymbol Void { get; private set; }
         public INamedTypeSymbol IActivator_1 { get; private set; }
+        public INamedTypeSymbol TaskRequest { get; private set; }
+        public INamedTypeSymbol TaskRequest_1 { get; private set; }
+        public INamedTypeSymbol IResponseCompletionSource { get; private set; }
+        public INamedTypeSymbol InvokablePool { get; private set; }
+        public INamedTypeSymbol ResponseCompletionSourcePool { get; private set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
 
-#if NETCOREAPP2_0
+#if NETCOREAPP
 using System.Runtime.Loader;
 #endif
 
@@ -20,7 +20,7 @@ namespace Hagar.CodeGenerator.MSBuild
         private readonly ICompilationAssemblyResolver assemblyResolver;
         
         private readonly DependencyContext resolverRependencyContext;
-#if NETCOREAPP2_0
+#if NETCOREAPP
         private readonly AssemblyLoadContext loadContext;
 #endif
 
@@ -37,7 +37,7 @@ namespace Hagar.CodeGenerator.MSBuild
                 });
 
             AppDomain.CurrentDomain.AssemblyResolve += this.ResolveAssembly;
-#if NETCOREAPP2_0
+#if NETCOREAPP
             this.loadContext = AssemblyLoadContext.GetLoadContext(typeof(AssemblyResolver).Assembly);
             this.loadContext.Resolving += this.AssemblyLoadContextResolving;
             if (this.loadContext != AssemblyLoadContext.Default)
@@ -51,7 +51,7 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             AppDomain.CurrentDomain.AssemblyResolve -= this.ResolveAssembly;
 
-#if NETCOREAPP2_0
+#if NETCOREAPP
             this.loadContext.Resolving -= this.AssemblyLoadContextResolving;
             if (this.loadContext != AssemblyLoadContext.Default)
             {
@@ -77,7 +77,7 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             // Attempt to resolve the library from one of the dependency contexts.
             var library = this.resolverRependencyContext?.RuntimeLibraries?.FirstOrDefault(NamesMatch);
-            if (library == null) return null;
+            if (library is null) return null;
 
             var wrapper = new CompilationLibrary(
                 library.Type,
@@ -110,7 +110,7 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             try
             {
-#if NETCOREAPP2_0
+#if NETCOREAPP
                 return this.loadContext.LoadFromAssemblyPath(path);
 #else
                 return Assembly.LoadFrom(path);
@@ -122,7 +122,7 @@ namespace Hagar.CodeGenerator.MSBuild
             }
         }
 
-#if !NETCOREAPP2_0
+#if !NETCOREAPP
         internal class AssemblyLoadContext
         {
         }

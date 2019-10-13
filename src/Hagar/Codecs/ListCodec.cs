@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Hagar.Activators;
 using Hagar.Buffers;
@@ -64,7 +64,7 @@ namespace Hagar.Codecs
                         ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
                     case 1:
-                        if (result == null) ThrowLengthFieldMissing();
+                        if (result is null) ThrowLengthFieldMissing();
                         if (index >= length) ThrowIndexOutOfRangeException(length);
                         // ReSharper disable once PossibleNullReferenceException
                         result.Add(this.fieldCodec.ReadValue(ref reader, header));

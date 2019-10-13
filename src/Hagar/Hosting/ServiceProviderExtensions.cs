@@ -26,7 +26,6 @@ namespace Hagar
 
                 services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultSerializerConfiguration>();
                 services.AddSingleton<IConfigurationProvider<TypeConfiguration>, DefaultTypeConfiguration>();
-                services.TryAddSingleton(typeof(IActivator<>), typeof(DefaultActivator<>));
                 services.TryAddSingleton(typeof(ListActivator<>));
                 services.TryAddSingleton(typeof(DictionaryActivator<,>));
                 services.TryAddSingleton(typeof(IConfiguration<>), typeof(ConfigurationHolder<>));
@@ -36,17 +35,20 @@ namespace Hagar
                 services.TryAddSingleton<ITypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IPartialSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IValueSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
+                services.TryAddSingleton<IActivatorProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddScoped(typeof(IFieldCodec<>), typeof(FieldCodecHolder<>));
                 services.TryAddScoped(typeof(IPartialSerializer<>), typeof(PartialSerializerHolder<>));
                 services.TryAddScoped(typeof(IValueSerializer<>), typeof(ValueSerializerHolder<>));
+                services.TryAddSingleton(typeof(DefaultActivator<>));
+                services.TryAddSingleton(typeof(IActivator<>), typeof(ActivatorHolder<>));
                 services.TryAddSingleton<WellKnownTypeCollection>();
                 services.TryAddSingleton<TypeCodec>();
 
                 // Session
-                services.AddSingleton<SessionPool>();
+                services.TryAddSingleton<SessionPool>();
 
                 // Serializer
-                services.AddSingleton(typeof(Serializer<>));
+                services.TryAddSingleton(typeof(Serializer<>));
             }
 
             configure?.Invoke(context.Builder);
@@ -84,6 +86,21 @@ namespace Hagar
                 configureDelegate(this.services);
                 return this;
             }
+        }
+
+        private sealed class ActivatorHolder<T> : IActivator<T>, IServiceHolder<IActivator<T>>
+        {
+            private readonly IActivatorProvider activatorProvider;
+            private IActivator<T> activator;
+
+            public ActivatorHolder(IActivatorProvider codecProvider)
+            {
+                this.activatorProvider = codecProvider;
+            }
+
+            public IActivator<T> Value => this.activator ?? (this.activator = this.activatorProvider.GetActivator<T>());
+
+            public T Create() => this.Value.Create();
         }
 
         private sealed class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>

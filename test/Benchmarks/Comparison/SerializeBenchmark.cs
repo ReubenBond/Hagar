@@ -71,7 +71,7 @@ namespace Benchmarks.Comparison
             return writer.Output.Length;
         }
 
-        [Benchmark]
+        //[Benchmark]
         public int Orleans()
         {
             var orleansBuffer = new BinaryTokenStreamWriter();

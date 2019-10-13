@@ -17,7 +17,7 @@ namespace Hagar.Codecs
         public static object ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<object>(ref reader, field);
-            if (field.FieldType == ObjectType || field.FieldType == null)
+            if (field.FieldType == ObjectType || field.FieldType is null)
             {
                 reader.ReadVarUInt32();
                 var result = new object();
@@ -37,7 +37,7 @@ namespace Hagar.Codecs
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
             var fieldType = value?.GetType();
-            if (fieldType == null || fieldType == ObjectType)
+            if (fieldType is null || fieldType == ObjectType)
             {
                 if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, ObjectType, WireType.LengthPrefixed);

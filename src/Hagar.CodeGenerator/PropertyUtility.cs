@@ -10,7 +10,7 @@ namespace Hagar.CodeGenerator
         public static IPropertySymbol GetMatchingProperty(IFieldSymbol field)
         {
             var propertyName = Regex.Match(field.Name, "^<([^>]+)>.*$");
-            if (!propertyName.Success || field.ContainingType == null) return null;
+            if (!propertyName.Success || field.ContainingType is null) return null;
 
             var name = propertyName.Groups[1].Value;
             var candidates = field.ContainingType
