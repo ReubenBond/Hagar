@@ -9,9 +9,9 @@ namespace TestRpc.Runtime
         [Id(0)]
         public int MessageId { get; set; }
         [Id(1)]
-        public ActivationId Target { get; set; }
+        public GrainId Target { get; set; }
         [Id(2)]
-        public ActivationId Source { get; set; }
+        public GrainId Source { get; set; }
         [Id(3)]
         public int Direction { get; set; }
         [Id(4)]

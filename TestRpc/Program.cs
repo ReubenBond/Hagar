@@ -30,7 +30,7 @@ namespace TestRpc
         {
             var services = StartNew(connection, out var connectionHandler, out var runtimeClient);
 
-            var activation = new Activation(new ActivationId(7), new PingPongGrain(), runtimeClient);
+            var activation = new Activation(new GrainId(7), new PingPongGrain(), runtimeClient);
             var catalog = services.GetRequiredService<Catalog>();
             catalog.RegisterActivation(activation);
 
@@ -68,7 +68,7 @@ namespace TestRpc
         {
             var services = StartNew(connection, out var connectionHandler, out var runtimeClient);
 
-            var activation = new Activation(new ActivationId(100), new PingPongGrain(), runtimeClient);
+            var activation = new Activation(new GrainId(100), new PingPongGrain(), runtimeClient);
             var catalog = services.GetRequiredService<Catalog>();
             catalog.RegisterActivation(activation);
 
@@ -81,7 +81,7 @@ namespace TestRpc
                     {
 
                         var factory = services.GetRequiredService<ProxyFactory>();
-                        var proxy = factory.GetProxy<IPingPongGrain>(new ActivationId(7));
+                        var proxy = factory.GetProxy<IPingPongGrain>(new GrainId(7));
 
                         while (true)
                         {

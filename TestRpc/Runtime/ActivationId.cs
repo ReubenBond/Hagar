@@ -5,9 +5,9 @@ using Hagar;
 namespace TestRpc.Runtime
 {
     [GenerateSerializer]
-    public struct ActivationId
+    public struct GrainId
     {
-        public bool Equals(ActivationId other) => this.Id == other.Id;
+        public bool Equals(GrainId other) => this.Id == other.Id;
 
         public override bool Equals(object obj)
         {
@@ -16,26 +16,26 @@ namespace TestRpc.Runtime
                 return false;
             }
 
-            return obj is ActivationId other && this.Equals(other);
+            return obj is GrainId other && this.Equals(other);
         }
 
         public override int GetHashCode() => this.Id;
 
-        public ActivationId(int id) => this.Id = id;
+        public GrainId(int id) => this.Id = id;
 
         [Id(0)]
         public int Id { get; set; }
 
-        public static bool operator ==(ActivationId left, ActivationId right) => left.Id == right.Id;
+        public static bool operator ==(GrainId left, GrainId right) => left.Id == right.Id;
 
-        public static bool operator !=(ActivationId left, ActivationId right) => left.Id != right.Id;
+        public static bool operator !=(GrainId left, GrainId right) => left.Id != right.Id;
     }
 
-    public sealed class ActivationIdEqualityComparer : EqualityComparer<ActivationId>
+    public sealed class GrainIdEqualityComparer : EqualityComparer<GrainId>
     {
-        public static ActivationIdEqualityComparer Instance { get; } = new ActivationIdEqualityComparer();
-        public override bool Equals([AllowNull] ActivationId x, [AllowNull] ActivationId y) => x.Id == y.Id;
+        public static GrainIdEqualityComparer Instance { get; } = new GrainIdEqualityComparer();
+        public override bool Equals([AllowNull] GrainId x, [AllowNull] GrainId y) => x.Id == y.Id;
 
-        public override int GetHashCode([DisallowNull] ActivationId obj) => obj.Id;
+        public override int GetHashCode([DisallowNull] GrainId obj) => obj.Id;
     }
 }

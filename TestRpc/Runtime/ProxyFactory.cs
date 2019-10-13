@@ -43,7 +43,7 @@ namespace TestRpc.Runtime
             return this.knownProxies.First(interfaceType.IsAssignableFrom);
         }
 
-        public TInterface GetProxy<TInterface>(ActivationId id)
+        public TInterface GetProxy<TInterface>(GrainId id)
         {
             if (!this.proxyMap.TryGetValue(typeof(TInterface), out var proxyType))
             {

@@ -26,11 +26,11 @@ namespace TestRpc.Runtime
             this.incomingMessages = incomingMessages;
         }
 
-        public void SendRequest(ActivationId activationId, IResponseCompletionSource completion, IInvokable body)
+        public void SendRequest(GrainId grainId, IResponseCompletionSource completion, IInvokable body)
         {
             var message = MessagePool.Get();
             message.Direction = Direction.Request;
-            message.Target = activationId;
+            message.Target = grainId;
             message.Body = body;
 
             var currentActivation = RuntimeActivationContext.CurrentActivation;
@@ -48,7 +48,7 @@ namespace TestRpc.Runtime
             this.connection.SendMessage(message);
         }
 
-        public void SendResponse(int requestMessageId, ActivationId requestMessageSource, Response response)
+        public void SendResponse(int requestMessageId, GrainId requestMessageSource, Response response)
         {
             var message = MessagePool.Get();
             message.MessageId = requestMessageId;

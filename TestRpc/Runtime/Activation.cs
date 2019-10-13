@@ -25,10 +25,10 @@ namespace TestRpc.Runtime
         private readonly Dictionary<int, IResponseCompletionSource> callbacks = new Dictionary<int, IResponseCompletionSource>();
         private int nextMessageId;
 
-        public Activation(ActivationId id, object activation, IRuntimeClient runtimeClient)
+        public Activation(GrainId id, object activation, IRuntimeClient runtimeClient)
         {
             this.activation = activation;
-            this.ActivationId = id;
+            this.GrainId = id;
             this.runtimeClient = runtimeClient;
             var channel = Channel.CreateUnbounded<Message>(
                 new UnboundedChannelOptions
@@ -37,7 +37,7 @@ namespace TestRpc.Runtime
             this.incoming = channel.Writer;
         }
 
-        public ActivationId ActivationId { get; }
+        public GrainId GrainId { get; }
 
         public TTarget GetTarget<TTarget>() => (TTarget)this.activation;
 
@@ -46,7 +46,7 @@ namespace TestRpc.Runtime
         public void OnSendMessage(Message message, IResponseCompletionSource completion)
         {
             var id = message.MessageId = this.nextMessageId++;
-            message.Source = this.ActivationId;
+            message.Source = this.GrainId;
             this.callbacks[id] = completion;
         }
 

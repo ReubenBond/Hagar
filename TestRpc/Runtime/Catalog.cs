@@ -4,8 +4,8 @@ namespace TestRpc.Runtime
 {
     internal class Catalog
     {
-        private readonly ConcurrentDictionary<ActivationId, Activation> activations = new ConcurrentDictionary<ActivationId, Activation>(ActivationIdEqualityComparer.Instance);
-        public void RegisterActivation(Activation target) => this.activations[target.ActivationId] = target;
-        public Activation GetActivation(ActivationId id) => this.activations[id];
+        private readonly ConcurrentDictionary<GrainId, Activation> activations = new ConcurrentDictionary<GrainId, Activation>(GrainIdEqualityComparer.Instance);
+        public void RegisterActivation(Activation target) => this.activations[target.GrainId] = target;
+        public Activation GetActivation(GrainId id) => this.activations[id];
     }
 }

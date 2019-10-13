@@ -8,14 +8,14 @@ namespace TestRpc.Runtime
         [NonSerialized]
         private readonly IRuntimeClient runtimeClient;
 
-        protected ProxyBase(ActivationId id, IRuntimeClient runtimeClient)
+        protected ProxyBase(GrainId id, IRuntimeClient runtimeClient)
         {
             this.runtimeClient = runtimeClient;
-            this.ActivationId = id;
+            this.GrainId = id;
         }
 
-        public ActivationId ActivationId { get; }
+        public GrainId GrainId { get; }
 
-        protected void SendRequest(IResponseCompletionSource callback, IInvokable body) => this.runtimeClient.SendRequest(this.ActivationId, callback, body);
+        protected void SendRequest(IResponseCompletionSource callback, IInvokable body) => this.runtimeClient.SendRequest(this.GrainId, callback, body);
     }
 }
