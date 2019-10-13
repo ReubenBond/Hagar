@@ -564,6 +564,11 @@ namespace Hagar.CodeGenerator
             public List<IMemberDescription> Members { get; }
             public IInvokableInterfaceDescription InterfaceDescription { get; }
             public SemanticModel SemanticModel => this.InterfaceDescription.SemanticModel;
+
+            public bool IsEmptyConstructable => true;
+
+            public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(this.TypeSyntax))
+                .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
         }
 
         public static string GetSimpleClassName(IMethodSymbol method)
