@@ -17,5 +17,7 @@ namespace Hagar.CodeGenerator
         ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         List<IMemberDescription> Members { get; }
         SemanticModel SemanticModel { get; }
+        bool IsEmptyConstructable { get; }
+        ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes);
     }
 }

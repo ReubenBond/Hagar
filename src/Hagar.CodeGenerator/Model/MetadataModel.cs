@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Hagar.CodeGenerator
 {
@@ -11,5 +11,7 @@ namespace Hagar.CodeGenerator
             new List<IInvokableInterfaceDescription>(1024);
         public Dictionary<MethodDescription, IGeneratedInvokerDescription> GeneratedInvokables { get; } = new Dictionary<MethodDescription, IGeneratedInvokerDescription>();
         public List<IGeneratedProxyDescription> GeneratedProxies { get; } = new List<IGeneratedProxyDescription>(1024);
+        public List<ISerializableTypeDescription> ActivatableTypes { get; } =
+            new List<ISerializableTypeDescription>(1024);
     }
 }

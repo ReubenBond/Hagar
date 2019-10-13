@@ -14,6 +14,7 @@ namespace Hagar.CodeGenerator
         {
             return new LibraryTypes(compilation)
             {
+                IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
@@ -72,7 +73,7 @@ namespace Hagar.CodeGenerator
             INamedTypeSymbol Type(string metadataName)
             {
                 var result = compilation.GetTypeByMetadataName(metadataName);
-                if (result == null) throw new InvalidOperationException("Cannot find type with metadata name " + metadataName);
+                if (result is null) throw new InvalidOperationException("Cannot find type with metadata name " + metadataName);
                 return result;
             }
         }
@@ -131,5 +132,6 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol IInvokable { get; private set; }
         public INamedTypeSymbol ValueTask { get; private set; }
         public INamedTypeSymbol Void { get; private set; }
+        public INamedTypeSymbol IActivator_1 { get; private set; }
     }
 }

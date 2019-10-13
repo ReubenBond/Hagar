@@ -7,6 +7,7 @@ using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Hagar.CodeGenerator.InvokableGenerator;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -24,12 +25,16 @@ namespace Hagar.CodeGenerator
             var serializerInterface = type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer;
             var baseInterface = serializerInterface.ToTypeSyntax(type.TypeSyntax);
 
-            var members = new List<SerializableMember>();
+            var members = new List<ISerializableMember>();
             foreach (var member in type.Members)
             {
-                if (member.Member is IFieldSymbol field)
+                if (member is IFieldDescription)
                 {
                     members.Add(new SerializableMember(libraryTypes, type, member, members.Count));
+                }
+                else if (member is MethodParameterFieldDescription methodParameter)
+                {
+                    members.Add(new SerializableMethodMember(libraryTypes, methodParameter, members.Count));
                 }
             }
 
@@ -223,7 +228,7 @@ namespace Hagar.CodeGenerator
 
         private static List<FieldDescription> GetFieldDescriptions(
             ISerializableTypeDescription serializableTypeDescription,
-            List<SerializableMember> members,
+            List<ISerializableMember> members,
             LibraryTypes libraryTypes)
         {
             var fields = new List<FieldDescription>();
@@ -268,14 +273,14 @@ namespace Hagar.CodeGenerator
                 return new TypeFieldDescription(libraryTypes.Type.ToTypeSyntax(), fieldName, t);
             }
 
-            GetterFieldDescription GetGetterDescription(SerializableMember member)
+            GetterFieldDescription GetGetterDescription(ISerializableMember member)
             {
                 var containingType = member.Field.ContainingType;
                 var getterType = libraryTypes.Func_2.Construct(containingType, member.SafeType).ToTypeSyntax();
                 return new GetterFieldDescription(getterType, member.GetterFieldName, member.Field.Type, member);
             }
 
-            SetterFieldDescription GetSetterDescription(SerializableMember member)
+            SetterFieldDescription GetSetterDescription(ISerializableMember member)
             {
                 var containingType = member.Field.ContainingType;
                 TypeSyntax fieldType;
@@ -311,7 +316,7 @@ namespace Hagar.CodeGenerator
         private static MemberDeclarationSyntax GenerateSerializeMethod(
             ISerializableTypeDescription type,
             List<FieldDescription> serializerFields,
-            List<SerializableMember> members,
+            List<ISerializableMember> members,
             LibraryTypes libraryTypes)
         {
             var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
@@ -391,7 +396,7 @@ namespace Hagar.CodeGenerator
         private static MemberDeclarationSyntax GenerateDeserializeMethod(
             ISerializableTypeDescription type,
             List<FieldDescription> serializerFields,
-            List<SerializableMember> members,
+            List<ISerializableMember> members,
             LibraryTypes libraryTypes)
         {
             var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
@@ -576,13 +581,13 @@ namespace Hagar.CodeGenerator
 
         internal class SetterFieldDescription : FieldDescription
         {
-            public SetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, SerializableMember member) : base(fieldType, fieldName)
+            public SetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, ISerializableMember member) : base(fieldType, fieldName)
             {
                 this.TargetFieldType = targetFieldType;
                 this.Member = member;
             }
 
-            public SerializableMember Member { get; }
+            public ISerializableMember Member { get; }
 
             public ITypeSymbol TargetFieldType { get; }
 
@@ -593,22 +598,150 @@ namespace Hagar.CodeGenerator
 
         internal class GetterFieldDescription : FieldDescription
         {
-            public GetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, SerializableMember member) : base(fieldType, fieldName)
+            public GetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, ISerializableMember member) : base(fieldType, fieldName)
             {
                 this.TargetFieldType = targetFieldType;
                 this.Member = member;
             }
 
-            public SerializableMember Member { get; }
+            public ISerializableMember Member { get; }
             public ITypeSymbol TargetFieldType { get; }
 
             public override bool IsInjected => false;
         }
 
+        internal interface ISerializableMember
+        {
+            IMemberDescription Description { get; }
+
+            /// <summary>
+            /// Gets the underlying <see cref="Field"/> instance.
+            /// </summary>
+            IFieldSymbol Field { get; }
+
+            /// <summary>
+            /// Gets a usable representation of the field type.
+            /// </summary>
+            /// <remarks>
+            /// If the field is of type 'dynamic', we represent it as 'object' because 'dynamic' cannot appear in typeof expressions.
+            /// </remarks>
+            ITypeSymbol SafeType { get; }
+
+            /// <summary>
+            /// Gets the name of the getter field.
+            /// </summary>
+            string GetterFieldName { get; }
+
+            /// <summary>
+            /// Gets the name of the setter field.
+            /// </summary>
+            string SetterFieldName { get; }
+
+            bool HasAccessibleGetter { get; }
+
+            bool HasAccessibleSetter { get; }
+
+            /// <summary>
+            /// Gets syntax representing the type of this field.
+            /// </summary>
+            TypeSyntax Type { get; }
+
+            /// <summary>
+            /// Returns syntax for retrieving the value of this field, deep copying it if necessary.
+            /// </summary>
+            /// <param name="instance">The instance of the containing type.</param>
+            /// <returns>Syntax for retrieving the value of this field.</returns>
+            ExpressionSyntax GetGetter(ExpressionSyntax instance);
+
+            /// <summary>
+            /// Returns syntax for setting the value of this field.
+            /// </summary>
+            /// <param name="instance">The instance of the containing type.</param>
+            /// <param name="value">Syntax for the new value.</param>
+            /// <returns>Syntax for setting the value of this field.</returns>
+            ExpressionSyntax GetSetter(ExpressionSyntax instance, ExpressionSyntax value);
+        }
+
         /// <summary>
         /// Represents a serializable member (field/property) of a type.
         /// </summary>
-        internal class SerializableMember
+        internal class SerializableMethodMember : ISerializableMember
+        {
+            private readonly MethodParameterFieldDescription member;
+            private readonly LibraryTypes wellKnownTypes;
+
+            /// <summary>
+            /// The ordinal assigned to this field.
+            /// </summary>
+            private readonly int ordinal;
+
+            public SerializableMethodMember(LibraryTypes wellKnownTypes, MethodParameterFieldDescription member, int ordinal)
+            {
+                this.member = member;
+                this.wellKnownTypes = wellKnownTypes;
+                this.Description = member;
+                this.ordinal = ordinal;
+            }
+
+            public IMemberDescription Description { get; }
+
+            /// <summary>
+            /// Gets the underlying <see cref="Field"/> instance.
+            /// </summary>
+            public IFieldSymbol Field => throw new NotSupportedException();
+
+            /// <summary>
+            /// Gets a usable representation of the field type.
+            /// </summary>
+            /// <remarks>
+            /// If the field is of type 'dynamic', we represent it as 'object' because 'dynamic' cannot appear in typeof expressions.
+            /// </remarks>
+            public ITypeSymbol SafeType => this.member.FieldType.TypeKind == TypeKind.Dynamic
+                ? this.wellKnownTypes.Object
+                : this.member.FieldType;
+
+            /// <summary>
+            /// Gets the name of the getter field.
+            /// </summary>
+            public string GetterFieldName => "getField" + this.ordinal;
+
+            /// <summary>
+            /// Gets the name of the setter field.
+            /// </summary>
+            public string SetterFieldName => "setField" + this.ordinal;
+
+            public bool HasAccessibleGetter => true;
+
+            public bool HasAccessibleSetter => true;
+
+            /// <summary>
+            /// Gets syntax representing the type of this field.
+            /// </summary>
+            public TypeSyntax Type => this.SafeType.ToTypeSyntax();
+
+            /// <summary>
+            /// Returns syntax for retrieving the value of this field, deep copying it if necessary.
+            /// </summary>
+            /// <param name="instance">The instance of the containing type.</param>
+            /// <returns>Syntax for retrieving the value of this field.</returns>
+            public ExpressionSyntax GetGetter(ExpressionSyntax instance) => instance.Member(this.member.FieldName);
+
+            /// <summary>
+            /// Returns syntax for setting the value of this field.
+            /// </summary>
+            /// <param name="instance">The instance of the containing type.</param>
+            /// <param name="value">Syntax for the new value.</param>
+            /// <returns>Syntax for setting the value of this field.</returns>
+            public ExpressionSyntax GetSetter(ExpressionSyntax instance, ExpressionSyntax value) => AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        instance.Member(this.member.FieldName),
+                        value);
+        }
+
+        /// <summary>
+        /// Represents a serializable member (field/property) of a type.
+        /// </summary>
+        internal class SerializableMember : ISerializableMember
         {
             private readonly SemanticModel model;
             private readonly LibraryTypes wellKnownTypes;

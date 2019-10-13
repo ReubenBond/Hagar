@@ -37,6 +37,18 @@ namespace Hagar.CodeGenerator
                                         Argument(TypeOfExpression(type.TypeSyntax))))))
                 ));
 
+            var addActivatorMethod = configParam.Member("Activators").Member("Add");
+            body.AddRange(
+                metadataModel.ActivatableTypes.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addActivatorMethod,
+                                ArgumentList(
+                                    SingletonSeparatedList(
+                                        Argument(TypeOfExpression(GetActivatorTypeName(type)))))))
+                ));
+
             var configType = libraryTypes.SerializerConfiguration;
             var configureMethod = MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Configure")
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
@@ -81,6 +93,18 @@ namespace Hagar.CodeGenerator
             var interfaceType = proxy.InterfaceDescription.InterfaceType;
             var genericArity = interfaceType.TypeParameters.Length;
             var name = ProxyGenerator.GetSimpleClassName(interfaceType);
+            if (genericArity > 0)
+            {
+                name += $"<{new string(',', genericArity - 1)}>";
+            }
+
+            return ParseTypeName(name);
+        }
+
+        public static TypeSyntax GetActivatorTypeName(this ISerializableTypeDescription type)
+        {
+            var genericArity = type.TypeParameters.Length;
+            var name = ActivatorGenerator.GetSimpleClassName(type);
             if (genericArity > 0)
             {
                 name += $"<{new string(',', genericArity - 1)}>";
