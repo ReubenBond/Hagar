@@ -1,4 +1,6 @@
-﻿namespace Hagar.TypeSystem
+using System;
+
+namespace Hagar.TypeSystem
 {
     // TODO: Profile and possibly pick a faster/more suitable hashing algorithm.
 
@@ -24,7 +26,7 @@
         }
 
         // This is the reference implementation of the Jenkins hash.
-        public static uint ComputeHash(byte[] data)
+        public static uint ComputeHash(ReadOnlySpan<byte> data)
         {
             int len = data.Length;
             uint a = 0x9e3779b9;

@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Hagar.Buffers;
 
@@ -10,7 +12,7 @@ namespace Hagar.TypeSystem
     public sealed class TypeCodec
     {
         private readonly ConcurrentDictionary<Type, TypeKey> typeCache = new ConcurrentDictionary<Type, TypeKey>();
-        private readonly ConcurrentDictionary<TypeKey, Type> typeKeyCache = new ConcurrentDictionary<TypeKey, Type>(new TypeKey.Comparer());
+        private readonly ConcurrentDictionary<int, (TypeKey Key, Type Type)> typeKeyCache = new ConcurrentDictionary<int, (TypeKey, Type)>();
         private readonly ITypeResolver typeResolver;
         private static readonly Func<Type, TypeKey> GetTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(RuntimeTypeNameFormatter.Format(type)));
 
@@ -27,31 +29,95 @@ namespace Hagar.TypeSystem
             writer.Write(key.TypeName);
         }
 
-        public bool TryRead(ref Reader reader, out Type type)
+        public unsafe bool TryRead(ref Reader reader, out Type type)
         {
-            var key = ReadTypeKey(ref reader);
+            var hashCode = reader.ReadInt32();
+            var count = (int)reader.ReadVarUInt32();
 
-            if (this.typeKeyCache.TryGetValue(key, out type)) return type != null;
-
-            this.typeResolver.TryResolveType(Encoding.UTF8.GetString(key.TypeName), out type);
-            if (type != null)
+            if (!reader.TryReadBytes(count, out var typeName))
             {
-                this.typeKeyCache[key] = type;
+                typeName = reader.ReadBytes((uint)count);
             }
 
-            return type != null;
+            // Search through 
+            var candidateHashCode = hashCode;
+            while (this.typeKeyCache.TryGetValue(candidateHashCode, out var entry))
+            {
+                var existingKey = entry.Key;
+                if (existingKey.HashCode != hashCode) break;
+
+                var existingSpan = new ReadOnlySpan<byte>(existingKey.TypeName);
+                if (existingSpan.SequenceEqual(typeName))
+                {
+                    type = entry.Type;
+                    return true;
+                }
+
+                // Try the next entry.
+                ++candidateHashCode;
+            }
+
+            // Allocate a string for the type name.
+            string typeNameString;
+            fixed (byte* typeNameBytes = typeName)
+            {
+                typeNameString = Encoding.UTF8.GetString(typeNameBytes, typeName.Length);
+            }
+
+            this.typeResolver.TryResolveType(typeNameString, out type);
+            if (type is object)
+            {
+                var key = new TypeKey(hashCode, typeName.ToArray());
+                while (!this.typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
+                {
+                    // Insert the type at the first available position.
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
-        public Type Read(ref Reader reader)
+        public unsafe Type Read(ref Reader reader)
         {
-            var key = ReadTypeKey(ref reader);
+            var hashCode = reader.ReadInt32();
+            var count = (int)reader.ReadVarUInt32();
 
-            if (this.typeKeyCache.TryGetValue(key, out var type)) return type;
-
-            type = this.typeResolver.ResolveType(Encoding.UTF8.GetString(key.TypeName));
-            if (type != null)
+            if (!reader.TryReadBytes(count, out var typeName))
             {
-                this.typeKeyCache[key] = type;
+                typeName = reader.ReadBytes((uint)count);
+            }
+
+            // Search through 
+            var candidateHashCode = hashCode;
+            while (this.typeKeyCache.TryGetValue(candidateHashCode, out var entry))
+            {
+                var existingKey = entry.Key;
+                if (existingKey.HashCode != hashCode) break;
+
+                var existingSpan = new ReadOnlySpan<byte>(existingKey.TypeName);
+                if (existingSpan.SequenceEqual(typeName)) return entry.Type;
+
+                // Try the next entry.
+                ++candidateHashCode;
+            }
+
+            // Allocate a string for the type name.
+            string typeNameString;
+            fixed (byte* typeNameBytes = typeName)
+            {
+                typeNameString = Encoding.UTF8.GetString(typeNameBytes, typeName.Length);
+            }
+
+            var type = this.typeResolver.ResolveType(typeNameString);
+            if (type is object)
+            {
+                var key = new TypeKey(hashCode, typeName.ToArray());
+                while (!this.typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
+                {
+                    // Insert the type at the first available position.
+                }
             }
 
             return type;
