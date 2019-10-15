@@ -15,6 +15,14 @@ namespace Hagar.CodeGenerator
             return new LibraryTypes(compilation)
             {
                 IActivator_1 = Type("Hagar.Activators.IActivator`1"),
+                IActivator_2 = Type("Hagar.Activators.IActivator`2"),
+                IActivator_3 = Type("Hagar.Activators.IActivator`3"),
+                IActivator_4 = Type("Hagar.Activators.IActivator`4"),
+                IActivator_5 = Type("Hagar.Activators.IActivator`5"),
+                IActivator_6 = Type("Hagar.Activators.IActivator`6"),
+                IActivator_7 = Type("Hagar.Activators.IActivator`7"),
+                IActivator_8 = Type("Hagar.Activators.IActivator`8"),
+                IActivator_9 = Type("Hagar.Activators.IActivator`9"),
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
@@ -146,11 +154,19 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Task { get; private set; }
         public INamedTypeSymbol Task_1 { get; private set; }
         public INamedTypeSymbol Void { get; private set; }
-        public INamedTypeSymbol IActivator_1 { get; private set; }
         public INamedTypeSymbol TaskRequest { get; private set; }
         public INamedTypeSymbol TaskRequest_1 { get; private set; }
         public INamedTypeSymbol IResponseCompletionSource { get; private set; }
         public INamedTypeSymbol InvokablePool { get; private set; }
         public INamedTypeSymbol ResponseCompletionSourcePool { get; private set; }
+        public INamedTypeSymbol IActivator_1 { get; private set; }
+        public INamedTypeSymbol IActivator_2 { get; private set; }
+        public INamedTypeSymbol IActivator_3 { get; private set; }
+        public INamedTypeSymbol IActivator_4 { get; private set; }
+        public INamedTypeSymbol IActivator_5 { get; private set; }
+        public INamedTypeSymbol IActivator_6 { get; private set; }
+        public INamedTypeSymbol IActivator_7 { get; private set; }
+        public INamedTypeSymbol IActivator_8 { get; private set; }
+        public INamedTypeSymbol IActivator_9 { get; private set; }
     }
 }

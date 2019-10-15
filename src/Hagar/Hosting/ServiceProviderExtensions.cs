@@ -103,6 +103,21 @@ namespace Hagar
             public T Create() => this.Value.Create();
         }
 
+        private sealed class ActivatorHolder<TArg1, T> : IActivator<TArg1, T>, IServiceHolder<IActivator<TArg1, T>>
+        {
+            private readonly IActivatorProvider activatorProvider;
+            private IActivator<TArg1, T> activator;
+
+            public ActivatorHolder(IActivatorProvider codecProvider)
+            {
+                this.activatorProvider = codecProvider;
+            }
+
+            public IActivator<TArg1, T> Value => this.activator ?? (this.activator = this.activatorProvider.GetActivator<TArg1, T>());
+
+            public T Create(TArg1 arg1) => this.Value.Create(arg1);
+        }
+
         private sealed class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>
         {
             private readonly ITypedCodecProvider codecProvider;

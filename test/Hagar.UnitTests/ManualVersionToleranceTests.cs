@@ -1,10 +1,7 @@
 using System;
 using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Text;
-using System.Threading;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;

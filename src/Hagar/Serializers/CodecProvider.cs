@@ -213,7 +213,25 @@ namespace Hagar.Serializers
             var type = typeof(T);
             var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
-            return this.GetActivatorInner<T>(type, searchType) ?? ThrowActivatorNotFound<T>(type);
+            return GetActivatorInner(this, type, searchType) ?? ThrowActivatorNotFound<T>(type);
+
+            static IActivator<T> GetActivatorInner(CodecProvider self, Type concreteType, Type searchType)
+            {
+                if (!self.activators.TryGetValue(searchType, out var activatorType))
+                {
+                    activatorType = typeof(DefaultActivator<>).MakeGenericType(concreteType);
+                }
+
+                if (activatorType.IsGenericTypeDefinition) activatorType = activatorType.MakeGenericType(concreteType.GetGenericArguments());
+
+                if (!self.instantiatedActivators.TryGetValue(activatorType, out var result))
+                {
+                    result = self.GetServiceOrCreateInstance(activatorType);
+                    self.instantiatedActivators.TryAdd(activatorType, result);
+                }
+
+                return (IActivator<T>)result;
+            }
         }
 
         public IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class
@@ -260,24 +278,6 @@ namespace Hagar.Serializers
             }
 
             return (IValueSerializer<TField>)result;
-        }
-
-        private IActivator<T> GetActivatorInner<T>(Type concreteType, Type searchType)
-        {
-            if (!this.activators.TryGetValue(searchType, out var activatorType))
-            {
-                activatorType = typeof(DefaultActivator<>).MakeGenericType(concreteType);
-            }
-
-            if (activatorType.IsGenericTypeDefinition) activatorType = activatorType.MakeGenericType(concreteType.GetGenericArguments());
-
-            if (!this.instantiatedActivators.TryGetValue(activatorType, out var result))
-            {
-                result = this.GetServiceOrCreateInstance(activatorType);
-                this.instantiatedActivators.TryAdd(activatorType, result);
-            }
-
-            return (IActivator<T>)result;
         }
 
         private static void ThrowIfUnsupportedType(Type fieldType)
