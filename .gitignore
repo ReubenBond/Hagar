@@ -266,3 +266,4 @@ __pycache__/
 /_site/
 /docs/api/.manifest
 .ionide/
+*BenchmarkDotNet.Aritfacts*

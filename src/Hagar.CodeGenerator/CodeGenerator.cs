@@ -216,7 +216,7 @@ namespace Hagar.CodeGenerator
 
                 uint? GetId(ISymbol memberSymbol)
                 {
-                    var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => this.libraryTypes.IdAttributeTypes.Any(t => t.Equals(attr.AttributeClass)));
+                    var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => this.libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
                     if (idAttr is null) return null;
                     var id = (uint)idAttr.ConstructorArguments.First().Value;
                     return id;
@@ -279,7 +279,7 @@ namespace Hagar.CodeGenerator
         {
             foreach (var attribute in symbol.GetAttributes())
             {
-                if (attribute.AttributeClass.Equals(attributeType)) return attribute;
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)) return attribute;
             }
 
             if (inherited)
@@ -288,7 +288,7 @@ namespace Hagar.CodeGenerator
                 {
                     foreach (var attribute in iface.GetAttributes())
                     {
-                        if (attribute.AttributeClass.Equals(attributeType)) return attribute;
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)) return attribute;
                     }
                 }
 
@@ -296,7 +296,7 @@ namespace Hagar.CodeGenerator
                 {
                     foreach (var attribute in symbol.GetAttributes())
                     {
-                        if (attribute.AttributeClass.Equals(attributeType)) return attribute;
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)) return attribute;
                     }
                 }
             }

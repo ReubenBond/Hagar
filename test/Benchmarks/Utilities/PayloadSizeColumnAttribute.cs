@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using BenchmarkDotNet.Configs;
 
 namespace Benchmarks.Utilities
@@ -7,7 +7,7 @@ namespace Benchmarks.Utilities
     {
         public PayloadSizeColumnAttribute(string columnName = "Payload")
         {
-            this.Config = ManualConfig.CreateEmpty().With(
+            this.Config = ManualConfig.CreateEmpty().AddColumn(
                 new MethodResultColumn(columnName,
                     val =>
                     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
@@ -10,8 +10,8 @@ namespace Benchmarks.Utilities
         public BenchmarkConfig()
         {
             this.ArtifactsPath = ".\\BenchmarkDotNet.Aritfacts." + DateTime.Now.ToString("u").Replace(' ', '_').Replace(':', '-');
-            Add(MarkdownExporter.GitHub);
-            Add(MemoryDiagnoser.Default);
+            AddExporter(MarkdownExporter.GitHub);
+            AddDiagnoser(MemoryDiagnoser.Default);
         }
     }
 }

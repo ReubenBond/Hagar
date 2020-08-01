@@ -34,11 +34,11 @@ namespace Hagar.CodeGenerator
             ITypeSymbol baseClassType;
             if (methodReturnType.TypeArguments.Length == 1)
             {
-                if (methodReturnType.ConstructedFrom.Equals(libraryTypes.ValueTask_1))
+                if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.ValueTask_1))
                 {
                     baseClassType = libraryTypes.Request_1.Construct(methodReturnType.TypeArguments[0]);
                 }
-                else if (methodReturnType.ConstructedFrom.Equals(libraryTypes.Task_1))
+                else if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.Task_1))
                 {
                     baseClassType = libraryTypes.TaskRequest_1.Construct(methodReturnType.TypeArguments[0]);
                 }
@@ -49,11 +49,11 @@ namespace Hagar.CodeGenerator
             }
             else
             {
-                if (methodReturnType.Equals(libraryTypes.ValueTask))
+                if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.ValueTask))
                 {
                     baseClassType = libraryTypes.Request;
                 }
-                else if (methodReturnType.Equals(libraryTypes.Task))
+                else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Task))
                 {
                     baseClassType = libraryTypes.TaskRequest;
                 }

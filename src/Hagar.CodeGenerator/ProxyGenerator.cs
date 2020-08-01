@@ -328,7 +328,7 @@ namespace Hagar.CodeGenerator
 
             var returnVal = InvocationExpression(completionVar.Member(valueTaskMethodName));
 
-            if (methodReturnType.ConstructedFrom.Equals(libraryTypes.Task_1) || methodReturnType.Equals(libraryTypes.Task))
+            if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.Task_1) || SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Task))
             {
                 returnVal = InvocationExpression(returnVal.Member("AsTask"));
             }
