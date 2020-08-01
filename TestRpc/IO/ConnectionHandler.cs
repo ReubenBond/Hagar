@@ -92,7 +92,7 @@ namespace TestRpc.IO
                         MessagePool.Return(item);
 
                         session.PartialReset();
-                        
+
                         var flushResult = await this.connection.Output.FlushAsync(cancellation);
                         if (flushResult.IsCanceled || flushResult.IsCompleted) return;
                     }

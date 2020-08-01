@@ -26,10 +26,10 @@ namespace Hagar
 
                 services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultSerializerConfiguration>();
                 services.AddSingleton<IConfigurationProvider<TypeConfiguration>, DefaultTypeConfiguration>();
+                services.AddSingleton<TypeConverter>();
                 services.TryAddSingleton(typeof(ListActivator<>));
                 services.TryAddSingleton(typeof(DictionaryActivator<,>));
                 services.TryAddSingleton(typeof(IConfiguration<>), typeof(ConfigurationHolder<>));
-                services.TryAddSingleton<ITypeResolver, CachedTypeResolver>();
                 services.TryAddSingleton<CodecProvider>();
                 services.TryAddSingleton<IUntypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<ITypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());

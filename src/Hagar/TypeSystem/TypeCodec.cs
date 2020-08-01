@@ -13,17 +13,18 @@ namespace Hagar.TypeSystem
     {
         private readonly ConcurrentDictionary<Type, TypeKey> typeCache = new ConcurrentDictionary<Type, TypeKey>();
         private readonly ConcurrentDictionary<int, (TypeKey Key, Type Type)> typeKeyCache = new ConcurrentDictionary<int, (TypeKey, Type)>();
-        private readonly ITypeResolver typeResolver;
-        private static readonly Func<Type, TypeKey> GetTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(RuntimeTypeNameFormatter.Format(type)));
+        private readonly TypeConverter _typeConverter;
+        private readonly Func<Type, TypeKey> _getTypeKey; 
 
-        public TypeCodec(ITypeResolver typeResolver)
+        public TypeCodec(TypeConverter typeConverter)
         {
-            this.typeResolver = typeResolver;
+            _typeConverter = typeConverter;
+            _getTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(_typeConverter.Format(type)));
         }
 
         public void Write<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
-            var key = this.typeCache.GetOrAdd(type, GetTypeKey);
+            var key = this.typeCache.GetOrAdd(type, _getTypeKey);
             writer.Write(key.HashCode);
             writer.WriteVarInt((uint)key.TypeName.Length);
             writer.Write(key.TypeName);
@@ -64,7 +65,7 @@ namespace Hagar.TypeSystem
                 typeNameString = Encoding.UTF8.GetString(typeNameBytes, typeName.Length);
             }
 
-            this.typeResolver.TryResolveType(typeNameString, out type);
+            _typeConverter.TryParse(typeNameString, out type);
             if (type is object)
             {
                 var key = new TypeKey(hashCode, typeName.ToArray());
@@ -110,7 +111,7 @@ namespace Hagar.TypeSystem
                 typeNameString = Encoding.UTF8.GetString(typeNameBytes, typeName.Length);
             }
 
-            var type = this.typeResolver.ResolveType(typeNameString);
+            var type = _typeConverter.Parse(typeNameString);
             if (type is object)
             {
                 var key = new TypeKey(hashCode, typeName.ToArray());
