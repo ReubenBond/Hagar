@@ -4,7 +4,7 @@
     <Authors>Reuben Bond</Authors>
     <Product>Hagar</Product>
     <VersionPrefix>0.2.4</VersionPrefix>
-    <Copyright>Copyright © Reuben Bond 2019</Copyright>
+    <Copyright>Copyright © Reuben Bond 2020</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
     <PackageTags>Serializer Span</PackageTags>
@@ -29,7 +29,7 @@
 
   <!-- Common compile parameters -->
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <GenerateDocumentationFile Condition="'$(Configuration)'=='Release'">true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;FS2003</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

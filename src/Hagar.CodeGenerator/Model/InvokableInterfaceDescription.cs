@@ -31,8 +31,8 @@ namespace Hagar.CodeGenerator
                 if (!(member is IMethodSymbol method)) Throw(member, "not method");
                 if (method.TypeParameters.Length != 0) Throw(member, "type params");
                 if (method.Parameters.Length != 2) Throw(member, "params length");
-                if (!method.Parameters[0].Type.Equals(l.IResponseCompletionSource)) Throw(member, "param 0");
-                if (!method.Parameters[1].Type.Equals(l.IInvokable)) Throw(member, "param 1");
+                if (!SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, l.IResponseCompletionSource)) Throw(member, "param 0");
+                if (!SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, l.IInvokable)) Throw(member, "param 1");
                 if (!method.ReturnsVoid) Throw(member, "return type");
                 found = true;
             }

@@ -20,7 +20,7 @@ namespace Hagar.CodeGenerator
                 .ToArray();
 
             if (candidates.Length != 1) return null;
-            if (!field.Type.Equals(candidates[0].Type)) return null;
+            if (!SymbolEqualityComparer.Default.Equals(field.Type, candidates[0].Type)) return null;
             return candidates[0];
         }
     }

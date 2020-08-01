@@ -77,7 +77,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             var attributes = symbol.GetAttributes();
             foreach (var attr in attributes)
             {
-                if (attr.AttributeClass.Equals(attributeType)) return true;
+                if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, attributeType)) return true;
             }
 
             return false;

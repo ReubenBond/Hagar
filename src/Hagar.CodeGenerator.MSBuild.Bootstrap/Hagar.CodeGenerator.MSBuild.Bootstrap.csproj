@@ -49,6 +49,19 @@
 
   <ItemGroup>
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
+    <PackageReference Update="Microsoft.Build" Version="16.6.0" />
+    <PackageReference Update="Microsoft.Build.Tasks.Core" Version="16.6.0" />
+    <PackageReference Update="Microsoft.Build.Utilities.Core" Version="16.6.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="3.6.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="3.6.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic" Version="3.6.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="3.6.0" />
+    <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="3.1.6" />
+    <PackageReference Update="Microsoft.Extensions.Logging" Version="3.1.6" />
+    <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="3.1.6" />
+    <PackageReference Update="Microsoft.Win32.Registry" Version="4.7.0" />
+    <PackageReference Update="System.CodeDom" Version="4.7.0" />
   </ItemGroup>
   
   <!-- Start: PostBuildPublish -->
