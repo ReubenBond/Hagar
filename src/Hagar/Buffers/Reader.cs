@@ -1,8 +1,13 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+#if NETCOREAPP
+using System.Numerics;
+#endif
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Hagar.Session;
+using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
@@ -44,7 +49,7 @@ namespace Hagar.Buffers
             {
                 if (this.Position + this.bufferSize >= end)
                 {
-                    this.bufferPos = (int) (end - this.previousBuffersSize);
+                    this.bufferPos = (int)(end - this.previousBuffersSize);
                 }
                 else
                 {
@@ -58,7 +63,7 @@ namespace Hagar.Buffers
         /// </summary>
         public Reader ForkFrom(long position) => new Reader(this.input.Slice(position), this.Session);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void MoveNext()
         {
             this.previousBuffersSize += this.bufferSize;
@@ -76,18 +81,30 @@ namespace Hagar.Buffers
             this.bufferPos = 0;
             this.bufferSize = this.currentSpan.Length;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte()
         {
-            if (this.bufferPos == this.bufferSize) this.MoveNext();
+            var pos = this.bufferPos;
+            var span = this.currentSpan;
+            if ((uint)pos >= (uint)span.Length) return this.ReadByteSlow();
+            var result = span[pos];
+
+            this.bufferPos = pos + 1;
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private byte ReadByteSlow()
+        {
+            this.MoveNext();
             return this.currentSpan[this.bufferPos++];
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadInt32() => (int)this.ReadUInt32();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadUInt32()
         {
             const int width = 4;
@@ -96,7 +113,7 @@ namespace Hagar.Buffers
             var result = BinaryPrimitives.ReadUInt32LittleEndian(this.currentSpan.Slice(this.bufferPos, width));
             this.bufferPos += width;
             return result;
-            
+
             uint ReadSlower(ref Reader r)
             {
                 uint b1 = r.ReadByte();
@@ -107,11 +124,11 @@ namespace Hagar.Buffers
                 return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24);
             }
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long ReadInt64() => (long)this.ReadUInt64();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadUInt64()
         {
             const int width = 8;
@@ -156,10 +173,10 @@ namespace Hagar.Buffers
 
         public decimal ReadDecimal()
         {
-            var parts = new[] {this.ReadInt32(), this.ReadInt32(), this.ReadInt32(), this.ReadInt32() };
+            var parts = new[] { this.ReadInt32(), this.ReadInt32(), this.ReadInt32(), this.ReadInt32() };
             return new decimal(parts);
         }
-        
+
         public byte[] ReadBytes(uint count)
         {
             if (count == 0)
@@ -215,220 +232,223 @@ namespace Hagar.Buffers
             return false;
         }
 
-        public uint ReadVarUInt32()
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal uint ReadVarUInt32NoInlining() => ReadVarUInt32();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe uint ReadVarUInt32()
         {
-            if (this.bufferPos + 5 > this.bufferSize)
+            var pos = this.bufferPos;
+
+            if (!BitConverter.IsLittleEndian || pos + 8 > this.currentSpan.Length)
             {
                 return this.ReadVarUInt32Slow();
             }
 
-            int tmp = this.currentSpan[this.bufferPos++];
-            if (tmp < 128)
-            {
-                return (uint)tmp;
-            }
-            int result = tmp & 0x7f;
-            if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-            {
-                result |= tmp << 7;
-            }
-            else
-            {
-                result |= (tmp & 0x7f) << 7;
-                if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                {
-                    result |= tmp << 14;
-                }
-                else
-                {
-                    result |= (tmp & 0x7f) << 14;
-                    if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                    {
-                        result |= tmp << 21;
-                    }
-                    else
-                    {
-                        result |= (tmp & 0x7f) << 21;
-                        result |= (tmp = this.currentSpan[this.bufferPos++]) << 28;
-                        if (tmp >= 128)
-                        {
-                            // Discard upper 32 bits.
-                            // Note that this has to use ReadRawByte() as we only ensure we've
-                            // got at least 5 bytes at the start of the method. This lets us
-                            // use the fast path in more cases, and we rarely hit this section of code.
-                            for (int i = 0; i < 5; i++)
-                            {
-                                if (this.ReadByte() < 128)
-                                {
-                                    return (uint)result;
-                                }
-                            }
+            // The number of zeros in the msb position dictates the number of bytes to be read.
+            // Up to a maximum of 5 for a 32bit integer.
+            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos);
 
-                            ThrowInsufficientData();
-                        }
-                    }
-                }
-            }
+            ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
+            var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
+            result >>= bytesNeeded;
+            this.bufferPos += bytesNeeded;
+
+            // Mask off invalid data
+            var fullWidthReadMask = ~((ulong)bytesNeeded - 5 + 1);
+            var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
+            result &= mask; 
+
             return (uint)result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private uint ReadVarUInt32Slow()
         {
-            int tmp = this.ReadByte();
-            if (tmp < 128)
-            {
-                return (uint)tmp;
-            }
-            int result = tmp & 0x7f;
-            if ((tmp = this.ReadByte()) < 128)
-            {
-                result |= tmp << 7;
-            }
-            else
-            {
-                result |= (tmp & 0x7f) << 7;
-                if ((tmp = this.ReadByte()) < 128)
-                {
-                    result |= tmp << 14;
-                }
-                else
-                {
-                    result |= (tmp & 0x7f) << 14;
-                    if ((tmp = this.ReadByte()) < 128)
-                    {
-                        result |= tmp << 21;
-                    }
-                    else
-                    {
-                        result |= (tmp & 0x7f) << 21;
-                        result |= (tmp = this.ReadByte()) << 28;
-                        if (tmp >= 128)
-                        {
-                            // Discard upper 32 bits.
-                            for (int i = 0; i < 5; i++)
-                            {
-                                if (this.ReadByte() < 128)
-                                {
-                                    return (uint)result;
-                                }
-                            }
+            var header = this.ReadByte();
+            var numBytes = BitOperations.TrailingZeroCount(0x0100U | header) + 1;
 
-                            ThrowInsufficientData();
-                        }
-                    }
-                }
+            // Widen to a ulong for the 5-byte case
+            ulong result = header;
+
+            // Read additional bytes as needed
+            if (numBytes == 2)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
             }
+            else if (numBytes == 3)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+            }
+            else if (numBytes == 4)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+            }
+            else if (numBytes == 5)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+                result |= ((ulong)this.ReadByte() << 32);
+            }
+
+            result >>= numBytes;
             return (uint)result;
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadVarUInt64()
         {
-            if (this.bufferPos + 10 > this.bufferSize)
+            var pos = this.bufferPos;
+
+            if (!BitConverter.IsLittleEndian || pos + 10 > this.currentSpan.Length)
             {
                 return this.ReadVarUInt64Slow();
             }
 
-            long tmp = this.currentSpan[this.bufferPos++];
-            if (tmp < 128)
-            {
-                return (ulong)tmp;
-            }
-            long result = tmp & 0x7f;
-            if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-            {
-                result |= tmp << 7;
-            }
-            else
-            {
-                result |= (tmp & 0x7f) << 7;
-                if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                {
-                    result |= tmp << 14;
-                }
-                else
-                {
-                    result |= (tmp & 0x7f) << 14;
-                    if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                    {
-                        result |= tmp << 21;
-                    }
-                    else
-                    {
-                        result |= (tmp & 0x7f) << 21;
-                        if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                        {
-                            result |= tmp << 28;
-                        }
-                        else
-                        {
-                            result |= (tmp & 0x7f) << 28;
-                            if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                            {
-                                result |= tmp << 35;
-                            }
-                            else
-                            {
-                                result |= (tmp & 0x7f) << 35;
-                                if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                                {
-                                    result |= tmp << 42;
-                                }
-                                else
-                                {
-                                    result |= (tmp & 0x7f) << 42;
-                                    if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                                    {
-                                        result |= tmp << 49;
-                                    }
-                                    else
-                                    {
-                                        result |= (tmp & 0x7f) << 49;
-                                        if ((tmp = this.currentSpan[this.bufferPos++]) < 128)
-                                        {
-                                            result |= tmp << 56;
-                                        }
-                                        else
-                                        {
-                                            result |= (tmp & 0x7f) << 56;
-                                            result |= (tmp = this.currentSpan[this.bufferPos++]) << 63;
-                                            if (tmp >= 128)
-                                            {
-                                                ThrowInsufficientData();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // The number of zeros in the msb position dictates the number of bytes to be read.
+            // Up to a maximum of 5 for a 32bit integer.
+            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos);
+            
+            ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
 
-            return (ulong)result;
+            var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
+            result >>= bytesNeeded;
+            this.bufferPos += bytesNeeded;
+
+            ushort upper = Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref readHead, sizeof(ulong)));
+            result |= (((ulong)upper) << (64 - bytesNeeded));
+
+            // Mask off invalid data
+            var fullWidthReadMask = ~((ulong)bytesNeeded - 10 + 1);
+            var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
+            result &= mask; 
+
+            return result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private ulong ReadVarUInt64Slow()
         {
-            //TODO: Implement fast path
-            int shift = 0;
-            ulong result = 0;
-            while (shift < 64)
+            var header = this.ReadByte();
+            var numBytes = BitOperations.TrailingZeroCount(0x0100U | header) + 1;
+
+            // Widen to a ulong for the 5-byte case
+            ulong result = header;
+
+            // Read additional bytes as needed
+            if (numBytes == 1)
             {
-                byte b = this.ReadByte();
-                result |= (ulong)(b & 0x7F) << shift;
-                if ((b & 0x80) == 0)
+                result >>= 1;
+                return result;
+            }
+            if (numBytes == 2)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result >>= 2;
+                return result;
+            }
+            else if (numBytes == 3)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result >>= 3;
+                return result;
+            }
+            else if (numBytes == 4)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+                result >>= 4;
+                return result;
+            }
+            else if (numBytes == 5)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+                result |= ((ulong)this.ReadByte() << 32);
+                result >>= 5;
+                return result;
+            }
+            else if (numBytes == 6)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+                result |= ((ulong)this.ReadByte() << 32);
+                result |= ((ulong)this.ReadByte() << 40);
+                result >>= 6;
+                return result;
+            }
+            else if (numBytes == 7)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+                result |= ((ulong)this.ReadByte() << 32);
+                result |= ((ulong)this.ReadByte() << 40);
+                result |= ((ulong)this.ReadByte() << 48);
+                result >>= 7;
+                return result;
+            }
+            else if (numBytes == 8)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+                result |= ((ulong)this.ReadByte() << 16);
+                result |= ((ulong)this.ReadByte() << 24);
+                result |= ((ulong)this.ReadByte() << 32);
+
+                result |= ((ulong)this.ReadByte() << 40);
+                result |= ((ulong)this.ReadByte() << 48);
+                result |= ((ulong)this.ReadByte() << 56);
+                result >>= 8;
+                return result;
+            }
+            else if (numBytes == 9)
+            {
+                result |= ((ulong)this.ReadByte() << 8);
+
+                // If there was more than one byte worth of trailing zeros, read again now that we have more data.
+                numBytes = BitOperations.TrailingZeroCount(result) + 1;
+
+                if (numBytes == 9)
                 {
+                    result |= ((ulong)this.ReadByte() << 16);
+                    result |= ((ulong)this.ReadByte() << 24);
+                    result |= ((ulong)this.ReadByte() << 32);
+
+                    result |= ((ulong)this.ReadByte() << 40);
+                    result |= ((ulong)this.ReadByte() << 48);
+                    result |= ((ulong)this.ReadByte() << 56);
+                    result >>= 9;
+
+                    var upper = (ushort)this.ReadByte();
+                    result |= (((ulong)upper) << (64 - 9));
                     return result;
                 }
-                shift += 7;
+                else if (numBytes == 10)
+                {
+                    result |= ((ulong)this.ReadByte() << 16);
+                    result |= ((ulong)this.ReadByte() << 24);
+                    result |= ((ulong)this.ReadByte() << 32);
+
+                    result |= ((ulong)this.ReadByte() << 40);
+                    result |= ((ulong)this.ReadByte() << 48);
+                    result |= ((ulong)this.ReadByte() << 56);
+                    result >>= 10;
+
+                    var upper = (ushort)((ushort)this.ReadByte() | (ushort)((ushort)this.ReadByte() << 8));
+                    result |= (((ulong)upper) << (64 - 10));
+                    return result;
+                }
             }
 
-            ThrowInsufficientData();
-            return 0;
+            return ExceptionHelper.ThrowArgumentOutOfRange<ulong>("value");
         }
     }
 }

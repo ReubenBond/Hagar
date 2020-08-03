@@ -49,6 +49,7 @@ namespace Hagar
 
                 // Serializer
                 services.TryAddSingleton(typeof(Serializer<>));
+                services.TryAddSingleton(typeof(ValueSerializer<>));
             }
 
             configure?.Invoke(context.Builder);

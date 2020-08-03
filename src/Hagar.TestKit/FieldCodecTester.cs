@@ -32,7 +32,7 @@ namespace Hagar.TestKit
             this.sessionPool = this.serviceProvider.GetService<SessionPool>();
         }
 
-        private int[] MaxSegmentSizes => new[] { 0, 1, 4, 16 };
+        private int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };
 
         protected virtual void Configure(IHagarBuilder builder)
         {

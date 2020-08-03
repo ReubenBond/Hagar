@@ -36,7 +36,7 @@ namespace Hagar.WireProtocol
         public bool HasExtendedWireType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (this.tag & (byte) WireType.Extended) == (byte) WireType.Extended;
+            get => this.tag >= (byte)WireType.Extended; //(this.tag & (byte) WireType.Extended) == (byte) WireType.Extended;
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Hagar.WireProtocol
         public bool IsSchemaTypeValid
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (this.tag & (byte) WireType.Extended) != (byte) WireType.Extended;
+            get => !this.HasExtendedWireType; //(this.tag & (byte) WireType.Extended) != (byte) WireType.Extended;
         }
 
         /// <summary>

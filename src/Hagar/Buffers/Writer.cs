@@ -1,8 +1,13 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+#if NETCOREAPP
+using System.Numerics;
+#endif
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Hagar.Session;
+using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
@@ -186,13 +191,43 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt(uint value)
         {
-            this.EnsureContiguous(5);
-            
-            do
-            {
-                this.currentSpan[this.bufferPos++] = (byte)((value & 0x7F) | 0x80);
-            } while ((value >>= 7) != 0);
-            this.currentSpan[this.bufferPos - 1] &= 0x7F; // adjust the last byte.
+            // Since this method writes a ulong worth of bytes unconditionally, ensure that there is sufficient space.
+            this.EnsureContiguous(sizeof(ulong));
+
+            var pos = this.bufferPos;
+            var neededBytes = BitOperations.Log2(value) / 7;
+            this.bufferPos += neededBytes + 1;
+
+            ulong lower = value;
+            lower <<= 1;
+            lower |= 0x01;
+            lower <<= neededBytes;
+
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos), lower);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteVarInt(ulong value)
+        {
+            // Since this method writes a ulong plus a ushort worth of bytes unconditionally, ensure that there is sufficient space.
+            this.EnsureContiguous(sizeof(ulong) + sizeof(ushort));
+
+            var pos = this.bufferPos;
+            var neededBytes = BitOperations.Log2(value) / 7;
+            this.bufferPos += neededBytes + 1;
+
+            ulong lower = value;
+            lower <<= 1;
+            lower |= 0x01;
+            lower <<= neededBytes;
+
+            ref var writeHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos);
+            Unsafe.WriteUnaligned(ref writeHead, lower);
+
+            // Write the 2 byte overflow unconditionally
+            ushort upper = (ushort)(value >> (63 - neededBytes));
+            writeHead = ref Unsafe.Add(ref writeHead, sizeof(ulong));
+            Unsafe.WriteUnaligned(ref writeHead, upper);
         }
     }
 }

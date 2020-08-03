@@ -1,5 +1,11 @@
+using System;
 using System.Buffers;
+using System.Buffers.Binary;
+#if NETCOREAPP
+using System.Numerics;
+#endif
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Hagar.Buffers;
 
 namespace Hagar.Utilities
@@ -16,49 +22,40 @@ namespace Hagar.Utilities
         public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, int value) where TBufferWriter : IBufferWriter<byte> => writer.WriteVarInt(ZigZagEncode(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, long value) where TBufferWriter : IBufferWriter<byte> => WriteVarInt(ref writer, ZigZagEncode(value));
+        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, long value) where TBufferWriter : IBufferWriter<byte> => writer.WriteVarInt(ZigZagEncode(value));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, byte value) where TBufferWriter : IBufferWriter<byte>
         {
-            writer.EnsureContiguous(2);
-            var count = 0;
+            writer.EnsureContiguous(sizeof(ushort));
+
             var span = writer.WritableSpan;
-            do
-            {
-                span[count++] = (byte)((value & 0x7F) | 0x80);
-            } while ((value >>= 7) != 0);
-            span[count - 1] &= 0x7F; // adjust the last byte.
-            writer.AdvanceSpan(count);
+            var neededBytes = BitOperations.Log2(value) / 7;
+
+            ushort lower = value;
+            lower <<= 1;
+            lower |= 0x01;
+            lower <<= neededBytes;
+
+            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), lower);
+            writer.AdvanceSpan(neededBytes + 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, ushort value) where TBufferWriter : IBufferWriter<byte>
         {
-            writer.EnsureContiguous(3);
+            writer.EnsureContiguous(sizeof(uint));
 
-            var count = 0;
             var span = writer.WritableSpan;
-            do
-            {
-                span[count++] = (byte)((value & 0x7F) | 0x80);
-            } while ((value >>= 7) != 0);
-            span[count - 1] &= 0x7F; // adjust the last byte.
-            writer.AdvanceSpan(count);
-        }
+            var neededBytes = BitOperations.Log2(value) / 7;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVarInt<TBufferWriter>(ref this Writer<TBufferWriter> writer, ulong value) where TBufferWriter : IBufferWriter<byte>
-        {
-            writer.EnsureContiguous(10);
-            var count = 0;
-            var span = writer.WritableSpan;
-            do
-            {
-                span[count++] = (byte)((value & 0x7F) | 0x80);
-            } while ((value >>= 7) != 0);
-            span[count - 1] &= 0x7F; // adjust the last byte.
-            writer.AdvanceSpan(count);
+            uint lower = value;
+            lower <<= 1;
+            lower |= 0x01;
+            lower <<= neededBytes;
+
+            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), lower);
+            writer.AdvanceSpan(neededBytes + 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

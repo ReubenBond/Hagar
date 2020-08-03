@@ -104,7 +104,7 @@ namespace Benchmarks.Comparison
             return HyperionBuffer.Length;
         }
 
-        //[Benchmark]
+        [Benchmark]
         public int ZeroFormatter()
         {
             var bytes = ZeroFormatterSerializer.Serialize(ZeroFormatterInput);

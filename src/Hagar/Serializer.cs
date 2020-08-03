@@ -4,6 +4,7 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
+using Hagar.WireProtocol;
 
 namespace Hagar
 {
@@ -28,6 +29,33 @@ namespace Hagar
         {
             var field = reader.ReadFieldHeader();
             return this.codec.ReadValue(ref reader, field);
+        }
+    }
+
+    public sealed class ValueSerializer<T> where T : struct
+    {
+        private readonly IValueSerializer<T> codec;
+        private readonly Type expectedType;
+
+        public ValueSerializer(IValueSerializerProvider codecProvider)
+        {
+            this.expectedType = typeof(T);
+            this.codec = HagarGeneratedCodeHelper.UnwrapService(null, codecProvider.GetValueSerializer<T>());
+        }
+
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in T value) where TBufferWriter : IBufferWriter<byte>
+        {
+            writer.WriteStartObject(0, expectedType, expectedType);
+            this.codec.Serialize(ref writer, in value);
+            writer.WriteEndObject();
+            writer.Commit();
+        }
+
+        public void Deserialize(ref Reader reader, ref T result)
+        {
+            Field ignored = default;
+            reader.ReadFieldHeader(ref ignored);
+            codec.Deserialize(ref reader, ref result);
         }
     }
 }

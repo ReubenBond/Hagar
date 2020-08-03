@@ -148,16 +148,20 @@ namespace Hagar.Session
 
         public uint CurrentReferenceId { get; set; }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            for (var i = 0; i < this.ReferenceToObjectCount; i++)
+            var refToObj = this.referenceToObject.AsSpan(0, Math.Min(this.referenceToObject.Length, this.ReferenceToObjectCount));
+            for (var i = 0; i < refToObj.Length; i++)
             {
-                this.referenceToObject[i] = default;
+                refToObj[i] = default;
             }
-            for (var i = 0; i < this.objectToReferenceCount; i++)
+            var objToRef = this.objectToReference.AsSpan(0, Math.Min(this.objectToReference.Length, this.objectToReferenceCount));
+            for (var i = 0; i < objToRef.Length; i++)
             {
-                this.objectToReference[i] = default;
+                objToRef[i] = default;
             }
+
             this.ReferenceToObjectCount = 0;
             this.objectToReferenceCount = 0;
             this.CurrentReferenceId = 0;

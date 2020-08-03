@@ -33,10 +33,19 @@ namespace Benchmarks
                     benchmarks.Hagar();
                 }
             }
+            
+            if (args.Length > 0 && args[0] == "dloop")
+            {
+                var benchmarks = new ClassDeserializeBenchmark();
+                while (true)
+                {
+                    benchmarks.Hagar();
+                }
+            }
 
             var switcher = new BenchmarkSwitcher(new[]
             {
-                typeof(DeserializeBenchmark),
+                typeof(ClassDeserializeBenchmark),
                 typeof(SerializeBenchmark),
                 typeof(StructSerializeBenchmark),
                 typeof(StructDeserializeBenchmark),
