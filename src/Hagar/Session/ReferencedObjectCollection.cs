@@ -116,9 +116,7 @@ namespace Hagar.Session
         {
             if (this.ReferenceToObjectCount >= this.referenceToObject.Length)
             {
-                var old = this.referenceToObject;
-                this.referenceToObject = new ReferencePair[this.referenceToObject.Length * 2];
-                Array.Copy(old, this.referenceToObject, this.ReferenceToObjectCount);
+                GrowReferenceToObjectArray();
             }
 
             if (TryGetReferencedObject(reference, out var existing) && !(existing is UnknownFieldMarker) && !(value is UnknownFieldMarker))
@@ -131,6 +129,15 @@ namespace Hagar.Session
             this.referenceToObject[this.ReferenceToObjectCount++] = new ReferencePair(reference, value);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void GrowReferenceToObjectArray()
+        {
+            var old = this.referenceToObject;
+            this.referenceToObject = new ReferencePair[this.referenceToObject.Length * 2];
+            Array.Copy(old, this.referenceToObject, this.ReferenceToObjectCount);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowReferenceExistsException(uint reference) => throw new InvalidOperationException($"Reference {reference} already exists");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -156,6 +163,7 @@ namespace Hagar.Session
             {
                 refToObj[i] = default;
             }
+
             var objToRef = this.objectToReference.AsSpan(0, Math.Min(this.objectToReference.Length, this.objectToReferenceCount));
             for (var i = 0; i < objToRef.Length; i++)
             {
