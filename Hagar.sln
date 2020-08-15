@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar", "src\Hagar\Hagar.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.ISerializable", "src\Hagar.ISerializable\Hagar.ISerializable.csproj", "{0F7397CF-9C94-4DF2-B38B-4560B6200630}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Json", "src\Hagar.Json\Hagar.Json.csproj", "{68BD5567-9F00-43A2-BC9D-913C18764280}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.NewtonsoftJson", "src\Hagar.NewtonsoftJson\Hagar.NewtonsoftJson.csproj", "{68BD5567-9F00-43A2-BC9D-913C18764280}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.UnitTests", "test\Hagar.UnitTests\Hagar.UnitTests.csproj", "{38C83221-53FD-470C-AF27-73325529745C}"
 EndProject

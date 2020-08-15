@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Hagar.Buffers;
 using Hagar.Codecs;
@@ -8,13 +8,13 @@ using Newtonsoft.Json;
 
 namespace Hagar.Json
 {
-    public class JsonCodec : IGeneralizedCodec
+    public class NewtonsoftJsonCodec : IGeneralizedCodec
     {
-        private static readonly Type SelfType = typeof(JsonCodec);
+        private static readonly Type SelfType = typeof(NewtonsoftJsonCodec);
         private readonly Func<Type, bool> isSupportedFunc;
         private readonly JsonSerializerSettings settings;
         
-        public JsonCodec(
+        public NewtonsoftJsonCodec(
             JsonSerializerSettings settings = null,
             Func<Type, bool> isSupportedFunc = null)
         {
