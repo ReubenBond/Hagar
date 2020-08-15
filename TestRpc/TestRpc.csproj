@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <HagarCodeGen>true</HagarCodeGen>
     <IsPackable>false</IsPackable>
     <!--<HagarCodeGenWaitForDebugger>true</HagarCodeGenWaitForDebugger>-->
   </PropertyGroup>
@@ -19,6 +18,10 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\src\Hagar\Hagar.csproj" />
+    <ProjectReference
+      Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj"
+      ReferenceOutputAssembly="false"
+      OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

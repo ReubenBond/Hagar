@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Hagar.CodeGenerator.SyntaxGeneration;
@@ -15,7 +14,7 @@ namespace Hagar.CodeGenerator
     {
         public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
 
-        public List<string> IdAttributeTypes { get; set; }
+        public List<string> IdAttributeTypes { get; set; } = new List<string> { "Hagar.IdAttribute" };
 
         public bool GenerateFieldIds { get; set; } = true;
     }
@@ -39,12 +38,12 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        public async Task<CompilationUnitSyntax> GenerateCode(CancellationToken cancellationToken)
+        public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
         {
             var namespaceName = "HagarGeneratedCode." + this.compilation.AssemblyName;
 
             // Collect metadata from the compilation.
-            var metadataModel = await this.GenerateMetadataModel(cancellationToken);
+            var metadataModel = this.GenerateMetadataModel(cancellationToken);
             var members = new List<MemberDeclarationSyntax>();
 
             foreach (var type in metadataModel.InvokableInterfaces)
@@ -97,14 +96,14 @@ namespace Hagar.CodeGenerator
                         .WithUsings(List(new[] {UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) }))));
         }
 
-        private async Task<MetadataModel> GenerateMetadataModel(CancellationToken cancellationToken)
+        private MetadataModel GenerateMetadataModel(CancellationToken cancellationToken)
         {
             var metadataModel = new MetadataModel();
 
             foreach (var syntaxTree in this.compilation.SyntaxTrees)
             {
                 var semanticModel = this.compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
-                var rootNode = await syntaxTree.GetRootAsync(cancellationToken);
+                var rootNode = syntaxTree.GetRoot(cancellationToken);
                 foreach (var node in GetTypeDeclarations(rootNode))
                 {
                     var symbol = semanticModel.GetDeclaredSymbol(node);

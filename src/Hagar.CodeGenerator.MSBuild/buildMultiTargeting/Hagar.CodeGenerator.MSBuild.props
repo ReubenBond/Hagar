@@ -1,3 +1,0 @@
-<Project>
-  <Import Project="..\build\Hagar.CodeGenerator.MSBuild.props" />
-</Project>
