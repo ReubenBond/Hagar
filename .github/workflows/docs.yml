@@ -1,0 +1,42 @@
+name: Build and publish site
+on: [workflow_dispatch]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core 2.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '2.1.x'
+    - name: Setup .NET Core 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+    - name: 🪓 **DOTNET HACK** 🪓
+      shell: pwsh
+      run: |
+          $version = Split-Path (Split-Path $ENV:DOTNET_ROOT -Parent) -Leaf;
+          $root = Split-Path (Split-Path $ENV:DOTNET_ROOT -Parent) -Parent;
+          $directories = Get-ChildItem $root | Where-Object { $_.Name -ne $version };
+          foreach ($dir in $directories) {
+            $from = $dir.FullName;
+            $to = "$root/$version";
+            Write-Host Copying from $from to $to;
+            Copy-Item "$from\*" $to -Recurse -Force;
+          }
+    - name: Build
+      run: dotnet build docs
+    - name: Deploy to GitHub Pages
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
+      with:
+        target_branch: gh-pages
+        build_dir: docs/site/_site
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
