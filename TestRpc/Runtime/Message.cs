@@ -1,5 +1,5 @@
-using System;
 using Hagar;
+using System;
 
 namespace TestRpc.Runtime
 {
@@ -19,12 +19,16 @@ namespace TestRpc.Runtime
 
         public void Dispose()
         {
-            if (Body is IDisposable disposable) disposable.Dispose();
-            this.Body = default;
-            this.Direction = default;
-            this.MessageId = default;
-            this.Source = default;
-            this.Target = default;
+            if (Body is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            Body = default;
+            Direction = default;
+            MessageId = default;
+            Source = default;
+            Target = default;
             MessagePool.Return(this);
         }
     }

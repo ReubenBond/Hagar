@@ -115,21 +115,21 @@ namespace Hagar
         public ReferenceNotFoundException(Type targetType, uint targetId) : base(
             $"Reference with id {targetId} and type {targetType} not found.")
         {
-            this.TargetReference = targetId;
-            this.TargetReferenceType = targetType;
+            TargetReference = targetId;
+            TargetReferenceType = targetType;
         }
 
         protected ReferenceNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            this.TargetReference = info.GetUInt32(nameof(this.TargetReference));
-            this.TargetReferenceType = (Type)info.GetValue(nameof(this.TargetReferenceType), typeof(Type));
+            TargetReference = info.GetUInt32(nameof(TargetReference));
+            TargetReferenceType = (Type)info.GetValue(nameof(TargetReferenceType), typeof(Type));
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue(nameof(this.TargetReference), this.TargetReference);
-            info.AddValue(nameof(this.TargetReferenceType), this.TargetReferenceType);
+            info.AddValue(nameof(TargetReference), TargetReference);
+            info.AddValue(nameof(TargetReferenceType), TargetReferenceType);
         }
     }
 
@@ -138,19 +138,19 @@ namespace Hagar
     {
         public UnknownReferencedTypeException(uint reference) : base($"Unknown referenced type {reference}.")
         {
-            this.Reference = reference;
+            Reference = reference;
         }
 
         protected UnknownReferencedTypeException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            info.AddValue(nameof(this.Reference), this.Reference);
+            info.AddValue(nameof(Reference), Reference);
         }
 
         public uint Reference { get; set; }
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            this.Reference = info.GetUInt32(nameof(this.Reference));
+            Reference = info.GetUInt32(nameof(Reference));
         }
     }
 
@@ -159,12 +159,12 @@ namespace Hagar
     {
         public UnknownWellKnownTypeException(uint id) : base($"Unknown well-known type {id}.")
         {
-            this.Id = id;
+            Id = id;
         }
 
         protected UnknownWellKnownTypeException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            info.AddValue(nameof(this.Id), this.Id);
+            info.AddValue(nameof(Id), Id);
         }
 
         public uint Id { get; set; }
@@ -172,7 +172,7 @@ namespace Hagar
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            this.Id = info.GetUInt32(nameof(this.Id));
+            Id = info.GetUInt32(nameof(Id));
         }
     }
 
@@ -181,12 +181,12 @@ namespace Hagar
     {
         public IllegalTypeException(string typeName) : base($"Type \"{typeName}\" is not allowed.")
         {
-            this.TypeName = typeName;
+            TypeName = typeName;
         }
 
         protected IllegalTypeException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            this.TypeName = info.GetString(nameof(this.TypeName));
+            TypeName = info.GetString(nameof(TypeName));
         }
 
         private string TypeName { get; }
@@ -194,7 +194,7 @@ namespace Hagar
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue(nameof(this.TypeName), this.TypeName);
+            info.AddValue(nameof(TypeName), TypeName);
         }
     }
 

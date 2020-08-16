@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.WireProtocol;
+using System;
+using System.Collections.Generic;
 
 namespace Hagar.Serializers
 {
@@ -15,23 +15,27 @@ namespace Hagar.Serializers
     public sealed class ConcreteTypeSerializer<TField, TPartialSerializer> : IFieldCodec<TField> where TField : class where TPartialSerializer : IPartialSerializer<TField>
     {
         private static readonly Type CodecFieldType = typeof(TField);
-        private readonly IActivator<TField> activator;
-        private readonly TPartialSerializer serializer;
+        private readonly IActivator<TField> _activator;
+        private readonly TPartialSerializer _serializer;
 
         public ConcreteTypeSerializer(IActivator<TField> activator, TPartialSerializer serializer)
         {
-            this.activator = activator;
-            this.serializer = serializer;
+            this._activator = activator;
+            this._serializer = serializer;
         }
 
         void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
             var fieldType = value.GetType();
             if (fieldType == CodecFieldType)
             {
                 writer.WriteStartObject(fieldIdDelta, expectedType, fieldType);
-                this.serializer.Serialize(ref writer, value);
+                _serializer.Serialize(ref writer, value);
                 writer.WriteEndObject();
             }
             else
@@ -50,13 +54,17 @@ namespace Hagar.Serializers
 
         TField IFieldCodec<TField>.ReadValue(ref Reader reader, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(ref reader, field);
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<TField>(ref reader, field);
+            }
+
             var fieldType = field.FieldType;
             if (fieldType is null || fieldType == CodecFieldType)
             {
-                var result = this.activator.Create();
+                var result = _activator.Create();
                 ReferenceCodec.RecordObject(reader.Session, result);
-                this.serializer.Deserialize(ref reader, result);
+                _serializer.Deserialize(ref reader, result);
                 return result;
             }
 
@@ -71,9 +79,6 @@ namespace Hagar.Serializers
             return null;
         }
 
-        private static void ThrowSerializerNotFoundException(Type type)
-        {
-            throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
-        }
+        private static void ThrowSerializerNotFoundException(Type type) => throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
     }
 }

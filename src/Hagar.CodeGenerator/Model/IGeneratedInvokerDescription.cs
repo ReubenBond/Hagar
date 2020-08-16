@@ -1,4 +1,4 @@
-﻿namespace Hagar.CodeGenerator
+namespace Hagar.CodeGenerator
 {
     internal interface IGeneratedInvokerDescription : ISerializableTypeDescription
     {

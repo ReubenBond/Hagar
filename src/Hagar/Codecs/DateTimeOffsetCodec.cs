@@ -1,16 +1,13 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {
     public sealed class DateTimeOffsetCodec : IFieldCodec<DateTimeOffset>
     {
-        void IFieldCodec<DateTimeOffset>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, DateTimeOffset value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
+        void IFieldCodec<DateTimeOffset>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, DateTimeOffset value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, DateTimeOffset value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -21,15 +18,15 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        DateTimeOffset IFieldCodec<DateTimeOffset>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
+        DateTimeOffset IFieldCodec<DateTimeOffset>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
 
         public static DateTimeOffset ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
-            if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
 
             uint fieldId = 0;
             TimeSpan offset = default;
@@ -37,7 +34,11 @@ namespace Hagar.Codecs
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {

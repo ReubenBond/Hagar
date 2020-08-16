@@ -1,5 +1,5 @@
-using System;
 using Hagar.Codecs;
+using System;
 
 namespace Hagar.Serializers
 {

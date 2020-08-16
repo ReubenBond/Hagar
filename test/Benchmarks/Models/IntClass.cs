@@ -1,7 +1,7 @@
-﻿using System;
 using Hagar;
 using MessagePack;
 using ProtoBuf;
+using System;
 
 namespace Benchmarks.Models
 {
@@ -18,8 +18,8 @@ namespace Benchmarks.Models
             return result;
         }
 
-        public void Initialize() => this.MyProperty1 = this.MyProperty2 =
-            this.MyProperty3 = this.MyProperty4 = this.MyProperty5 = this.MyProperty6 = this.MyProperty7 = this.MyProperty8 = this.MyProperty9 = 10;
+        public void Initialize() => MyProperty1 = MyProperty2 =
+            MyProperty3 = MyProperty4 = MyProperty5 = MyProperty6 = MyProperty7 = MyProperty8 = MyProperty9 = 10;
 
         [Id(0)]
         [ProtoMember(1)]

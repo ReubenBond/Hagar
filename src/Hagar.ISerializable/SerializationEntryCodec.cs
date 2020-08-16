@@ -1,9 +1,9 @@
-using System;
-using System.Buffers;
-using System.Security;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
+using System.Security;
 
 namespace Hagar.ISerializable
 {
@@ -21,7 +21,7 @@ namespace Hagar.ISerializable
             writer.WriteFieldHeader(fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
             StringCodec.WriteField(ref writer, 0, typeof(string), value.Name);
             ObjectCodec.WriteField(ref writer, 1, typeof(object), value.Value);
-            
+
             writer.WriteEndObject();
         }
 
@@ -34,7 +34,11 @@ namespace Hagar.ISerializable
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {

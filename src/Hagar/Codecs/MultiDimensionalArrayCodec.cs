@@ -1,8 +1,8 @@
-using System;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.WireProtocol;
+using System;
 
 namespace Hagar.Codecs
 {
@@ -12,21 +12,25 @@ namespace Hagar.Codecs
     /// <typeparam name="T">The array element type.</typeparam>
     internal sealed class MultiDimensionalArrayCodec<T> : IGeneralizedCodec
     {
-        private readonly IFieldCodec<int[]> intArrayCodec;
-        private readonly IFieldCodec<T> elementCodec;
+        private readonly IFieldCodec<int[]> _intArrayCodec;
+        private readonly IFieldCodec<T> _elementCodec;
 
         public MultiDimensionalArrayCodec(IFieldCodec<int[]> intArrayCodec, IFieldCodec<T> elementCodec)
         {
-            this.intArrayCodec = HagarGeneratedCodeHelper.UnwrapService(this, intArrayCodec);
-            this.elementCodec = HagarGeneratedCodeHelper.UnwrapService(this, elementCodec);
+            this._intArrayCodec = HagarGeneratedCodeHelper.UnwrapService(this, intArrayCodec);
+            this._elementCodec = HagarGeneratedCodeHelper.UnwrapService(this, elementCodec);
         }
 
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            var array = (Array) value;
+            var array = (Array)value;
             var rank = array.Rank;
 
             var lengths = new int[rank];
@@ -38,14 +42,14 @@ namespace Hagar.Codecs
                 lengths[i] = array.GetLength(i);
             }
 
-            this.intArrayCodec.WriteField(ref writer, 0, typeof(int[]), lengths);
+            _intArrayCodec.WriteField(ref writer, 0, typeof(int[]), lengths);
 
             var remaining = array.Length;
             var first = true;
             while (remaining-- > 0)
             {
                 var element = array.GetValue(indices);
-                this.elementCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), (T) element);
+                _elementCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), (T)element);
                 first = false;
 
                 // Increment the indices array by 1.
@@ -56,20 +60,29 @@ namespace Hagar.Codecs
                     {
                         indices[idx] = 0;
                         --idx;
-                        if (idx < 0) ThrowIndexOutOfRangeException(lengths);
+                        if (idx < 0)
+                        {
+                            _ = ThrowIndexOutOfRangeException(lengths);
+                        }
                     }
                 }
             }
 
-            
+
             writer.WriteEndObject();
         }
 
         object IFieldCodec<object>.ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference)
+            {
                 return ReferenceCodec.ReadReference<T[]>(ref reader, field);
-            if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
+            }
+
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
             Array result = null;
@@ -80,37 +93,45 @@ namespace Hagar.Codecs
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                    {
-                        lengths = this.intArrayCodec.ReadValue(ref reader, header);
-                        rank = lengths.Length;
-
-                        // Multi-dimensional arrays must be indexed using indexing arrays, so create one now.
-                        indices = new int[rank];
-                        result = Array.CreateInstance(typeof(T), lengths);
-                        ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
-                        break;
-                    }
-                    case 1:
-                    {
-                        if (result is null) return ThrowLengthsFieldMissing();
-                        var element = this.elementCodec.ReadValue(ref reader, header);
-                        result.SetValue(element, indices);
-
-                        // Increment the indices array by 1.
-                        var idx = rank - 1;
-                        while (idx >= 0 && ++indices[idx] >= lengths[idx])
                         {
-                            indices[idx] = 0;
-                            --idx;
-                        }
+                            lengths = _intArrayCodec.ReadValue(ref reader, header);
+                            rank = lengths.Length;
 
-                        break;
-                    }
+                            // Multi-dimensional arrays must be indexed using indexing arrays, so create one now.
+                            indices = new int[rank];
+                            result = Array.CreateInstance(typeof(T), lengths);
+                            ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
+                            break;
+                        }
+                    case 1:
+                        {
+                            if (result is null)
+                            {
+                                return ThrowLengthsFieldMissing();
+                            }
+
+                            var element = _elementCodec.ReadValue(ref reader, header);
+                            result.SetValue(element, indices);
+
+                            // Increment the indices array by 1.
+                            var idx = rank - 1;
+                            while (idx >= 0 && ++indices[idx] >= lengths[idx])
+                            {
+                                indices[idx] = 0;
+                                --idx;
+                            }
+
+                            break;
+                        }
                     default:
                         reader.ConsumeUnknownField(header);
                         break;

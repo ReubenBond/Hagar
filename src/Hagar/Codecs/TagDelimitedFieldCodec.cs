@@ -1,8 +1,8 @@
+using Hagar.Buffers;
+using Hagar.WireProtocol;
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using Hagar.Buffers;
-using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
@@ -25,21 +25,12 @@ namespace Hagar.Codecs
             ref this Writer<TBufferWriter> writer,
             uint fieldId,
             Type expectedType,
-            Type actualType) where TBufferWriter : IBufferWriter<byte>
-        {
-            writer.WriteFieldHeader(fieldId, expectedType, actualType, WireType.TagDelimited);
-        }
+            Type actualType) where TBufferWriter : IBufferWriter<byte> => writer.WriteFieldHeader(fieldId, expectedType, actualType, WireType.TagDelimited);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEndObject<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>
-        {
-            writer.Write((byte) EndObjectTag);
-        }
+        public static void WriteEndObject<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte> => writer.Write((byte)EndObjectTag);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEndBase<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte>
-        {
-            writer.Write((byte) EndBaseFieldsTag);
-        }
+        public static void WriteEndBase<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte> => writer.Write((byte)EndBaseFieldsTag);
     }
 }

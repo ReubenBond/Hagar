@@ -1,7 +1,7 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {

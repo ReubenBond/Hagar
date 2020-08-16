@@ -1,7 +1,7 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {
@@ -14,11 +14,11 @@ namespace Hagar.Codecs
     internal sealed class AbstractCodecAdapter<TConcrete, TAbstract, TAbstractCodec> : IFieldCodec<TConcrete>
         where TConcrete : TAbstract where TAbstractCodec : IFieldCodec<TAbstract>
     {
-        private readonly TAbstractCodec codec;
+        private readonly TAbstractCodec _codec;
 
         public AbstractCodecAdapter(TAbstractCodec codec)
         {
-            this.codec = codec;
+            _codec = codec;
         }
 
         /// <inheritdoc />
@@ -27,9 +27,9 @@ namespace Hagar.Codecs
             uint fieldIdDelta,
             Type expectedType,
             TConcrete value) where TBufferWriter : IBufferWriter<byte> =>
-            this.codec.WriteField(ref writer, fieldIdDelta, expectedType, value);
+            _codec.WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <inheritdoc />
-        public TConcrete ReadValue(ref Reader reader, Field field) => (TConcrete)this.codec.ReadValue(ref reader, field);
+        public TConcrete ReadValue(ref Reader reader, Field field) => (TConcrete)_codec.ReadValue(ref reader, field);
     }
 }

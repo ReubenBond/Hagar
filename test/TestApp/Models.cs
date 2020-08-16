@@ -1,8 +1,8 @@
+using Hagar;
+using Hagar.Invocation;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Hagar;
-using Hagar.Invocation;
 using TestApp;
 
 namespace MyPocos
@@ -19,10 +19,7 @@ namespace MyPocos
         public List<IInvokable> Invocations { get; } = new List<IInvokable>();
 
         // The only required method is Invoke and it must have this signature.
-        protected void SendRequest(IResponseCompletionSource completion, IInvokable request)
-        {
-            this.Invocations.Add(request);
-        }
+        protected void SendRequest(IResponseCompletionSource completion, IInvokable request) => Invocations.Add(request);
     }
 
     public interface IMyInvokable : IGrain
@@ -52,10 +49,7 @@ namespace MyPocos
 
         public int UnmarkedProperty { get; set; }
 
-        public override string ToString()
-        {
-            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
-        }
+        public override string ToString() => $"{nameof(IntField)}: {IntField}, {nameof(IntProperty)}: {IntProperty}";
     }
 
     [GenerateSerializer]
@@ -63,25 +57,22 @@ namespace MyPocos
     {
         public ImmutableClass(int intProperty, int intField, int unmarkedField, int unmarkedProperty)
         {
-            this.IntProperty = intProperty;
-            this.IntField = intField;
-            this.UnmarkedField = unmarkedField;
-            this.UnmarkedProperty = unmarkedProperty;
+            IntProperty = intProperty;
+            _intField = intField;
+            UnmarkedField = unmarkedField;
+            UnmarkedProperty = unmarkedProperty;
         }
 
         [Id(0)]
         public int IntProperty { get; }
 
-        [Id(1)] private readonly int IntField;
+        [Id(1)] private readonly int _intField;
 
         public readonly int UnmarkedField;
 
         public int UnmarkedProperty { get; }
 
-        public override string ToString()
-        {
-            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
-        }
+        public override string ToString() => $"{nameof(_intField)}: {_intField}, {nameof(IntProperty)}: {IntProperty}";
     }
 
     [GenerateSerializer]
@@ -89,8 +80,8 @@ namespace MyPocos
     {
         public ImmutableStruct(int intProperty, int intField)
         {
-            this.IntProperty = intProperty;
-            this.IntField = intField;
+            IntProperty = intProperty;
+            IntField = intField;
         }
 
         [Id(0)]
@@ -98,10 +89,7 @@ namespace MyPocos
 
         [Id(1)] public readonly int IntField;
 
-        public override string ToString()
-        {
-            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
-        }
+        public override string ToString() => $"{nameof(IntField)}: {IntField}, {nameof(IntProperty)}: {IntProperty}";
     }
 
     [GenerateSerializer]

@@ -1,9 +1,3 @@
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using Benchmarks.Models;
 using Benchmarks.Utilities;
@@ -20,14 +14,15 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
-using BenchmarkDotNet.Diagnostics.Windows.Configs;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using Xunit;
-using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
-using System.Text;
 using Utf8JsonNS = Utf8Json;
-using SpanJson.Formatters;
-using System.Text.Json;
 
 namespace Benchmarks.Comparison
 {
@@ -55,7 +50,7 @@ namespace Benchmarks.Comparison
         private static readonly SerializationManager OrleansSerializer;
         private static readonly List<ArraySegment<byte>> OrleansInput;
         private static readonly BinaryTokenStreamReader OrleansBuffer;
-        private static readonly HagarGen_Serializer_IntClass_1843466 generated = new HagarGen_Serializer_IntClass_1843466();
+        private static readonly HagarGen_Serializer_IntClass_1843466 Generated = new HagarGen_Serializer_IntClass_1843466();
         private static readonly DeserializerSession HyperionSession;
 
         private static readonly Utf8JsonNS.IJsonFormatterResolver Utf8JsonResolver = Utf8JsonNS.Resolvers.StandardResolver.Default;
@@ -82,7 +77,7 @@ namespace Benchmarks.Comparison
             var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
             //HagarSerializer.Serialize(ref writer, IntClass.Create());
             writer.WriteStartObject(0, typeof(IntClass), typeof(IntClass));
-            generated.Serialize(ref writer, IntClass.Create());
+            Generated.Serialize(ref writer, IntClass.Create());
             writer.WriteEndObject();
             HagarInput = new ReadOnlySequence<byte>(bytes);
 
@@ -92,7 +87,10 @@ namespace Benchmarks.Comparison
                 .UseLocalhostClustering()
                 .ConfigureServices(s => s.ToList().ForEach(r =>
                 {
-                    if (r.ServiceType == typeof(IConfigurationValidator)) s.Remove(r);
+                    if (r.ServiceType == typeof(IConfigurationValidator))
+                    {
+                        _ = s.Remove(r);
+                    }
                 }))
                 .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
@@ -115,9 +113,7 @@ namespace Benchmarks.Comparison
             SystemTextJsonInput = stream.ToArray();
         }
 
-        private static int SumResult(IntClass result)
-        {
-            return result.MyProperty1 +
+        private static int SumResult(IntClass result) => result.MyProperty1 +
                    result.MyProperty2 +
                    result.MyProperty3 +
                    result.MyProperty4 +
@@ -126,20 +122,6 @@ namespace Benchmarks.Comparison
                    result.MyProperty7 +
                    result.MyProperty8 +
                    result.MyProperty9;
-        }
-
-        private static int SumResult(VirtualIntsClass result)
-        {
-            return result.MyProperty1 +
-                   result.MyProperty2 +
-                   result.MyProperty3 +
-                   result.MyProperty4 +
-                   result.MyProperty5 +
-                   result.MyProperty6 +
-                   result.MyProperty7 +
-                   result.MyProperty8 +
-                   result.MyProperty9;
-        }
 
         [Fact]
         [Benchmark(Baseline = true)]
@@ -148,23 +130,17 @@ namespace Benchmarks.Comparison
             Session.FullReset();
             var reader = new Reader(HagarInput, Session);
             var instance = IntClass.Create();
-            reader.ReadFieldHeader();
-            generated.DeserializeNew(ref reader, instance);
+            _ = reader.ReadFieldHeader();
+            Generated.DeserializeNew(ref reader, instance);
             //var instance = HagarSerializer.Deserialize(ref reader);
             return SumResult(instance);
         }
 
         [Benchmark]
-        public int Utf8Json()
-        {
-            return SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntClass>(Utf8JsonInput, Utf8JsonResolver));
-        }
+        public int Utf8Json() => SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntClass>(Utf8JsonInput, Utf8JsonResolver));
 
         [Benchmark]
-        public int SystemTextJson()
-        {
-            return SumResult(System.Text.Json.JsonSerializer.Deserialize<IntClass>(SystemTextJsonInput));
-        }
+        public int SystemTextJson() => SumResult(System.Text.Json.JsonSerializer.Deserialize<IntClass>(SystemTextJsonInput));
 
         //[Benchmark]
         public int Orleans()
@@ -174,10 +150,7 @@ namespace Benchmarks.Comparison
         }
 
         [Benchmark]
-        public int MessagePackCSharp()
-        {
-            return SumResult(MessagePack.MessagePackSerializer.Deserialize<IntClass>(MsgPackInput));
-        }
+        public int MessagePackCSharp() => SumResult(MessagePack.MessagePackSerializer.Deserialize<IntClass>(MsgPackInput));
 
         [Benchmark]
         public int ProtobufNet()
@@ -195,21 +168,15 @@ namespace Benchmarks.Comparison
         }
 
         [Benchmark]
-        public int NewtonsoftJson()
-        {
-            return SumResult(JsonConvert.DeserializeObject<IntClass>(NewtonsoftJsonInput));
-        }
+        public int NewtonsoftJson() => SumResult(JsonConvert.DeserializeObject<IntClass>(NewtonsoftJsonInput));
 
         [Benchmark(Description = "SpanJson")]
-        public int SpanJsonUtf8()
-        {
-            return SumResult(SpanJson.JsonSerializer.Generic.Utf8.Deserialize<IntClass>(SpanJsonInput));
-        }
+        public int SpanJsonUtf8() => SumResult(SpanJson.JsonSerializer.Generic.Utf8.Deserialize<IntClass>(SpanJsonInput));
     }
 
     internal sealed class HagarGen_Serializer_IntClass_1843466 : global::Hagar.Serializers.IPartialSerializer<global::Benchmarks.Models.IntClass>
     {
-        private static readonly global::System.Type int32Type = typeof(int);
+        private static readonly global::System.Type Int32Type = typeof(int);
         public HagarGen_Serializer_IntClass_1843466()
         {
         }
@@ -217,15 +184,15 @@ namespace Benchmarks.Comparison
         public void Serialize<TBufferWriter>(ref global::Hagar.Buffers.Writer<TBufferWriter> writer, global::Benchmarks.Models.IntClass instance)
             where TBufferWriter : global::System.Buffers.IBufferWriter<byte>
         {
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 0U, int32Type, instance.MyProperty1);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty2);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty3);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty4);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty5);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty6);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty7);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty8);
-            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, int32Type, instance.MyProperty9);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 0U, Int32Type, instance.MyProperty1);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty2);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty3);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty4);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty5);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty6);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty7);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty8);
+            global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty9);
         }
 
         public void Deserialize(ref global::Hagar.Buffers.Reader reader, global::Benchmarks.Models.IntClass instance)
@@ -235,7 +202,10 @@ namespace Benchmarks.Comparison
             {
                 var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject)
+                {
                     break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch ((fieldId))
                 {
@@ -352,17 +322,25 @@ namespace Benchmarks.Comparison
             }
         }
 
-         private static int ReadHeader(ref Reader reader, ref Field header, int id)
+        private static int ReadHeader(ref Reader reader, ref Field header, int id)
         {
             reader.ReadFieldHeader(ref header);
-            if (header.IsEndBaseOrEndObject) return -1;
+            if (header.IsEndBaseOrEndObject)
+            {
+                return -1;
+            }
+
             return (int)(id + header.FieldIdDelta);
         }
-        
+
         private static int ReadHeaderExpectingEndBaseOrEndObject(ref Reader reader, ref Field header, int id)
         {
             reader.ReadFieldHeader(ref header);
-            if (header.IsEndBaseOrEndObject) return -1;
+            if (header.IsEndBaseOrEndObject)
+            {
+                return -1;
+            }
+
             return (int)(id + header.FieldIdDelta);
         }
     }

@@ -3,16 +3,16 @@ using Benchmarks.Comparison;
 
 namespace Benchmarks
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length > 0 && args[0] == "loop")
             {
                 var benchmarks = new ClassSerializeBenchmark();
                 while (true)
                 {
-                    benchmarks.Hagar();
+                    _ = benchmarks.Hagar();
                 }
             }
 
@@ -21,7 +21,7 @@ namespace Benchmarks
                 var benchmarks = new StructSerializeBenchmark();
                 while (true)
                 {
-                    benchmarks.Hagar();
+                    _ = benchmarks.Hagar();
                 }
             }
 
@@ -30,16 +30,16 @@ namespace Benchmarks
                 var benchmarks = new StructDeserializeBenchmark();
                 while (true)
                 {
-                    benchmarks.Hagar();
+                    _ = benchmarks.Hagar();
                 }
             }
-            
+
             if (args.Length > 0 && args[0] == "dloop")
             {
                 var benchmarks = new ClassDeserializeBenchmark();
                 while (true)
                 {
-                    benchmarks.Hagar();
+                    _ = benchmarks.Hagar();
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Benchmarks
                 typeof(FieldHeaderBenchmarks)
             });
 
-            switcher.Run(args);
+            _ = switcher.Run(args);
         }
     }
 }

@@ -1,7 +1,7 @@
-using System;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
+using System;
 
 namespace Benchmarks.Utilities
 {
@@ -9,9 +9,9 @@ namespace Benchmarks.Utilities
     {
         public BenchmarkConfig()
         {
-            this.ArtifactsPath = ".\\BenchmarkDotNet.Aritfacts." + DateTime.Now.ToString("u").Replace(' ', '_').Replace(':', '-');
-            AddExporter(MarkdownExporter.GitHub);
-            AddDiagnoser(MemoryDiagnoser.Default);
+            ArtifactsPath = ".\\BenchmarkDotNet.Aritfacts." + DateTime.Now.ToString("u").Replace(' ', '_').Replace(':', '-');
+            _ = AddExporter(MarkdownExporter.GitHub);
+            _ = AddDiagnoser(MemoryDiagnoser.Default);
         }
     }
 }

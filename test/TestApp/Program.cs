@@ -1,23 +1,20 @@
-using System;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using Hagar.Serializers;
-using Hagar.Session;
 using Hagar;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Configuration;
 using Hagar.Invocation;
-using Hagar.ISerializable;
-using Hagar.Json;
+using Hagar.Serializers;
+using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 using MyPocos;
 using Newtonsoft.Json;
 using NodaTime;
+using System;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TestApp
 {
@@ -40,11 +37,11 @@ namespace TestApp
             var allProxies = config.Value.InterfaceProxies;
 
             var proxy = GetProxy<IMyInvokable>();
-            await proxy.Multiply(4, 5, "hello");
+            _ = await proxy.Multiply(4, 5, "hello");
             var proxyBase = proxy as MyProxyBaseClass;
             using var invocation = proxyBase.Invocations.First();
             invocation.SetTarget(new TargetHolder(new MyImplementation()));
-            await invocation.Invoke();
+            _ = await invocation.Invoke();
 
             var generic = GetProxy<IMyInvokable<int>>();
             //((MyProxyBaseClass)generic).Invocations.Find()
@@ -58,7 +55,11 @@ namespace TestApp
                     var parameters = typeof(TInterface).GetGenericArguments();
                     foreach (var proxyType in allProxies)
                     {
-                        if (!proxyType.IsGenericType) continue;
+                        if (!proxyType.IsGenericType)
+                        {
+                            continue;
+                        }
+
                         var matching = proxyType.FindInterfaces(
                             (type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition() == (Type)criteria,
                             unbound).FirstOrDefault();
@@ -76,14 +77,14 @@ namespace TestApp
 
         internal struct TargetHolder : ITargetHolder
         {
-            private readonly object target;
+            private readonly object _target;
 
             public TargetHolder(object target)
             {
-                this.target = target;
+                _target = target;
             }
 
-            public TTarget GetTarget<TTarget>() => (TTarget)this.target;
+            public TTarget GetTarget<TTarget>() => (TTarget)_target;
 
             public TExtension GetComponent<TExtension>() => throw new NotImplementedException();
         }
@@ -101,7 +102,7 @@ namespace TestApp
         {
             Console.WriteLine("Hello World!");
             var serviceProvider = new ServiceCollection()
-                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))                
+                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
                 .BuildServiceProvider();
 
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
@@ -117,17 +118,15 @@ namespace TestApp
                              typeof(SomeClassWithSerialzers),
                              new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
             writer.Commit();
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
-            pipe.Reader.TryRead(out var readResult);
+            _ = pipe.Reader.TryRead(out var readResult);
 
-            using (var readerSession = sessionPool.GetSession())
-            {
-                var reader = new Reader(readResult.Buffer, readerSession);
-                var initialHeader = reader.ReadFieldHeader();
-                var result = codec.ReadValue(ref reader, initialHeader);
-                Console.WriteLine(result);
-            }
+            using var readerSession = sessionPool.GetSession();
+            var reader = new Reader(readResult.Buffer, readerSession);
+            var initialHeader = reader.ReadFieldHeader();
+            var result = codec.ReadValue(ref reader, initialHeader);
+            Console.WriteLine(result);
         }
 
         public static void Main(string[] args)
@@ -140,7 +139,7 @@ namespace TestApp
             TestRpc().GetAwaiter().GetResult();
             //return;
             TestOne();
-            
+
             Test(
                 GetSession,
                 new AbstractTypeSerializer<object>(),
@@ -187,7 +186,7 @@ namespace TestApp
             Test(GetSession, new AbstractTypeSerializer<object>(), new LocalDate());
 
             Console.WriteLine("Press any key to exit.");
-            Console.ReadKey();
+            _ = Console.ReadKey();
         }
 
         private static void Test<T>(Func<SerializerSession> getSession, IFieldCodec<T> serializer, T expected)
@@ -202,9 +201,9 @@ namespace TestApp
             Console.WriteLine($"Size: {writer.Position} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
 
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
-            pipe.Reader.TryRead(out var readResult);
+            _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = getSession();
             var reader = new Reader(readResult.Buffer, readerSesssion);
             var initialHeader = reader.ReadFieldHeader();
@@ -228,7 +227,7 @@ namespace TestApp
             var references = new StringBuilder();
             foreach (var entry in table)
             {
-                references.AppendLine($"\t[{entry.Key}] {entry.Value}");
+                _ = references.AppendLine($"\t[{entry.Key}] {entry.Value}");
             }
             return references;
         }
@@ -239,7 +238,7 @@ namespace TestApp
             var references = new StringBuilder();
             foreach (var entry in table)
             {
-                references.AppendLine($"\t[{entry.Value}] {entry.Key}");
+                _ = references.AppendLine($"\t[{entry.Value}] {entry.Key}");
             }
             return references;
         }
@@ -257,22 +256,22 @@ namespace TestApp
 
             protected MySerializableClass(SerializationInfo info, StreamingContext context)
             {
-                this.String = info.GetString(nameof(this.String));
-                this.Integer = info.GetInt32(nameof(this.Integer));
-                this.Self = (MySerializableClass) info.GetValue(nameof(this.Self), typeof(MySerializableClass));
+                String = info.GetString(nameof(String));
+                Integer = info.GetInt32(nameof(Integer));
+                Self = (MySerializableClass)info.GetValue(nameof(Self), typeof(MySerializableClass));
             }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                info.AddValue(nameof(this.String), this.String);
-                info.AddValue(nameof(this.Integer), this.Integer);
-                info.AddValue(nameof(this.Self), this.Self);
+                info.AddValue(nameof(String), String);
+                info.AddValue(nameof(Integer), Integer);
+                info.AddValue(nameof(Self), Self);
             }
 
             public override string ToString()
             {
-                string refString = this.Self == this ? "[this]" : $"[{this.Self?.ToString() ?? "null"}]";
-                return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Integer)}: {this.Integer}, Self: {refString}";
+                string refString = Self == this ? "[this]" : $"[{Self?.ToString() ?? "null"}]";
+                return $"{base.ToString()}, {nameof(String)}: {String}, {nameof(Integer)}: {Integer}, Self: {refString}";
             }
         }
     }

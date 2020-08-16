@@ -18,7 +18,7 @@ namespace Benchmarks
         static FieldHeaderBenchmarks()
         {
             var services = new ServiceCollection();
-            services
+            _ = services
                 .AddHagar(hagar =>
                     hagar.AddISerializableSupport()
                         .AddAssembly(typeof(Program).Assembly));
@@ -64,10 +64,7 @@ namespace Benchmarks
         }
 
         [Benchmark]
-        public void CreateWriter()
-        {
-            new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
-        }
+        public void CreateWriter() => _ = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
 
         [Benchmark]
         public void WriteByte()

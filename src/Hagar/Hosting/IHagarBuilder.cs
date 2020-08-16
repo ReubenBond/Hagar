@@ -1,4 +1,4 @@
-﻿namespace Hagar
+namespace Hagar
 {
     public interface IHagarBuilder
     {

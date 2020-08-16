@@ -1,8 +1,8 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {
@@ -11,11 +11,8 @@ namespace Hagar.Codecs
         void IFieldCodec<bool>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            bool value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            bool value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, bool value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -23,28 +20,22 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value ? 1 : 0);
         }
 
-        bool IFieldCodec<bool>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        bool IFieldCodec<bool>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static bool ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType) == 1;
         }
     }
-    
+
     public sealed class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>
     {
         void IFieldCodec<char>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            char value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            char value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, char value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -52,15 +43,12 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        char IFieldCodec<char>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        char IFieldCodec<char>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static char ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
-            return (char) reader.ReadUInt16(field.WireType);
+            return (char)reader.ReadUInt16(field.WireType);
         }
     }
 
@@ -69,11 +57,8 @@ namespace Hagar.Codecs
         void IFieldCodec<byte>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            byte value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            byte value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, byte value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -81,11 +66,8 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        byte IFieldCodec<byte>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        byte IFieldCodec<byte>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static byte ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -98,11 +80,8 @@ namespace Hagar.Codecs
         void IFieldCodec<sbyte>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            sbyte value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            sbyte value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, sbyte value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -110,11 +89,8 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        sbyte IFieldCodec<sbyte>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        sbyte IFieldCodec<sbyte>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static sbyte ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -124,11 +100,8 @@ namespace Hagar.Codecs
 
     public sealed class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
     {
-        ushort IFieldCodec<ushort>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        ushort IFieldCodec<ushort>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static ushort ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -138,11 +111,8 @@ namespace Hagar.Codecs
         void IFieldCodec<ushort>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            ushort value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            ushort value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ushort value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -156,11 +126,8 @@ namespace Hagar.Codecs
         void IFieldCodec<short>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            short value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            short value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, short value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -168,11 +135,8 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        short IFieldCodec<short>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        short IFieldCodec<short>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static short ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -185,11 +149,8 @@ namespace Hagar.Codecs
         void IFieldCodec<uint>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            uint value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            uint value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, uint value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -205,11 +166,8 @@ namespace Hagar.Codecs
             }
         }
 
-        uint IFieldCodec<uint>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        uint IFieldCodec<uint>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static uint ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -236,7 +194,7 @@ namespace Hagar.Codecs
                 writer.WriteVarInt(value);
             }
         }
-        
+
         public static void WriteField<TBufferWriter>(
             ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
@@ -256,10 +214,7 @@ namespace Hagar.Codecs
             }
         }
 
-        int IFieldCodec<int>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
+        int IFieldCodec<int>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
 
         public static int ReadValue(ref Reader reader, Field field)
         {
@@ -270,11 +225,8 @@ namespace Hagar.Codecs
 
     public sealed class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>
     {
-        void IFieldCodec<long>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+        void IFieldCodec<long>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -283,7 +235,7 @@ namespace Hagar.Codecs
                 if (value > 1 << 20 || -value > 1 << 20)
                 {
                     writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(long), WireType.Fixed32);
-                    writer.Write((int) value);
+                    writer.Write((int)value);
                 }
                 else
                 {
@@ -303,11 +255,8 @@ namespace Hagar.Codecs
             }
         }
 
-        long IFieldCodec<long>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        long IFieldCodec<long>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static long ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -320,11 +269,8 @@ namespace Hagar.Codecs
         void IFieldCodec<ulong>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
-            ulong value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
-        
+            ulong value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
+
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ulong value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
@@ -333,7 +279,7 @@ namespace Hagar.Codecs
                 if (value > 1 << 20)
                 {
                     writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(ulong), WireType.Fixed32);
-                    writer.Write((uint) value);
+                    writer.Write((uint)value);
                 }
                 else
                 {
@@ -353,11 +299,8 @@ namespace Hagar.Codecs
             }
         }
 
-        ulong IFieldCodec<ulong>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
-        
+        ulong IFieldCodec<ulong>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+
         public static ulong ReadValue(ref Reader reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);

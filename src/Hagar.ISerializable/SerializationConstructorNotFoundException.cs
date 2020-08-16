@@ -9,7 +9,7 @@ namespace Hagar.ISerializable
     {
         [SecurityCritical]
         public SerializationConstructorNotFoundException(Type type) : base(
-            (string) $"Could not find a suitable serialization constructor on type {type.FullName}")
+            (string)$"Could not find a suitable serialization constructor on type {type.FullName}")
         {
         }
 

@@ -1,5 +1,5 @@
-using System;
 using BenchmarkDotNet.Configs;
+using System;
 
 namespace Benchmarks.Utilities
 {
@@ -7,7 +7,7 @@ namespace Benchmarks.Utilities
     {
         public PayloadSizeColumnAttribute(string columnName = "Payload")
         {
-            this.Config = ManualConfig.CreateEmpty().AddColumn(
+            Config = ManualConfig.CreateEmpty().AddColumn(
                 new MethodResultColumn(columnName,
                     val =>
                     {
@@ -15,16 +15,16 @@ namespace Benchmarks.Utilities
                         switch (val)
                         {
                             case int i:
-                                result = (uint) i;
+                                result = (uint)i;
                                 break;
                             case uint i:
                                 result = i;
                                 break;
                             case long i:
-                                result = (uint) i;
+                                result = (uint)i;
                                 break;
                             case ulong i:
-                                result = (uint) i;
+                                result = (uint)i;
                                 break;
                             default: return "Invalid";
                         }

@@ -1,5 +1,5 @@
-﻿using System;
 using Hagar;
+using System;
 
 namespace Benchmarks.Models
 {

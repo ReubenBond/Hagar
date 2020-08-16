@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.WireProtocol;
+using System;
+using System.Collections.Generic;
 
 namespace Hagar.Serializers
 {
@@ -18,7 +18,7 @@ namespace Hagar.Serializers
             // Therefore write the null reference and exit.
             if (value is null)
             {
-                ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, null);
+                _ = ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, null);
                 return;
             }
 
@@ -30,15 +30,22 @@ namespace Hagar.Serializers
             }
             else
             {
-                ThrowSerializerNotFound(fieldType);
+                _ = ThrowSerializerNotFound(fieldType);
             }
         }
 
         public TField ReadValue(ref Reader reader, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<TField>(ref reader, field);
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<TField>(ref reader, field);
+            }
+
             var fieldType = field.FieldType;
-            if (fieldType is null) ThrowMissingFieldType();
+            if (fieldType is null)
+            {
+                ThrowMissingFieldType();
+            }
 
             var specificSerializer = reader.Session.CodecProvider.GetCodec(fieldType);
             if (specificSerializer != null)
@@ -49,14 +56,8 @@ namespace Hagar.Serializers
             return ThrowSerializerNotFound(fieldType);
         }
 
-        private static TField ThrowSerializerNotFound(Type type)
-        {
-            throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
-        }
-        
-        private static void ThrowMissingFieldType()
-        {
-            throw new FieldTypeMissingException(typeof(TField));
-        }
+        private static TField ThrowSerializerNotFound(Type type) => throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
+
+        private static void ThrowMissingFieldType() => throw new FieldTypeMissingException(typeof(TField));
     }
 }

@@ -1,4 +1,3 @@
-using Hagar.Activators;
 using Hagar.Codecs;
 
 namespace Hagar.Serializers

@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Hagar.CodeGenerator
 {
@@ -6,11 +6,11 @@ namespace Hagar.CodeGenerator
     {
         public MethodDescription(IMethodSymbol method)
         {
-            this.Method = method;
+            Method = method;
         }
 
         public IMethodSymbol Method { get; }
 
-        public override int GetHashCode() => this.Method.GetHashCode();
+        public override int GetHashCode() => Method.GetHashCode();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Hagar.Configuration
+namespace Hagar.Configuration
 {
     /// <summary>
     /// Provides configuration of the specified type.

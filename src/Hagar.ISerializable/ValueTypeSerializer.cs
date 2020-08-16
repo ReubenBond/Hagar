@@ -1,8 +1,8 @@
+using Hagar.Buffers;
+using Hagar.Codecs;
 using System;
 using System.Runtime.Serialization;
 using System.Security;
-using Hagar.Buffers;
-using Hagar.Codecs;
 
 namespace Hagar.ISerializable
 {
@@ -18,12 +18,12 @@ namespace Hagar.ISerializable
 
         private static readonly Type Type = typeof(T);
 
-        private readonly ValueConstructor constructor;
-        private readonly SerializationCallbacksFactory.SerializationCallbacks<SerializationCallback> callbacks;
+        private readonly ValueConstructor _constructor;
+        private readonly SerializationCallbacksFactory.SerializationCallbacks<SerializationCallback> _callbacks;
 
-        private readonly IFormatterConverter formatterConverter;
-        private readonly StreamingContext streamingContext;
-        private readonly SerializationEntryCodec entrySerializer;
+        private readonly IFormatterConverter _formatterConverter;
+        private readonly StreamingContext _streamingContext;
+        private readonly SerializationEntryCodec _entrySerializer;
 
         [SecurityCritical]
         public ValueTypeSerializer(
@@ -33,59 +33,66 @@ namespace Hagar.ISerializable
             StreamingContext streamingContext,
             IFormatterConverter formatterConverter)
         {
-            this.constructor = constructor;
-            this.callbacks = callbacks;
-            this.entrySerializer = entrySerializer;
-            this.streamingContext = streamingContext;
-            this.formatterConverter = formatterConverter;
+            _constructor = constructor;
+            _callbacks = callbacks;
+            _entrySerializer = entrySerializer;
+            _streamingContext = streamingContext;
+            _formatterConverter = formatterConverter;
         }
 
         [SecurityCritical]
         void ISerializableSerializer.WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value)
         {
-            var item = (T) value;
-            this.callbacks.OnSerializing?.Invoke(ref item, this.streamingContext);
+            var item = (T)value;
+            _callbacks.OnSerializing?.Invoke(ref item, _streamingContext);
 
-            var info = new SerializationInfo(Type, this.formatterConverter);
-            ((System.Runtime.Serialization.ISerializable)value).GetObjectData(info, this.streamingContext);
+            var info = new SerializationInfo(Type, _formatterConverter);
+            ((System.Runtime.Serialization.ISerializable)value).GetObjectData(info, _streamingContext);
 
             var first = true;
             foreach (var field in info)
             {
                 var surrogate = new SerializationEntrySurrogate(field);
-                this.entrySerializer.WriteField(ref writer, first ? 1 : (uint)0, SerializationEntryCodec.SerializationEntryType, surrogate);
-                if (first) first = false;
+                _entrySerializer.WriteField(ref writer, first ? 1 : (uint)0, SerializationEntryCodec.SerializationEntryType, surrogate);
+                if (first)
+                {
+                    first = false;
+                }
             }
-            
-            this.callbacks.OnSerialized?.Invoke(ref item, this.streamingContext);
+
+            _callbacks.OnSerialized?.Invoke(ref item, _streamingContext);
         }
 
         [SecurityCritical]
         object ISerializableSerializer.ReadValue(ref Reader reader, Type type, uint placeholderReferenceId)
         {
-            var info = new SerializationInfo(Type, this.formatterConverter);
+            var info = new SerializationInfo(Type, _formatterConverter);
             T result = default;
 
-            this.callbacks.OnDeserializing?.Invoke(ref result, this.streamingContext);
+            _callbacks.OnDeserializing?.Invoke(ref result, _streamingContext);
 
             uint fieldId = 0;
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 if (fieldId == 1)
                 {
-                    var entry = this.entrySerializer.ReadValue(ref reader, header);
+                    var entry = _entrySerializer.ReadValue(ref reader, header);
                     info.AddValue(entry.Name, entry.Value);
                 }
             }
 
-            this.constructor(ref result, info, this.streamingContext);
-            this.callbacks.OnDeserialized?.Invoke(ref result, this.streamingContext);
+            _constructor(ref result, info, _streamingContext);
+            _callbacks.OnDeserialized?.Invoke(ref result, _streamingContext);
             if (result is IDeserializationCallback callback)
             {
-                callback.OnDeserialization(this.streamingContext.Context);
+                callback.OnDeserialization(_streamingContext.Context);
             }
 
             return result;

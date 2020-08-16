@@ -1,6 +1,6 @@
-﻿using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using Hagar.Buffers;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Hagar.Serializers
 {

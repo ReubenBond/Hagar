@@ -12,22 +12,22 @@ namespace Hagar.ISerializable
     /// </summary>
     internal class SerializationCallbacksFactory
     {
-        private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
-        private readonly Func<Type, object> factory;
+        private readonly ConcurrentDictionary<Type, object> _cache = new ConcurrentDictionary<Type, object>();
+        private readonly Func<Type, object> _factory;
 
         [SecurityCritical]
         public SerializationCallbacksFactory()
         {
-            this.factory = this.CreateTypedCallbacks<object, Action<object, StreamingContext>>;
+            _factory = CreateTypedCallbacks<object, Action<object, StreamingContext>>;
         }
 
         [SecurityCritical]
         public SerializationCallbacks<Action<object, StreamingContext>> GetReferenceTypeCallbacks(Type type) => (
-            SerializationCallbacks<Action<object, StreamingContext>>)this.cache.GetOrAdd(type, this.factory);
+            SerializationCallbacks<Action<object, StreamingContext>>)_cache.GetOrAdd(type, _factory);
 
         [SecurityCritical]
         public SerializationCallbacks<TDelegate> GetValueTypeCallbacks<TOwner, TDelegate>(Type type) => (
-            SerializationCallbacks<TDelegate>)this.cache.GetOrAdd(type, t => (object)this.CreateTypedCallbacks<TOwner, TDelegate>(type));
+            SerializationCallbacks<TDelegate>)_cache.GetOrAdd(type, t => (object)CreateTypedCallbacks<TOwner, TDelegate>(type));
 
         [SecurityCritical]
         private SerializationCallbacks<TDelegate> CreateTypedCallbacks<TOwner, TDelegate>(Type type)
@@ -40,8 +40,15 @@ namespace Hagar.ISerializable
             foreach (var method in typeInfo.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 var parameterInfos = method.GetParameters();
-                if (parameterInfos.Length != 1) continue;
-                if (parameterInfos[0].ParameterType != typeof(StreamingContext)) continue;
+                if (parameterInfos.Length != 1)
+                {
+                    continue;
+                }
+
+                if (parameterInfos[0].ParameterType != typeof(StreamingContext))
+                {
+                    continue;
+                }
 
                 if (method.GetCustomAttribute<OnDeserializingAttribute>() != null)
                 {
@@ -71,14 +78,24 @@ namespace Hagar.ISerializable
         private static TDelegate GetSerializationMethod<TOwner, TDelegate>(Type type, MethodInfo callbackMethod)
         {
             Type[] callbackParameterTypes;
-            if (typeof(TOwner).IsValueType) callbackParameterTypes = new[] { typeof(TOwner).MakeByRefType(), typeof(StreamingContext) };
-            else callbackParameterTypes = new[] { typeof(object), typeof(StreamingContext) };
+            if (typeof(TOwner).IsValueType)
+            {
+                callbackParameterTypes = new[] { typeof(TOwner).MakeByRefType(), typeof(StreamingContext) };
+            }
+            else
+            {
+                callbackParameterTypes = new[] { typeof(object), typeof(StreamingContext) };
+            }
 
             var method = new DynamicMethod($"{callbackMethod.Name}_Trampoline", null, callbackParameterTypes, type, skipVisibility: true);
             var il = method.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);
-            if (type != typeof(TOwner)) il.Emit(OpCodes.Castclass, type);
+            if (type != typeof(TOwner))
+            {
+                il.Emit(OpCodes.Castclass, type);
+            }
+
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Callvirt, callbackMethod);
             il.Emit(OpCodes.Ret);
@@ -95,10 +112,10 @@ namespace Hagar.ISerializable
                 TDelegate onSerializing,
                 TDelegate onSerialized)
             {
-                this.OnDeserializing = onDeserializing;
-                this.OnDeserialized = onDeserialized;
-                this.OnSerializing = onSerializing;
-                this.OnSerialized = onSerialized;
+                OnDeserializing = onDeserializing;
+                OnDeserialized = onDeserialized;
+                OnSerializing = onSerializing;
+                OnSerialized = onSerialized;
             }
 
             public TDelegate OnDeserializing { get; }

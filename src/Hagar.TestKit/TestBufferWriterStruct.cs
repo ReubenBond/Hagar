@@ -9,30 +9,24 @@ namespace Hagar.TestKit
     [ExcludeFromCodeCoverage]
     public struct TestBufferWriterStruct : IBufferWriter<byte>, IOutputBuffer
     {
-        private readonly byte[] buffer;
-        private int written;
+        private readonly byte[] _buffer;
+        private int _written;
 
         public TestBufferWriterStruct(byte[] buffer)
         {
-            this.buffer = buffer;
-            this.written = 0;
+            _buffer = buffer;
+            _written = 0;
         }
 
-        public void Advance(int bytes)
-        {
-            this.written += bytes;
-        }
+        public void Advance(int bytes) => _written += bytes;
 
         [Pure]
-        public Memory<byte> GetMemory(int sizeHint = 0) => this.buffer.AsMemory().Slice(this.written);
+        public Memory<byte> GetMemory(int sizeHint = 0) => _buffer.AsMemory().Slice(_written);
 
         [Pure]
-        public Span<byte> GetSpan(int sizeHint) => this.buffer.AsSpan().Slice(this.written);
+        public Span<byte> GetSpan(int sizeHint) => _buffer.AsSpan().Slice(_written);
 
         [Pure]
-        public ReadOnlySequence<byte> GetReadOnlySequence(int maxSegmentSize)
-        {
-            return this.buffer.Take(this.written).Batch(maxSegmentSize).ToReadOnlySequence();
-        }
+        public ReadOnlySequence<byte> GetReadOnlySequence(int maxSegmentSize) => _buffer.Take(_written).Batch(maxSegmentSize).ToReadOnlySequence();
     }
 }

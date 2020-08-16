@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
+using System;
+using System.Collections.Generic;
 
 namespace Hagar.Codecs
 {
     public sealed class KeyValuePairCodec<TKey, TValue> : IFieldCodec<KeyValuePair<TKey, TValue>>
     {
-        private readonly IFieldCodec<TKey> keyCodec;
-        private readonly IFieldCodec<TValue> valueCodec;
+        private readonly IFieldCodec<TKey> _keyCodec;
+        private readonly IFieldCodec<TValue> _valueCodec;
 
         public KeyValuePairCodec(IFieldCodec<TKey> keyCodec, IFieldCodec<TValue> valueCodec)
         {
-            this.keyCodec = HagarGeneratedCodeHelper.UnwrapService(this, keyCodec);
-            this.valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
+            _keyCodec = HagarGeneratedCodeHelper.UnwrapService(this, keyCodec);
+            _valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
         }
 
         void IFieldCodec<KeyValuePair<TKey, TValue>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -25,15 +25,18 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            this.keyCodec.WriteField(ref writer, 0, typeof(TKey), value.Key);
-            this.valueCodec.WriteField(ref writer, 1, typeof(TValue), value.Value);
+            _keyCodec.WriteField(ref writer, 0, typeof(TKey), value.Key);
+            _valueCodec.WriteField(ref writer, 1, typeof(TValue), value.Value);
 
             writer.WriteEndObject();
         }
 
         public KeyValuePair<TKey, TValue> ReadValue(ref Reader reader, Field field)
         {
-            if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
 
             ReferenceCodec.MarkValueField(reader.Session);
             var key = default(TKey);
@@ -42,15 +45,19 @@ namespace Hagar.Codecs
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                        key = this.keyCodec.ReadValue(ref reader, header);
+                        key = _keyCodec.ReadValue(ref reader, header);
                         break;
                     case 1:
-                        value = this.valueCodec.ReadValue(ref reader, header);
+                        value = _valueCodec.ReadValue(ref reader, header);
                         break;
                     default:
                         reader.ConsumeUnknownField(header);

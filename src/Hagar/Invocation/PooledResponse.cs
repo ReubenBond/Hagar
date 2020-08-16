@@ -10,14 +10,14 @@ namespace Hagar.Invocation
 
         public override object Result
         {
-            get => this.TypedResult;
-            set => this.TypedResult = (TResult)value;
+            get => TypedResult;
+            set => TypedResult = (TResult)value;
         }
 
         public override void Dispose()
         {
-            this.TypedResult = default;
-            this.Exception = default;
+            TypedResult = default;
+            Exception = default;
             ResponsePool.Return(this);
         }
     }

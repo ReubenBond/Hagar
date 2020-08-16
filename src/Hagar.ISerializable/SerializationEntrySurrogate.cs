@@ -8,8 +8,8 @@ namespace Hagar.ISerializable
         [SecurityCritical]
         public SerializationEntrySurrogate(SerializationEntry entry)
         {
-            this.Name = entry.Name;
-            this.Value = entry.Value;
+            Name = entry.Name;
+            Value = entry.Value;
         }
 
         public object Value { get; set; }

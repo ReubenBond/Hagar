@@ -1,8 +1,8 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {
@@ -13,21 +13,22 @@ namespace Hagar.Codecs
         private static readonly Type ByteArrayType = typeof(byte[]);
         private static readonly Type UIntType = typeof(uint);
 
-        void IFieldCodec<Type>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Type value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
+        void IFieldCodec<Type>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Type value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Type value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
             writer.WriteFieldHeader(fieldIdDelta, expectedType, TypeType, WireType.TagDelimited);
             var (schemaType, id) = GetSchemaType(writer.Session, value);
 
             // Write the encoding type.
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(0, SchemaTypeType, SchemaTypeType, WireType.VarInt);
-            writer.WriteVarInt((uint) schemaType);
+            writer.WriteVarInt((uint)schemaType);
 
             if (schemaType == SchemaType.Encoded)
             {
@@ -41,20 +42,20 @@ namespace Hagar.Codecs
                 // If the type is referenced or well-known, write it as a varint.
                 ReferenceCodec.MarkValueField(writer.Session);
                 writer.WriteFieldHeader(2, UIntType, UIntType, WireType.VarInt);
-                writer.WriteVarInt((uint) id);
+                writer.WriteVarInt((uint)id);
             }
 
             writer.WriteEndObject();
         }
 
-        Type IFieldCodec<Type>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
+        Type IFieldCodec<Type>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
 
         public static Type ReadValue(ref Reader reader, Field field)
         {
-            if (field.WireType == WireType.Reference) return ReferenceCodec.ReadReference<Type>(ref reader, field);
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Type>(ref reader, field);
+            }
 
             uint fieldId = 0;
             var schemaType = default(SchemaType);
@@ -63,13 +64,17 @@ namespace Hagar.Codecs
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 ReferenceCodec.MarkValueField(reader.Session);
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 0:
-                        schemaType = (SchemaType) reader.ReadVarUInt32();
+                        schemaType = (SchemaType)reader.ReadVarUInt32();
                         break;
                     case 1:
                         result = reader.Session.TypeCodec.Read(ref reader);
@@ -83,13 +88,25 @@ namespace Hagar.Codecs
             switch (schemaType)
             {
                 case SchemaType.Referenced:
-                    if (reader.Session.ReferencedTypes.TryGetReferencedType(id, out result)) return result;
+                    if (reader.Session.ReferencedTypes.TryGetReferencedType(id, out result))
+                    {
+                        return result;
+                    }
+
                     return ThrowUnknownReferencedType(id);
                 case SchemaType.WellKnown:
-                    if (reader.Session.WellKnownTypes.TryGetWellKnownType(id, out result)) return result;
+                    if (reader.Session.WellKnownTypes.TryGetWellKnownType(id, out result))
+                    {
+                        return result;
+                    }
+
                     return ThrowUnknownWellKnownType(id);
                 case SchemaType.Encoded:
-                    if (result != null) return result;
+                    if (result != null)
+                    {
+                        return result;
+                    }
+
                     return ThrowMissingType();
                 default:
                     return ThrowInvalidSchemaType(schemaType);

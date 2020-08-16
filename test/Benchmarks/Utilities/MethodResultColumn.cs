@@ -1,26 +1,26 @@
-using System;
-using System.Linq;
-using System.Reflection;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
+using System;
+using System.Linq;
+using System.Reflection;
 
 namespace Benchmarks.Utilities
 {
     public class MethodResultColumn : IColumn
     {
-        private readonly Func<object, string> formatter;
+        private readonly Func<object, string> _formatter;
 
         public MethodResultColumn(string columnName, Func<object, string> formatter, string legend = null)
         {
-            this.ColumnName = columnName;
-            this.formatter = formatter;
-            this.Legend = legend;
+            ColumnName = columnName;
+            this._formatter = formatter;
+            Legend = legend;
         }
 
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase) => GetValue(summary, benchmarkCase, null);
 
-        public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style) => this.formatter(CallMethod(benchmarkCase));
+        public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style) => _formatter(CallMethod(benchmarkCase));
 
         private static object CallMethod(BenchmarkCase benchmarkCase)
         {
@@ -35,11 +35,12 @@ namespace Benchmarks.Utilities
                 TryInvoke(instance, descriptor.GlobalCleanupMethod);
 
                 return result;
-                void TryInvoke(object target, MethodInfo method)
+
+                static void TryInvoke(object target, MethodInfo method)
                 {
                     try
                     {
-                        method?.Invoke(target, Array.Empty<object>());
+                        _ = (method?.Invoke(target, Array.Empty<object>()));
                     }
                     catch
                     {
@@ -56,7 +57,7 @@ namespace Benchmarks.Utilities
 
         public bool IsAvailable(Summary summary) => summary.Reports.Any(r => CallMethod(r.BenchmarkCase) != null);
 
-        public string Id => nameof(MethodResultColumn) + "_" + this.ColumnName;
+        public string Id => nameof(MethodResultColumn) + "_" + ColumnName;
         public string ColumnName { get; }
         public bool AlwaysShow => true;
         public ColumnCategory Category => ColumnCategory.Metric;

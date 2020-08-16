@@ -1,7 +1,7 @@
-using System;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.WireProtocol;
+using System;
 
 namespace Hagar.Serializers
 {
@@ -13,18 +13,18 @@ namespace Hagar.Serializers
     public sealed class ValueSerializer<TField, TValueSerializer> : IFieldCodec<TField> where TField : struct where TValueSerializer : IValueSerializer<TField>
     {
         private static readonly Type CodecFieldType = typeof(TField);
-        private readonly TValueSerializer serializer;
+        private readonly TValueSerializer _serializer;
 
         public ValueSerializer(TValueSerializer serializer)
         {
-            this.serializer = serializer;
+            this._serializer = serializer;
         }
 
         void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteStartObject(fieldIdDelta, expectedType, CodecFieldType);
-            this.serializer.Serialize(ref writer, in value);
+            _serializer.Serialize(ref writer, in value);
             writer.WriteEndObject();
         }
 
@@ -32,7 +32,7 @@ namespace Hagar.Serializers
         {
             ReferenceCodec.MarkValueField(reader.Session);
             var value = default(TField);
-            this.serializer.Deserialize(ref reader, ref value);
+            _serializer.Deserialize(ref reader, ref value);
             return value;
         }
     }

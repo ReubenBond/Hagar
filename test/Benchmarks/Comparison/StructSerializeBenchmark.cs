@@ -1,7 +1,3 @@
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using BenchmarkDotNet.Attributes;
 using Benchmarks.Models;
 using Benchmarks.Utilities;
@@ -15,12 +11,15 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
 using Xunit;
 using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
-
 using Utf8JsonNS = Utf8Json;
-using System.Text.Json;
 
 namespace Benchmarks.Comparison
 {
@@ -63,7 +62,10 @@ namespace Benchmarks.Comparison
                 .UseLocalhostClustering()
                 .ConfigureServices(s => s.ToList().ForEach(r =>
                 {
-                    if (r.ServiceType == typeof(IConfigurationValidator)) s.Remove(r);
+                    if (r.ServiceType == typeof(IConfigurationValidator))
+                    {
+                        _ = s.Remove(r);
+                    }
                 }))
                 .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())

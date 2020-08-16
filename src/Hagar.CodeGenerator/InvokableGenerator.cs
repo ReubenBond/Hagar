@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -16,7 +16,6 @@ namespace Hagar.CodeGenerator
     internal static class InvokableGenerator
     {
         public static (ClassDeclarationSyntax, IGeneratedInvokerDescription) Generate(
-            Compilation compilation,
             LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription,
             MethodDescription methodDescription)
@@ -156,7 +155,10 @@ namespace Hagar.CodeGenerator
             var cases = new List<SwitchSectionSyntax>();
             foreach (var field in fields)
             {
-                if (!(field is MethodParameterFieldDescription parameter)) continue;
+                if (!(field is MethodParameterFieldDescription parameter))
+                {
+                    continue;
+                }
 
                 // C#: case {index}: return (TArgument)(object){field}
                 var label = CaseSwitchLabel(
@@ -223,7 +225,10 @@ namespace Hagar.CodeGenerator
             var cases = new List<SwitchSectionSyntax>();
             foreach (var field in fields)
             {
-                if (!(field is MethodParameterFieldDescription parameter)) continue;
+                if (!(field is MethodParameterFieldDescription parameter))
+                {
+                    continue;
+                }
 
                 // C#: case {index}: {field} = (TField)(object)value; return;
                 var label = CaseSwitchLabel(
@@ -404,7 +409,7 @@ namespace Hagar.CodeGenerator
 
         private class GeneratedInvokerDescription : IGeneratedInvokerDescription
         {
-            private readonly MethodDescription methodDescription;
+            private readonly MethodDescription _methodDescription;
 
             public GeneratedInvokerDescription(
                 IInvokableInterfaceDescription interfaceDescription,
@@ -412,13 +417,13 @@ namespace Hagar.CodeGenerator
                 string generatedClassName,
                 List<IMemberDescription> members)
             {
-                this.InterfaceDescription = interfaceDescription;
-                this.methodDescription = methodDescription;
-                this.Name = generatedClassName;
-                this.Members = members;
+                InterfaceDescription = interfaceDescription;
+                _methodDescription = methodDescription;
+                Name = generatedClassName;
+                Members = members;
 
-                this.TypeParameters = interfaceDescription.InterfaceType.TypeParameters
-                    .Concat(this.methodDescription.Method.TypeParameters)
+                TypeParameters = interfaceDescription.InterfaceType.TypeParameters
+                    .Concat(_methodDescription.Method.TypeParameters)
                     .ToImmutableArray();
             }
 
@@ -426,34 +431,34 @@ namespace Hagar.CodeGenerator
             {
                 get
                 {
-                    var name = GetSimpleClassName(this.methodDescription.Method);
+                    var name = GetSimpleClassName(_methodDescription.Method);
 
-                    if (this.TypeParameters.Length > 0)
+                    if (TypeParameters.Length > 0)
                     {
                         return GenericName(
                             Identifier(name),
                             TypeArgumentList(
-                                SeparatedList<TypeSyntax>(this.TypeParameters.Select(p => IdentifierName(p.Name)))));
+                                SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name)))));
                     }
 
                     return IdentifierName(name);
                 }
             }
 
-            public TypeSyntax UnboundTypeSyntax => this.methodDescription.GetInvokableTypeName();
+            public TypeSyntax UnboundTypeSyntax => _methodDescription.GetInvokableTypeName();
             public bool HasComplexBaseType => false;
             public INamedTypeSymbol BaseType => throw new NotImplementedException();
             public string Name { get; }
             public bool IsValueType => false;
-            public bool IsGenericType => this.methodDescription.Method.IsGenericMethod;
+            public bool IsGenericType => _methodDescription.Method.IsGenericMethod;
             public ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
             public List<IMemberDescription> Members { get; }
             public IInvokableInterfaceDescription InterfaceDescription { get; }
-            public SemanticModel SemanticModel => this.InterfaceDescription.SemanticModel;
+            public SemanticModel SemanticModel => InterfaceDescription.SemanticModel;
 
             public bool IsEmptyConstructable => true;
 
-            public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", this.TypeSyntax))
+            public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
         }
 
@@ -571,14 +576,14 @@ namespace Hagar.CodeGenerator
                 .AddParameterListParameters(parameters.ToArray())
                 .AddBodyStatements(body.ToArray());
 
-            ExpressionSyntax Unwrapped(ExpressionSyntax expr)
+            static ExpressionSyntax Unwrapped(ExpressionSyntax expr)
             {
                 return InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName("HagarGeneratedCodeHelper"),
                         IdentifierName("UnwrapService")),
-                    ArgumentList(SeparatedList(new[] {Argument(ThisExpression()), Argument(expr)})));
+                    ArgumentList(SeparatedList(new[] { Argument(ThisExpression()), Argument(expr) })));
             }
         }
 
@@ -604,8 +609,8 @@ namespace Hagar.CodeGenerator
         {
             protected FieldDescription(ITypeSymbol fieldType, string fieldName)
             {
-                this.FieldType = fieldType;
-                this.FieldName = fieldName;
+                FieldType = fieldType;
+                FieldName = fieldName;
             }
 
             public ITypeSymbol FieldType { get; }
@@ -630,7 +635,7 @@ namespace Hagar.CodeGenerator
                 fieldType,
                 fieldName)
             {
-                this.UnderlyingType = underlyingType;
+                UnderlyingType = underlyingType;
             }
 
             public ITypeSymbol UnderlyingType { get; }
@@ -644,7 +649,7 @@ namespace Hagar.CodeGenerator
                 fieldType,
                 fieldName)
             {
-                this.UnderlyingType = underlyingType;
+                UnderlyingType = underlyingType;
             }
 
             public ITypeSymbol UnderlyingType { get; }
@@ -677,18 +682,18 @@ namespace Hagar.CodeGenerator
             public MethodParameterFieldDescription(IParameterSymbol parameter, string fieldName, uint fieldId)
                 : base(parameter.Type, fieldName)
             {
-                this.FieldId = fieldId;
-                this.Parameter = parameter;
+                FieldId = fieldId;
+                Parameter = parameter;
             }
 
-            public int ParameterOrdinal => this.Parameter.Ordinal;
+            public int ParameterOrdinal => Parameter.Ordinal;
 
             public override bool IsInjected => false;
             public uint FieldId { get; }
-            public ISymbol Member => this.Parameter;
-            public ITypeSymbol Type => this.FieldType;
+            public ISymbol Member => Parameter;
+            public ITypeSymbol Type => FieldType;
             public IParameterSymbol Parameter { get; }
-            public string Name => this.FieldName;
+            public string Name => FieldName;
             public override bool IsSerializable => true;
         }
     }

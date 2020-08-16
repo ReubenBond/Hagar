@@ -13,37 +13,39 @@ namespace Hagar.Buffers
 {
     public ref struct Writer<TBufferWriter> where TBufferWriter : IBufferWriter<byte>
     {
-        private TBufferWriter output;
-        private Span<byte> currentSpan;
-        private int bufferPos;
-        private int previousBuffersSize;
+#pragma warning disable IDE0044 // Add readonly modifier
+        private TBufferWriter _output;
+#pragma warning restore IDE0044 // Add readonly modifier
+        private Span<byte> _currentSpan;
+        private int _bufferPos;
+        private int _previousBuffersSize;
 
         public Writer(TBufferWriter output, SerializerSession session)
         {
-            this.output = output;
-            this.Session = session;
-            this.currentSpan = output.GetSpan();
-            this.bufferPos = default;
-            this.previousBuffersSize = default;
+            _output = output;
+            Session = session;
+            _currentSpan = output.GetSpan();
+            _bufferPos = default;
+            _previousBuffersSize = default;
         }
 
         public SerializerSession Session { get; }
 
-        public TBufferWriter Output => this.output;
-        
-        public int Position => this.previousBuffersSize + this.bufferPos;
-        
+        public TBufferWriter Output => _output;
+
+        public int Position => _previousBuffersSize + _bufferPos;
+
         public Span<byte> WritableSpan
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.currentSpan.Slice(this.bufferPos);
+            get => _currentSpan.Slice(_bufferPos);
         }
 
         /// <summary>
         /// Advance the write position in the current span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AdvanceSpan(int length) => this.bufferPos += length;
+        public void AdvanceSpan(int length) => _bufferPos += length;
 
         /// <summary>
         /// Commit the currently written buffers.
@@ -51,53 +53,59 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Commit()
         {
-            this.output.Advance(this.bufferPos);
-            this.previousBuffersSize += this.bufferPos;
-            this.currentSpan = default;
-            this.bufferPos = default;
+            _output.Advance(_bufferPos);
+            _previousBuffersSize += _bufferPos;
+            _currentSpan = default;
+            _bufferPos = default;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureContiguous(int length)
         {
             // The current buffer is adequate.
-            if (this.bufferPos + length < this.currentSpan.Length) return;
+            if (_bufferPos + length < _currentSpan.Length)
+            {
+                return;
+            }
 
             // The current buffer is inadequate, allocate another.
-            this.Allocate(length);
+            Allocate(length);
 #if DEBUG
             // Throw if the allocation does not satisfy the request.
-            if (this.currentSpan.Length < length) ThrowTooLarge(length);
-            
-            void ThrowTooLarge(int l) => throw new InvalidOperationException($"Requested buffer length {l} cannot be satisfied by the writer.");
+            if (_currentSpan.Length < length)
+            {
+                ThrowTooLarge(length);
+            }
+
+            static void ThrowTooLarge(int l) => throw new InvalidOperationException($"Requested buffer length {l} cannot be satisfied by the writer.");
 #endif
         }
 
         public void Allocate(int length)
         {
             // Commit the bytes which have been written.
-            this.output.Advance(this.bufferPos);
+            _output.Advance(_bufferPos);
 
             // Request a new buffer with at least the requested number of available bytes.
-            this.currentSpan = this.output.GetSpan(length);
+            _currentSpan = _output.GetSpan(length);
 
             // Update internal state for the new buffer.
-            this.previousBuffersSize += this.bufferPos;
-            this.bufferPos = 0;
+            _previousBuffersSize += _bufferPos;
+            _bufferPos = 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ReadOnlySpan<byte> value)
         {
             // Fast path, try copying to the current buffer.
-            if (value.Length <= this.currentSpan.Length - this.bufferPos)
+            if (value.Length <= _currentSpan.Length - _bufferPos)
             {
-                value.CopyTo(this.WritableSpan);
-                this.bufferPos += value.Length;
+                value.CopyTo(WritableSpan);
+                _bufferPos += value.Length;
             }
             else
             {
-                this.WriteMultiSegment(in value);
+                WriteMultiSegment(in value);
             }
         }
 
@@ -107,121 +115,124 @@ namespace Hagar.Buffers
             while (true)
             {
                 // Write as much as possible/necessary into the current segment.
-                var writeSize = Math.Min(this.currentSpan.Length - this.bufferPos, input.Length);
-                input.Slice(0, writeSize).CopyTo(this.WritableSpan);
-                this.bufferPos += writeSize;
+                var writeSize = Math.Min(_currentSpan.Length - _bufferPos, input.Length);
+                input.Slice(0, writeSize).CopyTo(WritableSpan);
+                _bufferPos += writeSize;
 
                 input = input.Slice(writeSize);
 
-                if (input.Length == 0) return;
-                
+                if (input.Length == 0)
+                {
+                    return;
+                }
+
                 // The current segment is full but there is more to write.
-                this.Allocate(input.Length);
+                Allocate(input.Length);
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte value)
         {
-            this.EnsureContiguous(1);
-            this.currentSpan[this.bufferPos++] = value;
+            EnsureContiguous(1);
+            _currentSpan[_bufferPos++] = value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(sbyte value)
         {
-            this.EnsureContiguous(1);
-            this.currentSpan[this.bufferPos++] = (byte)value;
+            EnsureContiguous(1);
+            _currentSpan[_bufferPos++] = (byte)value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(short value)
         {
             const int width = 2;
-            this.EnsureContiguous(width);
-            BinaryPrimitives.WriteInt16LittleEndian(this.WritableSpan, value);
-            this.bufferPos += width;
+            EnsureContiguous(width);
+            BinaryPrimitives.WriteInt16LittleEndian(WritableSpan, value);
+            _bufferPos += width;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int value)
         {
             const int width = 4;
-            this.EnsureContiguous(width);
-            BinaryPrimitives.WriteInt32LittleEndian(this.WritableSpan, value);
-            this.bufferPos += width;
+            EnsureContiguous(width);
+            BinaryPrimitives.WriteInt32LittleEndian(WritableSpan, value);
+            _bufferPos += width;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(long value)
         {
             const int width = 8;
-            this.EnsureContiguous(width);
-            BinaryPrimitives.WriteInt64LittleEndian(this.WritableSpan, value);
-            this.bufferPos += width;
+            EnsureContiguous(width);
+            BinaryPrimitives.WriteInt64LittleEndian(WritableSpan, value);
+            _bufferPos += width;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(uint value)
         {
             const int width = 4;
-            this.EnsureContiguous(width);
-            BinaryPrimitives.WriteUInt32LittleEndian(this.WritableSpan, value);
-            this.bufferPos += width;
+            EnsureContiguous(width);
+            BinaryPrimitives.WriteUInt32LittleEndian(WritableSpan, value);
+            _bufferPos += width;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ushort value)
         {
             const int width = 2;
-            this.EnsureContiguous(width);
-            BinaryPrimitives.WriteUInt16LittleEndian(this.WritableSpan, value);
-            this.bufferPos += width;
+            EnsureContiguous(width);
+            BinaryPrimitives.WriteUInt16LittleEndian(WritableSpan, value);
+            _bufferPos += width;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ulong value)
         {
             const int width = 8;
-            this.EnsureContiguous(width);
-            BinaryPrimitives.WriteUInt64LittleEndian(this.WritableSpan, value);
-            this.bufferPos += width;
+            EnsureContiguous(width);
+            BinaryPrimitives.WriteUInt64LittleEndian(WritableSpan, value);
+            _bufferPos += width;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt(uint value)
         {
             // Since this method writes a ulong worth of bytes unconditionally, ensure that there is sufficient space.
-            this.EnsureContiguous(sizeof(ulong));
+            EnsureContiguous(sizeof(ulong));
 
-            var pos = this.bufferPos;
+            var pos = _bufferPos;
             var neededBytes = BitOperations.Log2(value) / 7;
-            this.bufferPos += neededBytes + 1;
+            _bufferPos += neededBytes + 1;
 
             ulong lower = value;
             lower <<= 1;
             lower |= 0x01;
             lower <<= neededBytes;
 
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos), lower);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos), lower);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteVarInt(ulong value)
         {
             // Since this method writes a ulong plus a ushort worth of bytes unconditionally, ensure that there is sufficient space.
-            this.EnsureContiguous(sizeof(ulong) + sizeof(ushort));
+            EnsureContiguous(sizeof(ulong) + sizeof(ushort));
 
-            var pos = this.bufferPos;
+            var pos = _bufferPos;
             var neededBytes = BitOperations.Log2(value) / 7;
-            this.bufferPos += neededBytes + 1;
+            _bufferPos += neededBytes + 1;
 
             ulong lower = value;
             lower <<= 1;
             lower |= 0x01;
             lower <<= neededBytes;
 
-            ref var writeHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos);
+            ref var writeHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
             Unsafe.WriteUnaligned(ref writeHead, lower);
 
             // Write the 2 byte overflow unconditionally

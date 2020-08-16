@@ -1,13 +1,13 @@
+using Hagar.Buffers;
+using Hagar.Codecs;
+using Hagar.Session;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Linq;
-using Hagar.Buffers;
-using Hagar.Codecs;
-using Hagar.Session;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Hagar.TestKit
@@ -16,20 +16,20 @@ namespace Hagar.TestKit
     [ExcludeFromCodeCoverage]
     public abstract class FieldCodecTester<TValue, TCodec> where TCodec : class, IFieldCodec<TValue>
     {
-        private readonly IServiceProvider serviceProvider;
-        private readonly SessionPool sessionPool;
-        
+        private readonly IServiceProvider _serviceProvider;
+        private readonly SessionPool _sessionPool;
+
         protected FieldCodecTester()
         {
             var services = new ServiceCollection();
-            services.AddHagar(hagar => hagar.Configure(config => config.FieldCodecs.Add(typeof(TCodec))));
-            services.AddSingleton<TCodec>();
+            _ = services.AddHagar(hagar => hagar.Configure(config => config.FieldCodecs.Add(typeof(TCodec))));
+            _ = services.AddSingleton<TCodec>();
 
             // ReSharper disable once VirtualMemberCallInConstructor
-            services.AddHagar(this.Configure);
+            _ = services.AddHagar(Configure);
 
-            this.serviceProvider = services.BuildServiceProvider();
-            this.sessionPool = this.serviceProvider.GetService<SessionPool>();
+            _serviceProvider = services.BuildServiceProvider();
+            _sessionPool = _serviceProvider.GetService<SessionPool>();
         }
 
         private int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };
@@ -38,44 +38,44 @@ namespace Hagar.TestKit
         {
         }
 
-        protected virtual TCodec CreateCodec() => this.serviceProvider.GetRequiredService<TCodec>();
+        protected virtual TCodec CreateCodec() => _serviceProvider.GetRequiredService<TCodec>();
         protected abstract TValue CreateValue();
         protected abstract TValue[] TestValues { get; }
         protected virtual bool Equals(TValue left, TValue right) => EqualityComparer<TValue>.Default.Equals(left, right);
-        
+
         [Fact]
         public void CorrectlyAdvancesReferenceCounter()
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, this.sessionPool.GetSession());
-            var writerCodec = this.CreateCodec();
+            var writer = new Writer<PipeWriter>(pipe.Writer, _sessionPool.GetSession());
+            var writerCodec = CreateCodec();
             var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
             // Write the field. This should involve marking at least one reference in the session.
             Assert.Equal(0, writer.Position);
 
-            writerCodec.WriteField(ref writer, 0, typeof(TValue), this.CreateValue());
+            writerCodec.WriteField(ref writer, 0, typeof(TValue), CreateValue());
             Assert.True(writer.Position > 0);
-            
+
             writer.Commit();
             var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
-            pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, this.sessionPool.GetSession());
+            _ = pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
 
             var previousPos = reader.Position;
             Assert.Equal(0, previousPos);
-            var readerCodec = this.CreateCodec();
+            var readerCodec = CreateCodec();
             var readField = reader.ReadFieldHeader();
 
             Assert.True(reader.Position > previousPos);
             previousPos = reader.Position;
 
             beforeReference = reader.Session.ReferencedObjects.CurrentReferenceId;
-            readerCodec.ReadValue(ref reader, readField);
+            _ = readerCodec.ReadValue(ref reader, readField);
 
             Assert.True(reader.Position > previousPos);
 
@@ -88,40 +88,40 @@ namespace Hagar.TestKit
         [Fact]
         public void CanRoundTripViaSerializer()
         {
-            var serializer = this.serviceProvider.GetRequiredService<Serializer<TValue>>();
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
 
-            foreach (var original in this.TestValues)
+            foreach (var original in TestValues)
             {
                 var buffer = new TestMultiSegmentBufferWriter(1024);
 
-                var writer = new Writer<TestMultiSegmentBufferWriter>(buffer, this.sessionPool.GetSession());
+                var writer = new Writer<TestMultiSegmentBufferWriter>(buffer, _sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
-                var reader = new Reader(buffer.GetReadOnlySequence(0), this.sessionPool.GetSession());
+                var reader = new Reader(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserialized = serializer.Deserialize(ref reader);
 
-                Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
             }
         }
 
         [Fact]
         public void CanRoundTripViaObjectSerializer()
         {
-            var serializer = this.serviceProvider.GetRequiredService<Serializer<object>>();
+            var serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
 
-            foreach (var original in this.TestValues)
+            foreach (var original in TestValues)
             {
                 var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
 
-                var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, this.sessionPool.GetSession());
+                var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, _sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
-                var reader = new Reader(buffer.GetReadOnlySequence(0), this.sessionPool.GetSession());
+                var reader = new Reader(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserializedObject = serializer.Deserialize(ref reader);
                 if (original != null)
                 {
                     var deserialized = Assert.IsAssignableFrom<TValue>(deserializedObject);
-                    Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                    Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
                 }
                 else
                 {
@@ -131,47 +131,37 @@ namespace Hagar.TestKit
         }
 
         [Fact]
-        public void RoundTrippedValuesEqual()
-        {
-            this.TestRoundTrippedValue(this.CreateValue());
-        }
+        public void RoundTrippedValuesEqual() => TestRoundTrippedValue(CreateValue());
 
         [Fact]
-        public void CanRoundTripDefaultValueViaCodec()
-        {
-            this.TestRoundTrippedValue(default);
-        }
+        public void CanRoundTripDefaultValueViaCodec() => TestRoundTrippedValue(default);
 
         [Fact]
-        public void CanSkipValue()
-        {
-            this.CanBeSkipped(default);
-        }
+        public void CanSkipValue() => CanBeSkipped(default);
 
         [Fact]
-        public void CanSkipDefaultValue()
-        {
-            this.CanBeSkipped(default);
-        }
+        public void CanSkipDefaultValue() => CanBeSkipped(default);
 
         [Fact]
         public void CorrectlyHandlesBuffers()
         {
-            var testers = BufferTestHelper<TValue>.GetTestSerializers(this.serviceProvider);
+            var testers = BufferTestHelper<TValue>.GetTestSerializers(_serviceProvider);
 
             foreach (var tester in testers)
             {
-                foreach (var maxSegmentSize in this.MaxSegmentSizes)
-                foreach (var value in this.TestValues)
+                foreach (var maxSegmentSize in MaxSegmentSizes)
                 {
-                    var buffer = tester.Serialize(value);
-                    var sequence = buffer.GetReadOnlySequence(maxSegmentSize);
-                    tester.Deserialize(sequence, out var output);
-                    var bufferWriterType = tester.GetType().BaseType?.GenericTypeArguments[1];
-                    Assert.True(this.Equals(value, output),
-                        $"Deserialized value {output} must be equal to serialized value {value}. " +
-                        $"IBufferWriter<> type: {bufferWriterType}, Max Read Segment Size: {maxSegmentSize}. " +
-                        $"Buffer: 0x{string.Join(" ", sequence.ToArray().Select(b => $"{b:X2}"))}");
+                    foreach (var value in TestValues)
+                    {
+                        var buffer = tester.Serialize(value);
+                        var sequence = buffer.GetReadOnlySequence(maxSegmentSize);
+                        tester.Deserialize(sequence, out var output);
+                        var bufferWriterType = tester.GetType().BaseType?.GenericTypeArguments[1];
+                        Assert.True(Equals(value, output),
+                            $"Deserialized value {output} must be equal to serialized value {value}. " +
+                            $"IBufferWriter<> type: {bufferWriterType}, Max Read Segment Size: {maxSegmentSize}. " +
+                            $"Buffer: 0x{string.Join(" ", sequence.ToArray().Select(b => $"{b:X2}"))}");
+                    }
                 }
             }
         }
@@ -179,18 +169,18 @@ namespace Hagar.TestKit
         private void CanBeSkipped(TValue original)
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, this.sessionPool.GetSession());
-            var writerCodec = this.CreateCodec();
+            var writer = new Writer<PipeWriter>(pipe.Writer, _sessionPool.GetSession());
+            var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             var expectedLength = writer.Position;
             writer.Commit();
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
-            pipe.Reader.TryRead(out var readResult);
-            
+            _ = pipe.Reader.TryRead(out var readResult);
+
             {
-                var reader = new Reader(readResult.Buffer, this.sessionPool.GetSession());
+                var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
                 var readField = reader.ReadFieldHeader();
                 reader.SkipField(readField);
                 Assert.Equal(expectedLength, reader.Position);
@@ -198,7 +188,7 @@ namespace Hagar.TestKit
 
             {
                 var codec = new SkipFieldCodec();
-                var reader = new Reader(readResult.Buffer, this.sessionPool.GetSession());
+                var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
                 var readField = reader.ReadFieldHeader();
                 var shouldBeNull = codec.ReadValue(ref reader, readField);
                 Assert.Null(shouldBeNull);
@@ -212,21 +202,21 @@ namespace Hagar.TestKit
         private void TestRoundTrippedValue(TValue original)
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, this.sessionPool.GetSession());
-            var writerCodec = this.CreateCodec();
+            var writer = new Writer<PipeWriter>(pipe.Writer, _sessionPool.GetSession());
+            var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             writer.Commit();
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
-            pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, this.sessionPool.GetSession());
-            var readerCodec = this.CreateCodec();
+            _ = pipe.Reader.TryRead(out var readResult);
+            var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
+            var readerCodec = CreateCodec();
             var readField = reader.ReadFieldHeader();
             var deserialized = readerCodec.ReadValue(ref reader, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
-            Assert.True(this.Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
         }
     }
 }

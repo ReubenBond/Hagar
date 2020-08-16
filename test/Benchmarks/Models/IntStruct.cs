@@ -1,7 +1,7 @@
-﻿using System;
 using Hagar;
 using MessagePack;
 using ProtoBuf;
+using System;
 using ZeroFormatter;
 
 namespace Benchmarks.Models
@@ -20,20 +20,20 @@ namespace Benchmarks.Models
             return result;
         }
 
-        public void Initialize() => this.MyProperty1 = this.MyProperty2 =
-            this.MyProperty3 = this.MyProperty4 = this.MyProperty5 = this.MyProperty6 = this.MyProperty7 = this.MyProperty8 = this.MyProperty9 = 10;
+        public void Initialize() => MyProperty1 = MyProperty2 =
+            MyProperty3 = MyProperty4 = MyProperty5 = MyProperty6 = MyProperty7 = MyProperty8 = MyProperty9 = 10;
 
         public IntStruct(int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9)
         {
-            this.MyProperty1 = p1;
-            this.MyProperty2 = p2;
-            this.MyProperty3 = p3;
-            this.MyProperty4 = p4;
-            this.MyProperty5 = p5;
-            this.MyProperty6 = p6;
-            this.MyProperty7 = p7;
-            this.MyProperty8 = p8;
-            this.MyProperty9 = p9;
+            MyProperty1 = p1;
+            MyProperty2 = p2;
+            MyProperty3 = p3;
+            MyProperty4 = p4;
+            MyProperty5 = p5;
+            MyProperty6 = p6;
+            MyProperty7 = p7;
+            MyProperty8 = p8;
+            MyProperty9 = p9;
         }
 
         [Id(0)]

@@ -1,8 +1,8 @@
+using Hagar.Buffers;
+using Hagar.WireProtocol;
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using Hagar.Buffers;
-using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
 {
@@ -26,24 +26,39 @@ namespace Hagar.Codecs
             if (actualType == expectedType)
             {
                 writer.Write((byte)(tag | (byte)SchemaType.Expected));
-                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                if (hasExtendedFieldId)
+                {
+                    writer.WriteVarInt(fieldId);
+                }
             }
             else if (writer.Session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out var typeOrReferenceId))
             {
                 writer.Write((byte)(tag | (byte)SchemaType.WellKnown));
-                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                if (hasExtendedFieldId)
+                {
+                    writer.WriteVarInt(fieldId);
+                }
+
                 writer.WriteVarInt(typeOrReferenceId);
             }
             else if (writer.Session.ReferencedTypes.TryGetTypeReference(actualType, out typeOrReferenceId))
             {
                 writer.Write((byte)(tag | (byte)SchemaType.Referenced));
-                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                if (hasExtendedFieldId)
+                {
+                    writer.WriteVarInt(fieldId);
+                }
+
                 writer.WriteVarInt(typeOrReferenceId);
             }
             else
             {
                 writer.Write((byte)(tag | (byte)SchemaType.Encoded));
-                if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
+                if (hasExtendedFieldId)
+                {
+                    writer.WriteVarInt(fieldId);
+                }
+
                 writer.Session.TypeCodec.Write(ref writer, actualType);
             }
         }
@@ -52,16 +67,19 @@ namespace Hagar.Codecs
         public static void WriteFieldHeaderExpected<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
             where TBufferWriter : IBufferWriter<byte>
         {
-            if (fieldId < Tag.MaxEmbeddedFieldIdDelta) WriteFieldHeaderExpectedEmbedded(ref writer, fieldId, wireType);
-            else WriteFieldHeaderExpectedExtended(ref writer, fieldId, wireType);
+            if (fieldId < Tag.MaxEmbeddedFieldIdDelta)
+            {
+                WriteFieldHeaderExpectedEmbedded(ref writer, fieldId, wireType);
+            }
+            else
+            {
+                WriteFieldHeaderExpectedExtended(ref writer, fieldId, wireType);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteFieldHeaderExpectedEmbedded<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
-            where TBufferWriter : IBufferWriter<byte>
-        {
-            writer.Write((byte)((byte)wireType | (byte)fieldId));
-        }
+            where TBufferWriter : IBufferWriter<byte> => writer.Write((byte)((byte)wireType | (byte)fieldId));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteFieldHeaderExpectedExtended<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
@@ -146,7 +164,7 @@ namespace Hagar.Codecs
                     var typeId = reader.ReadVarUInt32();
                     return reader.Session.WellKnownTypes.GetWellKnownType(typeId);
                 case SchemaType.Encoded:
-                    reader.Session.TypeCodec.TryRead(ref reader, out Type encoded);
+                    _ = reader.Session.TypeCodec.TryRead(ref reader, out Type encoded);
                     return encoded;
                 case SchemaType.Referenced:
                     var reference = reader.ReadVarUInt32();

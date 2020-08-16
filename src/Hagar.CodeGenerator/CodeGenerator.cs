@@ -1,11 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -22,41 +21,41 @@ namespace Hagar.CodeGenerator
     public class CodeGenerator
     {
         internal const string CodeGeneratorName = "HagarGen";
-        private readonly Compilation compilation;
-        private readonly LibraryTypes libraryTypes;
-        private readonly CodeGeneratorOptions options;
-        private readonly INamedTypeSymbol[] generateSerializerAttributes;
+        private readonly Compilation _compilation;
+        private readonly LibraryTypes _libraryTypes;
+        private readonly CodeGeneratorOptions _options;
+        private readonly INamedTypeSymbol[] _generateSerializerAttributes;
 
         public CodeGenerator(Compilation compilation, CodeGeneratorOptions options)
         {
-            this.compilation = compilation;
-            this.options = options;
-            this.libraryTypes = LibraryTypes.FromCompilation(compilation, options);
+            _compilation = compilation;
+            _options = options;
+            _libraryTypes = LibraryTypes.FromCompilation(compilation, options);
             if (options.GenerateSerializerAttributes != null)
             {
-                this.generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
+                _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
             }
         }
 
         public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
         {
-            var namespaceName = "HagarGeneratedCode." + this.compilation.AssemblyName;
+            var namespaceName = "HagarGeneratedCode." + _compilation.AssemblyName;
 
             // Collect metadata from the compilation.
-            var metadataModel = this.GenerateMetadataModel(cancellationToken);
+            var metadataModel = GenerateMetadataModel(cancellationToken);
             var members = new List<MemberDeclarationSyntax>();
 
             foreach (var type in metadataModel.InvokableInterfaces)
             {
                 foreach (var method in type.Methods)
                 {
-                    var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(this.compilation, this.libraryTypes, type, method);
+                    var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(_libraryTypes, type, method);
                     metadataModel.SerializableTypes.Add(generatedInvokerDescription);
                     metadataModel.GeneratedInvokables[method] = generatedInvokerDescription;
                     members.Add(invokable);
                 }
 
-                var (proxy, generatedProxyDescription) = ProxyGenerator.Generate(this.compilation, this.libraryTypes, type, metadataModel);
+                var (proxy, generatedProxyDescription) = ProxyGenerator.Generate(_libraryTypes, type, metadataModel);
                 metadataModel.GeneratedProxies.Add(generatedProxyDescription);
                 members.Add(proxy);
             }
@@ -65,44 +64,44 @@ namespace Hagar.CodeGenerator
             foreach (var type in metadataModel.SerializableTypes)
             {
                 // Generate a partial serializer class for each serializable type.
-                members.Add(SerializerGenerator.GenerateSerializer(this.compilation, this.libraryTypes, type));
+                members.Add(SerializerGenerator.GenerateSerializer(_libraryTypes, type));
 
                 if (type.IsEmptyConstructable)
                 {
                     metadataModel.ActivatableTypes.Add(type);
 
                     // Generate a partial serializer class for each serializable type.
-                    members.Add(ActivatorGenerator.GenerateActivator(this.compilation, this.libraryTypes, type));
+                    members.Add(ActivatorGenerator.GenerateActivator(_libraryTypes, type));
                 }
             }
-            
+
             // Generate metadata.
-            var metadataClass = MetadataGenerator.GenerateMetadata(this.compilation, metadataModel, this.libraryTypes);
+            var metadataClass = MetadataGenerator.GenerateMetadata(_compilation, metadataModel, _libraryTypes);
             members.Add(metadataClass);
 
             var metadataAttribute = AttributeList()
                 .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)))
                 .WithAttributes(
                     SingletonSeparatedList(
-                        Attribute(this.libraryTypes.MetadataProviderAttribute.ToNameSyntax())
+                        Attribute(_libraryTypes.MetadataProviderAttribute.ToNameSyntax())
                             .AddArgumentListArguments(AttributeArgument(TypeOfExpression(ParseTypeName($"{namespaceName}.{metadataClass.Identifier.Text}"))))));
 
             return CompilationUnit()
-                .WithAttributeLists(List(new []{metadataAttribute}))
+                .WithAttributeLists(List(new[] { metadataAttribute }))
                 .WithMembers(
                     SingletonList<MemberDeclarationSyntax>(
                         NamespaceDeclaration(ParseName(namespaceName))
                         .WithMembers(List(members))
-                        .WithUsings(List(new[] {UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) }))));
+                        .WithUsings(List(new[] { UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) }))));
         }
 
         private MetadataModel GenerateMetadataModel(CancellationToken cancellationToken)
         {
             var metadataModel = new MetadataModel();
 
-            foreach (var syntaxTree in this.compilation.SyntaxTrees)
+            foreach (var syntaxTree in _compilation.SyntaxTrees)
             {
-                var semanticModel = this.compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
+                var semanticModel = _compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
                 var rootNode = syntaxTree.GetRoot(cancellationToken);
                 foreach (var node in GetTypeDeclarations(rootNode))
                 {
@@ -110,13 +109,24 @@ namespace Hagar.CodeGenerator
 
                     bool ShouldGenerateSerializer(INamedTypeSymbol t)
                     {
-                        if (!semanticModel.IsAccessible(0, t)) return false;
-                        if (this.HasAttribute(t, this.libraryTypes.GenerateSerializerAttribute, inherited: true) != null) return true;
-                        if (this.generateSerializerAttributes != null)
+                        if (!semanticModel.IsAccessible(0, t))
                         {
-                            foreach (var attr in this.generateSerializerAttributes)
+                            return false;
+                        }
+
+                        if (HasAttribute(t, _libraryTypes.GenerateSerializerAttribute, inherited: true) != null)
+                        {
+                            return true;
+                        }
+
+                        if (_generateSerializerAttributes != null)
+                        {
+                            foreach (var attr in _generateSerializerAttributes)
                             {
-                                if (this.HasAttribute(t, attr, inherited: true) != null) return true;
+                                if (HasAttribute(t, attr, inherited: true) != null)
+                                {
+                                    return true;
+                                }
                             }
                         }
 
@@ -125,25 +135,25 @@ namespace Hagar.CodeGenerator
 
                     if (ShouldGenerateSerializer(symbol))
                     {
-                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, this.GetDataMembers(symbol));
+                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, GetDataMembers(symbol));
                         metadataModel.SerializableTypes.Add(typeDescription);
                     }
 
                     if (symbol.TypeKind == TypeKind.Interface)
                     {
-                        var attribute = this.HasAttribute(
+                        var attribute = HasAttribute(
                             symbol,
-                            this.libraryTypes.GenerateMethodSerializersAttribute,
+                            _libraryTypes.GenerateMethodSerializersAttribute,
                             inherited: true);
                         if (attribute != null)
                         {
                             var baseClass = (INamedTypeSymbol)attribute.ConstructorArguments[0].Value;
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
                             var description = new InvokableInterfaceDescription(
-                                this.libraryTypes,
+                                _libraryTypes,
                                 semanticModel,
                                 symbol,
-                                this.GetMethods(symbol),
+                                GetMethods(symbol),
                                 baseClass,
                                 isExtension);
                             metadataModel.InvokableInterfaces.Add(description);
@@ -189,13 +199,17 @@ namespace Hagar.CodeGenerator
             var hasAttributes = false;
             foreach (var member in symbol.GetMembers())
             {
-                if (member.IsStatic) continue;
-                if (member.HasAttribute(this.libraryTypes.NonSerializedAttribute))
+                if (member.IsStatic)
                 {
                     continue;
                 }
 
-                if (this.libraryTypes.IdAttributeTypes.Any(t => member.HasAttribute(t)))
+                if (member.HasAttribute(_libraryTypes.NonSerializedAttribute))
+                {
+                    continue;
+                }
+
+                if (_libraryTypes.IdAttributeTypes.Any(t => member.HasAttribute(t)))
                 {
                     hasAttributes = true;
                     break;
@@ -206,17 +220,24 @@ namespace Hagar.CodeGenerator
             foreach (var member in symbol.GetMembers().OrderBy(m => m.MetadataName))
             {
                 // Only consider fields and properties.
-                if (!(member is IFieldSymbol || member is IPropertySymbol)) continue;
+                if (!(member is IFieldSymbol || member is IPropertySymbol))
+                {
+                    continue;
+                }
 
-                if (member.HasAttribute(this.libraryTypes.NonSerializedAttribute))
+                if (member.HasAttribute(_libraryTypes.NonSerializedAttribute))
                 {
                     continue;
                 }
 
                 uint? GetId(ISymbol memberSymbol)
                 {
-                    var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => this.libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
-                    if (idAttr is null) return null;
+                    var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => _libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
+                    if (idAttr is null)
+                    {
+                        return null;
+                    }
+
                     var id = (uint)idAttr.ConstructorArguments.First().Value;
                     return id;
                 }
@@ -226,7 +247,11 @@ namespace Hagar.CodeGenerator
                     var id = GetId(prop);
                     if (!id.HasValue)
                     {
-                        if (hasAttributes || !this.options.GenerateFieldIds) continue;
+                        if (hasAttributes || !_options.GenerateFieldIds)
+                        {
+                            continue;
+                        }
+
                         id = ++nextFieldId;
                     }
 
@@ -240,9 +265,12 @@ namespace Hagar.CodeGenerator
                     {
                         prop = PropertyUtility.GetMatchingProperty(field);
 
-                        if (prop is null) continue;
+                        if (prop is null)
+                        {
+                            continue;
+                        }
 
-                        if (prop.HasAttribute(this.libraryTypes.NonSerializedAttribute))
+                        if (prop.HasAttribute(_libraryTypes.NonSerializedAttribute))
                         {
                             continue;
                         }
@@ -252,7 +280,11 @@ namespace Hagar.CodeGenerator
 
                     if (!id.HasValue)
                     {
-                        if (hasAttributes || !this.options.GenerateFieldIds) continue;
+                        if (hasAttributes || !_options.GenerateFieldIds)
+                        {
+                            continue;
+                        }
+
                         id = nextFieldId++;
                     }
 
@@ -278,7 +310,10 @@ namespace Hagar.CodeGenerator
         {
             foreach (var attribute in symbol.GetAttributes())
             {
-                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)) return attribute;
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType))
+                {
+                    return attribute;
+                }
             }
 
             if (inherited)
@@ -287,7 +322,10 @@ namespace Hagar.CodeGenerator
                 {
                     foreach (var attribute in iface.GetAttributes())
                     {
-                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)) return attribute;
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType))
+                        {
+                            return attribute;
+                        }
                     }
                 }
 
@@ -295,7 +333,10 @@ namespace Hagar.CodeGenerator
                 {
                     foreach (var attribute in symbol.GetAttributes())
                     {
-                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)) return attribute;
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType))
+                        {
+                            return attribute;
+                        }
                     }
                 }
             }

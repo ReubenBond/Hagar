@@ -52,31 +52,64 @@ namespace Hagar.TypeSystem
             }
             c += (uint)len;
             if (i < len)
+            {
                 a += data[i++];
+            }
+
             if (i < len)
+            {
                 a += (uint)data[i++] << 8;
+            }
+
             if (i < len)
+            {
                 a += (uint)data[i++] << 16;
+            }
+
             if (i < len)
+            {
                 a += (uint)data[i++] << 24;
+            }
+
             if (i < len)
+            {
                 b += (uint)data[i++];
+            }
+
             if (i < len)
+            {
                 b += (uint)data[i++] << 8;
+            }
+
             if (i < len)
+            {
                 b += (uint)data[i++] << 16;
+            }
+
             if (i < len)
+            {
                 b += (uint)data[i++] << 24;
+            }
+
             if (i < len)
+            {
                 c += (uint)data[i++] << 8;
+            }
+
             if (i < len)
+            {
                 c += (uint)data[i++] << 16;
+            }
+
             if (i < len)
+            {
                 c += (uint)data[i++] << 24;
+            }
+
             Mix(ref a, ref b, ref c);
             return c;
         }
-        
+
         // This implementation calculates the exact same hash value as the above, but is
         // optimized for the case where the input is exactly 24 bytes of data provided as
         // three 8-byte unsigned integers.

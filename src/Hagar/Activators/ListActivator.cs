@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Hagar.Activators
 {
     public class ListActivator<T>
     {
-        public List<T> Create(int arg)
-        {
-            return new List<T>(arg);
-        }
+        public List<T> Create(int arg) => new List<T>(arg);
     }
 }

@@ -1,6 +1,6 @@
-﻿using System;
-using System.Buffers;
 using Hagar.Buffers;
+using System;
+using System.Buffers;
 
 namespace Hagar.ISerializable
 {

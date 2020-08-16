@@ -1,16 +1,13 @@
-using System;
-using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO.Pipelines;
-using System.Text;
-using System.Threading;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,30 +15,30 @@ namespace Hagar.UnitTests
 {
     public class ManualVersionToleranceTests
     {
-        private readonly ITestOutputHelper log;
-        private string testString = "hello, hagar";
-        private IServiceProvider serviceProvider;
-        private IFieldCodec<SubType> serializer;
+        private const string TestString = "hello, hagar";
+        private readonly ITestOutputHelper _log;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IFieldCodec<SubType> _serializer;
 
         public ManualVersionToleranceTests(ITestOutputHelper log)
         {
-            this.log = log;
+            _log = log;
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHagar(builder =>
-            {
-                builder.Configure(configuration =>
-                {
-                    configuration.Serializers.Add(typeof(SubTypeSerializer));
-                    configuration.Serializers.Add(typeof(BaseTypeSerializer));
-                });
-            });
+            _ = serviceCollection.AddHagar(builder =>
+              {
+                  _ = builder.Configure(configuration =>
+                    {
+                        _ = configuration.Serializers.Add(typeof(SubTypeSerializer));
+                        _ = configuration.Serializers.Add(typeof(BaseTypeSerializer));
+                    });
+              });
             //serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
             //serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
 
-            this.serviceProvider = serviceCollection.BuildServiceProvider();
+            _serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var codecProvider = this.serviceProvider.GetRequiredService<CodecProvider>();
-            this.serializer = codecProvider.GetCodec<SubType>();
+            var codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
+            _serializer = codecProvider.GetCodec<SubType>();
         }
 
         [Fact]
@@ -51,10 +48,10 @@ namespace Hagar.UnitTests
                 new SubType
                 {
                     BaseTypeString = "HOHOHO",
-                    AddedLaterString = testString,
+                    AddedLaterString = TestString,
                     String = null,
                     Int = 1,
-                    Ref = testString
+                    Ref = TestString
                 });
 
             RoundTripTest(
@@ -76,15 +73,15 @@ namespace Hagar.UnitTests
             RoundTripTest(
                 new SubType
                 {
-                    BaseTypeString = testString,
-                    String = testString,
+                    BaseTypeString = TestString,
+                    String = TestString,
                     Int = 10
                 });
 
             RoundTripTest(
                 new SubType
                 {
-                    BaseTypeString = testString,
+                    BaseTypeString = TestString,
                     String = null,
                     Int = 1
                 });
@@ -92,7 +89,7 @@ namespace Hagar.UnitTests
             RoundTripTest(
                 new SubType
                 {
-                    BaseTypeString = testString,
+                    BaseTypeString = TestString,
                     String = null,
                     Int = 1
                 });
@@ -100,7 +97,7 @@ namespace Hagar.UnitTests
             TestSkip(
                 new SubType
                 {
-                    BaseTypeString = testString,
+                    BaseTypeString = TestString,
                     String = null,
                     Int = 1
                 });
@@ -108,7 +105,7 @@ namespace Hagar.UnitTests
             var self = new SubType
             {
                 BaseTypeString = "HOHOHO",
-                AddedLaterString = testString,
+                AddedLaterString = TestString,
                 String = null,
                 Int = 1
             };
@@ -119,7 +116,7 @@ namespace Hagar.UnitTests
             RoundTripTest(self);
         }
 
-        private SerializerSession GetSession() => this.serviceProvider.GetRequiredService<SessionPool>().GetSession();
+        private SerializerSession GetSession() => _serviceProvider.GetRequiredService<SessionPool>().GetSession();
 
         private void RoundTripTest(SubType expected)
         {
@@ -127,35 +124,35 @@ namespace Hagar.UnitTests
             var pipe = new Pipe();
             var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
 
-            serializer.WriteField(ref writer, 0, typeof(SubType), expected);
+            _serializer.WriteField(ref writer, 0, typeof(SubType), expected);
             writer.Commit();
 
-            this.log.WriteLine($"Size: {writer.Position} bytes.");
-            this.log.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
+            _log.WriteLine($"Size: {writer.Position} bytes.");
+            _log.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
 
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
-            pipe.Reader.TryRead(out var readResult);
+            _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = GetSession();
             var reader = new Reader(readResult.Buffer, readerSesssion);
             var initialHeader = reader.ReadFieldHeader();
 
-            this.log.WriteLine("Header:");
-            this.log.WriteLine(initialHeader.ToString());
+            _log.WriteLine("Header:");
+            _log.WriteLine(initialHeader.ToString());
 
-            var actual = serializer.ReadValue(ref reader, initialHeader);
+            var actual = _serializer.ReadValue(ref reader, initialHeader);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
 
-            this.log.WriteLine($"Expect: {expected}\nActual: {actual}");
-            
+            _log.WriteLine($"Expect: {expected}\nActual: {actual}");
+
             Assert.Equal(expected.BaseTypeString, actual.BaseTypeString);
             Assert.Null(actual.AddedLaterString); // The deserializer isn't 'aware' of this field which was added later - version tolerance.
             Assert.Equal(expected.String, actual.String);
             Assert.Equal(expected.Int, actual.Int);
 
             var references = GetReadReferenceTable(reader.Session);
-            this.log.WriteLine($"Read references:\n{references}");
+            _log.WriteLine($"Read references:\n{references}");
         }
 
         private void TestSkip(SubType expected)
@@ -164,20 +161,20 @@ namespace Hagar.UnitTests
             var pipe = new Pipe();
             var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
 
-            this.serializer.WriteField(ref writer, 0, typeof(SubType), expected);
+            _serializer.WriteField(ref writer, 0, typeof(SubType), expected);
             writer.Commit();
 
-            pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
             pipe.Writer.Complete();
-            pipe.Reader.TryRead(out var readResult);
+            _ = pipe.Reader.TryRead(out var readResult);
             using var readerSession = GetSession();
             var reader = new Reader(readResult.Buffer, readerSession);
             var initialHeader = reader.ReadFieldHeader();
             var skipCodec = new SkipFieldCodec();
-            skipCodec.ReadValue(ref reader, initialHeader);
+            _ = skipCodec.ReadValue(ref reader, initialHeader);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
-            this.log.WriteLine($"Skipped {reader.Position} bytes.");
+            _log.WriteLine($"Skipped {reader.Position} bytes.");
         }
 
         private static StringBuilder GetReadReferenceTable(SerializerSession session)
@@ -186,7 +183,7 @@ namespace Hagar.UnitTests
             var references = new StringBuilder();
             foreach (var entry in table)
             {
-                references.AppendLine($"\t[{entry.Key}] {entry.Value}");
+                _ = references.AppendLine($"\t[{entry.Key}] {entry.Value}");
             }
             return references;
         }
@@ -197,7 +194,7 @@ namespace Hagar.UnitTests
             var references = new StringBuilder();
             foreach (var entry in table)
             {
-                references.AppendLine($"\t[{entry.Value}] {entry.Key}");
+                _ = references.AppendLine($"\t[{entry.Value}] {entry.Key}");
             }
             return references;
         }
@@ -210,27 +207,15 @@ namespace Hagar.UnitTests
             public string BaseTypeString { get; set; }
             public string AddedLaterString { get; set; }
 
-            public bool Equals(BaseType other)
-            {
-                return other is object
-                    && string.Equals(this.BaseTypeString, other.BaseTypeString, StringComparison.Ordinal)
-                    && string.Equals(this.AddedLaterString, other.AddedLaterString, StringComparison.Ordinal);
-            }
+            public bool Equals(BaseType other) => other is object
+                    && string.Equals(BaseTypeString, other.BaseTypeString, StringComparison.Ordinal)
+                    && string.Equals(AddedLaterString, other.AddedLaterString, StringComparison.Ordinal);
 
-            public override bool Equals(object obj)
-            {
-                return obj is BaseType baseType && this.Equals(baseType);
-            }
+            public override bool Equals(object obj) => obj is BaseType baseType && Equals(baseType);
 
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(this.BaseTypeString, this.AddedLaterString);
-            }
+            public override int GetHashCode() => HashCode.Combine(BaseTypeString, AddedLaterString);
 
-            public override string ToString()
-            {
-                return $"{nameof(this.BaseTypeString)}: {this.BaseTypeString}";
-            }
+            public override string ToString() => $"{nameof(BaseTypeString)}: {BaseTypeString}";
         }
 
         /// <summary>
@@ -249,58 +234,63 @@ namespace Hagar.UnitTests
 
             public bool Equals(SubType other)
             {
-                if (other is null) return false;
+                if (other is null)
+                {
+                    return false;
+                }
+
                 return
                     base.Equals(other)
-                    && string.Equals(this.String, other.String, StringComparison.Ordinal)
-                    && this.Int == other.Int
-                    && (ReferenceEquals(this.Ref, other.Ref) || this.Ref.Equals(other.Ref));
+                    && string.Equals(String, other.String, StringComparison.Ordinal)
+                    && Int == other.Int
+                    && (ReferenceEquals(Ref, other.Ref) || Ref.Equals(other.Ref));
             }
 
             public override string ToString()
             {
-                string refString = this.Ref == this ? "[this]" : $"[{this.Ref?.ToString() ?? "null"}]";
-                return $"{base.ToString()}, {nameof(this.String)}: {this.String}, {nameof(this.Int)}: {this.Int}, Ref: {refString}";
+                string refString = Ref == this ? "[this]" : $"[{Ref?.ToString() ?? "null"}]";
+                return $"{base.ToString()}, {nameof(String)}: {String}, {nameof(Int)}: {Int}, Ref: {refString}";
             }
 
-            public override bool Equals(object obj)
-            {
-                return obj is SubType subType && this.Equals(subType);
-            }
+            public override bool Equals(object obj) => obj is SubType subType && Equals(subType);
 
             public override int GetHashCode()
             {
                 // Avoid stack overflows with this one weird trick.
-                if (ReferenceEquals(this.Ref, this)) return HashCode.Combine(base.GetHashCode(), this.String, this.Int);
-                return HashCode.Combine(base.GetHashCode(), this.String, this.Int, this.Ref);
+                if (ReferenceEquals(Ref, this))
+                {
+                    return HashCode.Combine(base.GetHashCode(), String, Int);
+                }
+
+                return HashCode.Combine(base.GetHashCode(), String, Int, Ref);
             }
         }
 
         public class SubTypeSerializer : IPartialSerializer<SubType>
         {
-            private readonly IPartialSerializer<BaseType> baseTypeSerializer;
-            private readonly IFieldCodec<string> stringCodec;
-            private readonly IFieldCodec<int> intCodec;
-            private readonly IFieldCodec<object> objectCodec;
+            private readonly IPartialSerializer<BaseType> _baseTypeSerializer;
+            private readonly IFieldCodec<string> _stringCodec;
+            private readonly IFieldCodec<int> _intCodec;
+            private readonly IFieldCodec<object> _objectCodec;
 
             public SubTypeSerializer(IPartialSerializer<BaseType> baseTypeSerializer, IFieldCodec<string> stringCodec, IFieldCodec<int> intCodec, IFieldCodec<object> objectCodec)
             {
-                this.baseTypeSerializer = HagarGeneratedCodeHelper.UnwrapService(this, baseTypeSerializer);
-                this.stringCodec = HagarGeneratedCodeHelper.UnwrapService(this, stringCodec);
-                this.intCodec = HagarGeneratedCodeHelper.UnwrapService(this, intCodec);
-                this.objectCodec = HagarGeneratedCodeHelper.UnwrapService(this, objectCodec);
+                _baseTypeSerializer = HagarGeneratedCodeHelper.UnwrapService(this, baseTypeSerializer);
+                _stringCodec = HagarGeneratedCodeHelper.UnwrapService(this, stringCodec);
+                _intCodec = HagarGeneratedCodeHelper.UnwrapService(this, intCodec);
+                _objectCodec = HagarGeneratedCodeHelper.UnwrapService(this, objectCodec);
             }
 
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, SubType obj) where TBufferWriter : IBufferWriter<byte>
             {
-                this.baseTypeSerializer.Serialize(ref writer, obj);
+                _baseTypeSerializer.Serialize(ref writer, obj);
                 writer.WriteEndBase(); // the base object is complete.
 
-                this.stringCodec.WriteField(ref writer, 0, typeof(string), obj.String);
-                this.intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
-                this.objectCodec.WriteField(ref writer, 1, typeof(object), obj.Ref);
-                this.intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
-                this.intCodec.WriteField(ref writer, 409, typeof(int), obj.Int);
+                _stringCodec.WriteField(ref writer, 0, typeof(string), obj.String);
+                _intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
+                _objectCodec.WriteField(ref writer, 1, typeof(object), obj.Ref);
+                _intCodec.WriteField(ref writer, 1, typeof(int), obj.Int);
+                _intCodec.WriteField(ref writer, 409, typeof(int), obj.Int);
                 /*writer.WriteFieldHeader(session, 1025, typeof(Guid), Guid.Empty.GetType(), WireType.Fixed128);
                 writer.WriteFieldHeader(session, 1020, typeof(object), typeof(Program), WireType.Reference);*/
             }
@@ -308,22 +298,26 @@ namespace Hagar.UnitTests
             public void Deserialize(ref Reader reader, SubType obj)
             {
                 uint fieldId = 0;
-                this.baseTypeSerializer.Deserialize(ref reader, obj);
+                _baseTypeSerializer.Deserialize(ref reader, obj);
                 while (true)
                 {
                     var header = reader.ReadFieldHeader();
-                    if (header.IsEndBaseOrEndObject) break;
+                    if (header.IsEndBaseOrEndObject)
+                    {
+                        break;
+                    }
+
                     fieldId += header.FieldIdDelta;
                     switch (fieldId)
                     {
                         case 0:
-                            obj.String = this.stringCodec.ReadValue(ref reader, header);
+                            obj.String = _stringCodec.ReadValue(ref reader, header);
                             break;
                         case 1:
-                            obj.Int = this.intCodec.ReadValue(ref reader, header);
+                            obj.Int = _intCodec.ReadValue(ref reader, header);
                             break;
                         case 2:
-                            obj.Ref = this.objectCodec.ReadValue(ref reader, header);
+                            obj.Ref = _objectCodec.ReadValue(ref reader, header);
                             break;
                         default:
                             reader.ConsumeUnknownField(header);
@@ -347,7 +341,11 @@ namespace Hagar.UnitTests
                 while (true)
                 {
                     var header = reader.ReadFieldHeader();
-                    if (header.IsEndBaseOrEndObject) break;
+                    if (header.IsEndBaseOrEndObject)
+                    {
+                        break;
+                    }
+
                     fieldId += header.FieldIdDelta;
                     switch (fieldId)
                     {

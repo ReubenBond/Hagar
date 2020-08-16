@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Hagar.TypeSystem
 {
@@ -22,29 +22,19 @@ namespace Hagar.TypeSystem
             return result.Type;
         }
 
-        private static (TypeSpec Type, string Assembly) ApplyInner(TypeSpec input, string assemblyName, Func<QualifiedType, QualifiedType> replaceFunc)
-        {
+        private static (TypeSpec Type, string Assembly) ApplyInner(TypeSpec input, string assemblyName, Func<QualifiedType, QualifiedType> replaceFunc) =>
             // A type's assembly is passed downwards through the graph, and modifications to the assembly (from the user-provided delegate) flow upwards.
-            switch (input)
+            input switch
             {
-                case ConstructedGenericTypeSpec type:
-                    return HandleGeneric(type, assemblyName, replaceFunc);
-                case NamedTypeSpec type:
-                    return HandleNamedType(type, assemblyName, replaceFunc);
-                case AssemblyQualifiedTypeSpec type:
-                    return HandleAssembly(type, assemblyName, replaceFunc);
-                case ArrayTypeSpec type:
-                    return HandleArray(type, assemblyName, replaceFunc);
-                case PointerTypeSpec type:
-                    return HandlePointer(type, assemblyName, replaceFunc);
-                case ReferenceTypeSpec type:
-                    return HandleReference(type, assemblyName, replaceFunc);
-                case null:
-                    throw new ArgumentNullException(nameof(input));
-                default:
-                    throw new NotSupportedException($"Argument of type {input.GetType()} is nut supported");
-            }
-        }
+                ConstructedGenericTypeSpec type => HandleGeneric(type, assemblyName, replaceFunc),
+                NamedTypeSpec type => HandleNamedType(type, assemblyName, replaceFunc),
+                AssemblyQualifiedTypeSpec type => HandleAssembly(type, assemblyName, replaceFunc),
+                ArrayTypeSpec type => HandleArray(type, assemblyName, replaceFunc),
+                PointerTypeSpec type => HandlePointer(type, assemblyName, replaceFunc),
+                ReferenceTypeSpec type => HandleReference(type, assemblyName, replaceFunc),
+                null => throw new ArgumentNullException(nameof(input)),
+                _ => throw new NotSupportedException($"Argument of type {input.GetType()} is nut supported"),
+            };
 
         private static (TypeSpec Type, string Assembly) HandleGeneric(ConstructedGenericTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
         {
