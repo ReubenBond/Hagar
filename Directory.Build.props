@@ -1,4 +1,9 @@
 <Project>
+
+  <PropertyGroup>
+    <SourceRoot>$(MSBuildThisFileDirectory)</SourceRoot>
+  </PropertyGroup>
+
   <!-- Packaging -->
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
@@ -29,7 +34,7 @@
 
   <!-- Common compile parameters -->
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <GenerateDocumentationFile Condition="'$(Configuration)'=='Release'">true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;FS2003</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -44,7 +49,7 @@
 
   <!-- Set output folder for created NuGet packages -->
   <PropertyGroup>
-    <PackageOutputPath Condition=" '$(PackageOutputPath)'=='' ">$(MSBuildThisFileDirectory)/Artifacts/$(Configuration)</PackageOutputPath>
+    <PackageOutputPath Condition=" '$(PackageOutputPath)'=='' ">$(MSBuildThisFileDirectory)$([System.IO.Path]::Combine("Artifacts",$(Configuration)))</PackageOutputPath>
   </PropertyGroup>
 
   <!-- SourceLink -->
@@ -53,5 +58,8 @@
     <SourceLinkOriginUrl>https://github.com/ReubenBond/Hagar</SourceLinkOriginUrl>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator.MSBuild/build/Hagar.CodeGenerator.MSBuild.props" />
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
 </Project>

@@ -5,7 +5,6 @@
     <TargetFramework>net5</TargetFramework>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <HagarCodeGen>true</HagarCodeGen>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -46,6 +45,10 @@
     <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.NewtonsoftJson\Hagar.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
+    <ProjectReference
+      Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj"
+      ReferenceOutputAssembly="false"
+      OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>
