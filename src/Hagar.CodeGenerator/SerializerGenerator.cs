@@ -482,7 +482,7 @@ namespace Hagar.CodeGenerator
             List<SwitchSectionSyntax> GetSwitchSections()
             {
                 var switchSections = new List<SwitchSectionSyntax>();
-                foreach (var member in members)
+                foreach (var member in members.OrderBy(m => m.Description.FieldId))
                 {
                     var description = member.Description;
 

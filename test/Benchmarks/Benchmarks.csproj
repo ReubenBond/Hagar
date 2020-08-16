@@ -2,15 +2,18 @@
 
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5</TargetFramework>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <PlatformTarget>x64</PlatformTarget>
     <HagarCodeGen>true</HagarCodeGen>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" />
     <PackageReference Include="Hyperion" Version="0.9.16" />
     <PackageReference Include="MessagePack" Version="2.1.165" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
@@ -24,8 +27,8 @@
     <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

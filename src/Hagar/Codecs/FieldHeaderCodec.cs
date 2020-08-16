@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using Hagar.Buffers;
-using Hagar.Session;
 using Hagar.WireProtocol;
 
 namespace Hagar.Codecs
@@ -21,29 +20,29 @@ namespace Hagar.Codecs
             WireType wireType) where TBufferWriter : IBufferWriter<byte>
         {
             var hasExtendedFieldId = fieldId > Tag.MaxEmbeddedFieldIdDelta;
-            var embeddedFieldId = hasExtendedFieldId ? Tag.FieldIdCompleteMask : (byte) fieldId;
-            var tag = (byte) ((byte) wireType | embeddedFieldId);
+            var embeddedFieldId = hasExtendedFieldId ? Tag.FieldIdCompleteMask : (byte)fieldId;
+            var tag = (byte)((byte)wireType | embeddedFieldId);
 
             if (actualType == expectedType)
             {
-                writer.Write((byte) (tag | (byte) SchemaType.Expected));
+                writer.Write((byte)(tag | (byte)SchemaType.Expected));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
             }
             else if (writer.Session.WellKnownTypes.TryGetWellKnownTypeId(actualType, out var typeOrReferenceId))
             {
-                writer.Write((byte) (tag | (byte) SchemaType.WellKnown));
+                writer.Write((byte)(tag | (byte)SchemaType.WellKnown));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
                 writer.WriteVarInt(typeOrReferenceId);
             }
             else if (writer.Session.ReferencedTypes.TryGetTypeReference(actualType, out typeOrReferenceId))
             {
-                writer.Write((byte) (tag | (byte) SchemaType.Referenced));
+                writer.Write((byte)(tag | (byte)SchemaType.Referenced));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
                 writer.WriteVarInt(typeOrReferenceId);
             }
             else
             {
-                writer.Write((byte) (tag | (byte) SchemaType.Encoded));
+                writer.Write((byte)(tag | (byte)SchemaType.Encoded));
                 if (hasExtendedFieldId) writer.WriteVarInt(fieldId);
                 writer.Session.TypeCodec.Write(ref writer, actualType);
             }
@@ -61,40 +60,83 @@ namespace Hagar.Codecs
         public static void WriteFieldHeaderExpectedEmbedded<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
             where TBufferWriter : IBufferWriter<byte>
         {
-            writer.Write((byte) ((byte) wireType | (byte) fieldId));
+            writer.Write((byte)((byte)wireType | (byte)fieldId));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteFieldHeaderExpectedExtended<TBufferWriter>(this ref Writer<TBufferWriter> writer, uint fieldId, WireType wireType)
             where TBufferWriter : IBufferWriter<byte>
         {
-            writer.Write((byte) ((byte) wireType | Tag.FieldIdCompleteMask));
+            writer.Write((byte)((byte)wireType | Tag.FieldIdCompleteMask));
             writer.WriteVarInt(fieldId);
         }
 
-        public static Field ReadFieldHeader(ref this Reader reader)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ReadFieldHeader(ref this Reader reader, ref Field field)
         {
-            Type type = null;
-            uint extendedId = 0;
             var tag = reader.ReadByte();
 
-            // If all of the field id delta bits are set and the field isn't an extended wiretype field, read the extended field id delta
-            if ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask && (tag & (byte) WireType.Extended) != (byte) WireType.Extended)
+            if (tag != (byte)WireType.Extended && ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask || (tag & Tag.SchemaTypeMask) != (byte)SchemaType.Expected))
             {
-                extendedId = reader.ReadVarUInt32();
+                field.Tag = tag;
+                ReadFieldHeaderSlow(ref reader, ref field);
             }
-
-            // If schema type is valid, read the type.
-            if ((tag & (byte) WireType.Extended) != (byte) WireType.Extended)
+            else
             {
-                type = reader.ReadType(reader.Session, (SchemaType) (tag & Tag.SchemaTypeMask));
+                field.Tag = tag;
+                field.FieldIdDeltaRaw = default;
+                field.FieldTypeRaw = default;
             }
-
-            return new Field(tag, extendedId, type);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Type ReadType(this ref Reader reader, SerializerSession session, SchemaType schemaType)
+        public static Field ReadFieldHeader(ref this Reader reader)
+        {
+            Field field = default;
+            var tag = reader.ReadByte();
+            if (tag != (byte)WireType.Extended && ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask || (tag & Tag.SchemaTypeMask) != (byte)SchemaType.Expected))
+            {
+                field.Tag = tag;
+                ReadFieldHeaderSlow(ref reader, ref field);
+            }
+            else
+            {
+                field.Tag = tag;
+                field.FieldIdDeltaRaw = default;
+                field.FieldTypeRaw = default;
+            }
+
+            return field;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ReadFieldHeaderSlow(ref this Reader reader, ref Field field)
+        {
+            // If all of the field id delta bits are set and the field isn't an extended wiretype field, read the extended field id delta
+            var notExtended = (field.Tag & (byte)WireType.Extended) != (byte)WireType.Extended;
+            if ((field.Tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask && notExtended)
+            {
+                field.FieldIdDeltaRaw = reader.ReadVarUInt32NoInlining();
+            }
+            else
+            {
+                field.FieldIdDeltaRaw = 0;
+            }
+
+            // If schema type is valid, read the type.
+            var schemaType = (SchemaType)(field.Tag & Tag.SchemaTypeMask);
+            if (notExtended && schemaType != SchemaType.Expected)
+            {
+                field.FieldTypeRaw = reader.ReadType(schemaType);
+            }
+            else
+            {
+                field.FieldTypeRaw = default;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Type ReadType(this ref Reader reader, SchemaType schemaType)
         {
             switch (schemaType)
             {
@@ -102,13 +144,13 @@ namespace Hagar.Codecs
                     return null;
                 case SchemaType.WellKnown:
                     var typeId = reader.ReadVarUInt32();
-                    return session.WellKnownTypes.GetWellKnownType(typeId);
+                    return reader.Session.WellKnownTypes.GetWellKnownType(typeId);
                 case SchemaType.Encoded:
-                    session.TypeCodec.TryRead(ref reader, out Type encoded);
+                    reader.Session.TypeCodec.TryRead(ref reader, out Type encoded);
                     return encoded;
                 case SchemaType.Referenced:
                     var reference = reader.ReadVarUInt32();
-                    return session.ReferencedTypes.GetReferencedType(reference);
+                    return reader.Session.ReferencedTypes.GetReferencedType(reference);
                 default:
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }

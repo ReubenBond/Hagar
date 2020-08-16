@@ -102,13 +102,23 @@ namespace Hagar.Utilities
             }
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt32(this ref Reader reader, WireType wireType)
         {
+            if (wireType == WireType.VarInt)
+            {
+                return ZigZagDecode(reader.ReadVarUInt32());
+            }
+
+            return ReadInt32Slower(ref reader, wireType);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static int ReadInt32Slower(this ref Reader reader, WireType wireType)
+        {
             switch (wireType)
             {
-                case WireType.VarInt:
-                    return ZigZagDecode(reader.ReadVarUInt32());
                 case WireType.Fixed32:
                     return reader.ReadInt32();
                 case WireType.Fixed64:

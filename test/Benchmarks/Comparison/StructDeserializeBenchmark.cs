@@ -36,7 +36,7 @@ namespace Benchmarks.Comparison
         private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(IntStruct.Create());
         private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] {typeof(IntStruct)}));
         private static readonly MemoryStream HyperionInput;
-        private static readonly Serializer<IntStruct> HagarSerializer;
+        private static readonly ValueSerializer<IntStruct> HagarSerializer;
         private static readonly ReadOnlySequence<byte> HagarInput;
         private static readonly SerializerSession Session;
         private static readonly SerializationManager OrleansSerializer;
@@ -55,7 +55,7 @@ namespace Benchmarks.Comparison
             var services = new ServiceCollection()
                 .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
                 .BuildServiceProvider();
-            HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
+            HagarSerializer = services.GetRequiredService<ValueSerializer<IntStruct>>();
             Session = services.GetRequiredService<SessionPool>().GetSession();
             var bytes = new byte[1000];
             var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
@@ -81,7 +81,7 @@ namespace Benchmarks.Comparison
             OrleansBuffer = new BinaryTokenStreamReader(OrleansInput);
         }
 
-        private static int SumResult(IntStruct result)
+        private static int SumResult(in IntStruct result)
         {
             return result.MyProperty1 +
                    result.MyProperty2 +
@@ -100,7 +100,9 @@ namespace Benchmarks.Comparison
         {
             Session.FullReset();
             var reader = new Reader(HagarInput, Session);
-            return SumResult(HagarSerializer.Deserialize(ref reader));
+            IntStruct result = default;
+            HagarSerializer.Deserialize(ref reader, ref result);
+            return SumResult(in result);
         }
 
         //[Benchmark]

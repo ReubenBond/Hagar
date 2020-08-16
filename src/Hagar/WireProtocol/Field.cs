@@ -6,22 +6,22 @@ namespace Hagar.WireProtocol
 {
     public struct Field
     {
-        private uint fieldIdDelta;
-        private Type fieldType;
         public Tag Tag;
+        public uint FieldIdDeltaRaw;
+        public Type FieldTypeRaw;
 
         public Field(Tag tag)
         {
             this.Tag = tag;
-            this.fieldIdDelta = 0;
-            this.fieldType = null;
+            this.FieldIdDeltaRaw = 0;
+            this.FieldTypeRaw = null;
         }
 
         public Field(Tag tag, uint extendedFieldIdDelta, Type type)
         {
             this.Tag = tag;
-            this.fieldIdDelta = extendedFieldIdDelta;
-            this.fieldType = type;
+            this.FieldIdDeltaRaw = extendedFieldIdDelta;
+            this.FieldTypeRaw = type;
         }
 
         public uint FieldIdDelta
@@ -35,7 +35,7 @@ namespace Hagar.WireProtocol
 #if DEBUG
                 if (!this.HasFieldId) ThrowFieldIdInvalid();
 #endif
-                return this.fieldIdDelta;
+                return this.FieldIdDeltaRaw;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -45,12 +45,12 @@ namespace Hagar.WireProtocol
                 if (value < 7)
                 {
                     this.Tag.FieldIdDelta = value;
-                    this.fieldIdDelta = 0;
+                    this.FieldIdDeltaRaw = 0;
                 }
                 else
                 {
                     this.Tag.SetFieldIdInvalid();
-                    this.fieldIdDelta = value;
+                    this.FieldIdDeltaRaw = value;
                 }
             }
         }
@@ -63,7 +63,7 @@ namespace Hagar.WireProtocol
 #if DEBUG
                 if (!this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
 #endif
-                return this.fieldType;
+                return this.FieldTypeRaw;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -72,7 +72,7 @@ namespace Hagar.WireProtocol
 #if DEBUG
                 if (!this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
 #endif
-                this.fieldType = value;
+                this.FieldTypeRaw = value;
             }
         }
 
