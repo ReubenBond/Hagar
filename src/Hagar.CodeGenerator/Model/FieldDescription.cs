@@ -6,14 +6,14 @@ namespace Hagar.CodeGenerator
     {
         public FieldDescription(uint fieldId, IFieldSymbol field)
         {
-            this.FieldId = fieldId;
-            this.Field = field;
+            FieldId = fieldId;
+            Field = field;
         }
         public IFieldSymbol Field { get; }
         public uint FieldId { get; }
-        public ISymbol Member => this.Field;
-        public ITypeSymbol Type => this.Field.Type;
-        public string Name => this.Field.Name;
+        public ISymbol Member => Field;
+        public ITypeSymbol Type => Field.Type;
+        public string Name => Field.Name;
     }
 
     internal interface IFieldDescription : IMemberDescription

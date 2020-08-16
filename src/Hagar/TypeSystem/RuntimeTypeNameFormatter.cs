@@ -1,7 +1,7 @@
+using Hagar.Utilities;
 using System;
 using System.Reflection;
 using System.Text;
-using Hagar.Utilities;
 
 namespace Hagar.TypeSystem
 {
@@ -35,11 +35,14 @@ namespace Hagar.TypeSystem
         /// </returns>
         public static string Format(TypeInfo type)
         {
-            if (type is null) throw new ArgumentNullException(nameof(type));
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
             if (!Cache.TryGetValue(type, out var result))
             {
-                string FormatType(Type t)
+                static string FormatType(Type t)
                 {
                     var builder = new StringBuilder();
                     Format(builder, t.GetTypeInfo(), isElementType: false);
@@ -74,14 +77,21 @@ namespace Hagar.TypeSystem
 
             // Types which are used as elements are not formatted with their assembly name, since that is added after the
             // element type's adornments.
-            if (!isElementType) AddAssembly(builder, type);
+            if (!isElementType)
+            {
+                AddAssembly(builder, type);
+            }
         }
 
         private static void AddNamespace(StringBuilder builder, TypeInfo type)
         {
-            if (string.IsNullOrWhiteSpace(type.Namespace)) return;
-            builder.Append(type.Namespace);
-            builder.Append('.');
+            if (string.IsNullOrWhiteSpace(type.Namespace))
+            {
+                return;
+            }
+
+            _ = builder.Append(type.Namespace);
+            _ = builder.Append('.');
         }
 
         private static void AddClassName(StringBuilder builder, TypeInfo type)
@@ -90,12 +100,12 @@ namespace Hagar.TypeSystem
             if (type.IsNested)
             {
                 AddClassName(builder, type.DeclaringType.GetTypeInfo());
-                builder.Append('+');
+                _ = builder.Append('+');
             }
 
             // Format the simple type name.
             var index = type.Name.IndexOfAny(SimpleNameTerminators);
-            builder.Append(index > 0 ? type.Name.Substring(0, index) : type.Name);
+            _ = builder.Append(index > 0 ? type.Name.Substring(0, index) : type.Name);
 
             // Format this type's generic arity.
             AddGenericArity(builder, type);
@@ -105,24 +115,33 @@ namespace Hagar.TypeSystem
         {
             // Generic type definitions (eg, List<> without parameters) and non-generic types do not include any
             // parameters in their formatting.
-            if (!type.AsType().IsConstructedGenericType) return;
-
-            var args = type.GetGenericArguments();
-            builder.Append('[');
-            for (var i = 0; i < args.Length; i++)
+            if (!type.AsType().IsConstructedGenericType)
             {
-                builder.Append('[');
-                Format(builder, args[i].GetTypeInfo(), isElementType: false);
-                builder.Append(']');
-                if (i + 1 < args.Length) builder.Append(',');
+                return;
             }
 
-            builder.Append(']');
+            var args = type.GetGenericArguments();
+            _ = builder.Append('[');
+            for (var i = 0; i < args.Length; i++)
+            {
+                _ = builder.Append('[');
+                Format(builder, args[i].GetTypeInfo(), isElementType: false);
+                _ = builder.Append(']');
+                if (i + 1 < args.Length)
+                {
+                    _ = builder.Append(',');
+                }
+            }
+
+            _ = builder.Append(']');
         }
 
         private static void AddGenericArity(StringBuilder builder, TypeInfo type)
         {
-            if (!type.IsGenericType) return;
+            if (!type.IsGenericType)
+            {
+                return;
+            }
 
             // The arity is the number of generic parameters minus the number of generic parameters in the declaring types.
             var baseTypeParameterCount =
@@ -130,38 +149,57 @@ namespace Hagar.TypeSystem
             var arity = type.GetGenericArguments().Length - baseTypeParameterCount;
 
             // If all of the generic parameters are in the declaring types then this type has no parameters of its own.
-            if (arity == 0) return;
+            if (arity == 0)
+            {
+                return;
+            }
 
-            builder.Append('`');
-            builder.Append(arity);
+            _ = builder.Append('`');
+            _ = builder.Append(arity);
         }
 
         private static void AddPointerSymbol(StringBuilder builder, TypeInfo type)
         {
-            if (!type.IsPointer) return;
-            builder.Append('*');
+            if (!type.IsPointer)
+            {
+                return;
+            }
+
+            _ = builder.Append('*');
         }
 
         private static void AddByRefSymbol(StringBuilder builder, TypeInfo type)
         {
-            if (!type.IsByRef) return;
-            builder.Append('&');
+            if (!type.IsByRef)
+            {
+                return;
+            }
+
+            _ = builder.Append('&');
         }
 
         private static void AddArrayRank(StringBuilder builder, TypeInfo type)
         {
-            if (!type.IsArray) return;
-            builder.Append('[');
-            builder.Append(',', type.GetArrayRank() - 1);
-            builder.Append(']');
+            if (!type.IsArray)
+            {
+                return;
+            }
+
+            _ = builder.Append('[');
+            _ = builder.Append(',', type.GetArrayRank() - 1);
+            _ = builder.Append(']');
         }
 
         private static void AddAssembly(StringBuilder builder, TypeInfo type)
         {
             // Do not include the assembly name for the system assembly.
-            if (SystemAssembly.Equals(type.Assembly)) return;
-            builder.Append(',');
-            builder.Append(type.Assembly.GetName().Name);
+            if (SystemAssembly.Equals(type.Assembly))
+            {
+                return;
+            }
+
+            _ = builder.Append(',');
+            _ = builder.Append(type.Assembly.GetName().Name);
         }
     }
 }

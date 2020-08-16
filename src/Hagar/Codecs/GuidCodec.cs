@@ -1,7 +1,7 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {
@@ -9,10 +9,7 @@ namespace Hagar.Codecs
     {
         private const int Width = 16;
 
-        void IFieldCodec<Guid>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
+        void IFieldCodec<Guid>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value) where TBufferWriter : IBufferWriter<byte>
         {
@@ -29,10 +26,7 @@ namespace Hagar.Codecs
             writer.Write(value.ToByteArray());
         }
 
-        Guid IFieldCodec<Guid>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
+        Guid IFieldCodec<Guid>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
 
         public static Guid ReadValue(ref Reader reader, Field field)
         {
@@ -44,7 +38,11 @@ namespace Hagar.Codecs
             }
 
             Span<byte> bytes = stackalloc byte[Width];
-            for (var i = 0; i < Width; i++) bytes[i] = reader.ReadByte();
+            for (var i = 0; i < Width; i++)
+            {
+                bytes[i] = reader.ReadByte();
+            }
+
             return new Guid(bytes);
 #else
             return new Guid(reader.ReadBytes(Width));

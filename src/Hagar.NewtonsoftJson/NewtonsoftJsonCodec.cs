@@ -1,36 +1,40 @@
-using System;
-using System.Text;
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.WireProtocol;
 using Newtonsoft.Json;
+using System;
+using System.Text;
 
 namespace Hagar.Json
 {
     public class NewtonsoftJsonCodec : IGeneralizedCodec
     {
         private static readonly Type SelfType = typeof(NewtonsoftJsonCodec);
-        private readonly Func<Type, bool> isSupportedFunc;
-        private readonly JsonSerializerSettings settings;
-        
+        private readonly Func<Type, bool> _isSupportedFunc;
+        private readonly JsonSerializerSettings _settings;
+
         public NewtonsoftJsonCodec(
             JsonSerializerSettings settings = null,
             Func<Type, bool> isSupportedFunc = null)
         {
-            this.settings = settings ?? new JsonSerializerSettings
+            _settings = settings ?? new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.All,
                 TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full
             };
-            this.isSupportedFunc = isSupportedFunc ?? (_ => true);
+            _isSupportedFunc = isSupportedFunc ?? (_ => true);
         }
 
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
-            var result = JsonConvert.SerializeObject(value, this.settings);
-            
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
+            var result = JsonConvert.SerializeObject(value, _settings);
+
             // The schema type when serializing the field is the type of the codec.
             // In practice it could be any unique type as long as this codec is registered as the handler.
             // By checking against the codec type in IsSupportedType, the codec could also just be registered as an IGenericCodec.
@@ -46,20 +50,26 @@ namespace Hagar.Json
         object IFieldCodec<object>.ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference)
+            {
                 return ReferenceCodec.ReadReference<object>(ref reader, field);
-            
-            if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
+            }
+
+            if (field.WireType != WireType.LengthPrefixed)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
             var length = reader.ReadVarUInt32();
             var bytes = reader.ReadBytes(length);
 
             // TODO: NoAlloc
             var resultString = Encoding.UTF8.GetString(bytes);
-            var result = JsonConvert.DeserializeObject(resultString, this.settings);
+            var result = JsonConvert.DeserializeObject(resultString, _settings);
             ReferenceCodec.RecordObject(reader.Session, result);
             return result;
         }
 
-        public bool IsSupportedType(Type type) => type == SelfType || this.isSupportedFunc(type);
+        public bool IsSupportedType(Type type) => type == SelfType || _isSupportedFunc(type);
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for JSON fields. {field}");

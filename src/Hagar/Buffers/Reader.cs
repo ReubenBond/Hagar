@@ -6,7 +6,6 @@ using System.Numerics;
 #endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Hagar.Session;
 using Hagar.Utilities;
 
@@ -14,25 +13,25 @@ namespace Hagar.Buffers
 {
     public ref struct Reader
     {
-        // ReSharper disable FieldCanBeMadeReadOnly.Local
-        private ReadOnlySequence<byte> input;
-        // ReSharper restore FieldCanBeMadeReadOnly.Local
+#pragma warning disable IDE0044 // Add readonly modifier
+        private ReadOnlySequence<byte> _input;
+#pragma warning restore IDE0044 // Add readonly modifier
 
-        private ReadOnlySpan<byte> currentSpan;
-        private SequencePosition nextSequencePosition;
-        private int bufferPos;
-        private int bufferSize;
-        private long previousBuffersSize;
+        private ReadOnlySpan<byte> _currentSpan;
+        private SequencePosition _nextSequencePosition;
+        private int _bufferPos;
+        private int _bufferSize;
+        private long _previousBuffersSize;
 
         public Reader(ReadOnlySequence<byte> input, SerializerSession session)
         {
-            this.input = input;
-            this.Session = session;
-            this.nextSequencePosition = input.Start;
-            this.currentSpan = input.First.Span;
-            this.bufferPos = 0;
-            this.bufferSize = this.currentSpan.Length;
-            this.previousBuffersSize = 0;
+            _input = input;
+            Session = session;
+            _nextSequencePosition = input.Start;
+            _currentSpan = input.First.Span;
+            _bufferPos = 0;
+            _bufferSize = _currentSpan.Length;
+            _previousBuffersSize = 0;
         }
 
         public SerializerSession Session { get; }
@@ -40,21 +39,21 @@ namespace Hagar.Buffers
         public long Position
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.previousBuffersSize + this.bufferPos;
+            get => _previousBuffersSize + _bufferPos;
         }
 
         public void Skip(long count)
         {
-            var end = this.Position + count;
-            while (this.Position < end)
+            var end = Position + count;
+            while (Position < end)
             {
-                if (this.Position + this.bufferSize >= end)
+                if (Position + _bufferSize >= end)
                 {
-                    this.bufferPos = (int)(end - this.previousBuffersSize);
+                    _bufferPos = (int)(end - _previousBuffersSize);
                 }
                 else
                 {
-                    this.MoveNext();
+                    MoveNext();
                 }
             }
         }
@@ -62,60 +61,70 @@ namespace Hagar.Buffers
         /// <summary>
         /// Creates a new reader beginning at the specified position.
         /// </summary>
-        public Reader ForkFrom(long position) => new Reader(this.input.Slice(position), this.Session);
+        public Reader ForkFrom(long position) => new Reader(_input.Slice(position), Session);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void MoveNext()
         {
-            this.previousBuffersSize += this.bufferSize;
+            _previousBuffersSize += _bufferSize;
 
             // If this is the first call to MoveNext then nextSequencePosition is invalid and must be moved to the second position.
-            if (this.nextSequencePosition.Equals(this.input.Start)) this.input.TryGet(ref this.nextSequencePosition, out _);
-
-            if (!this.input.TryGet(ref this.nextSequencePosition, out var memory))
+            if (_nextSequencePosition.Equals(_input.Start))
             {
-                this.currentSpan = memory.Span;
+                _ = _input.TryGet(ref _nextSequencePosition, out _);
+            }
+
+            if (!_input.TryGet(ref _nextSequencePosition, out var memory))
+            {
+                _currentSpan = memory.Span;
                 ThrowInsufficientData();
             }
 
-            this.currentSpan = memory.Span;
-            this.bufferPos = 0;
-            this.bufferSize = this.currentSpan.Length;
+            _currentSpan = memory.Span;
+            _bufferPos = 0;
+            _bufferSize = _currentSpan.Length;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte()
         {
-            var pos = this.bufferPos;
-            var span = this.currentSpan;
-            if ((uint)pos >= (uint)span.Length) return this.ReadByteSlow();
+            var pos = _bufferPos;
+            var span = _currentSpan;
+            if ((uint)pos >= (uint)span.Length)
+            {
+                return ReadByteSlow();
+            }
+
             var result = span[pos];
 
-            this.bufferPos = pos + 1;
+            _bufferPos = pos + 1;
             return result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private byte ReadByteSlow()
         {
-            this.MoveNext();
-            return this.currentSpan[this.bufferPos++];
+            MoveNext();
+            return _currentSpan[_bufferPos++];
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ReadInt32() => (int)this.ReadUInt32();
+        public int ReadInt32() => (int)ReadUInt32();
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadUInt32()
         {
             const int width = 4;
-            if (this.bufferPos + width > this.bufferSize) return ReadSlower(ref this);
+            if (_bufferPos + width > _bufferSize)
+            {
+                return ReadSlower(ref this);
+            }
 
-            var result = BinaryPrimitives.ReadUInt32LittleEndian(this.currentSpan.Slice(this.bufferPos, width));
-            this.bufferPos += width;
+            var result = BinaryPrimitives.ReadUInt32LittleEndian(_currentSpan.Slice(_bufferPos, width));
+            _bufferPos += width;
             return result;
 
-            uint ReadSlower(ref Reader r)
+            static uint ReadSlower(ref Reader r)
             {
                 uint b1 = r.ReadByte();
                 uint b2 = r.ReadByte();
@@ -127,19 +136,22 @@ namespace Hagar.Buffers
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long ReadInt64() => (long)this.ReadUInt64();
+        public long ReadInt64() => (long)ReadUInt64();
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadUInt64()
         {
             const int width = 8;
-            if (this.bufferPos + width > this.bufferSize) return ReadSlower(ref this);
+            if (_bufferPos + width > _bufferSize)
+            {
+                return ReadSlower(ref this);
+            }
 
-            var result = BinaryPrimitives.ReadUInt64LittleEndian(this.currentSpan.Slice(this.bufferPos, width));
-            this.bufferPos += width;
+            var result = BinaryPrimitives.ReadUInt64LittleEndian(_currentSpan.Slice(_bufferPos, width));
+            _bufferPos += width;
             return result;
 
-            ulong ReadSlower(ref Reader r)
+            static ulong ReadSlower(ref Reader r)
             {
                 ulong b1 = r.ReadByte();
                 ulong b2 = r.ReadByte();
@@ -162,19 +174,19 @@ namespace Hagar.Buffers
 #if NETCOREAPP
         public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 #else
-        public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(this.ReadInt32()), 0);
+        public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NETCOREAPP
         public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
 #else
-        public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(this.ReadInt64()), 0);
+        public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(ReadInt64()), 0);
 #endif
 
         public decimal ReadDecimal()
         {
-            var parts = new[] { this.ReadInt32(), this.ReadInt32(), this.ReadInt32(), this.ReadInt32() };
+            var parts = new[] { ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32() };
             return new decimal(parts);
         }
 
@@ -187,32 +199,35 @@ namespace Hagar.Buffers
 
             var bytes = new byte[count];
             var destination = new Span<byte>(bytes);
-            this.ReadBytes(in destination);
+            ReadBytes(in destination);
             return bytes;
         }
 
         public void ReadBytes(in Span<byte> destination)
         {
-            if (this.bufferPos + destination.Length <= this.bufferSize)
+            if (_bufferPos + destination.Length <= _bufferSize)
             {
-                this.currentSpan.Slice(this.bufferPos, destination.Length).CopyTo(destination);
-                this.bufferPos += destination.Length;
+                _currentSpan.Slice(_bufferPos, destination.Length).CopyTo(destination);
+                _bufferPos += destination.Length;
                 return;
             }
 
             CopySlower(in destination, ref this);
 
-            void CopySlower(in Span<byte> d, ref Reader reader)
+            static void CopySlower(in Span<byte> d, ref Reader reader)
             {
                 var dest = d;
                 while (true)
                 {
-                    var writeSize = Math.Min(dest.Length, reader.currentSpan.Length - reader.bufferPos);
-                    reader.currentSpan.Slice(reader.bufferPos, writeSize).CopyTo(dest);
-                    reader.bufferPos += writeSize;
+                    var writeSize = Math.Min(dest.Length, reader._currentSpan.Length - reader._bufferPos);
+                    reader._currentSpan.Slice(reader._bufferPos, writeSize).CopyTo(dest);
+                    reader._bufferPos += writeSize;
                     dest = dest.Slice(writeSize);
 
-                    if (dest.Length == 0) break;
+                    if (dest.Length == 0)
+                    {
+                        break;
+                    }
 
                     reader.MoveNext();
                 }
@@ -222,10 +237,10 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes)
         {
-            if (this.bufferPos + length <= this.bufferSize)
+            if (_bufferPos + length <= _bufferSize)
             {
-                bytes = this.currentSpan.Slice(this.bufferPos, length);
-                this.bufferPos += length;
+                bytes = _currentSpan.Slice(_bufferPos, length);
+                _bufferPos += length;
                 return true;
             }
 
@@ -239,26 +254,26 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe uint ReadVarUInt32()
         {
-            var pos = this.bufferPos;
+            var pos = _bufferPos;
 
-            if (!BitConverter.IsLittleEndian || pos + 8 > this.currentSpan.Length)
+            if (!BitConverter.IsLittleEndian || pos + 8 > _currentSpan.Length)
             {
-                return this.ReadVarUInt32Slow();
+                return ReadVarUInt32Slow();
             }
 
             // The number of zeros in the msb position dictates the number of bytes to be read.
             // Up to a maximum of 5 for a 32bit integer.
-            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos);
+            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
 
             ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
             var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
             result >>= bytesNeeded;
-            this.bufferPos += bytesNeeded;
+            _bufferPos += bytesNeeded;
 
             // Mask off invalid data
             var fullWidthReadMask = ~((ulong)bytesNeeded - 5 + 1);
             var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
-            result &= mask; 
+            result &= mask;
 
             return (uint)result;
         }
@@ -266,7 +281,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private uint ReadVarUInt32Slow()
         {
-            var header = this.ReadByte();
+            var header = ReadByte();
             var numBytes = BitOperations.TrailingZeroCount(0x0100U | header) + 1;
 
             // Widen to a ulong for the 5-byte case
@@ -277,7 +292,7 @@ namespace Hagar.Buffers
             var i = numBytes;
             while (--i > 0)
             {
-                result |= (ulong)this.ReadByte() << shiftBy;
+                result |= (ulong)ReadByte() << shiftBy;
                 shiftBy += 8;
             }
 
@@ -288,22 +303,22 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadVarUInt64()
         {
-            var pos = this.bufferPos;
+            var pos = _bufferPos;
 
-            if (!BitConverter.IsLittleEndian || pos + 10 > this.currentSpan.Length)
+            if (!BitConverter.IsLittleEndian || pos + 10 > _currentSpan.Length)
             {
-                return this.ReadVarUInt64Slow();
+                return ReadVarUInt64Slow();
             }
 
             // The number of zeros in the msb position dictates the number of bytes to be read.
             // Up to a maximum of 5 for a 32bit integer.
-            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(this.currentSpan), pos);
-            
+            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
+
             ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
 
             var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
             result >>= bytesNeeded;
-            this.bufferPos += bytesNeeded;
+            _bufferPos += bytesNeeded;
 
             ushort upper = Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref readHead, sizeof(ulong)));
             result |= ((ulong)upper) << (64 - bytesNeeded);
@@ -311,7 +326,7 @@ namespace Hagar.Buffers
             // Mask off invalid data
             var fullWidthReadMask = ~((ulong)bytesNeeded - 10 + 1);
             var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
-            result &= mask; 
+            result &= mask;
 
             return result;
         }
@@ -319,7 +334,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private ulong ReadVarUInt64Slow()
         {
-            var header = this.ReadByte();
+            var header = ReadByte();
             var numBytes = BitOperations.TrailingZeroCount(0x0100U | header) + 1;
 
             // Widen to a ulong for the 5-byte case
@@ -332,7 +347,7 @@ namespace Hagar.Buffers
                 var i = numBytes;
                 while (--i > 0)
                 {
-                    result |= (ulong)this.ReadByte() << shiftBy;
+                    result |= (ulong)ReadByte() << shiftBy;
                     shiftBy += 8;
                 }
 
@@ -341,38 +356,38 @@ namespace Hagar.Buffers
             }
             else
             {
-                result |= (ulong)this.ReadByte() << 8;
+                result |= (ulong)ReadByte() << 8;
 
                 // If there was more than one byte worth of trailing zeros, read again now that we have more data.
                 numBytes = BitOperations.TrailingZeroCount(result) + 1;
 
                 if (numBytes == 9)
                 {
-                    result |= (ulong)this.ReadByte() << 16;
-                    result |= (ulong)this.ReadByte() << 24;
-                    result |= (ulong)this.ReadByte() << 32;
+                    result |= (ulong)ReadByte() << 16;
+                    result |= (ulong)ReadByte() << 24;
+                    result |= (ulong)ReadByte() << 32;
 
-                    result |= (ulong)this.ReadByte() << 40;
-                    result |= (ulong)this.ReadByte() << 48;
-                    result |= (ulong)this.ReadByte() << 56;
+                    result |= (ulong)ReadByte() << 40;
+                    result |= (ulong)ReadByte() << 48;
+                    result |= (ulong)ReadByte() << 56;
                     result >>= 9;
 
-                    var upper = (ushort)this.ReadByte();
+                    var upper = (ushort)ReadByte();
                     result |= ((ulong)upper) << (64 - 9);
                     return result;
                 }
                 else if (numBytes == 10)
                 {
-                    result |= (ulong)this.ReadByte() << 16;
-                    result |= (ulong)this.ReadByte() << 24;
-                    result |= (ulong)this.ReadByte() << 32;
+                    result |= (ulong)ReadByte() << 16;
+                    result |= (ulong)ReadByte() << 24;
+                    result |= (ulong)ReadByte() << 32;
 
-                    result |= (ulong)this.ReadByte() << 40;
-                    result |= (ulong)this.ReadByte() << 48;
-                    result |= (ulong)this.ReadByte() << 56;
+                    result |= (ulong)ReadByte() << 40;
+                    result |= (ulong)ReadByte() << 48;
+                    result |= (ulong)ReadByte() << 56;
                     result >>= 10;
 
-                    var upper = (ushort)(this.ReadByte() | (ushort)(this.ReadByte() << 8));
+                    var upper = (ushort)(ReadByte() | (ushort)(ReadByte() << 8));
                     result |= ((ulong)upper) << (64 - 10);
                     return result;
                 }

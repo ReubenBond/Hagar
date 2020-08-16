@@ -1,10 +1,9 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -13,29 +12,29 @@ namespace Hagar.CodeGenerator
     {
         public SerializableTypeDescription(SemanticModel semanticModel, INamedTypeSymbol type, IEnumerable<IMemberDescription> members)
         {
-            this.Type = type;
-            this.Members = members.ToList();
-            this.SemanticModel = semanticModel;
+            Type = type;
+            Members = members.ToList();
+            SemanticModel = semanticModel;
         }
 
         private INamedTypeSymbol Type { get; }
 
-        public TypeSyntax TypeSyntax => this.Type.ToTypeSyntax();
-        public TypeSyntax UnboundTypeSyntax => this.Type.ToTypeSyntax();
+        public TypeSyntax TypeSyntax => Type.ToTypeSyntax();
+        public TypeSyntax UnboundTypeSyntax => Type.ToTypeSyntax();
 
-        public bool HasComplexBaseType => !this.IsValueType &&
-                                          this.Type.BaseType != null &&
-                                          this.Type.BaseType.SpecialType != SpecialType.System_Object;
+        public bool HasComplexBaseType => !IsValueType &&
+                                          Type.BaseType != null &&
+                                          Type.BaseType.SpecialType != SpecialType.System_Object;
 
-        public INamedTypeSymbol BaseType => this.Type.BaseType;
+        public INamedTypeSymbol BaseType => Type.BaseType;
 
-        public string Name => this.Type.Name;
+        public string Name => Type.Name;
 
-        public bool IsValueType => this.Type.IsValueType;
+        public bool IsValueType => Type.IsValueType;
 
-        public bool IsGenericType => this.Type.IsGenericType;
+        public bool IsGenericType => Type.IsGenericType;
 
-        public ImmutableArray<ITypeParameterSymbol> TypeParameters => this.Type.TypeParameters;
+        public ImmutableArray<ITypeParameterSymbol> TypeParameters => Type.TypeParameters;
 
         public List<IMemberDescription> Members { get; }
         public SemanticModel SemanticModel { get; }
@@ -44,10 +43,18 @@ namespace Hagar.CodeGenerator
         {
             get
             {
-                if (this.Type.Constructors.Length == 0) return true;
-                foreach (var ctor in this.Type.Constructors)
+                if (Type.Constructors.Length == 0)
                 {
-                    if (ctor.Parameters.Length != 0) continue;
+                    return true;
+                }
+
+                foreach (var ctor in Type.Constructors)
+                {
+                    if (ctor.Parameters.Length != 0)
+                    {
+                        continue;
+                    }
+
                     switch (ctor.DeclaredAccessibility)
                     {
                         case Accessibility.Public:
@@ -59,6 +66,6 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(this.TypeSyntax));
+        public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(TypeSyntax));
     }
 }

@@ -1,17 +1,17 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
     internal static class ActivatorGenerator
     {
-        public static ClassDeclarationSyntax GenerateActivator(Compilation compilation, LibraryTypes libraryTypes, ISerializableTypeDescription type)
+        public static ClassDeclarationSyntax GenerateActivator(LibraryTypes libraryTypes, ISerializableTypeDescription type)
         {
             var simpleClassName = GetSimpleClassName(type);
 

@@ -29,15 +29,9 @@ namespace Hagar.TestKit
             }
         }
 
-        public static ReadOnlySequence<byte> ToReadOnlySequence(this IEnumerable<byte[]> buffers)
-        {
-            return CreateReadOnlySequence(buffers.ToArray());
-        }
+        public static ReadOnlySequence<byte> ToReadOnlySequence(this IEnumerable<byte[]> buffers) => CreateReadOnlySequence(buffers.ToArray());
 
-        public static ReadOnlySequence<byte> ToReadOnlySequence(this IEnumerable<Memory<byte>> buffers)
-        {
-            return ReadOnlyBufferSegment.Create(buffers);
-        }
+        public static ReadOnlySequence<byte> ToReadOnlySequence(this IEnumerable<Memory<byte>> buffers) => ReadOnlyBufferSegment.Create(buffers);
 
         public static ReadOnlySequence<byte> CreateReadOnlySequence(params byte[][] buffers)
         {

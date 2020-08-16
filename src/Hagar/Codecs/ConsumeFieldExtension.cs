@@ -13,17 +13,17 @@ namespace Hagar.Codecs
             // References cannot themselves be referenced.
             if (field.WireType == WireType.Reference)
             {
-                reader.ReadVarUInt32();
+                _ = reader.ReadVarUInt32();
                 return;
             }
 
             // Record a placeholder so that this field can later be correctly deserialized if it is referenced.
             ReferenceCodec.RecordObject(reader.Session, new UnknownFieldMarker(field, reader.Position));
-            
+
             switch (field.WireType)
             {
                 case WireType.VarInt:
-                    reader.ReadVarUInt64();
+                    _ = reader.ReadVarUInt64();
                     break;
                 case WireType.TagDelimited:
                     // Since tag delimited fields can be comprised of other fields, recursively consume those, too.
@@ -49,7 +49,7 @@ namespace Hagar.Codecs
                     break;
             }
         }
-        
+
         /// <summary>
         /// Consumes a tag-delimited field.
         /// </summary>
@@ -58,8 +58,16 @@ namespace Hagar.Codecs
             while (true)
             {
                 var field = reader.ReadFieldHeader();
-                if (field.IsEndObject) break;
-                if (field.IsEndBaseFields) continue;
+                if (field.IsEndObject)
+                {
+                    break;
+                }
+
+                if (field.IsEndBaseFields)
+                {
+                    continue;
+                }
+
                 reader.ConsumeUnknownField(field);
             }
         }

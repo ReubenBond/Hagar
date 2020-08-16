@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Diagnostics.Contracts;
 using System.Text;
@@ -7,39 +7,33 @@ namespace Benchmarks.Utilities
 {
     public struct SingleSegmentBuffer : IBufferWriter<byte>
     {
-        private readonly byte[] buffer;
-        private int written;
+        private readonly byte[] _buffer;
+        private int _written;
 
         public SingleSegmentBuffer(byte[] buffer)
         {
-            this.buffer = buffer;
-            this.written = 0;
+            this._buffer = buffer;
+            _written = 0;
         }
 
-        public void Advance(int bytes)
-        {
-            this.written += bytes;
-        }
+        public void Advance(int bytes) => _written += bytes;
 
         [Pure]
-        public Memory<byte> GetMemory(int sizeHint = 0) => this.buffer.AsMemory().Slice(this.written);
+        public Memory<byte> GetMemory(int sizeHint = 0) => _buffer.AsMemory().Slice(_written);
 
         [Pure]
-        public Span<byte> GetSpan(int sizeHint) => this.buffer.AsSpan().Slice(this.written);
+        public Span<byte> GetSpan(int sizeHint) => _buffer.AsSpan().Slice(_written);
 
-        public byte[] ToArray() => this.buffer.AsSpan(0, this.written).ToArray();
+        public byte[] ToArray() => _buffer.AsSpan(0, _written).ToArray();
 
-        public void Reset() => this.written = 0;
+        public void Reset() => _written = 0;
 
         [Pure]
-        public int Length => this.written;
-        
-        [Pure]
-        public ReadOnlySequence<byte> GetReadOnlySequence() => new ReadOnlySequence<byte>(this.buffer, 0, this.written);
+        public int Length => _written;
 
-        public override string ToString()
-        {
-            return Encoding.UTF8.GetString(this.buffer.AsSpan(0, this.written).ToArray());
-        }
+        [Pure]
+        public ReadOnlySequence<byte> GetReadOnlySequence() => new ReadOnlySequence<byte>(_buffer, 0, _written);
+
+        public override string ToString() => Encoding.UTF8.GetString(_buffer.AsSpan(0, _written).ToArray());
     }
 }

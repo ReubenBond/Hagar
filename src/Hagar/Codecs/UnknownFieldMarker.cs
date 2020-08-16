@@ -9,8 +9,8 @@ namespace Hagar.Codecs
     {
         public UnknownFieldMarker(Field field, long position)
         {
-            this.Field = field;
-            this.Position = position;
+            Field = field;
+            Position = position;
         }
 
         /// <summary>
@@ -24,9 +24,6 @@ namespace Hagar.Codecs
         public Field Field { get; }
 
         /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"[{nameof(UnknownFieldMarker)}] {nameof(this.Position)}: {this.Position}, {nameof(this.Field)}: {this.Field}";
-        }
+        public override string ToString() => $"[{nameof(UnknownFieldMarker)}] {nameof(Position)}: {Position}, {nameof(Field)}: {Field}";
     }
 }

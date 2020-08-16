@@ -1,12 +1,12 @@
+using Hagar.Buffers;
+using Hagar.Session;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using Hagar.Buffers;
-using Hagar.Session;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 // ReSharper disable InconsistentNaming
 
@@ -15,18 +15,18 @@ namespace Hagar.UnitTests
     [Trait("Category", "BVT"), Trait("Category", "ISerializable")]
     public class ISerializableTests
     {
-        private readonly IServiceProvider serviceProvider;
-        private readonly SessionPool sessionPool;
-        private readonly Serializer<object> serializer;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly SessionPool _sessionPool;
+        private readonly Serializer<object> _serializer;
 
         public ISerializableTests()
         {
             var services = new ServiceCollection();
-            services.AddHagar(hagar => hagar.AddISerializableSupport());
+            _ = services.AddHagar(hagar => hagar.AddISerializableSupport());
 
-            this.serviceProvider = services.BuildServiceProvider();
-            this.sessionPool = this.serviceProvider.GetService<SessionPool>();
-            this.serializer = this.serviceProvider.GetRequiredService<Serializer<object>>();
+            _serviceProvider = services.BuildServiceProvider();
+            _sessionPool = _serviceProvider.GetService<SessionPool>();
+            _serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
         }
 
         private object DotNetSerializationLoop(object input)
@@ -54,19 +54,19 @@ namespace Hagar.UnitTests
         {
             var pipe = new Pipe();
 
-            using (var session = this.sessionPool.GetSession())
+            using (var session = _sessionPool.GetSession())
             {
                 var writer = new Writer<PipeWriter>(pipe.Writer, session);
-                this.serializer.Serialize(ref writer, expected);
-                pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                _serializer.Serialize(ref writer, expected);
+                _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
             }
 
-            using (var session = this.sessionPool.GetSession())
+            using (var session = _sessionPool.GetSession())
             {
-                pipe.Reader.TryRead(out var readResult);
+                _ = pipe.Reader.TryRead(out var readResult);
                 var reader = new Reader(readResult.Buffer, session);
-                var result = this.serializer.Deserialize(ref reader);
+                var result = _serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
                 return result;
@@ -116,7 +116,7 @@ namespace Hagar.UnitTests
                 Payload = "pyjamas"
             };
 
-            var result2 = (SimpleISerializableObject) DotNetSerializationLoop(input2);
+            var result2 = (SimpleISerializableObject)DotNetSerializationLoop(input2);
 
             Assert.Equal(input2.History, input.History);
             Assert.Equal(result2.History, result.History);
@@ -162,124 +162,118 @@ namespace Hagar.UnitTests
         [Serializable]
         public class SimpleISerializableObject : System.Runtime.Serialization.ISerializable, IDeserializationCallback
         {
-            private List<string> history;
-            private List<StreamingContext> contexts;
+            private List<string> _history;
+            private List<StreamingContext> _contexts;
 
             public SimpleISerializableObject()
             {
-                this.History.Add("default_ctor");
+                History.Add("default_ctor");
             }
 
             public SimpleISerializableObject(SerializationInfo info, StreamingContext context)
             {
-                this.History.Add("serialization_ctor");
-                this.Contexts.Add(context);
-                this.Payload = info.GetString(nameof(this.Payload));
+                History.Add("serialization_ctor");
+                Contexts.Add(context);
+                Payload = info.GetString(nameof(Payload));
             }
 
-            public List<string> History => this.history ?? (this.history = new List<string>());
-            public List<StreamingContext> Contexts => this.contexts ?? (this.contexts = new List<StreamingContext>());
+            public List<string> History => _history ??= new List<string>();
+            public List<StreamingContext> Contexts => _contexts ??= new List<StreamingContext>();
 
             public string Payload { get; set; }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                this.Contexts.Add(context);
-                info.AddValue(nameof(this.Payload), this.Payload);
+                Contexts.Add(context);
+                info.AddValue(nameof(Payload), Payload);
             }
 
             [OnSerializing]
             internal void OnSerializingMethod(StreamingContext context)
             {
-                this.History.Add("serializing");
-                this.Contexts.Add(context);
+                History.Add("serializing");
+                Contexts.Add(context);
             }
 
             [OnSerialized]
             internal void OnSerializedMethod(StreamingContext context)
             {
-                this.History.Add("serialized");
-                this.Contexts.Add(context);
+                History.Add("serialized");
+                Contexts.Add(context);
             }
 
             [OnDeserializing]
             internal void OnDeserializingMethod(StreamingContext context)
             {
-                this.History.Add("deserializing");
-                this.Contexts.Add(context);
+                History.Add("deserializing");
+                Contexts.Add(context);
             }
 
             [OnDeserialized]
             internal void OnDeserializedMethod(StreamingContext context)
             {
-                this.History.Add("deserialized");
-                this.Contexts.Add(context);
+                History.Add("deserialized");
+                Contexts.Add(context);
             }
 
-            void IDeserializationCallback.OnDeserialization(object sender)
-            {
-                this.History.Add("deserialization");
-            }
+            void IDeserializationCallback.OnDeserialization(object sender) => History.Add("deserialization");
         }
 
         [Serializable]
         public struct SimpleISerializableStruct : System.Runtime.Serialization.ISerializable, IDeserializationCallback
         {
-            private List<string> history;
-            private List<StreamingContext> contexts;
+            private List<string> _history;
+            private List<StreamingContext> _contexts;
 
             public SimpleISerializableStruct(SerializationInfo info, StreamingContext context)
             {
-                this.history = null;
-                this.contexts = null;
-                this.Payload = info.GetString(nameof(this.Payload));
-                this.History.Add("serialization_ctor");
-                this.Contexts.Add(context);
+                _history = null;
+                _contexts = null;
+                Payload = info.GetString(nameof(Payload));
+                History.Add("serialization_ctor");
+                Contexts.Add(context);
             }
 
-            public List<string> History => this.history ?? (this.history = new List<string>());
-            public List<StreamingContext> Contexts => this.contexts ?? (this.contexts = new List<StreamingContext>());
+            public List<string> History => _history ??= new List<string>();
+            public List<StreamingContext> Contexts => _contexts ??= new List<StreamingContext>();
 
             public string Payload { get; set; }
 
             public void GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                this.Contexts.Add(context);
-                info.AddValue(nameof(this.Payload), this.Payload);
+                Contexts.Add(context);
+                info.AddValue(nameof(Payload), Payload);
             }
 
             [OnSerializing]
             internal void OnSerializingMethod(StreamingContext context)
             {
-                this.History.Add("serializing");
-                this.Contexts.Add(context);
+                History.Add("serializing");
+                Contexts.Add(context);
             }
 
             [OnSerialized]
             internal void OnSerializedMethod(StreamingContext context)
             {
-                this.History.Add("serialized");
-                this.Contexts.Add(context);
+                History.Add("serialized");
+                Contexts.Add(context);
             }
 
             [OnDeserializing]
             internal void OnDeserializingMethod(StreamingContext context)
             {
-                this.History.Add("deserializing");
-                this.Contexts.Add(context);
+                History.Add("deserializing");
+                Contexts.Add(context);
             }
 
             [OnDeserialized]
             internal void OnDeserializedMethod(StreamingContext context)
             {
-                this.History.Add("deserialized");
-                this.Contexts.Add(context);
+                History.Add("deserialized");
+                Contexts.Add(context);
             }
 
-            void IDeserializationCallback.OnDeserialization(object sender)
-            {
-                this.History.Add("deserialization");
-            }
+            void IDeserializationCallback.OnDeserialization(object sender) => History.Add("deserialization");
         }
     }
 }

@@ -1,9 +1,8 @@
+using Hagar.Codecs;
+using Hagar.TestKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hagar.Codecs;
-using Hagar.TestKit;
-using Microsoft.Extensions.DependencyInjection;
 // ReSharper disable UnusedMember.Global
 
 namespace Hagar.UnitTests
@@ -58,7 +57,7 @@ namespace Hagar.UnitTests
 
         protected override byte[][] TestValues => new[]
         {
-            Array.Empty<byte>(), Enumerable.Range(0, 4097).Select(b => unchecked((byte)b)).ToArray(), this.CreateValue(),
+            Array.Empty<byte>(), Enumerable.Range(0, 4097).Select(b => unchecked((byte)b)).ToArray(), CreateValue(),
         };
     }
 
@@ -66,15 +65,15 @@ namespace Hagar.UnitTests
     {
         protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120) + 50).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
         protected override bool Equals(int[] left, int[] right) => ReferenceEquals(left, right) || left.SequenceEqual(right);
-        protected override int[][] TestValues => new[] { this.CreateValue(), this.CreateValue(), this.CreateValue() };
+        protected override int[][] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
     }
 
     public class UInt64CodecTests : FieldCodecTester<ulong, UInt64Codec>
     {
         protected override ulong CreateValue()
         {
-            var msb = (ulong) Guid.NewGuid().GetHashCode() << 32;
-            var lsb = (ulong) Guid.NewGuid().GetHashCode();
+            var msb = (ulong)Guid.NewGuid().GetHashCode() << 32;
+            var lsb = (ulong)Guid.NewGuid().GetHashCode();
             return msb | lsb;
         }
 
@@ -97,7 +96,7 @@ namespace Hagar.UnitTests
 
     public class UInt32CodecTests : FieldCodecTester<uint, UInt32Codec>
     {
-        protected override uint CreateValue() => (uint) Guid.NewGuid().GetHashCode();
+        protected override uint CreateValue() => (uint)Guid.NewGuid().GetHashCode();
 
         protected override uint[] TestValues => new uint[]
         {
@@ -115,7 +114,7 @@ namespace Hagar.UnitTests
 
     public class UInt16CodecTests : FieldCodecTester<ushort, UInt16Codec>
     {
-        protected override ushort CreateValue() => (ushort) Guid.NewGuid().GetHashCode();
+        protected override ushort CreateValue() => (ushort)Guid.NewGuid().GetHashCode();
         protected override ushort[] TestValues => new ushort[]
         {
             0,
@@ -130,7 +129,7 @@ namespace Hagar.UnitTests
 
     public class ByteCodecTests : FieldCodecTester<byte, ByteCodec>
     {
-        protected override byte CreateValue() => (byte) Guid.NewGuid().GetHashCode();
+        protected override byte CreateValue() => (byte)Guid.NewGuid().GetHashCode();
         protected override byte[] TestValues => new byte[] { 0, 1, byte.MaxValue - 1, byte.MaxValue };
     }
 
@@ -138,9 +137,9 @@ namespace Hagar.UnitTests
     {
         protected override long CreateValue()
         {
-            var msb = (ulong) Guid.NewGuid().GetHashCode() << 32;
-            var lsb = (ulong) Guid.NewGuid().GetHashCode();
-            return (long) (msb | lsb);
+            var msb = (ulong)Guid.NewGuid().GetHashCode() << 32;
+            var lsb = (ulong)Guid.NewGuid().GetHashCode();
+            return (long)(msb | lsb);
         }
 
         protected override long[] TestValues => new[]
@@ -185,7 +184,7 @@ namespace Hagar.UnitTests
 
     public class Int16CodecTests : FieldCodecTester<short, Int16Codec>
     {
-        protected override short CreateValue() => (short) Guid.NewGuid().GetHashCode();
+        protected override short CreateValue() => (short)Guid.NewGuid().GetHashCode();
 
         protected override short[] TestValues => new short[]
         {
@@ -203,7 +202,7 @@ namespace Hagar.UnitTests
 
     public class SByteCodecTests : FieldCodecTester<sbyte, SByteCodec>
     {
-        protected override sbyte CreateValue() => (sbyte) Guid.NewGuid().GetHashCode();
+        protected override sbyte CreateValue() => (sbyte)Guid.NewGuid().GetHashCode();
 
         protected override sbyte[] TestValues => new sbyte[]
         {
@@ -218,8 +217,8 @@ namespace Hagar.UnitTests
 
     public class CharCodecTests : FieldCodecTester<char, CharCodec>
     {
-        private int createValueCount;
-        protected override char CreateValue() => (char) ('!' + this.createValueCount++ % ('~' - '!'));
+        private int _createValueCount;
+        protected override char CreateValue() => (char)('!' + _createValueCount++ % ('~' - '!'));
         protected override char[] TestValues => new[]
         {
             (char)0,
@@ -245,7 +244,7 @@ namespace Hagar.UnitTests
 
     public class TypeCodecTests : FieldCodecTester<Type, TypeSerializerCodec>
     {
-        private readonly Type[] values =
+        private readonly Type[] _values =
         {
             typeof(Dictionary<Guid, List<string>>),
             typeof(Type).MakeByRefType(),
@@ -260,15 +259,15 @@ namespace Hagar.UnitTests
             typeof(string)
         };
 
-        private int valueIndex;
+        private int _valueIndex;
 
-        protected override Type CreateValue() => this.values[this.valueIndex++ % this.values.Length];
-        protected override Type[] TestValues => this.values;
+        protected override Type CreateValue() => _values[_valueIndex++ % _values.Length];
+        protected override Type[] TestValues => _values;
     }
 
     public class FloatCodecTests : FieldCodecTester<float, FloatCodec>
     {
-        protected override float CreateValue() => float.MaxValue * (float) new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
+        protected override float CreateValue() => float.MaxValue * (float)new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
         protected override float[] TestValues => new[] { float.MinValue, 0, 1.0f, float.MaxValue };
     }
 
@@ -280,7 +279,7 @@ namespace Hagar.UnitTests
 
     public class DecimalCodecTests : FieldCodecTester<decimal, DecimalCodec>
     {
-        protected override decimal CreateValue() => decimal.MaxValue * (decimal) new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
+        protected override decimal CreateValue() => decimal.MaxValue * (decimal)new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
         protected override decimal[] TestValues => new[] { decimal.MinValue, 0, 1.0M, decimal.MaxValue };
     }
 
@@ -290,30 +289,35 @@ namespace Hagar.UnitTests
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
             var result = new List<int>();
-            for (var i = 0; i < rand.Next(17) + 5; i++) result.Add(rand.Next());
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result.Add(rand.Next());
+            }
+
             return result;
         }
 
         protected override bool Equals(List<int> left, List<int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
-        protected override List<int>[] TestValues => new[] { this.CreateValue(), this.CreateValue(), this.CreateValue() };
+        protected override List<int>[] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
     }
 
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder)
-        {
-            builder.AddISerializableSupport();
-        }
+        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
 
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
             var result = new Dictionary<string, int>();
-            for (var i = 0; i < rand.Next(17) + 5; i++) result[rand.Next().ToString()] = rand.Next();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result[rand.Next().ToString()] = rand.Next();
+            }
+
             return result;
         }
 
-        protected override Dictionary<string, int>[] TestValues => new[] { this.CreateValue(), this.CreateValue(), this.CreateValue() };
+        protected override Dictionary<string, int>[] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 }

@@ -11,7 +11,10 @@ namespace Hagar.Activators
         {
             foreach (var ctor in typeof(T).GetConstructors())
             {
-                if (ctor.GetParameters().Length != 0) continue;
+                if (ctor.GetParameters().Length != 0)
+                {
+                    continue;
+                }
 
                 var newExpression = Expression.New(ctor);
                 DefaultConstructorFunction = Expression.Lambda<Func<T>>(newExpression).Compile();

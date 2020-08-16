@@ -1,18 +1,16 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 // ReSharper disable InconsistentNaming
 
 namespace Hagar.CodeGenerator
 {
     internal class LibraryTypes
     {
-        private readonly Compilation compilation;
-
         public static LibraryTypes FromCompilation(Compilation compilation, CodeGeneratorOptions options)
         {
-            return new LibraryTypes(compilation)
+            return new LibraryTypes
             {
                 IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 Action_2 = Type("System.Action`2"),
@@ -82,7 +80,11 @@ namespace Hagar.CodeGenerator
             INamedTypeSymbol Type(string metadataName)
             {
                 var result = compilation.GetTypeByMetadataName(metadataName);
-                if (result is null) throw new InvalidOperationException("Cannot find type with metadata name " + metadataName);
+                if (result is null)
+                {
+                    throw new InvalidOperationException("Cannot find type with metadata name " + metadataName);
+                }
+
                 return result;
             }
         }
@@ -99,7 +101,7 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol Int32 { get; private set; }
 
-        private LibraryTypes(Compilation compilation) => this.compilation = compilation;
+        private LibraryTypes() { }
 
         public INamedTypeSymbol MetadataProviderAttribute { get; private set; }
 

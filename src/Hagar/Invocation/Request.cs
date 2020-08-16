@@ -13,7 +13,7 @@ namespace Hagar.Invocation
         {
             try
             {
-                var resultTask = this.InvokeInner();
+                var resultTask = InvokeInner();
                 if (resultTask.IsCompleted)
                 {
                     resultTask.GetAwaiter().GetResult();
@@ -32,7 +32,8 @@ namespace Hagar.Invocation
         private async ValueTask<Response> CompleteInvokeAsync(ValueTask resultTask)
         {
             try
-            {   await resultTask;
+            {
+                await resultTask;
                 return Response.FromResult<object>(null);
             }
             catch (Exception exception)
@@ -60,7 +61,7 @@ namespace Hagar.Invocation
         {
             try
             {
-                var resultTask = this.InvokeInner();
+                var resultTask = InvokeInner();
                 if (resultTask.IsCompleted)
                 {
                     return new ValueTask<Response>(Response.FromResult(resultTask.Result));
@@ -107,7 +108,7 @@ namespace Hagar.Invocation
         {
             try
             {
-                var resultTask = this.InvokeInner();
+                var resultTask = InvokeInner();
                 var status = resultTask.Status;
                 if (resultTask.IsCompleted)
                 {
@@ -155,7 +156,7 @@ namespace Hagar.Invocation
         {
             try
             {
-                var resultTask = this.InvokeInner();
+                var resultTask = InvokeInner();
                 var status = resultTask.Status;
                 if (resultTask.IsCompleted)
                 {

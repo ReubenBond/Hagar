@@ -96,10 +96,7 @@ namespace Hagar.Utilities
         /// </summary>
         /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int LeadingZeroCount(uint value)
-        {
-            return 31 ^ Log2SoftwareFallback(value);
-        }
+        internal static int LeadingZeroCount(uint value) => 31 ^ Log2SoftwareFallback(value);
 
         /// <summary>
         /// Count the number of leading zero bits in a mask.

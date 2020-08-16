@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Hagar.Invocation;
 
 namespace TestRpc.Runtime

@@ -1,20 +1,18 @@
+using Hagar.Buffers;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
-using Hagar.Buffers;
 
 namespace Hagar.TypeSystem
 {
     public sealed class TypeCodec
     {
-        private readonly ConcurrentDictionary<Type, TypeKey> typeCache = new ConcurrentDictionary<Type, TypeKey>();
-        private readonly ConcurrentDictionary<int, (TypeKey Key, Type Type)> typeKeyCache = new ConcurrentDictionary<int, (TypeKey, Type)>();
+        private readonly ConcurrentDictionary<Type, TypeKey> _typeCache = new ConcurrentDictionary<Type, TypeKey>();
+        private readonly ConcurrentDictionary<int, (TypeKey Key, Type Type)> _typeKeyCache = new ConcurrentDictionary<int, (TypeKey, Type)>();
         private readonly TypeConverter _typeConverter;
-        private readonly Func<Type, TypeKey> _getTypeKey; 
+        private readonly Func<Type, TypeKey> _getTypeKey;
 
         public TypeCodec(TypeConverter typeConverter)
         {
@@ -24,7 +22,7 @@ namespace Hagar.TypeSystem
 
         public void Write<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
-            var key = this.typeCache.GetOrAdd(type, _getTypeKey);
+            var key = _typeCache.GetOrAdd(type, _getTypeKey);
             writer.Write(key.HashCode);
             writer.WriteVarInt((uint)key.TypeName.Length);
             writer.Write(key.TypeName);
@@ -42,10 +40,13 @@ namespace Hagar.TypeSystem
 
             // Search through 
             var candidateHashCode = hashCode;
-            while (this.typeKeyCache.TryGetValue(candidateHashCode, out var entry))
+            while (_typeKeyCache.TryGetValue(candidateHashCode, out var entry))
             {
                 var existingKey = entry.Key;
-                if (existingKey.HashCode != hashCode) break;
+                if (existingKey.HashCode != hashCode)
+                {
+                    break;
+                }
 
                 var existingSpan = new ReadOnlySpan<byte>(existingKey.TypeName);
                 if (existingSpan.SequenceEqual(typeName))
@@ -65,11 +66,11 @@ namespace Hagar.TypeSystem
                 typeNameString = Encoding.UTF8.GetString(typeNameBytes, typeName.Length);
             }
 
-            _typeConverter.TryParse(typeNameString, out type);
+            _ = _typeConverter.TryParse(typeNameString, out type);
             if (type is object)
             {
                 var key = new TypeKey(hashCode, typeName.ToArray());
-                while (!this.typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
+                while (!_typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
                 {
                     // Insert the type at the first available position.
                 }
@@ -92,13 +93,19 @@ namespace Hagar.TypeSystem
 
             // Search through 
             var candidateHashCode = hashCode;
-            while (this.typeKeyCache.TryGetValue(candidateHashCode, out var entry))
+            while (_typeKeyCache.TryGetValue(candidateHashCode, out var entry))
             {
                 var existingKey = entry.Key;
-                if (existingKey.HashCode != hashCode) break;
+                if (existingKey.HashCode != hashCode)
+                {
+                    break;
+                }
 
                 var existingSpan = new ReadOnlySpan<byte>(existingKey.TypeName);
-                if (existingSpan.SequenceEqual(typeName)) return entry.Type;
+                if (existingSpan.SequenceEqual(typeName))
+                {
+                    return entry.Type;
+                }
 
                 // Try the next entry.
                 ++candidateHashCode;
@@ -115,7 +122,7 @@ namespace Hagar.TypeSystem
             if (type is object)
             {
                 var key = new TypeKey(hashCode, typeName.ToArray());
-                while (!this.typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
+                while (!_typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
                 {
                     // Insert the type at the first available position.
                 }
@@ -144,50 +151,42 @@ namespace Hagar.TypeSystem
 
             public TypeKey(int hashCode, byte[] key)
             {
-                this.HashCode = hashCode;
-                this.TypeName = key;
+                HashCode = hashCode;
+                TypeName = key;
             }
 
             public TypeKey(byte[] key)
             {
-                this.HashCode = unchecked((int) JenkinsHash.ComputeHash(key));
-                this.TypeName = key;
+                HashCode = unchecked((int)JenkinsHash.ComputeHash(key));
+                TypeName = key;
             }
 
             public bool Equals(TypeKey other)
             {
-                if (this.HashCode != other.HashCode) return false;
-                var a = this.TypeName;
+                if (HashCode != other.HashCode)
+                {
+                    return false;
+                }
+
+                var a = TypeName;
                 var b = other.TypeName;
                 return ReferenceEquals(a, b) || ByteArrayCompare(a, b);
 
-                bool ByteArrayCompare(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2)
+                static bool ByteArrayCompare(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2)
                 {
                     return a1.SequenceEqual(a2);
                 }
             }
 
-            public override bool Equals(object obj)
-            {
-                return obj is TypeKey key && this.Equals(key);
-            }
+            public override bool Equals(object obj) => obj is TypeKey key && Equals(key);
 
-            public override int GetHashCode()
-            {
-                return this.HashCode;
-            }
+            public override int GetHashCode() => HashCode;
 
             internal class Comparer : IEqualityComparer<TypeKey>
             {
-                public bool Equals(TypeKey x, TypeKey y)
-                {
-                    return x.Equals(y);
-                }
+                public bool Equals(TypeKey x, TypeKey y) => x.Equals(y);
 
-                public int GetHashCode(TypeKey obj)
-                {
-                    return obj.HashCode;
-                }
+                public int GetHashCode(TypeKey obj) => obj.HashCode;
             }
         }
     }

@@ -1,8 +1,8 @@
+using Hagar.Serializers;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Hagar.Serializers;
 
 namespace Hagar.GeneratedCodeHelpers
 {
@@ -15,19 +15,25 @@ namespace Hagar.GeneratedCodeHelpers
 
         private sealed class RecursiveServiceResolutionState
         {
-            private int depth;
+            private int _depth;
 
             public List<object> Callers { get; } = new List<object>();
 
             public void Enter(object caller)
             {
-                ++this.depth;
-                if (caller != null) this.Callers.Add(caller);
+                ++_depth;
+                if (caller != null)
+                {
+                    Callers.Add(caller);
+                }
             }
 
             public void Exit()
             {
-                if (--this.depth <= 0) this.Callers.Clear();
+                if (--_depth <= 0)
+                {
+                    Callers.Clear();
+                }
             }
         }
 
@@ -40,16 +46,23 @@ namespace Hagar.GeneratedCodeHelpers
         /// <returns>The unwrapped service.</returns>
         public static TService UnwrapService<TService>(object caller, TService service)
         {
-            while (service is IServiceHolder<TService> && caller is TService callerService) return callerService;
+            while (service is IServiceHolder<TService> && caller is TService callerService)
+            {
+                return callerService;
+            }
+
             var state = ResolutionState.Value;
-            
+
             try
             {
                 state.Enter(caller);
 
                 foreach (var c in state.Callers)
                 {
-                    if (c is TService s && !(c is IServiceHolder<TService>)) return s;
+                    if (c is TService s && !(c is IServiceHolder<TService>))
+                    {
+                        return s;
+                    }
                 }
 
                 return Unwrap(service);
@@ -59,9 +72,13 @@ namespace Hagar.GeneratedCodeHelpers
                 state.Exit();
             }
 
-            TService Unwrap(TService val)
+            static TService Unwrap(TService val)
             {
-                while (val is IServiceHolder<TService> wrapping) val = wrapping.Value;
+                while (val is IServiceHolder<TService> wrapping)
+                {
+                    val = wrapping.Value;
+                }
+
                 return val;
             }
         }
@@ -72,7 +89,10 @@ namespace Hagar.GeneratedCodeHelpers
             foreach (var c in state.Callers)
             {
                 var type = c?.GetType();
-                if (serviceType == type) return c;
+                if (serviceType == type)
+                {
+                    return c;
+                }
             }
 
             return null;

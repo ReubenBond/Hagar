@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Reflection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator.SyntaxGeneration

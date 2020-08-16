@@ -1,17 +1,17 @@
-﻿namespace Hagar.TypeSystem
+namespace Hagar.TypeSystem
 {
     public readonly struct QualifiedType
     {
         public QualifiedType(string assembly, string type)
         {
-            this.Assembly = assembly;
-            this.Type = type;
+            Assembly = assembly;
+            Type = type;
         }
 
         public void Deconstruct(out string assembly, out string type)
         {
-            assembly = this.Assembly;
-            type = this.Type;
+            assembly = Assembly;
+            type = Type;
         }
 
         public static implicit operator QualifiedType((string Assembly, string Type) args) => new QualifiedType(args.Assembly, args.Type);

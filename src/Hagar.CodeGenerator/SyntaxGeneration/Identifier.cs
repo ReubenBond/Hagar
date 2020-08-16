@@ -1,4 +1,4 @@
-﻿namespace Hagar.CodeGenerator.SyntaxGeneration
+namespace Hagar.CodeGenerator.SyntaxGeneration
 {
     internal static class Identifier
     {

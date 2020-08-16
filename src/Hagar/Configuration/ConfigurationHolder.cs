@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Hagar.Configuration
 {
@@ -8,10 +8,10 @@ namespace Hagar.Configuration
         /// <inheritdoc />
         public ConfigurationHolder(IEnumerable<IConfigurationProvider<TConfiguration>> providers)
         {
-            this.Value = new TConfiguration();
+            Value = new TConfiguration();
             foreach (var provider in providers)
             {
-                provider.Configure(this.Value);
+                provider.Configure(Value);
             }
         }
 

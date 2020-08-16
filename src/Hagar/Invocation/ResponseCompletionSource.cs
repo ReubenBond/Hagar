@@ -15,16 +15,13 @@ namespace Hagar.Invocation
         public TResult GetResult(short token)
         {
             var result = _core.GetResult(token);
-            this.Reset();
+            Reset();
             return result;
         }
 
         public ValueTaskSourceStatus GetStatus(short token) => _core.GetStatus(token);
 
-        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
-        {
-            _core.OnCompleted(continuation, state, token, flags);
-        }
+        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags) => _core.OnCompleted(continuation, state, token, flags);
 
         public void Reset()
         {
@@ -40,15 +37,15 @@ namespace Hagar.Invocation
         {
             if (value is Response<TResult> typed)
             {
-                this.Complete(typed);
+                Complete(typed);
             }
             else if (value.Exception is Exception exception)
             {
-                this.SetException(exception);
+                SetException(exception);
             }
             else
             {
-                this.SetResult((TResult)value.Result);
+                SetResult((TResult)value.Result);
             }
         }
 
@@ -60,18 +57,18 @@ namespace Hagar.Invocation
         {
             if (value.Exception is Exception exception)
             {
-                this.SetException(exception);
+                SetException(exception);
             }
             else
             {
-                this.SetResult(value.TypedResult);
+                SetResult(value.TypedResult);
             }
         }
 
         void IValueTaskSource.GetResult(short token)
         {
-            _core.GetResult(token);
-            this.Reset();
+            _ = _core.GetResult(token);
+            Reset();
         }
     }
 }

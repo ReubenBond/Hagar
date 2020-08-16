@@ -8,17 +8,17 @@ namespace Hagar.ISerializable
 {
     internal class ValueTypeSerializerFactory
     {
-        private readonly SerializationConstructorFactory constructorFactory;
-        private readonly SerializationCallbacksFactory callbacksFactory;
-        private readonly SerializationEntryCodec entrySerializer;
-        private readonly StreamingContext streamingContext;
-        private readonly IFormatterConverter formatterConverter;
-        private readonly Func<Type, ISerializableSerializer> createSerializerDelegate;
+        private readonly SerializationConstructorFactory _constructorFactory;
+        private readonly SerializationCallbacksFactory _callbacksFactory;
+        private readonly SerializationEntryCodec _entrySerializer;
+        private readonly StreamingContext _streamingContext;
+        private readonly IFormatterConverter _formatterConverter;
+        private readonly Func<Type, ISerializableSerializer> _createSerializerDelegate;
 
-        private readonly ConcurrentDictionary<Type, ISerializableSerializer> serializers =
+        private readonly ConcurrentDictionary<Type, ISerializableSerializer> _serializers =
             new ConcurrentDictionary<Type, ISerializableSerializer>();
 
-        private readonly MethodInfo createTypedSerializerMethodInfo = typeof(ValueTypeSerializerFactory).GetMethod(
+        private readonly MethodInfo _createTypedSerializerMethodInfo = typeof(ValueTypeSerializerFactory).GetMethod(
             nameof(CreateTypedSerializer),
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -30,27 +30,24 @@ namespace Hagar.ISerializable
             IFormatterConverter formatterConverter,
             StreamingContext streamingContext)
         {
-            this.constructorFactory = constructorFactory;
-            this.callbacksFactory = callbacksFactory;
-            this.entrySerializer = entrySerializer;
-            this.streamingContext = streamingContext;
-            this.formatterConverter = formatterConverter;
-            this.createSerializerDelegate = type => (ISerializableSerializer) this.createTypedSerializerMethodInfo.MakeGenericMethod(type).Invoke(this, null);
+            _constructorFactory = constructorFactory;
+            _callbacksFactory = callbacksFactory;
+            _entrySerializer = entrySerializer;
+            _streamingContext = streamingContext;
+            _formatterConverter = formatterConverter;
+            _createSerializerDelegate = type => (ISerializableSerializer)_createTypedSerializerMethodInfo.MakeGenericMethod(type).Invoke(this, null);
         }
 
         [SecurityCritical]
-        public ISerializableSerializer GetSerializer(Type type)
-        {
-            return this.serializers.GetOrAdd(type, this.createSerializerDelegate);
-        }
+        public ISerializableSerializer GetSerializer(Type type) => _serializers.GetOrAdd(type, _createSerializerDelegate);
 
         [SecurityCritical]
         private ISerializableSerializer CreateTypedSerializer<T>() where T : struct
         {
-            var constructor = this.constructorFactory.GetSerializationConstructorDelegate<T, ValueTypeSerializer<T>.ValueConstructor>();
+            var constructor = _constructorFactory.GetSerializationConstructorDelegate<T, ValueTypeSerializer<T>.ValueConstructor>();
             var callbacks =
-                this.callbacksFactory.GetValueTypeCallbacks<T, ValueTypeSerializer<T>.SerializationCallback>(typeof(T));
-            var serializer = new ValueTypeSerializer<T>(constructor, callbacks, this.entrySerializer, this.streamingContext, this.formatterConverter);
+                _callbacksFactory.GetValueTypeCallbacks<T, ValueTypeSerializer<T>.SerializationCallback>(typeof(T));
+            var serializer = new ValueTypeSerializer<T>(constructor, callbacks, _entrySerializer, _streamingContext, _formatterConverter);
             return serializer;
         }
     }

@@ -104,50 +104,44 @@ namespace Hagar.TypeSystem
             return _resolver.TryResolveType(runtimeType, out type);
         }
 
-        private QualifiedType ConvertToDisplayName(QualifiedType input)
+        private QualifiedType ConvertToDisplayName(QualifiedType input) => input switch
         {
-            return input switch
-            {
-                (_, "System.Object") => new QualifiedType(null, "object"),
-                (_, "System.String") => new QualifiedType(null, "string"),
-                (_, "System.Char") => new QualifiedType(null, "char"),
-                (_, "System.SByte") => new QualifiedType(null, "sbyte"),
-                (_, "System.Byte") => new QualifiedType(null, "byte"),
-                (_, "System.Boolean") => new QualifiedType(null, "bool"),
-                (_, "System.Int16") => new QualifiedType(null, "short"),
-                (_, "System.UInt16") => new QualifiedType(null, "ushort"),
-                (_, "System.Int32") => new QualifiedType(null, "int"),
-                (_, "System.UInt32") => new QualifiedType(null, "uint"),
-                (_, "System.Int64") => new QualifiedType(null, "long"),
-                (_, "System.UInt64") => new QualifiedType(null, "ulong"),
-                (_, "System.Single") => new QualifiedType(null, "float"),
-                (_, "System.Double") => new QualifiedType(null, "double"),
-                (_, "System.Decimal") => new QualifiedType(null, "decimal"),
-                _ => input,
-            };
-        }
+            (_, "System.Object") => new QualifiedType(null, "object"),
+            (_, "System.String") => new QualifiedType(null, "string"),
+            (_, "System.Char") => new QualifiedType(null, "char"),
+            (_, "System.SByte") => new QualifiedType(null, "sbyte"),
+            (_, "System.Byte") => new QualifiedType(null, "byte"),
+            (_, "System.Boolean") => new QualifiedType(null, "bool"),
+            (_, "System.Int16") => new QualifiedType(null, "short"),
+            (_, "System.UInt16") => new QualifiedType(null, "ushort"),
+            (_, "System.Int32") => new QualifiedType(null, "int"),
+            (_, "System.UInt32") => new QualifiedType(null, "uint"),
+            (_, "System.Int64") => new QualifiedType(null, "long"),
+            (_, "System.UInt64") => new QualifiedType(null, "ulong"),
+            (_, "System.Single") => new QualifiedType(null, "float"),
+            (_, "System.Double") => new QualifiedType(null, "double"),
+            (_, "System.Decimal") => new QualifiedType(null, "decimal"),
+            _ => input,
+        };
 
-        private QualifiedType ConvertFromDisplayName(QualifiedType input)
+        private QualifiedType ConvertFromDisplayName(QualifiedType input) => input switch
         {
-            return input switch
-            {
-                (_, "object") => new QualifiedType(null, "System.Object"),
-                (_, "string") => new QualifiedType(null, "System.String"),
-                (_, "char") => new QualifiedType(null, "System.Char"),
-                (_, "sbyte") => new QualifiedType(null, "System.SByte"),
-                (_, "byte") => new QualifiedType(null, "System.Byte"),
-                (_, "bool") => new QualifiedType(null, "System.Boolean"),
-                (_, "short") => new QualifiedType(null, "System.Int16"),
-                (_, "ushort") => new QualifiedType(null, "System.UInt16"),
-                (_, "int") => new QualifiedType(null, "System.Int32"),
-                (_, "uint") => new QualifiedType(null, "System.UInt32"),
-                (_, "long") => new QualifiedType(null, "System.Int64"),
-                (_, "ulong") => new QualifiedType(null, "System.UInt64"),
-                (_, "float") => new QualifiedType(null, "System.Single"),
-                (_, "double") => new QualifiedType(null, "System.Double"),
-                (_, "decimal") => new QualifiedType(null, "System.Decimal"),
-                _ => input,
-            };
-        }
+            (_, "object") => new QualifiedType(null, "System.Object"),
+            (_, "string") => new QualifiedType(null, "System.String"),
+            (_, "char") => new QualifiedType(null, "System.Char"),
+            (_, "sbyte") => new QualifiedType(null, "System.SByte"),
+            (_, "byte") => new QualifiedType(null, "System.Byte"),
+            (_, "bool") => new QualifiedType(null, "System.Boolean"),
+            (_, "short") => new QualifiedType(null, "System.Int16"),
+            (_, "ushort") => new QualifiedType(null, "System.UInt16"),
+            (_, "int") => new QualifiedType(null, "System.Int32"),
+            (_, "uint") => new QualifiedType(null, "System.UInt32"),
+            (_, "long") => new QualifiedType(null, "System.Int64"),
+            (_, "ulong") => new QualifiedType(null, "System.UInt64"),
+            (_, "float") => new QualifiedType(null, "System.Single"),
+            (_, "double") => new QualifiedType(null, "System.Double"),
+            (_, "decimal") => new QualifiedType(null, "System.Decimal"),
+            _ => input,
+        };
     }
 }

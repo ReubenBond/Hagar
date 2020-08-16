@@ -1,5 +1,5 @@
-﻿using System;
 using Hagar;
+using System;
 
 namespace Benchmarks.Models
 {
@@ -12,7 +12,7 @@ namespace Benchmarks.Models
 
         [Id(1)]
         public bool Bool { get; set; }
-        
+
         [Id(3)]
         public object AlwaysNull { get; set; }
 

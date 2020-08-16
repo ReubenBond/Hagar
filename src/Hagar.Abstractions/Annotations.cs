@@ -12,8 +12,8 @@ namespace Hagar
     {
         public GenerateMethodSerializersAttribute(Type proxyBase, bool isExtension = false)
         {
-            this.ProxyBase = proxyBase;
-            this.IsExtension = isExtension;
+            ProxyBase = proxyBase;
+            IsExtension = isExtension;
         }
 
         public Type ProxyBase { get; }
@@ -31,7 +31,7 @@ namespace Hagar
     {
         public IdAttribute(uint id)
         {
-            this.Id = id;
+            Id = id;
         }
 
         public uint Id { get; }

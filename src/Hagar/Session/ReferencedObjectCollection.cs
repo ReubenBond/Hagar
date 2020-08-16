@@ -1,8 +1,8 @@
+using Hagar.Codecs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Hagar.Codecs;
 
 namespace Hagar.Session
 {
@@ -12,8 +12,8 @@ namespace Hagar.Session
         {
             public ReferencePair(uint id, object @object)
             {
-                this.Id = id;
-                this.Object = @object;
+                Id = id;
+                Object = @object;
             }
 
             public uint Id { get; }
@@ -22,10 +22,10 @@ namespace Hagar.Session
         }
 
         public int ReferenceToObjectCount { get; set; }
-        private ReferencePair[] referenceToObject = new ReferencePair[64];
+        private ReferencePair[] _referenceToObject = new ReferencePair[64];
 
-        private int objectToReferenceCount;
-        private ReferencePair[] objectToReference = new ReferencePair[64];
+        private int _objectToReferenceCount;
+        private ReferencePair[] _objectToReference = new ReferencePair[64];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetReferencedObject(uint reference, out object value)
@@ -38,11 +38,11 @@ namespace Hagar.Session
             }
 
             // TODO: Binary search
-            for (int i = 0; i < this.ReferenceToObjectCount; ++i)
+            for (int i = 0; i < ReferenceToObjectCount; ++i)
             {
-                if (this.referenceToObject[i].Id == reference)
+                if (_referenceToObject[i].Id == reference)
                 {
-                    value = this.referenceToObject[i].Object;
+                    value = _referenceToObject[i].Object;
                     return true;
                 }
             }
@@ -52,7 +52,7 @@ namespace Hagar.Session
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void MarkValueField() => ++this.CurrentReferenceId;
+        public void MarkValueField() => ++CurrentReferenceId;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool GetOrAddReference(object value, out uint reference)
@@ -65,17 +65,17 @@ namespace Hagar.Session
             }
 
             // TODO: Binary search
-            for (int i = 0; i < this.objectToReferenceCount; ++i)
+            for (int i = 0; i < _objectToReferenceCount; ++i)
             {
-                if (ReferenceEquals(this.objectToReference[i].Object, value))
+                if (ReferenceEquals(_objectToReference[i].Object, value))
                 {
-                    reference = this.objectToReference[i].Id;
+                    reference = _objectToReference[i].Id;
                     return true;
                 }
             }
 
             // Add the reference.
-            reference = ++this.CurrentReferenceId;
+            reference = ++CurrentReferenceId;
             AddToReferenceToIdMap(value, reference);
             return false;
         }
@@ -89,9 +89,9 @@ namespace Hagar.Session
             }
 
             // TODO: Binary search
-            for (var i = 0; i < this.ReferenceToObjectCount; ++i)
+            for (var i = 0; i < ReferenceToObjectCount; ++i)
             {
-                if (ReferenceEquals(this.referenceToObject[i].Object, value))
+                if (ReferenceEquals(_referenceToObject[i].Object, value))
                 {
                     return i;
                 }
@@ -102,19 +102,19 @@ namespace Hagar.Session
 
         private void AddToReferenceToIdMap(object value, uint reference)
         {
-            if (this.objectToReferenceCount >= this.objectToReference.Length)
+            if (_objectToReferenceCount >= _objectToReference.Length)
             {
-                var old = this.objectToReference;
-                this.objectToReference = new ReferencePair[this.objectToReference.Length * 2];
-                Array.Copy(old, this.objectToReference, this.objectToReferenceCount);
+                var old = _objectToReference;
+                _objectToReference = new ReferencePair[_objectToReference.Length * 2];
+                Array.Copy(old, _objectToReference, _objectToReferenceCount);
             }
 
-            this.objectToReference[this.objectToReferenceCount++] = new ReferencePair(reference, value);
+            _objectToReference[_objectToReferenceCount++] = new ReferencePair(reference, value);
         }
 
         private void AddToReferences(object value, uint reference)
         {
-            if (this.ReferenceToObjectCount >= this.referenceToObject.Length)
+            if (ReferenceToObjectCount >= _referenceToObject.Length)
             {
                 GrowReferenceToObjectArray();
             }
@@ -126,53 +126,57 @@ namespace Hagar.Session
                 return;
             }
 
-            this.referenceToObject[this.ReferenceToObjectCount++] = new ReferencePair(reference, value);
+            _referenceToObject[ReferenceToObjectCount++] = new ReferencePair(reference, value);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void GrowReferenceToObjectArray()
         {
-            var old = this.referenceToObject;
-            this.referenceToObject = new ReferencePair[this.referenceToObject.Length * 2];
-            Array.Copy(old, this.referenceToObject, this.ReferenceToObjectCount);
+            var old = _referenceToObject;
+            _referenceToObject = new ReferencePair[_referenceToObject.Length * 2];
+            Array.Copy(old, _referenceToObject, ReferenceToObjectCount);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowReferenceExistsException(uint reference) => throw new InvalidOperationException($"Reference {reference} already exists");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RecordReferenceField(object value) => RecordReferenceField(value, ++this.CurrentReferenceId);
+        public void RecordReferenceField(object value) => RecordReferenceField(value, ++CurrentReferenceId);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RecordReferenceField(object value, uint referenceId)
         {
-            if (value is null) return;
+            if (value is null)
+            {
+                return;
+            }
+
             AddToReferences(value, referenceId);
         }
 
-        public Dictionary<uint, object> CopyReferenceTable() => this.referenceToObject.Take(this.ReferenceToObjectCount).ToDictionary(r => r.Id, r => r.Object);
-        public Dictionary<object, uint> CopyIdTable() => this.objectToReference.Take(this.objectToReferenceCount).ToDictionary(r => r.Object, r => r.Id);
+        public Dictionary<uint, object> CopyReferenceTable() => _referenceToObject.Take(ReferenceToObjectCount).ToDictionary(r => r.Id, r => r.Object);
+        public Dictionary<object, uint> CopyIdTable() => _objectToReference.Take(_objectToReferenceCount).ToDictionary(r => r.Object, r => r.Id);
 
         public uint CurrentReferenceId { get; set; }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            var refToObj = this.referenceToObject.AsSpan(0, Math.Min(this.referenceToObject.Length, this.ReferenceToObjectCount));
+            var refToObj = _referenceToObject.AsSpan(0, Math.Min(_referenceToObject.Length, ReferenceToObjectCount));
             for (var i = 0; i < refToObj.Length; i++)
             {
                 refToObj[i] = default;
             }
 
-            var objToRef = this.objectToReference.AsSpan(0, Math.Min(this.objectToReference.Length, this.objectToReferenceCount));
+            var objToRef = _objectToReference.AsSpan(0, Math.Min(_objectToReference.Length, _objectToReferenceCount));
             for (var i = 0; i < objToRef.Length; i++)
             {
                 objToRef[i] = default;
             }
 
-            this.ReferenceToObjectCount = 0;
-            this.objectToReferenceCount = 0;
-            this.CurrentReferenceId = 0;
+            ReferenceToObjectCount = 0;
+            _objectToReferenceCount = 0;
+            CurrentReferenceId = 0;
         }
     }
 }

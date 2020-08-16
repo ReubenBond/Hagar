@@ -10,13 +10,13 @@ namespace Hagar.TestKit
     [ExcludeFromCodeCoverage]
     public class TestMultiSegmentBufferWriter : IBufferWriter<byte>, IOutputBuffer
     {
-        private readonly List<byte[]> committed = new List<byte[]>();
-        private readonly int maxAllocationSize;
-        private byte[] current = new byte[0];
+        private readonly List<byte[]> _committed = new List<byte[]>();
+        private readonly int _maxAllocationSize;
+        private byte[] _current = new byte[0];
 
         public TestMultiSegmentBufferWriter(int maxAllocationSize)
         {
-            this.maxAllocationSize = maxAllocationSize;
+            _maxAllocationSize = maxAllocationSize;
         }
 
         public void Advance(int bytes)
@@ -26,38 +26,47 @@ namespace Hagar.TestKit
                 return;
             }
 
-            this.committed.Add(this.current.AsSpan(0, bytes).ToArray());
-            this.current = new byte[0];
+            _committed.Add(_current.AsSpan(0, bytes).ToArray());
+            _current = new byte[0];
         }
 
         public Memory<byte> GetMemory(int sizeHint = 0)
         {
             if (sizeHint == 0)
-                sizeHint = this.current.Length + 1;
-            if (sizeHint < this.current.Length)
+            {
+                sizeHint = _current.Length + 1;
+            }
+
+            if (sizeHint < _current.Length)
+            {
                 throw new InvalidOperationException("Attempted to allocate a new buffer when the existing buffer has sufficient free space.");
-            var newBuffer = new byte[Math.Min(sizeHint, this.maxAllocationSize)];
-            this.current.CopyTo(newBuffer.AsSpan());
-            this.current = newBuffer;
-            return this.current;
+            }
+
+            var newBuffer = new byte[Math.Min(sizeHint, _maxAllocationSize)];
+            _current.CopyTo(newBuffer.AsSpan());
+            _current = newBuffer;
+            return _current;
         }
 
         public Span<byte> GetSpan(int sizeHint)
         {
             if (sizeHint == 0)
-                sizeHint = this.current.Length + 1;
-            if (sizeHint < this.current.Length)
+            {
+                sizeHint = _current.Length + 1;
+            }
+
+            if (sizeHint < _current.Length)
+            {
                 throw new InvalidOperationException("Attempted to allocate a new buffer when the existing buffer has sufficient free space.");
-            var newBuffer = new byte[Math.Min(sizeHint, this.maxAllocationSize)];
-            this.current.CopyTo(newBuffer.AsSpan());
-            this.current = newBuffer;
-            return this.current;
+            }
+
+            var newBuffer = new byte[Math.Min(sizeHint, _maxAllocationSize)];
+            _current.CopyTo(newBuffer.AsSpan());
+            _current = newBuffer;
+            return _current;
         }
 
         [Pure]
-        public ReadOnlySequence<byte> GetReadOnlySequence(int maxSegmentSize)
-        {
-            return this.committed.SelectMany(b => b).Batch(maxSegmentSize).ToReadOnlySequence();
-        }
+        public ReadOnlySequence<byte> GetReadOnlySequence(int maxSegmentSize) => _committed.SelectMany(b => b).Batch(maxSegmentSize).ToReadOnlySequence();
     }
 }

@@ -6,8 +6,8 @@ namespace TestRpc.IO
     {
         public ConnectionContext(PipeReader input, PipeWriter output)
         {
-            this.Input = input;
-            this.Output = output;
+            Input = input;
+            Output = output;
         }
 
         public PipeReader Input { get; }

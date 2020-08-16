@@ -1,23 +1,19 @@
-using System;
+using Hagar;
+using Hagar.Activators;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Sources;
-using Hagar;
-using Hagar.Activators;
-using Hagar.GeneratedCodeHelpers;
-using Hagar.Invocation;
-using Microsoft.Extensions.DependencyInjection;
 using TestRpc.App;
 using TestRpc.IO;
 using TestRpc.Runtime;
 
 namespace TestRpc
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var clientToServer = new Pipe(PipeOptions.Default);
             var serverToClient = new Pipe(PipeOptions.Default);
@@ -49,8 +45,8 @@ namespace TestRpc
             var services = new ServiceCollection()
                 .AddHagar(hagar =>
                 {
-                    hagar.AddAssembly(typeof(Program).Assembly);
-                    hagar.AddISerializableSupport();
+                    _ = hagar.AddAssembly(typeof(Program).Assembly);
+                    _ = hagar.AddISerializableSupport();
                 })
                 .AddSingleton<IActivator<Message>, PooledMessageActivator>()
                 .AddSingleton<Catalog>()

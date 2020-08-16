@@ -19,13 +19,10 @@ namespace Hagar.Utilities
         /// Returns a delegate to get the value of a specified field.
         /// </summary>
         /// <returns>A delegate to get the value of a specified field.</returns>
-        public static Delegate GetGetter(FieldInfo field)
-        {
-            return GetGetDelegate(
+        public static Delegate GetGetter(FieldInfo field) => GetGetDelegate(
                 field,
                 typeof(Func<,>).MakeGenericType(field.DeclaringType, field.FieldType),
                 new[] { field.DeclaringType });
-        }
 
         /// <summary>
         /// Returns a delegate to get the value of a specified field.

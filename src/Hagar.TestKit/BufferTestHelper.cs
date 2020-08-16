@@ -1,25 +1,22 @@
-using System;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using Hagar.Buffers;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Hagar.TestKit
 {
     [ExcludeFromCodeCoverage]
     public static class BufferTestHelper<TValue>
     {
-        public static IBufferTestSerializer[] GetTestSerializers(IServiceProvider serviceProvider)
-        {
-            return new IBufferTestSerializer[]
+        public static IBufferTestSerializer[] GetTestSerializers(IServiceProvider serviceProvider) => new IBufferTestSerializer[]
             {
                 ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = 17 }),
                 ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = 128 }),
                 ActivatorUtilities.CreateInstance<SingleSegmentBufferWriterTester>(serviceProvider),
                 ActivatorUtilities.CreateInstance<StructBufferWriterTester>(serviceProvider),
             };
-        }
 
         public interface IBufferTestSerializer
         {
@@ -30,34 +27,30 @@ namespace Hagar.TestKit
         [ExcludeFromCodeCoverage]
         private abstract class BufferTester<TBufferWriter> : IBufferTestSerializer where TBufferWriter : IBufferWriter<byte>, IOutputBuffer
         {
-            private readonly SessionPool sessionPool;
-            private readonly Serializer<TValue> serializer;
+            private readonly SessionPool _sessionPool;
+            private readonly Serializer<TValue> _serializer;
 
             protected BufferTester(IServiceProvider serviceProvider)
             {
-                this.sessionPool = serviceProvider.GetRequiredService<SessionPool>();
-                this.serializer = serviceProvider.GetRequiredService<Serializer<TValue>>();
+                _sessionPool = serviceProvider.GetRequiredService<SessionPool>();
+                _serializer = serviceProvider.GetRequiredService<Serializer<TValue>>();
             }
 
             protected abstract TBufferWriter CreateBufferWriter();
 
             public IOutputBuffer Serialize(TValue input)
             {
-                using (var session = this.sessionPool.GetSession())
-                {
-                    var writer = new Writer<TBufferWriter>(this.CreateBufferWriter(), session);
-                    this.serializer.Serialize(ref writer, input);
-                    return writer.Output;
-                }
+                using var session = _sessionPool.GetSession();
+                var writer = new Writer<TBufferWriter>(CreateBufferWriter(), session);
+                _serializer.Serialize(ref writer, input);
+                return writer.Output;
             }
 
             public void Deserialize(ReadOnlySequence<byte> buffer, out TValue output)
             {
-                using (var session = this.sessionPool.GetSession())
-                {
-                    var reader = new Reader(buffer, session);
-                    output = this.serializer.Deserialize(ref reader);
-                }
+                using var session = _sessionPool.GetSession();
+                var reader = new Reader(buffer, session);
+                output = _serializer.Deserialize(ref reader);
             }
         }
 
@@ -65,11 +58,11 @@ namespace Hagar.TestKit
         [ExcludeFromCodeCoverage]
         private class MultiSegmentBufferWriterTester : BufferTester<TestMultiSegmentBufferWriter>
         {
-            private readonly Options options;
+            private readonly Options _options;
 
             public MultiSegmentBufferWriterTester(IServiceProvider serviceProvider, Options options) : base(serviceProvider)
             {
-                this.options = options;
+                this._options = options;
             }
 
             public class Options
@@ -77,9 +70,9 @@ namespace Hagar.TestKit
                 public int MaxAllocationSize { get; set; }
             }
 
-            protected override TestMultiSegmentBufferWriter CreateBufferWriter() => new TestMultiSegmentBufferWriter(this.options.MaxAllocationSize);
+            protected override TestMultiSegmentBufferWriter CreateBufferWriter() => new TestMultiSegmentBufferWriter(_options.MaxAllocationSize);
 
-            public override string ToString() => $"{nameof(TestMultiSegmentBufferWriter)} {nameof(this.options.MaxAllocationSize)}: {this.options.MaxAllocationSize}";
+            public override string ToString() => $"{nameof(TestMultiSegmentBufferWriter)} {nameof(_options.MaxAllocationSize)}: {_options.MaxAllocationSize}";
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local

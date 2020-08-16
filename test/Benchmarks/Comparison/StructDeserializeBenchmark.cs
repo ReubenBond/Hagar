@@ -1,8 +1,3 @@
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using Benchmarks.Models;
 using Benchmarks.Utilities;
@@ -16,10 +11,15 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Serialization;
-using ZeroFormatter;
-using Xunit;
-using SerializerSession = Hagar.Session.SerializerSession;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using Xunit;
+using ZeroFormatter;
+using SerializerSession = Hagar.Session.SerializerSession;
 using Utf8JsonNS = Utf8Json;
 
 namespace Benchmarks.Comparison
@@ -36,7 +36,7 @@ namespace Benchmarks.Comparison
         private static readonly byte[] MsgPackInput = MessagePack.MessagePackSerializer.Serialize(IntStruct.Create());
         private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(IntStruct.Create());
 
-        private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] {typeof(IntStruct)}));
+        private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
         private static readonly MemoryStream HyperionInput;
         private static readonly Hyperion.DeserializerSession HyperionSession;
 
@@ -76,7 +76,10 @@ namespace Benchmarks.Comparison
                 .UseLocalhostClustering()
                 .ConfigureServices(s => s.ToList().ForEach(r =>
                 {
-                    if (r.ServiceType == typeof(IConfigurationValidator)) s.Remove(r);
+                    if (r.ServiceType == typeof(IConfigurationValidator))
+                    {
+                        _ = s.Remove(r);
+                    }
                 }))
                 .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
@@ -102,9 +105,7 @@ namespace Benchmarks.Comparison
 
         }
 
-        private static int SumResult(in IntStruct result)
-        {
-            return result.MyProperty1 +
+        private static int SumResult(in IntStruct result) => result.MyProperty1 +
                    result.MyProperty2 +
                    result.MyProperty3 +
                    result.MyProperty4 +
@@ -113,7 +114,6 @@ namespace Benchmarks.Comparison
                    result.MyProperty7 +
                    result.MyProperty8 +
                    result.MyProperty9;
-        }
 
         [Fact]
         [Benchmark(Baseline = true)]
@@ -127,16 +127,10 @@ namespace Benchmarks.Comparison
         }
 
         [Benchmark]
-        public int Utf8Json()
-        {
-            return SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntStruct>(Utf8JsonInput, Utf8JsonResolver));
-        }
+        public int Utf8Json() => SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntStruct>(Utf8JsonInput, Utf8JsonResolver));
 
         [Benchmark]
-        public int SystemTextJson()
-        {
-            return SumResult(System.Text.Json.JsonSerializer.Deserialize<IntStruct>(SystemTextJsonInput));
-        }
+        public int SystemTextJson() => SumResult(System.Text.Json.JsonSerializer.Deserialize<IntStruct>(SystemTextJsonInput));
 
         //[Benchmark]
         public int Orleans()
@@ -146,10 +140,7 @@ namespace Benchmarks.Comparison
         }
 
         [Benchmark]
-        public int MessagePackCSharp()
-        {
-            return SumResult(MessagePack.MessagePackSerializer.Deserialize<IntStruct>(MsgPackInput));
-        }
+        public int MessagePackCSharp() => SumResult(MessagePack.MessagePackSerializer.Deserialize<IntStruct>(MsgPackInput));
 
         [Benchmark]
         public int ProtobufNet()
@@ -166,21 +157,12 @@ namespace Benchmarks.Comparison
         }
 
         //[Benchmark]
-        public int ZeroFormatter()
-        {
-            return SumResult(ZeroFormatterSerializer.Deserialize<IntStruct>(ZeroFormatterInput));
-        }
+        public int ZeroFormatter() => SumResult(ZeroFormatterSerializer.Deserialize<IntStruct>(ZeroFormatterInput));
 
         [Benchmark]
-        public int NewtonsoftJson()
-        {
-            return SumResult(JsonConvert.DeserializeObject<IntStruct>(NewtonsoftJsonInput));
-        }
+        public int NewtonsoftJson() => SumResult(JsonConvert.DeserializeObject<IntStruct>(NewtonsoftJsonInput));
 
         [Benchmark(Description = "SpanJson")]
-        public int SpanJsonUtf8()
-        {
-            return SumResult(SpanJson.JsonSerializer.Generic.Utf8.Deserialize<IntStruct>(SpanJsonInput));
-        }
+        public int SpanJsonUtf8() => SumResult(SpanJson.JsonSerializer.Generic.Utf8.Deserialize<IntStruct>(SpanJsonInput));
     }
 }

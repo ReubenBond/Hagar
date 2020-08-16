@@ -1,6 +1,4 @@
-using System;
 using System.Buffers;
-using System.Buffers.Binary;
 #if NETCOREAPP
 using System.Numerics;
 #endif
@@ -59,27 +57,15 @@ namespace Hagar.Utilities
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static byte ZigZagEncode(sbyte value)
-        {
-            return (byte)((value << 1) ^ (value >> 7));
-        }
+        private static byte ZigZagEncode(sbyte value) => (byte)((value << 1) ^ (value >> 7));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ushort ZigZagEncode(short value)
-        {
-            return (ushort)((value << 1) ^ (value >> 15));
-        }
+        private static ushort ZigZagEncode(short value) => (ushort)((value << 1) ^ (value >> 15));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint ZigZagEncode(int value)
-        {
-            return (uint)((value << 1) ^ (value >> 31));
-        }
+        private static uint ZigZagEncode(int value) => (uint)((value << 1) ^ (value >> 31));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong ZigZagEncode(long value)
-        {
-            return (ulong)((value << 1) ^ (value >> 63));
-        }
+        private static ulong ZigZagEncode(long value) => (ulong)((value << 1) ^ (value >> 63));
     }
 }

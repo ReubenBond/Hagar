@@ -1,7 +1,7 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace Hagar.CodeGenerator
 {
@@ -15,25 +15,49 @@ namespace Hagar.CodeGenerator
             INamedTypeSymbol proxyBaseType,
             bool isExtension)
         {
-            this.ValidateBaseClass(libraryTypes, proxyBaseType);
-            this.SemanticModel = semanticModel;
-            this.InterfaceType = interfaceType;
-            this.ProxyBaseType = proxyBaseType;
-            this.IsExtension = isExtension;
-            this.Methods = methods.ToList();
+            ValidateBaseClass(libraryTypes, proxyBaseType);
+            SemanticModel = semanticModel;
+            InterfaceType = interfaceType;
+            ProxyBaseType = proxyBaseType;
+            IsExtension = isExtension;
+            Methods = methods.ToList();
         }
 
-        void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
+        private void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
         {
             var found = false;
             foreach (var member in baseClass.GetMembers("SendRequest"))
             {
-                if (!(member is IMethodSymbol method)) Throw(member, "not method");
-                if (method.TypeParameters.Length != 0) Throw(member, "type params");
-                if (method.Parameters.Length != 2) Throw(member, "params length");
-                if (!SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, l.IResponseCompletionSource)) Throw(member, "param 0");
-                if (!SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, l.IInvokable)) Throw(member, "param 1");
-                if (!method.ReturnsVoid) Throw(member, "return type");
+                if (!(member is IMethodSymbol method))
+                {
+                    Throw(member, "not method");
+                }
+
+                if (method.TypeParameters.Length != 0)
+                {
+                    Throw(member, "type params");
+                }
+
+                if (method.Parameters.Length != 2)
+                {
+                    Throw(member, "params length");
+                }
+
+                if (!SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, l.IResponseCompletionSource))
+                {
+                    Throw(member, "param 0");
+                }
+
+                if (!SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, l.IInvokable))
+                {
+                    Throw(member, "param 1");
+                }
+
+                if (!method.ReturnsVoid)
+                {
+                    Throw(member, "return type");
+                }
+
                 found = true;
             }
 
@@ -43,7 +67,7 @@ namespace Hagar.CodeGenerator
                     $"Proxy base class {baseClass} does not contain a definition for void SendRequest(IResponseCompletionSource, IInvokable)");
             }
 
-            void Throw(ISymbol m, string x) => throw new InvalidOperationException("Complaint: " + x + " for symbol: " + m.ToDisplayString());
+            static void Throw(ISymbol m, string x) => throw new InvalidOperationException("Complaint: " + x + " for symbol: " + m.ToDisplayString());
         }
 
         public INamedTypeSymbol InterfaceType { get; }

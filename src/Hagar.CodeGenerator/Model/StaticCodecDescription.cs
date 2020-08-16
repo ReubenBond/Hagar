@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Hagar.CodeGenerator
 {
@@ -6,8 +6,8 @@ namespace Hagar.CodeGenerator
     {
         public StaticCodecDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
         {
-            this.UnderlyingType = underlyingType;
-            this.CodecType = codecType;
+            UnderlyingType = underlyingType;
+            CodecType = codecType;
         }
 
         public ITypeSymbol UnderlyingType { get; }

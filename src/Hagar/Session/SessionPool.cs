@@ -1,40 +1,40 @@
-﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using System;
 
 namespace Hagar.Session
 {
     public sealed class SessionPool
     {
-        private readonly ObjectPool<SerializerSession> sessionPool;
+        private readonly ObjectPool<SerializerSession> _sessionPool;
 
         public SessionPool(IServiceProvider serviceProvider)
         {
-            var sessionPoolPolicy = new SerializerSessionPoolPolicy(serviceProvider, this.ReturnSession);
-            this.sessionPool = new DefaultObjectPool<SerializerSession>(sessionPoolPolicy);
+            var sessionPoolPolicy = new SerializerSessionPoolPolicy(serviceProvider, ReturnSession);
+            _sessionPool = new DefaultObjectPool<SerializerSession>(sessionPoolPolicy);
         }
 
-        public SerializerSession GetSession() => this.sessionPool.Get();
+        public SerializerSession GetSession() => _sessionPool.Get();
 
-        private void ReturnSession(SerializerSession session) => this.sessionPool.Return(session);
+        private void ReturnSession(SerializerSession session) => _sessionPool.Return(session);
 
         private class SerializerSessionPoolPolicy : IPooledObjectPolicy<SerializerSession>
         {
-            private readonly IServiceProvider serviceProvider;
-            private readonly ObjectFactory factory;
-            private readonly Action<SerializerSession> onSessionDisposed;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly ObjectFactory _factory;
+            private readonly Action<SerializerSession> _onSessionDisposed;
 
             public SerializerSessionPoolPolicy(IServiceProvider serviceProvider, Action<SerializerSession> onSessionDisposed)
             {
-                this.serviceProvider = serviceProvider;
-                this.onSessionDisposed = onSessionDisposed;
-                this.factory = ActivatorUtilities.CreateFactory(typeof(SerializerSession), new Type[0]);
+                _serviceProvider = serviceProvider;
+                _onSessionDisposed = onSessionDisposed;
+                _factory = ActivatorUtilities.CreateFactory(typeof(SerializerSession), new Type[0]);
             }
 
             public SerializerSession Create()
             {
-                var result = (SerializerSession)this.factory(this.serviceProvider, null);
-                result.OnDisposed = this.onSessionDisposed;
+                var result = (SerializerSession)_factory(_serviceProvider, null);
+                result.OnDisposed = _onSessionDisposed;
                 return result;
             }
 

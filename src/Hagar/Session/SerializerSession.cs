@@ -1,6 +1,6 @@
-using System;
 using Hagar.Serializers;
 using Hagar.TypeSystem;
+using System;
 
 namespace Hagar.Session
 {
@@ -8,9 +8,9 @@ namespace Hagar.Session
     {
         public SerializerSession(TypeCodec typeCodec, WellKnownTypeCollection wellKnownTypes, CodecProvider codecProvider)
         {
-            this.TypeCodec = typeCodec;
-            this.WellKnownTypes = wellKnownTypes;
-            this.CodecProvider = codecProvider;
+            TypeCodec = typeCodec;
+            WellKnownTypes = wellKnownTypes;
+            CodecProvider = codecProvider;
         }
 
         public TypeCodec TypeCodec { get; }
@@ -20,17 +20,14 @@ namespace Hagar.Session
         public CodecProvider CodecProvider { get; }
         internal Action<SerializerSession> OnDisposed { get; set; }
 
-        public void PartialReset()
-        {
-            this.ReferencedObjects.Reset();
-        }
+        public void PartialReset() => ReferencedObjects.Reset();
 
         public void FullReset()
         {
-            this.ReferencedObjects.Reset();
-            this.ReferencedTypes.Reset();
+            ReferencedObjects.Reset();
+            ReferencedTypes.Reset();
         }
 
-        public void Dispose() => this.OnDisposed?.Invoke(this);
+        public void Dispose() => OnDisposed?.Invoke(this);
     }
 }

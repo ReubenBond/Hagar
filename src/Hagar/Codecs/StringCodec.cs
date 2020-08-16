@@ -1,26 +1,29 @@
-using System;
-using System.Buffers;
-using System.Buffers.Text;
-using System.Runtime.CompilerServices;
-using System.Text;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Hagar.Codecs
 {
     public sealed class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
-        string IFieldCodec<string>.ReadValue(ref Reader reader, Field field)
-        {
-            return ReadValue(ref reader, field);
-        }
+        string IFieldCodec<string>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference)
+            {
                 return ReferenceCodec.ReadReference<string>(ref reader, field);
-            if (field.WireType != WireType.LengthPrefixed) ThrowUnsupportedWireTypeException(field);
+            }
+
+            if (field.WireType != WireType.LengthPrefixed)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
             var length = reader.ReadVarUInt32();
 
             string result;
@@ -40,21 +43,25 @@ namespace Hagar.Codecs
             return result;
         }
 
-        void IFieldCodec<string>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, string value)
-        {
-            WriteField(ref writer, fieldIdDelta, expectedType, value);
-        }
+        void IFieldCodec<string>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, string value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, string value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
 #if NETCOREAPP
             var numBytes = Encoding.UTF8.GetByteCount(value);
             writer.WriteVarInt((uint)numBytes);
-            if (numBytes < 512) writer.EnsureContiguous(numBytes);
+            if (numBytes < 512)
+            {
+                writer.EnsureContiguous(numBytes);
+            }
+
             var currentSpan = writer.WritableSpan;
 
             // If there is enough room in the current span for the encoded data,
@@ -72,7 +79,7 @@ namespace Hagar.Codecs
             }
 #else
             var bytes = Encoding.UTF8.GetBytes(value);
-            writer.WriteVarInt((uint) bytes.Length);
+            writer.WriteVarInt((uint)bytes.Length);
             writer.Write(bytes);
 #endif
 

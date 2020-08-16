@@ -1,9 +1,9 @@
-using System;
-using System.Buffers;
-using System.Runtime.CompilerServices;
 using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -14,10 +14,7 @@ namespace Hagar.Codecs
         /// </summary>
         /// <param name="session">The serializer session.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MarkValueField(SerializerSession session)
-        {
-            session.ReferencedObjects.MarkValueField();
-        }
+        public static void MarkValueField(SerializerSession session) => session.ReferencedObjects.MarkValueField();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryWriteReferenceField<TBufferWriter>(
@@ -37,10 +34,7 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadReference<T>(ref Reader reader, Field field)
-        {
-            return (T) ReadReference(ref reader, field, typeof(T));
-        }
+        public static T ReadReference<T>(ref Reader reader, Field field) => (T)ReadReference(ref reader, field, typeof(T));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object ReadReference(ref Reader reader, Field field, Type expectedType)
@@ -51,13 +45,11 @@ namespace Hagar.Codecs
                 ThrowReferenceNotFound(expectedType, reference);
             }
 
-            switch (value)
+            return value switch
             {
-                case UnknownFieldMarker marker:
-                    return DeserializeFromMarker(ref reader, field, marker, reference, expectedType);
-                default:
-                    return value;
-            }
+                UnknownFieldMarker marker => DeserializeFromMarker(ref reader, field, marker, reference, expectedType),
+                _ => value,
+            };
         }
 
         private static object DeserializeFromMarker(
@@ -109,9 +101,6 @@ namespace Hagar.Codecs
             return ++referencedObject.CurrentReferenceId;
         }
 
-        private static void ThrowReferenceNotFound(Type expectedType, uint reference)
-        {
-            throw new ReferenceNotFoundException(expectedType, reference);
-        }
+        private static void ThrowReferenceNotFound(Type expectedType, uint reference) => throw new ReferenceNotFoundException(expectedType, reference);
     }
 }

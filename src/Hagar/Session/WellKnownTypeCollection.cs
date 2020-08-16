@@ -1,27 +1,31 @@
+using Hagar.Configuration;
 using System;
 using System.Collections.Generic;
-using Hagar.Configuration;
 
 namespace Hagar.Session
 {
     public sealed class WellKnownTypeCollection
     {
-        private readonly Dictionary<uint, Type> wellKnownTypes;
-        private readonly Dictionary<Type, uint> wellKnownTypeToIdMap = new Dictionary<Type, uint>();
+        private readonly Dictionary<uint, Type> _wellKnownTypes;
+        private readonly Dictionary<Type, uint> _wellKnownTypeToIdMap = new Dictionary<Type, uint>();
 
         public WellKnownTypeCollection(IConfiguration<TypeConfiguration> typeConfiguration)
         {
-            this.wellKnownTypes = typeConfiguration?.Value.WellKnownTypes ?? throw new ArgumentNullException(nameof(typeConfiguration));
-            foreach (var item in this.wellKnownTypes)
+            _wellKnownTypes = typeConfiguration?.Value.WellKnownTypes ?? throw new ArgumentNullException(nameof(typeConfiguration));
+            foreach (var item in _wellKnownTypes)
             {
-                this.wellKnownTypeToIdMap[item.Value] = item.Key;
+                _wellKnownTypeToIdMap[item.Value] = item.Key;
             }
         }
 
         public Type GetWellKnownType(uint typeId)
         {
-            if (typeId == 0) return null;
-            return this.wellKnownTypes[typeId];
+            if (typeId == 0)
+            {
+                return null;
+            }
+
+            return _wellKnownTypes[typeId];
         }
 
         public bool TryGetWellKnownType(uint typeId, out Type type)
@@ -32,7 +36,7 @@ namespace Hagar.Session
                 return true;
             }
 
-            return this.wellKnownTypes.TryGetValue(typeId, out type);
+            return _wellKnownTypes.TryGetValue(typeId, out type);
         }
 
         public bool TryGetWellKnownTypeId(Type type, out uint typeId)
@@ -43,7 +47,7 @@ namespace Hagar.Session
                 return true;
             }
 
-            return this.wellKnownTypeToIdMap.TryGetValue(type, out typeId);
+            return _wellKnownTypeToIdMap.TryGetValue(type, out typeId);
         }
     }
 }

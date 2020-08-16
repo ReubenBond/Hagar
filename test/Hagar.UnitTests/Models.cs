@@ -14,10 +14,7 @@ namespace Hagar.UnitTests
 
         public int UnmarkedProperty { get; set; }
 
-        public override string ToString()
-        {
-            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
-        }
+        public override string ToString() => $"{nameof(IntField)}: {IntField}, {nameof(IntProperty)}: {IntProperty}";
     }
 
     [GenerateSerializer]
@@ -62,7 +59,7 @@ namespace Hagar.UnitTests
 
         [Id(3)]
         public T[,,,] Dim4 { get; set; }
-        
+
         [Id(4)]
         public T[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,] Dim32 { get; set; }
 
@@ -75,27 +72,24 @@ namespace Hagar.UnitTests
     {
         public ImmutableClass(int intProperty, int intField, int unmarkedField, int unmarkedProperty)
         {
-            this.IntProperty = intProperty;
-            this.IntField = intField;
-            this.UnmarkedField = unmarkedField;
-            this.UnmarkedProperty = unmarkedProperty;
+            IntProperty = intProperty;
+            _intField = intField;
+            UnmarkedField = unmarkedField;
+            UnmarkedProperty = unmarkedProperty;
         }
 
         [Id(0)]
         public int IntProperty { get; }
 
-        [Id(1)] private readonly int IntField;
+        [Id(1)] private readonly int _intField;
 
-        public int GetIntField() => this.IntField;
+        public int GetIntField() => _intField;
 
         public readonly int UnmarkedField;
 
         public int UnmarkedProperty { get; }
 
-        public override string ToString()
-        {
-            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
-        }
+        public override string ToString() => $"{nameof(_intField)}: {_intField}, {nameof(IntProperty)}: {IntProperty}";
     }
 
     [GenerateSerializer]
@@ -103,19 +97,16 @@ namespace Hagar.UnitTests
     {
         public ImmutableStruct(int intProperty, int intField)
         {
-            this.IntProperty = intProperty;
-            this.IntField = intField;
+            IntProperty = intProperty;
+            _intField = intField;
         }
 
         [Id(0)]
         public int IntProperty { get; }
 
-        [Id(1)] private readonly int IntField;
-        public int GetIntField() => this.IntField;
+        [Id(1)] private readonly int _intField;
+        public int GetIntField() => _intField;
 
-        public override string ToString()
-        {
-            return $"{nameof(this.IntField)}: {this.IntField}, {nameof(this.IntProperty)}: {this.IntProperty}";
-        }
+        public override string ToString() => $"{nameof(_intField)}: {_intField}, {nameof(IntProperty)}: {IntProperty}";
     }
 }

@@ -1,7 +1,7 @@
-using System;
 using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
+using System;
 
 namespace Hagar.Codecs
 {
@@ -11,23 +11,27 @@ namespace Hagar.Codecs
     /// <typeparam name="T">The element type.</typeparam>
     public sealed class ArrayCodec<T> : IFieldCodec<T[]>
     {
-        private readonly IFieldCodec<T> fieldCodec;
+        private readonly IFieldCodec<T> _fieldCodec;
 
         public ArrayCodec(IFieldCodec<T> fieldCodec)
         {
-            this.fieldCodec = HagarGeneratedCodeHelper.UnwrapService(this, fieldCodec);
+            _fieldCodec = HagarGeneratedCodeHelper.UnwrapService(this, fieldCodec);
         }
 
         void IFieldCodec<T[]>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, T[] value)
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) return;
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
             Int32Codec.WriteField(ref writer, 0, typeof(int), value.Length);
             var first = true;
             foreach (var element in value)
             {
-                this.fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
+                _fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
                 first = false;
             }
 
@@ -37,8 +41,14 @@ namespace Hagar.Codecs
         T[] IFieldCodec<T[]>.ReadValue(ref Reader reader, Field field)
         {
             if (field.WireType == WireType.Reference)
+            {
                 return ReferenceCodec.ReadReference<T[]>(ref reader, field);
-            if (field.WireType != WireType.TagDelimited) ThrowUnsupportedWireTypeException(field);
+            }
+
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
             T[] result = null;
@@ -48,7 +58,11 @@ namespace Hagar.Codecs
             while (true)
             {
                 var header = reader.ReadFieldHeader();
-                if (header.IsEndBaseOrEndObject) break;
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
@@ -58,9 +72,17 @@ namespace Hagar.Codecs
                         ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
                     case 1:
-                        if (result is null) return ThrowLengthFieldMissing();
-                        if (index >= length) return ThrowIndexOutOfRangeException(length);
-                        result[index] = this.fieldCodec.ReadValue(ref reader, header);
+                        if (result is null)
+                        {
+                            return ThrowLengthFieldMissing();
+                        }
+
+                        if (index >= length)
+                        {
+                            return ThrowIndexOutOfRangeException(length);
+                        }
+
+                        result[index] = _fieldCodec.ReadValue(ref reader, header);
                         ++index;
                         break;
                     default:
@@ -68,7 +90,7 @@ namespace Hagar.Codecs
                         break;
                 }
             }
-            
+
             return result;
         }
 

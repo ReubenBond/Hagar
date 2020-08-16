@@ -1,10 +1,10 @@
+using Hagar.Invocation;
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Hagar.Invocation;
 using TestRpc.IO;
 
 namespace TestRpc.Runtime
@@ -12,18 +12,18 @@ namespace TestRpc.Runtime
     internal class RuntimeClient : IRuntimeClient
     {
         // only one connection for now and no concurrency control.
-        private readonly ConnectionHandler connection;
-        private readonly Catalog catalog;
-        private readonly ChannelReader<Message> incomingMessages;
-        private readonly ConcurrentDictionary<int, IResponseCompletionSource> pendingRequests = new ConcurrentDictionary<int, IResponseCompletionSource>();
+        private readonly ConnectionHandler _connection;
+        private readonly Catalog _catalog;
+        private readonly ChannelReader<Message> _incomingMessages;
+        private readonly ConcurrentDictionary<int, IResponseCompletionSource> _pendingRequests = new ConcurrentDictionary<int, IResponseCompletionSource>();
 
-        private int messageId;
+        private int _messageId;
 
         public RuntimeClient(ConnectionHandler connection, Catalog catalog, ChannelReader<Message> incomingMessages)
         {
-            this.connection = connection;
-            this.catalog = catalog;
-            this.incomingMessages = incomingMessages;
+            this._connection = connection;
+            this._catalog = catalog;
+            this._incomingMessages = incomingMessages;
         }
 
         public void SendRequest(GrainId grainId, IResponseCompletionSource completion, IInvokable body)
@@ -40,12 +40,12 @@ namespace TestRpc.Runtime
             }
             else
             {
-                message.MessageId = Interlocked.Increment(ref this.messageId);
+                message.MessageId = Interlocked.Increment(ref _messageId);
                 message.Source = default;
-                this.pendingRequests[message.MessageId] = completion;
+                _pendingRequests[message.MessageId] = completion;
             }
 
-            this.connection.SendMessage(message);
+            _connection.SendMessage(message);
         }
 
         public void SendResponse(int requestMessageId, GrainId requestMessageSource, Response response)
@@ -56,16 +56,16 @@ namespace TestRpc.Runtime
             message.Target = requestMessageSource;
             message.Body = response;
 
-            this.connection.SendMessage(message);
+            _connection.SendMessage(message);
         }
 
         public async Task Run(CancellationToken cancellation)
         {
-            while (!cancellation.IsCancellationRequested && await this.incomingMessages.WaitToReadAsync(cancellation))
+            while (!cancellation.IsCancellationRequested && await _incomingMessages.WaitToReadAsync(cancellation))
             {
-                while (this.incomingMessages.TryRead(out var message))
+                while (_incomingMessages.TryRead(out var message))
                 {
-                    this.HandleMessage(message);
+                    HandleMessage(message);
                 }
             }
         }
@@ -77,7 +77,7 @@ namespace TestRpc.Runtime
                 // Ensure the message is disposed upon leaving this scope.
                 using var _ = message;
 
-                if (!this.pendingRequests.TryRemove(message.MessageId, out var request))
+                if (!_pendingRequests.TryRemove(message.MessageId, out var request))
                 {
                     ThrowMessageNotFound(message);
                     return;
@@ -87,7 +87,7 @@ namespace TestRpc.Runtime
             }
             else
             {
-                var activation = this.catalog.GetActivation(message.Target);
+                var activation = _catalog.GetActivation(message.Target);
                 if (!activation.TryEnqueueMessage(message))
                 {
                     // Ensure the message is disposed upon leaving this scope.

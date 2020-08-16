@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -43,9 +43,6 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return SyntaxFactory.Identifier(SyntaxTriviaList.Empty, identifier, SyntaxTriviaList.Empty);
         }
 
-        public static IdentifierNameSyntax ToIdentifierName(this string identifier)
-        {
-            return SyntaxFactory.IdentifierName(identifier.ToIdentifier());
-        }
+        public static IdentifierNameSyntax ToIdentifierName(this string identifier) => SyntaxFactory.IdentifierName(identifier.ToIdentifier());
     }
 }

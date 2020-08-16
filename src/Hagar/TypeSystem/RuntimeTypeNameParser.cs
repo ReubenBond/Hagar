@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Hagar.TypeSystem
@@ -131,11 +131,10 @@ namespace Hagar.TypeSystem
 
         private static ReadOnlySpan<char> ParseTypeName(ref Reader s)
         {
-            char c;
             var start = s.Index;
             var typeName = ParseSpan(ref s, TypeNameDelimiters);
             var genericArityStart = -1;
-            while (s.TryPeek(out c))
+            while (s.TryPeek(out char c))
             {
                 if (genericArityStart < 0 && c == GenericTypeIndicator)
                 {
@@ -218,7 +217,7 @@ namespace Hagar.TypeSystem
             public int Index;
             public int TotalGenericArity;
 
-            public readonly ReadOnlySpan<char> Remaining => this.Input.Slice(Index);
+            public readonly ReadOnlySpan<char> Remaining => Input.Slice(Index);
 
             public bool TryPeek(out char c)
             {

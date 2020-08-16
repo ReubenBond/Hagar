@@ -12,16 +12,16 @@ namespace Hagar.WireProtocol
 
         public Field(Tag tag)
         {
-            this.Tag = tag;
-            this.FieldIdDeltaRaw = 0;
-            this.FieldTypeRaw = null;
+            Tag = tag;
+            FieldIdDeltaRaw = 0;
+            FieldTypeRaw = null;
         }
 
         public Field(Tag tag, uint extendedFieldIdDelta, Type type)
         {
-            this.Tag = tag;
-            this.FieldIdDeltaRaw = extendedFieldIdDelta;
-            this.FieldTypeRaw = type;
+            Tag = tag;
+            FieldIdDeltaRaw = extendedFieldIdDelta;
+            FieldTypeRaw = type;
         }
 
         public uint FieldIdDelta
@@ -31,11 +31,17 @@ namespace Hagar.WireProtocol
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (this.Tag.IsFieldIdValid) return this.Tag.FieldIdDelta;
+                if (Tag.IsFieldIdValid)
+                {
+                    return Tag.FieldIdDelta;
+                }
 #if DEBUG
-                if (!this.HasFieldId) ThrowFieldIdInvalid();
+                if (!HasFieldId)
+                {
+                    ThrowFieldIdInvalid();
+                }
 #endif
-                return this.FieldIdDeltaRaw;
+                return FieldIdDeltaRaw;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,13 +50,13 @@ namespace Hagar.WireProtocol
                 // If the field id delta can fit into the tag, embed it there, otherwise invalidate the embedded field id delta and set the full field id delta.
                 if (value < 7)
                 {
-                    this.Tag.FieldIdDelta = value;
-                    this.FieldIdDeltaRaw = 0;
+                    Tag.FieldIdDelta = value;
+                    FieldIdDeltaRaw = 0;
                 }
                 else
                 {
-                    this.Tag.SetFieldIdInvalid();
-                    this.FieldIdDeltaRaw = value;
+                    Tag.SetFieldIdInvalid();
+                    FieldIdDeltaRaw = value;
                 }
             }
         }
@@ -61,37 +67,43 @@ namespace Hagar.WireProtocol
             get
             {
 #if DEBUG
-                if (!this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
+                if (!IsSchemaTypeValid)
+                {
+                    ThrowFieldTypeInvalid();
+                }
 #endif
-                return this.FieldTypeRaw;
+                return FieldTypeRaw;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
 #if DEBUG
-                if (!this.IsSchemaTypeValid) ThrowFieldTypeInvalid();
+                if (!IsSchemaTypeValid)
+                {
+                    ThrowFieldTypeInvalid();
+                }
 #endif
-                this.FieldTypeRaw = value;
+                FieldTypeRaw = value;
             }
         }
 
         public bool HasFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.Tag.WireType != WireType.Extended;
+            get => Tag.WireType != WireType.Extended;
         }
 
         public bool HasExtendedFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.Tag.HasExtendedFieldId;
+            get => Tag.HasExtendedFieldId;
         }
 
         public WireType WireType
         {
-            get => this.Tag.WireType;
-            set => this.Tag.WireType = value;
+            get => Tag.WireType;
+            set => Tag.WireType = value;
         }
 
         public SchemaType SchemaType
@@ -99,13 +111,16 @@ namespace Hagar.WireProtocol
             get
             {
 #if DEBUG
-                if (!this.IsSchemaTypeValid) ThrowSchemaTypeInvalid();
+                if (!IsSchemaTypeValid)
+                {
+                    ThrowSchemaTypeInvalid();
+                }
 #endif
 
-                return this.Tag.SchemaType;
+                return Tag.SchemaType;
             }
 
-            set => this.Tag.SchemaType = value;
+            set => Tag.SchemaType = value;
         }
 
         public ExtendedWireType ExtendedWireType
@@ -113,35 +128,54 @@ namespace Hagar.WireProtocol
             get
             {
 #if DEBUG
-                if (this.WireType != WireType.Extended) ThrowExtendedWireTypeInvalid();
+                if (WireType != WireType.Extended)
+                {
+                    ThrowExtendedWireTypeInvalid();
+                }
 #endif
-                return this.Tag.ExtendedWireType;
+                return Tag.ExtendedWireType;
             }
-            set => this.Tag.ExtendedWireType = value;
+            set => Tag.ExtendedWireType = value;
         }
 
-        public bool IsSchemaTypeValid => this.Tag.IsSchemaTypeValid;
-        public bool HasExtendedSchemaType => this.IsSchemaTypeValid && this.SchemaType != SchemaType.Expected;
-        public bool IsEndBaseFields => this.Tag.HasExtendedWireType && this.Tag.ExtendedWireType == ExtendedWireType.EndBaseFields;
-        public bool IsEndObject => this.Tag.HasExtendedWireType && this.Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited;
+        public bool IsSchemaTypeValid => Tag.IsSchemaTypeValid;
+        public bool HasExtendedSchemaType => IsSchemaTypeValid && SchemaType != SchemaType.Expected;
+        public bool IsEndBaseFields => Tag.HasExtendedWireType && Tag.ExtendedWireType == ExtendedWireType.EndBaseFields;
+        public bool IsEndObject => Tag.HasExtendedWireType && Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited;
 
         public bool IsEndBaseOrEndObject
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.Tag.HasExtendedWireType &&
-                   (this.Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited ||
-                    this.Tag.ExtendedWireType == ExtendedWireType.EndBaseFields);
+            get => Tag.HasExtendedWireType &&
+                   (Tag.ExtendedWireType == ExtendedWireType.EndTagDelimited ||
+                    Tag.ExtendedWireType == ExtendedWireType.EndBaseFields);
         }
 
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.Append('[').Append((string) this.WireType.ToString());
-            if (this.HasFieldId) builder.Append($", IdDelta:{this.FieldIdDelta}");
-            if (this.IsSchemaTypeValid) builder.Append($", SchemaType:{this.SchemaType}");
-            if (this.HasExtendedSchemaType) builder.Append($", RuntimeType:{this.FieldType}");
-            if (this.WireType == WireType.Extended) builder.Append($": {this.ExtendedWireType}");
-            builder.Append(']');
+            _ = builder.Append('[').Append((string)WireType.ToString());
+            if (HasFieldId)
+            {
+                _ = builder.Append($", IdDelta:{FieldIdDelta}");
+            }
+
+            if (IsSchemaTypeValid)
+            {
+                _ = builder.Append($", SchemaType:{SchemaType}");
+            }
+
+            if (HasExtendedSchemaType)
+            {
+                _ = builder.Append($", RuntimeType:{FieldType}");
+            }
+
+            if (WireType == WireType.Extended)
+            {
+                _ = builder.Append($": {ExtendedWireType}");
+            }
+
+            _ = builder.Append(']');
             return builder.ToString();
         }
 

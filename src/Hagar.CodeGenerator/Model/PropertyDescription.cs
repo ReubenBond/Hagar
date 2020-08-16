@@ -6,14 +6,14 @@ namespace Hagar.CodeGenerator
     {
         public PropertyDescription(uint fieldId, IPropertySymbol property)
         {
-            this.FieldId = fieldId;
-            this.Property = property;
+            FieldId = fieldId;
+            Property = property;
         }
 
         public uint FieldId { get; }
-        public ISymbol Member => this.Property;
-        public ITypeSymbol Type => this.Property.Type;
+        public ISymbol Member => Property;
+        public ITypeSymbol Type => Property.Type;
         public IPropertySymbol Property { get; }
-        public string Name => this.Property.Name;
+        public string Name => Property.Name;
     }
 }

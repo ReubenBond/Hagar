@@ -1,7 +1,7 @@
-using System;
-using System.Buffers;
 using Hagar.Buffers;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 
 namespace Hagar.Codecs
 {
@@ -29,7 +29,7 @@ namespace Hagar.Codecs
             {
                 case WireType.Reference:
                 case WireType.VarInt:
-                    reader.ReadVarUInt64();
+                    _ = reader.ReadVarUInt64();
                     break;
                 case WireType.TagDelimited:
                     SkipTagDelimitedField(ref reader);
@@ -48,7 +48,10 @@ namespace Hagar.Codecs
                     break;
                 case WireType.Extended:
                     if (!field.IsEndBaseOrEndObject)
+                    {
                         ThrowUnexpectedExtendedWireType(field);
+                    }
+
                     break;
                 default:
                     ThrowUnexpectedWireType(field);
@@ -56,17 +59,11 @@ namespace Hagar.Codecs
             }
         }
 
-        internal static void ThrowUnexpectedExtendedWireType(Field field)
-        {
-            throw new ArgumentOutOfRangeException(
+        internal static void ThrowUnexpectedExtendedWireType(Field field) => throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(ExtendedWireType)} value [{field.ExtendedWireType}] in field {field} while skipping field.");
-        }
 
-        internal static void ThrowUnexpectedWireType(Field field)
-        {
-            throw new ArgumentOutOfRangeException(
+        internal static void ThrowUnexpectedWireType(Field field) => throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(WireType)} value [{field.WireType}] in field {field} while skipping field.");
-        }
 
         internal static void SkipLengthPrefixedField(ref Reader reader)
         {
@@ -79,7 +76,11 @@ namespace Hagar.Codecs
             while (true)
             {
                 var field = reader.ReadFieldHeader();
-                if (field.IsEndObject) break;
+                if (field.IsEndObject)
+                {
+                    break;
+                }
+
                 reader.SkipField(field);
             }
         }

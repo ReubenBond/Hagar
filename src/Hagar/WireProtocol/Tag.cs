@@ -13,30 +13,30 @@ namespace Hagar.WireProtocol
 
         public const int MaxEmbeddedFieldIdDelta = 6;
 
-        private byte tag;
+        private byte _tag;
 
         public Tag(byte tag)
         {
-            this.tag = tag;
+            _tag = tag;
         }
-        
+
         public static implicit operator Tag(byte tag) => new Tag(tag);
-        public static implicit operator byte(Tag tag) => tag.tag;
+        public static implicit operator byte(Tag tag) => tag._tag;
 
         /// <summary>
         /// Returns the wire type of the data following this tag.
         /// </summary>
         public WireType WireType
         {
-            get => (WireType)(this.tag & WireTypeMask);
+            get => (WireType)(_tag & WireTypeMask);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this.tag = (byte)((this.tag & ~WireTypeMask) | ((byte)value & WireTypeMask));
+            set => _tag = (byte)((_tag & ~WireTypeMask) | ((byte)value & WireTypeMask));
         }
 
         public bool HasExtendedWireType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.tag >= (byte)WireType.Extended; //(this.tag & (byte) WireType.Extended) == (byte) WireType.Extended;
+            get => _tag >= (byte)WireType.Extended; //(this.tag & (byte) WireType.Extended) == (byte) WireType.Extended;
         }
 
         /// <summary>
@@ -45,10 +45,10 @@ namespace Hagar.WireProtocol
         public ExtendedWireType ExtendedWireType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ExtendedWireType)(this.tag & ExtendedWireTypeMask);
+            get => (ExtendedWireType)(_tag & ExtendedWireTypeMask);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this.tag = (byte)((this.tag & ~ExtendedWireTypeMask) | ((byte)value & ExtendedWireTypeMask));
+            set => _tag = (byte)((_tag & ~ExtendedWireTypeMask) | ((byte)value & ExtendedWireTypeMask));
         }
 
         /// <summary>
@@ -60,10 +60,10 @@ namespace Hagar.WireProtocol
         public SchemaType SchemaType
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (SchemaType)(this.tag & SchemaTypeMask);
+            get => (SchemaType)(_tag & SchemaTypeMask);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this.tag = (byte)((this.tag & ~SchemaTypeMask) | ((byte)value & SchemaTypeMask));
+            set => _tag = (byte)((_tag & ~SchemaTypeMask) | ((byte)value & SchemaTypeMask));
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Hagar.WireProtocol
         public bool IsSchemaTypeValid
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => !this.HasExtendedWireType; //(this.tag & (byte) WireType.Extended) != (byte) WireType.Extended;
+            get => !HasExtendedWireType; //(this.tag & (byte) WireType.Extended) != (byte) WireType.Extended;
         }
 
         /// <summary>
@@ -84,17 +84,17 @@ namespace Hagar.WireProtocol
         public uint FieldIdDelta
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (uint)(this.tag & FieldIdMask);
+            get => (uint)(_tag & FieldIdMask);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this.tag = (byte)((this.tag & ~FieldIdMask) | ((byte)value & FieldIdMask));
+            set => _tag = (byte)((_tag & ~FieldIdMask) | ((byte)value & FieldIdMask));
         }
 
         /// <summary>
         /// Invalidates <see cref="FieldIdDelta"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetFieldIdInvalid() => this.tag |= FieldIdCompleteMask;
+        public void SetFieldIdInvalid() => _tag |= FieldIdCompleteMask;
 
         /// <summary>
         /// Returns <see langword="true"/> if the <see cref="FieldIdDelta"/> represents a complete id, <see langword="false"/> if more data is required.
@@ -106,7 +106,7 @@ namespace Hagar.WireProtocol
         public bool IsFieldIdValid
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (this.tag & FieldIdCompleteMask) != FieldIdCompleteMask && !this.HasExtendedWireType;
+            get => (_tag & FieldIdCompleteMask) != FieldIdCompleteMask && !HasExtendedWireType;
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Hagar.WireProtocol
         public bool HasExtendedFieldId
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (this.tag & FieldIdCompleteMask) == FieldIdCompleteMask && !this.HasExtendedWireType;
+            get => (_tag & FieldIdCompleteMask) == FieldIdCompleteMask && !HasExtendedWireType;
         }
     }
 }

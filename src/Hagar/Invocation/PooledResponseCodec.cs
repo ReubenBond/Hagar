@@ -1,8 +1,7 @@
-using System;
-using Hagar.Activators;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
+using System;
 
 namespace Hagar.Invocation
 {
@@ -10,13 +9,13 @@ namespace Hagar.Invocation
     {
         private static readonly Type ExceptionType = typeof(Exception);
         private static readonly Type ResultType = typeof(TResult);
-        private readonly IFieldCodec<Exception> exceptionCodec;
-        private readonly IFieldCodec<TResult> resultCodec;
+        private readonly IFieldCodec<Exception> _exceptionCodec;
+        private readonly IFieldCodec<TResult> _resultCodec;
 
         public PooledResponseCodec(IFieldCodec<Exception> exceptionCodec, IFieldCodec<TResult> resultCodec)
         {
-            this.exceptionCodec = HagarGeneratedCodeHelper.UnwrapService(this, exceptionCodec);
-            this.resultCodec = HagarGeneratedCodeHelper.UnwrapService(this, resultCodec);
+            _exceptionCodec = HagarGeneratedCodeHelper.UnwrapService(this, exceptionCodec);
+            _resultCodec = HagarGeneratedCodeHelper.UnwrapService(this, resultCodec);
         }
 
         public void Serialize<TBufferWriter>(ref Buffers.Writer<TBufferWriter> writer, PooledResponse<TResult> instance)
@@ -24,11 +23,11 @@ namespace Hagar.Invocation
         {
             if (instance.Exception is null)
             {
-                this.resultCodec.WriteField(ref writer, 0U, ResultType, instance.TypedResult);
+                _resultCodec.WriteField(ref writer, 0U, ResultType, instance.TypedResult);
             }
             else
             {
-                this.exceptionCodec.WriteField(ref writer, 1U, ExceptionType, instance.Exception);
+                _exceptionCodec.WriteField(ref writer, 1U, ExceptionType, instance.Exception);
             }
         }
 
@@ -39,15 +38,18 @@ namespace Hagar.Invocation
             {
                 var header = reader.ReadFieldHeader();
                 if (header.IsEndBaseOrEndObject)
+                {
                     break;
+                }
+
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
                     case 1U:
-                        instance.Exception = this.exceptionCodec.ReadValue(ref reader, header);
+                        instance.Exception = _exceptionCodec.ReadValue(ref reader, header);
                         break;
                     case 0U:
-                        instance.TypedResult = this.resultCodec.ReadValue(ref reader, header);
+                        instance.TypedResult = _resultCodec.ReadValue(ref reader, header);
                         break;
                     default:
                         reader.ConsumeUnknownField(header);

@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -16,7 +15,6 @@ namespace Hagar.CodeGenerator
     internal static class ProxyGenerator
     {
         public static (ClassDeclarationSyntax, IGeneratedProxyDescription) Generate(
-            Compilation compilation,
             LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription,
             MetadataModel metadataModel)
@@ -50,17 +48,14 @@ namespace Hagar.CodeGenerator
         {
             public GeneratedProxyDescription(IInvokableInterfaceDescription interfaceDescription)
             {
-                this.InterfaceDescription = interfaceDescription;
+                InterfaceDescription = interfaceDescription;
             }
 
             public TypeSyntax TypeSyntax => this.GetProxyTypeName();
             public IInvokableInterfaceDescription InterfaceDescription { get; }
         }
 
-        public static string GetSimpleClassName(INamedTypeSymbol type)
-        {
-            return $"{CodeGenerator.CodeGeneratorName}_Proxy_{type.Name}";
-        }
+        public static string GetSimpleClassName(INamedTypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}_Proxy_{type.Name}";
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(
             ClassDeclarationSyntax classDeclaration,
@@ -121,7 +116,7 @@ namespace Hagar.CodeGenerator
         {
             return fieldDescriptions.Select(GetFieldDeclaration).ToArray();
 
-            MemberDeclarationSyntax GetFieldDeclaration(FieldDescription description)
+            static MemberDeclarationSyntax GetFieldDeclaration(FieldDescription description)
             {
                 switch (description)
                 {
@@ -149,9 +144,21 @@ namespace Hagar.CodeGenerator
             var baseType = interfaceDescription.ProxyBaseType;
             foreach (var member in baseType.GetMembers())
             {
-                if (!(member is IMethodSymbol method)) continue;
-                if (method.MethodKind != MethodKind.Constructor) continue;
-                if (method.DeclaredAccessibility == Accessibility.Private) continue;
+                if (!(member is IMethodSymbol method))
+                {
+                    continue;
+                }
+
+                if (method.MethodKind != MethodKind.Constructor)
+                {
+                    continue;
+                }
+
+                if (method.DeclaredAccessibility == Accessibility.Private)
+                {
+                    continue;
+                }
+
                 yield return CreateConstructor(method);
             }
 
@@ -168,7 +175,7 @@ namespace Hagar.CodeGenerator
                     .WithBody(Block());
             }
 
-            IEnumerable<SyntaxToken> GetModifiers(IMethodSymbol method)
+            static IEnumerable<SyntaxToken> GetModifiers(IMethodSymbol method)
             {
                 switch (method.DeclaredAccessibility)
                 {
@@ -186,7 +193,7 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            ArgumentSyntax GetBaseInitializerArgument(IParameterSymbol parameter)
+            static ArgumentSyntax GetBaseInitializerArgument(IParameterSymbol parameter)
             {
                 var result = Argument(IdentifierName(parameter.Name));
                 switch (parameter.RefKind)
@@ -253,7 +260,7 @@ namespace Hagar.CodeGenerator
             MethodDescription methodDescription)
         {
             var statements = new List<StatementSyntax>();
-            
+
             var completionVar = IdentifierName("completion");
             var requestVar = IdentifierName("request");
 
@@ -365,8 +372,8 @@ namespace Hagar.CodeGenerator
         {
             protected FieldDescription(ITypeSymbol fieldType, string fieldName)
             {
-                this.FieldType = fieldType;
-                this.FieldName = fieldName;
+                FieldType = fieldType;
+                FieldName = fieldName;
             }
 
             public ITypeSymbol FieldType { get; }
@@ -388,7 +395,7 @@ namespace Hagar.CodeGenerator
             public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType)
                 : base(fieldType, fieldName)
             {
-                this.UnderlyingType = underlyingType;
+                UnderlyingType = underlyingType;
             }
 
             public ITypeSymbol UnderlyingType { get; }
@@ -401,7 +408,7 @@ namespace Hagar.CodeGenerator
                 fieldType,
                 fieldName)
             {
-                this.UnderlyingType = underlyingType;
+                UnderlyingType = underlyingType;
             }
 
             public ITypeSymbol UnderlyingType { get; }
@@ -413,16 +420,16 @@ namespace Hagar.CodeGenerator
             public MethodParameterFieldDescription(IParameterSymbol parameter, string fieldName, uint fieldId)
                 : base(parameter.Type, fieldName)
             {
-                this.FieldId = fieldId;
-                this.Parameter = parameter;
+                FieldId = fieldId;
+                Parameter = parameter;
             }
 
             public override bool IsInjected => false;
             public uint FieldId { get; }
-            public ISymbol Member => this.Parameter;
-            public ITypeSymbol Type => this.FieldType;
+            public ISymbol Member => Parameter;
+            public ITypeSymbol Type => FieldType;
             public IParameterSymbol Parameter { get; }
-            public string Name => this.FieldName;
+            public string Name => FieldName;
         }
     }
 }
