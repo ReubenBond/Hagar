@@ -20,6 +20,7 @@ using ZeroFormatter;
 using Xunit;
 using SerializerSession = Hagar.Session.SerializerSession;
 using System.Linq;
+using Utf8JsonNS = Utf8Json;
 
 namespace Benchmarks.Comparison
 {
@@ -34,14 +35,21 @@ namespace Benchmarks.Comparison
 
         private static readonly byte[] MsgPackInput = MessagePack.MessagePackSerializer.Serialize(IntStruct.Create());
         private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(IntStruct.Create());
+
         private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] {typeof(IntStruct)}));
         private static readonly MemoryStream HyperionInput;
+        private static readonly Hyperion.DeserializerSession HyperionSession;
+
         private static readonly ValueSerializer<IntStruct> HagarSerializer;
         private static readonly ReadOnlySequence<byte> HagarInput;
         private static readonly SerializerSession Session;
         private static readonly SerializationManager OrleansSerializer;
         private static readonly List<ArraySegment<byte>> OrleansInput;
         private static readonly BinaryTokenStreamReader OrleansBuffer;
+
+        private static readonly Utf8JsonNS.IJsonFormatterResolver Utf8JsonResolver = Utf8JsonNS.Resolvers.StandardResolver.Default;
+        private static readonly byte[] Utf8JsonInput;
+        private static readonly byte[] SystemTextJsonInput;
 
         static StructDeserializeBenchmark()
         {
@@ -79,6 +87,19 @@ namespace Benchmarks.Comparison
             OrleansSerializer.Serialize(IntStruct.Create(), writer2);
             OrleansInput = writer2.ToBytes();
             OrleansBuffer = new BinaryTokenStreamReader(OrleansInput);
+
+            HyperionSession = HyperionSerializer.GetDeserializerSession();
+
+            Utf8JsonInput = Utf8JsonNS.JsonSerializer.Serialize(IntStruct.Create(), Utf8JsonResolver);
+
+            var stream = new MemoryStream();
+            using (var jsonWriter = new System.Text.Json.Utf8JsonWriter(stream))
+            {
+                System.Text.Json.JsonSerializer.Serialize<IntStruct>(jsonWriter, IntStruct.Create());
+            }
+
+            SystemTextJsonInput = stream.ToArray();
+
         }
 
         private static int SumResult(in IntStruct result)
@@ -105,6 +126,18 @@ namespace Benchmarks.Comparison
             return SumResult(in result);
         }
 
+        [Benchmark]
+        public int Utf8Json()
+        {
+            return SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntStruct>(Utf8JsonInput, Utf8JsonResolver));
+        }
+
+        [Benchmark]
+        public int SystemTextJson()
+        {
+            return SumResult(System.Text.Json.JsonSerializer.Deserialize<IntStruct>(SystemTextJsonInput));
+        }
+
         //[Benchmark]
         public int Orleans()
         {
@@ -129,10 +162,10 @@ namespace Benchmarks.Comparison
         public int Hyperion()
         {
             HyperionInput.Position = 0;
-            return SumResult(HyperionSerializer.Deserialize<IntStruct>(HyperionInput));
+            return SumResult(HyperionSerializer.Deserialize<IntStruct>(HyperionInput, HyperionSession));
         }
 
-        [Benchmark]
+        //[Benchmark]
         public int ZeroFormatter()
         {
             return SumResult(ZeroFormatterSerializer.Deserialize<IntStruct>(ZeroFormatterInput));

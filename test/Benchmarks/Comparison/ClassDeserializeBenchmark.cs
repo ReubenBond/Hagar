@@ -24,13 +24,16 @@ using BenchmarkDotNet.Diagnostics.Windows.Configs;
 using Xunit;
 using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
+using System.Text;
+using Utf8JsonNS = Utf8Json;
+using SpanJson.Formatters;
+using System.Text.Json;
 
 namespace Benchmarks.Comparison
 {
     [Trait("Category", "Benchmark")]
     [Config(typeof(BenchmarkConfig))]
     [DisassemblyDiagnoser(maxDepth: 2, printSource: true)]
-    [EventPipeProfiler(BenchmarkDotNet.Diagnosers.EventPipeProfile.CpuSampling)]
     //[EtwProfiler]
     public class ClassDeserializeBenchmark
     {
@@ -46,13 +49,19 @@ namespace Benchmarks.Comparison
         private static readonly MemoryStream HyperionInput;
 
         private static readonly Serializer<IntClass> HagarSerializer;
-        private static readonly byte[] HagarInput;
+        private static readonly ReadOnlySequence<byte> HagarInput;
         private static readonly SerializerSession Session;
 
         private static readonly SerializationManager OrleansSerializer;
         private static readonly List<ArraySegment<byte>> OrleansInput;
         private static readonly BinaryTokenStreamReader OrleansBuffer;
         private static readonly HagarGen_Serializer_IntClass_1843466 generated = new HagarGen_Serializer_IntClass_1843466();
+        private static readonly DeserializerSession HyperionSession;
+
+        private static readonly Utf8JsonNS.IJsonFormatterResolver Utf8JsonResolver = Utf8JsonNS.Resolvers.StandardResolver.Default;
+        private static readonly byte[] Utf8JsonInput;
+
+        private static readonly byte[] SystemTextJsonInput;
 
         static ClassDeserializeBenchmark()
         {
@@ -60,6 +69,7 @@ namespace Benchmarks.Comparison
             ProtoBuf.Serializer.Serialize(ProtoInput, IntClass.Create());
 
             HyperionInput = new MemoryStream();
+            HyperionSession = HyperionSerializer.GetDeserializerSession();
             HyperionSerializer.Serialize(IntClass.Create(), HyperionInput);
 
             // Hagar
@@ -74,7 +84,7 @@ namespace Benchmarks.Comparison
             writer.WriteStartObject(0, typeof(IntClass), typeof(IntClass));
             generated.Serialize(ref writer, IntClass.Create());
             writer.WriteEndObject();
-            HagarInput = bytes;
+            HagarInput = new ReadOnlySequence<byte>(bytes);
 
             // Orleans
             OrleansSerializer = new ClientBuilder()
@@ -93,6 +103,16 @@ namespace Benchmarks.Comparison
             OrleansSerializer.Serialize(IntClass.Create(), writer2);
             OrleansInput = writer2.ToBytes();
             OrleansBuffer = new BinaryTokenStreamReader(OrleansInput);
+
+            Utf8JsonInput = Utf8JsonNS.JsonSerializer.Serialize(IntClass.Create(), Utf8JsonResolver);
+
+            var stream = new MemoryStream();
+            using (var jsonWriter = new System.Text.Json.Utf8JsonWriter(stream))
+            {
+                System.Text.Json.JsonSerializer.Serialize<IntClass>(jsonWriter, IntClass.Create());
+            }
+
+            SystemTextJsonInput = stream.ToArray();
         }
 
         private static int SumResult(IntClass result)
@@ -126,14 +146,27 @@ namespace Benchmarks.Comparison
         public int Hagar()
         {
             Session.FullReset();
-            var reader = new Reader(new ReadOnlySequence<byte>(HagarInput), Session);
-            var instance = new IntClass();
+            var reader = new Reader(HagarInput, Session);
+            var instance = IntClass.Create();
             reader.ReadFieldHeader();
             generated.DeserializeNew(ref reader, instance);
+            //var instance = HagarSerializer.Deserialize(ref reader);
             return SumResult(instance);
         }
 
         [Benchmark]
+        public int Utf8Json()
+        {
+            return SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntClass>(Utf8JsonInput, Utf8JsonResolver));
+        }
+
+        [Benchmark]
+        public int SystemTextJson()
+        {
+            return SumResult(System.Text.Json.JsonSerializer.Deserialize<IntClass>(SystemTextJsonInput));
+        }
+
+        //[Benchmark]
         public int Orleans()
         {
             OrleansBuffer.Reset(OrleansInput);
@@ -157,7 +190,8 @@ namespace Benchmarks.Comparison
         public int Hyperion()
         {
             HyperionInput.Position = 0;
-            return SumResult(HyperionSerializer.Deserialize<IntClass>(HyperionInput));
+
+            return SumResult(HyperionSerializer.Deserialize<IntClass>(HyperionInput, HyperionSession));
         }
 
         [Benchmark]

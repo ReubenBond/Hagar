@@ -9,7 +9,7 @@ namespace Benchmarks
         {
             if (args.Length > 0 && args[0] == "loop")
             {
-                var benchmarks = new SerializeBenchmark();
+                var benchmarks = new ClassSerializeBenchmark();
                 while (true)
                 {
                     benchmarks.Hagar();
@@ -46,7 +46,7 @@ namespace Benchmarks
             var switcher = new BenchmarkSwitcher(new[]
             {
                 typeof(ClassDeserializeBenchmark),
-                typeof(SerializeBenchmark),
+                typeof(ClassSerializeBenchmark),
                 typeof(StructSerializeBenchmark),
                 typeof(StructDeserializeBenchmark),
                 typeof(ComplexTypeBenchmarks),

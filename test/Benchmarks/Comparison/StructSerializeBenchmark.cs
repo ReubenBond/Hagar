@@ -19,6 +19,9 @@ using Xunit;
 using ZeroFormatter;
 using SerializerSession = Hagar.Session.SerializerSession;
 
+using Utf8JsonNS = Utf8Json;
+using System.Text.Json;
+
 namespace Benchmarks.Comparison
 {
     [Trait("Category", "Benchmark")]
@@ -29,12 +32,20 @@ namespace Benchmarks.Comparison
         private static readonly IntStruct Input = IntStruct.Create();
 
         private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
+        private static readonly Hyperion.SerializerSession HyperionSession;
+
         private static readonly Serializer<IntStruct> HagarSerializer;
         private static readonly byte[] HagarData;
         private static readonly SerializerSession Session;
         private static readonly SerializationManager OrleansSerializer;
         private static readonly MemoryStream ProtoBuffer = new MemoryStream();
         private static readonly MemoryStream HyperionBuffer = new MemoryStream();
+
+        private static readonly MemoryStream Utf8JsonOutput = new MemoryStream();
+        private static readonly Utf8JsonNS.IJsonFormatterResolver Utf8JsonResolver = Utf8JsonNS.Resolvers.StandardResolver.Default;
+
+        private static readonly MemoryStream SystemTextJsonOutput = new MemoryStream();
+        private static readonly Utf8JsonWriter SystemTextJsonWriter;
 
         static StructSerializeBenchmark()
         {
@@ -58,6 +69,10 @@ namespace Benchmarks.Comparison
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
                 .Configure<SerializationProviderOptions>(options => options.FallbackSerializationProvider = typeof(SupportsNothingSerializer).GetTypeInfo())
                 .Build().ServiceProvider.GetRequiredService<SerializationManager>();
+
+            HyperionSession = HyperionSerializer.GetSerializerSession();
+
+            SystemTextJsonWriter = new Utf8JsonWriter(SystemTextJsonOutput);
         }
 
         [Fact]
@@ -68,6 +83,24 @@ namespace Benchmarks.Comparison
             var writer = new SingleSegmentBuffer(HagarData).CreateWriter(Session);
             HagarSerializer.Serialize(ref writer, Input);
             return writer.Output.Length;
+        }
+
+        [Benchmark]
+        public long Utf8Json()
+        {
+            Utf8JsonOutput.Position = 0;
+            Utf8JsonNS.JsonSerializer.Serialize<IntStruct>(Utf8JsonOutput, Input, Utf8JsonResolver);
+            return Utf8JsonOutput.Length;
+        }
+
+        [Benchmark]
+        public long SystemTextJson()
+        {
+            SystemTextJsonOutput.Position = 0;
+            System.Text.Json.JsonSerializer.Serialize<IntStruct>(SystemTextJsonWriter, Input);
+
+            SystemTextJsonWriter.Reset();
+            return SystemTextJsonOutput.Length;
         }
 
         //[Benchmark]
@@ -99,11 +132,11 @@ namespace Benchmarks.Comparison
         public long Hyperion()
         {
             HyperionBuffer.Position = 0;
-            HyperionSerializer.Serialize(Input, HyperionBuffer);
+            HyperionSerializer.Serialize(Input, HyperionBuffer, HyperionSession);
             return HyperionBuffer.Length;
         }
 
-        [Benchmark]
+        //[Benchmark]
         public int ZeroFormatter()
         {
             var bytes = ZeroFormatterSerializer.Serialize(Input);
