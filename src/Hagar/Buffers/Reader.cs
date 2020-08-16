@@ -6,6 +6,7 @@ using System.Numerics;
 #endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Hagar.Session;
 using Hagar.Utilities;
 
@@ -272,27 +273,12 @@ namespace Hagar.Buffers
             ulong result = header;
 
             // Read additional bytes as needed
-            if (numBytes == 2)
+            var shiftBy = 8;
+            var i = numBytes;
+            while (--i > 0)
             {
-                result |= ((ulong)this.ReadByte() << 8);
-            }
-            else if (numBytes == 3)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-            }
-            else if (numBytes == 4)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-            }
-            else if (numBytes == 5)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-                result |= ((ulong)this.ReadByte() << 32);
+                result |= (ulong)this.ReadByte() << shiftBy;
+                shiftBy += 8;
             }
 
             result >>= numBytes;
@@ -320,7 +306,7 @@ namespace Hagar.Buffers
             this.bufferPos += bytesNeeded;
 
             ushort upper = Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref readHead, sizeof(ulong)));
-            result |= (((ulong)upper) << (64 - bytesNeeded));
+            result |= ((ulong)upper) << (64 - bytesNeeded);
 
             // Mask off invalid data
             var fullWidthReadMask = ~((ulong)bytesNeeded - 10 + 1);
@@ -340,110 +326,54 @@ namespace Hagar.Buffers
             ulong result = header;
 
             // Read additional bytes as needed
-            if (numBytes == 1)
+            if (numBytes < 9)
             {
-                result >>= 1;
-                return result;
-            }
-            if (numBytes == 2)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result >>= 2;
-                return result;
-            }
-            else if (numBytes == 3)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result >>= 3;
-                return result;
-            }
-            else if (numBytes == 4)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-                result >>= 4;
-                return result;
-            }
-            else if (numBytes == 5)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-                result |= ((ulong)this.ReadByte() << 32);
-                result >>= 5;
-                return result;
-            }
-            else if (numBytes == 6)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-                result |= ((ulong)this.ReadByte() << 32);
-                result |= ((ulong)this.ReadByte() << 40);
-                result >>= 6;
-                return result;
-            }
-            else if (numBytes == 7)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-                result |= ((ulong)this.ReadByte() << 32);
-                result |= ((ulong)this.ReadByte() << 40);
-                result |= ((ulong)this.ReadByte() << 48);
-                result >>= 7;
-                return result;
-            }
-            else if (numBytes == 8)
-            {
-                result |= ((ulong)this.ReadByte() << 8);
-                result |= ((ulong)this.ReadByte() << 16);
-                result |= ((ulong)this.ReadByte() << 24);
-                result |= ((ulong)this.ReadByte() << 32);
+                var shiftBy = 8;
+                var i = numBytes;
+                while (--i > 0)
+                {
+                    result |= (ulong)this.ReadByte() << shiftBy;
+                    shiftBy += 8;
+                }
 
-                result |= ((ulong)this.ReadByte() << 40);
-                result |= ((ulong)this.ReadByte() << 48);
-                result |= ((ulong)this.ReadByte() << 56);
-                result >>= 8;
+                result >>= numBytes;
                 return result;
             }
-            else if (numBytes == 9)
+            else
             {
-                result |= ((ulong)this.ReadByte() << 8);
+                result |= (ulong)this.ReadByte() << 8;
 
                 // If there was more than one byte worth of trailing zeros, read again now that we have more data.
                 numBytes = BitOperations.TrailingZeroCount(result) + 1;
 
                 if (numBytes == 9)
                 {
-                    result |= ((ulong)this.ReadByte() << 16);
-                    result |= ((ulong)this.ReadByte() << 24);
-                    result |= ((ulong)this.ReadByte() << 32);
+                    result |= (ulong)this.ReadByte() << 16;
+                    result |= (ulong)this.ReadByte() << 24;
+                    result |= (ulong)this.ReadByte() << 32;
 
-                    result |= ((ulong)this.ReadByte() << 40);
-                    result |= ((ulong)this.ReadByte() << 48);
-                    result |= ((ulong)this.ReadByte() << 56);
+                    result |= (ulong)this.ReadByte() << 40;
+                    result |= (ulong)this.ReadByte() << 48;
+                    result |= (ulong)this.ReadByte() << 56;
                     result >>= 9;
 
                     var upper = (ushort)this.ReadByte();
-                    result |= (((ulong)upper) << (64 - 9));
+                    result |= ((ulong)upper) << (64 - 9);
                     return result;
                 }
                 else if (numBytes == 10)
                 {
-                    result |= ((ulong)this.ReadByte() << 16);
-                    result |= ((ulong)this.ReadByte() << 24);
-                    result |= ((ulong)this.ReadByte() << 32);
+                    result |= (ulong)this.ReadByte() << 16;
+                    result |= (ulong)this.ReadByte() << 24;
+                    result |= (ulong)this.ReadByte() << 32;
 
-                    result |= ((ulong)this.ReadByte() << 40);
-                    result |= ((ulong)this.ReadByte() << 48);
-                    result |= ((ulong)this.ReadByte() << 56);
+                    result |= (ulong)this.ReadByte() << 40;
+                    result |= (ulong)this.ReadByte() << 48;
+                    result |= (ulong)this.ReadByte() << 56;
                     result >>= 10;
 
-                    var upper = (ushort)((ushort)this.ReadByte() | (ushort)((ushort)this.ReadByte() << 8));
-                    result |= (((ulong)upper) << (64 - 10));
+                    var upper = (ushort)(this.ReadByte() | (ushort)(this.ReadByte() << 8));
+                    result |= ((ulong)upper) << (64 - 10);
                     return result;
                 }
             }
