@@ -43,6 +43,10 @@
       Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj"
       ReferenceOutputAssembly="false"
       OutputItemType="Analyzer" />
+    <ProjectReference
+      Include="$(SourceRoot)src/Hagar.Analyzers/Hagar.Analyzers.csproj"
+      ReferenceOutputAssembly="false"
+      OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>
