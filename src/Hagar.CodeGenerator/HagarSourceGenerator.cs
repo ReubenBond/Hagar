@@ -7,7 +7,7 @@ namespace Hagar.CodeGenerator
     [Generator]
     public class HagarSourceGenerator : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
             var codeGenerator = new CodeGenerator(context.Compilation, new CodeGeneratorOptions());
             var syntax = codeGenerator.GenerateCode(context.CancellationToken);
@@ -16,7 +16,7 @@ namespace Hagar.CodeGenerator
             context.AddSource("Hagar.g.cs", sourceText);
         }
 
-        public void Initialize(InitializationContext context)
+        public void Initialize(GeneratorInitializationContext context)
         {
         }
     }

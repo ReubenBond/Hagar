@@ -48,32 +48,26 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Hagar.CodeGenerator.MSBuild.Tasks\Hagar.CodeGenerator.MSBuild.Tasks.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="16.3.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.3.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Build" Version="16.6.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.8.0-3.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0-3.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0-3.final" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="3.1.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.7" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.6.0" />
-    <PackageReference Include="System.CodeDom" Version="4.6.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+    <PackageReference Include="System.CodeDom" Version="4.7.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0-rc.1.20451.14" />
+    <PackageReference Include="System.Reflection.Metadata" Version="5.0.0-rc.1.20451.14" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" Publish="true" />
-    <PackageReference Update="Microsoft.Build" Version="16.6.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="3.7.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0" />
-    <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="3.1.6" />
-    <PackageReference Update="Microsoft.Extensions.Logging" Version="3.1.7" />
-    <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="3.1.7" />
-    <PackageReference Update="Microsoft.Win32.Registry" Version="4.7.0" />
-    <PackageReference Update="System.CodeDom" Version="4.7.0" />
   </ItemGroup>
 
   <Target Name="PostBuildPublish" AfterTargets="Build" DependsOnTargets="ResolveAssemblyReferences;Publish" Inputs="@(PostBuildPublishInputs)" Outputs="$(PublishCacheFile)" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' == ''">

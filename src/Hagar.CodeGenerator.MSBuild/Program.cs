@@ -25,13 +25,20 @@ namespace Hagar.CodeGenerator.MSBuild
                 var logLevel = LogLevel.Warning;
 
                 var argsFile = args[0].Trim('"');
-                if (!File.Exists(argsFile)) throw new ArgumentException($"Arguments file \"{argsFile}\" does not exist.");
+                if (!File.Exists(argsFile))
+                {
+                    throw new ArgumentException($"Arguments file \"{argsFile}\" does not exist.");
+                }
 
                 var fileArgs = File.ReadAllLines(argsFile);
                 foreach (var arg in fileArgs)
                 {
                     var parts = arg.Split(new[] { ':' }, 2);
-                    if (parts.Length > 2) throw new ArgumentException($"Argument \"{arg}\" cannot be parsed.");
+                    if (parts.Length > 2)
+                    {
+                        throw new ArgumentException($"Argument \"{arg}\" cannot be parsed.");
+                    }
+
                     var key = parts[0];
                     var value = parts.Skip(1).SingleOrDefault();
                     switch (key)
@@ -91,7 +98,10 @@ namespace Hagar.CodeGenerator.MSBuild
                 var stopwatch = Stopwatch.StartNew();
                 var ok = cmd.Execute(CancellationToken.None).GetAwaiter().GetResult();
                 cmd.Log.LogInformation($"Code generation completed in {stopwatch.ElapsedMilliseconds}ms.");
-                if (ok) return 0;
+                if (ok)
+                {
+                    return 0;
+                }
             }
 
             return -1;

@@ -29,6 +29,7 @@ namespace Hagar.UnitTests
             _serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
         }
 
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
         private object DotNetSerializationLoop(object input)
         {
             byte[] bytes;
@@ -49,6 +50,7 @@ namespace Hagar.UnitTests
             }
             return deserialized;
         }
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
 
         private object SerializationLoop(object expected)
         {

@@ -77,7 +77,10 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             // Attempt to resolve the library from one of the dependency contexts.
             var library = this.resolverRependencyContext?.RuntimeLibraries?.FirstOrDefault(NamesMatch);
-            if (library is null) return null;
+            if (library is null)
+            {
+                return null;
+            }
 
             var wrapper = new CompilationLibrary(
                 library.Type,
@@ -94,7 +97,10 @@ namespace Hagar.CodeGenerator.MSBuild
                 foreach (var asm in assemblies)
                 {
                     var assembly = this.TryLoadAssemblyFromPath(asm);
-                    if (assembly != null) return assembly;
+                    if (assembly != null)
+                    {
+                        return assembly;
+                    }
                 }
             }
 

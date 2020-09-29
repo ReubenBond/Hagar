@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
     <Product>Hagar</Product>
-    <VersionPrefix>0.3.4</VersionPrefix>
+    <VersionPrefix>0.3.5-beta1</VersionPrefix>
     <Copyright>Copyright © Reuben Bond 2020</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
@@ -26,6 +26,7 @@
     <Deterministic>true</Deterministic>
     <PathMap Condition=" '$(EnlistmentRoot)' != '' ">$(EnlistmentRoot)=/build/</PathMap>
 	<EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
   <!-- Strong Naming -->

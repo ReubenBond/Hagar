@@ -89,9 +89,14 @@ namespace Hagar.CodeGenerator.MSBuild
                 var metadataReferences = GetMetadataReferences(this.Reference).ToList();
                 
                 foreach (var doc in documents)
+                {
                     this.Log.LogDebug($"Document: {doc.FilePath}");
+                }
+
                 foreach (var reference in metadataReferences)
+                {
                     this.Log.LogDebug($"Reference: {reference.Display}");
+                }
 
                 var projectInfo = ProjectInfo.Create(
                     projectId,
@@ -116,7 +121,10 @@ namespace Hagar.CodeGenerator.MSBuild
                 var compilation = await project.GetCompilationAsync(cancellationToken);
                 this.Log.LogInformation($"GetCompilation completed in {stopwatch.ElapsedMilliseconds}ms.");
 
-                if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName)) return false;
+                if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName))
+                {
+                    return false;
+                }
 
                 var codeGeneratorOptions = new CodeGeneratorOptions
                 {
@@ -138,9 +146,21 @@ namespace Hagar.CodeGenerator.MSBuild
                 using (var sourceWriter = new StreamWriter(this.CodeGenOutputFile))
                 {
                     sourceWriter.WriteLine("#if !EXCLUDE_GENERATED_CODE");
-                    foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning disable {warningNum}");
-                    if (!string.IsNullOrWhiteSpace(source)) await sourceWriter.WriteLineAsync(source);
-                    foreach (var warningNum in SuppressCompilerWarnings) await sourceWriter.WriteLineAsync($"#pragma warning restore {warningNum}");
+                    foreach (var warningNum in SuppressCompilerWarnings)
+                    {
+                        await sourceWriter.WriteLineAsync($"#pragma warning disable {warningNum}");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(source))
+                    {
+                        await sourceWriter.WriteLineAsync(source);
+                    }
+
+                    foreach (var warningNum in SuppressCompilerWarnings)
+                    {
+                        await sourceWriter.WriteLineAsync($"#pragma warning restore {warningNum}");
+                    }
+
                     sourceWriter.WriteLine("#endif");
                 }
                 this.Log.LogInformation($"Write source to disk completed in {stopwatch.ElapsedMilliseconds}ms.");
@@ -150,7 +170,10 @@ namespace Hagar.CodeGenerator.MSBuild
             catch (ReflectionTypeLoadException rtle)
             {
                 foreach (var ex in rtle.LoaderExceptions)
+                {
                     this.Log.LogDebug($"Exception: {ex}");
+                }
+
                 throw;
             }
         }
