@@ -19,62 +19,18 @@ namespace Hagar.Analyzers
     internal static class Constants
     {
         public const string IdAttributeName = "Id";
-        public const string IdAttributeFullyQualifiedName = "Hagar.IdAttribute";
+        public const string IdAttributeFullyQualifiedName = "global::Hagar.IdAttribute";
         public const string GenerateSerializerAttributeName = "GenerateSerializer";
         public const string NonSerializedAttribute = "NonSerialized";
+        public const string NonSerializedAttributeFullyQualifiedName = "global::System.NonSerializedAttribute";
+        public const string SystemNamespace = "System";
     }
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class GenerateHagarSerializationAttributesAnalyzer : DiagnosticAnalyzer
+
+    internal static class SerializationAttributesHelper
     {
-        public const string RuleId = "HAGAR0001";
-        private const string Category = "Usage";
-        private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AddSerializationAttributesTitle), Resources.ResourceManager, typeof(Resources));
-        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AddSerializationAttributesMessageFormat), Resources.ResourceManager, typeof(Resources));
-        private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AddSerializationAttributesDescription), Resources.ResourceManager, typeof(Resources));
-
-        internal static DiagnosticDescriptor Rule { get; } = new DiagnosticDescriptor(RuleId, Title, MessageFormat, Category, DiagnosticSeverity.Info, isEnabledByDefault: true, description: Description);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-
-        public override void Initialize(AnalysisContext context)
+        public static (List<MemberDeclarationSyntax> UnannotatedMembers, uint NextAvailableId) AnalyzeTypeDeclaration(TypeDeclarationSyntax declaration)
         {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
-            context.RegisterSyntaxNodeAction(CheckSyntaxNode, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
-        }
-
-        private void CheckSyntaxNode(SyntaxNodeAnalysisContext context)
-        {
-            if (context.Node is TypeDeclarationSyntax typeDeclaration && !typeDeclaration.Modifiers.Any(m => m.Kind() == SyntaxKind.StaticKeyword))
-            {
-                if (typeDeclaration.HasAttribute(Constants.GenerateSerializerAttributeName))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
-                }
-            }
-        }
-    }
-
-    [ExportCodeFixProvider(LanguageNames.CSharp)]
-    public class GenerateHagarSerializationAttributesCodeFix : CodeFixProvider
-    {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(GenerateHagarSerializationAttributesAnalyzer.RuleId);
-
-        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer; 
-
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken);
-            var declaration = root.FindNode(context.Span).FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            context.RegisterCodeFix(
-                CodeAction.Create("Generate serialization attributes", cancellationToken => AddSerializationAttributes(declaration, context, cancellationToken), equivalenceKey: GenerateHagarSerializationAttributesAnalyzer.RuleId),
-                context.Diagnostics[0]);
-        }
-
-        private async Task<Document> AddSerializationAttributes(TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
-        {
-            var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
             uint nextId = 1;
             var serializableMembers = new List<MemberDeclarationSyntax>();
             foreach (var member in declaration.Members)
@@ -119,12 +75,125 @@ namespace Hagar.Analyzers
                 serializableMembers.Add(member);
             }
 
+            return (serializableMembers, nextId);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class GenerateHagarSerializationAttributesAnalyzer : DiagnosticAnalyzer
+    {
+        public const string RuleId = "HAGAR0001";
+        private const string Category = "Usage";
+        private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AddSerializationAttributesTitle), Resources.ResourceManager, typeof(Resources));
+        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AddSerializationAttributesMessageFormat), Resources.ResourceManager, typeof(Resources));
+        private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AddSerializationAttributesDescription), Resources.ResourceManager, typeof(Resources));
+
+        internal static DiagnosticDescriptor Rule { get; } = new DiagnosticDescriptor(RuleId, Title, MessageFormat, Category, DiagnosticSeverity.Info, isEnabledByDefault: true, description: Description);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+            context.RegisterSyntaxNodeAction(CheckSyntaxNode, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
+        }
+
+        private void CheckSyntaxNode(SyntaxNodeAnalysisContext context)
+        {
+            if (context.Node is TypeDeclarationSyntax declaration && !declaration.Modifiers.Any(m => m.Kind() == SyntaxKind.StaticKeyword))
+            {
+                if (declaration.HasAttribute(Constants.GenerateSerializerAttributeName))
+                {
+                    var (serializableMembers, nextId) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
+                    if (serializableMembers.Count > 0)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+                    }
+                }
+            }
+        }
+    }
+
+    [ExportCodeFixProvider(LanguageNames.CSharp)]
+    public class GenerateHagarSerializationAttributesCodeFix : CodeFixProvider
+    {
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(GenerateHagarSerializationAttributesAnalyzer.RuleId);
+
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer; 
+
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        {
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken);
+            var declaration = root.FindNode(context.Span).FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            context.RegisterCodeFix(
+                CodeAction.Create("Generate serialization attributes", cancellationToken => AddSerializationAttributes(declaration, context, cancellationToken), equivalenceKey: GenerateHagarSerializationAttributesAnalyzer.RuleId),
+                context.Diagnostics[0]);
+            context.RegisterCodeFix(
+                CodeAction.Create("Mark properties and fields [NonSerialized]", cancellationToken => AddNonSerializedAttributes(root, declaration, context, cancellationToken), equivalenceKey: GenerateHagarSerializationAttributesAnalyzer.RuleId + "NonSerialized"),
+                context.Diagnostics[0]);
+        }
+
+        private static async Task<Document> AddSerializationAttributes(TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
+        {
+            var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
+            var (serializableMembers, nextId) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
+
             foreach (var member in serializableMembers)
             {
                 // Add the [Id(x)] attribute
                 var attribute = Attribute(ParseName(Constants.IdAttributeFullyQualifiedName))
                     .AddArgumentListArguments(AttributeArgument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal((int)nextId++))))
                     .WithAdditionalAnnotations(Simplifier.Annotation);
+                editor.AddAttribute(member, attribute);
+            }
+
+            return editor.GetChangedDocument();
+        }
+
+        private static async Task<Document> AddNonSerializedAttributes(SyntaxNode root, TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
+        {
+            var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
+            var (serializableMembers, _) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
+
+            var insertUsingDirective = true;
+            var ns = root.DescendantNodesAndSelf()
+                .OfType<UsingDirectiveSyntax>()
+                .FirstOrDefault(directive => string.Equals(directive.Name.ToString(), Constants.SystemNamespace));
+            if (ns is object)
+            {
+                insertUsingDirective = false;
+            }
+
+            if (insertUsingDirective)
+            {
+                var usingDirective = UsingDirective(IdentifierName(Constants.SystemNamespace)).WithTrailingTrivia(EndOfLine("\r\n"));
+                var lastUsing = root.DescendantNodesAndSelf().OfType<UsingDirectiveSyntax>().LastOrDefault();
+                if (lastUsing is object)
+                {
+                    editor.InsertAfter(lastUsing, usingDirective);
+                }
+                else if (root.DescendantNodesAndSelf().OfType<NamespaceDeclarationSyntax>().FirstOrDefault() is NamespaceDeclarationSyntax firstNamespace)
+                {
+                    editor.InsertBefore(lastUsing, usingDirective);
+                }
+                else if (root.DescendantNodesAndSelf().FirstOrDefault() is SyntaxNode firstNode)
+                {
+                    editor.InsertBefore(firstNode, usingDirective);
+                }
+            }
+            
+            foreach (var member in serializableMembers)
+            {
+                // Add the [NonSerialized] attribute 
+                var attribute = AttributeList().AddAttributes(Attribute(ParseName(Constants.NonSerializedAttributeFullyQualifiedName)).WithAdditionalAnnotations(Simplifier.Annotation));
+
+                // Since [NonSerialized] is a field-only attribute, add the field target specifier.
+                if (member is PropertyDeclarationSyntax)
+                {
+                    attribute = attribute.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.FieldKeyword)));
+                }
+
                 editor.AddAttribute(member, attribute);
             }
 
