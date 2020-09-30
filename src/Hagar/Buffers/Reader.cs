@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.IO;
 #if NETCOREAPP
 using System.Numerics;
 #endif
@@ -11,7 +12,7 @@ using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
-    public ref struct Reader
+    public ref struct Reader<TBuffer>
     {
 #pragma warning disable IDE0044 // Add readonly modifier
         private ReadOnlySequence<byte> _input;
@@ -23,7 +24,33 @@ namespace Hagar.Buffers
         private int _bufferSize;
         private long _previousBuffersSize;
 
-        public Reader(ReadOnlySequence<byte> input, SerializerSession session)
+        private Reader(Stream reader)
+        {
+            if (typeof(TBuffer) == typeof(Stream))
+            {
+                _reader = reader;
+            }
+        }
+
+        public static Reader<Stream> Create(Stream stream)
+        {
+            return new Reader<Stream>(stream);
+        }
+    }
+
+    public ref struct ReadOnlySequenceReader
+    {
+#pragma warning disable IDE0044 // Add readonly modifier
+        private ReadOnlySequence<byte> _input;
+#pragma warning restore IDE0044 // Add readonly modifier
+
+        private ReadOnlySpan<byte> _currentSpan;
+        private SequencePosition _nextSequencePosition;
+        private int _bufferPos;
+        private int _bufferSize;
+        private long _previousBuffersSize;
+
+        public ReadOnlySequenceReader(ReadOnlySequence<byte> input, SerializerSession session)
         {
             _input = input;
             Session = session;
@@ -61,7 +88,7 @@ namespace Hagar.Buffers
         /// <summary>
         /// Creates a new reader beginning at the specified position.
         /// </summary>
-        public Reader ForkFrom(long position) => new Reader(_input.Slice(position), Session);
+        public ReadOnlySequenceReader ForkFrom(long position) => new ReadOnlySequenceReader(_input.Slice(position), Session);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void MoveNext()
@@ -124,7 +151,7 @@ namespace Hagar.Buffers
             _bufferPos += width;
             return result;
 
-            static uint ReadSlower(ref Reader r)
+            static uint ReadSlower(ref ReadOnlySequenceReader r)
             {
                 uint b1 = r.ReadByte();
                 uint b2 = r.ReadByte();
@@ -151,7 +178,7 @@ namespace Hagar.Buffers
             _bufferPos += width;
             return result;
 
-            static ulong ReadSlower(ref Reader r)
+            static ulong ReadSlower(ref ReadOnlySequenceReader r)
             {
                 ulong b1 = r.ReadByte();
                 ulong b2 = r.ReadByte();
@@ -214,7 +241,7 @@ namespace Hagar.Buffers
 
             CopySlower(in destination, ref this);
 
-            static void CopySlower(in Span<byte> d, ref Reader reader)
+            static void CopySlower(in Span<byte> d, ref ReadOnlySequenceReader reader)
             {
                 var dest = d;
                 while (true)
@@ -396,4 +423,5 @@ namespace Hagar.Buffers
             return ExceptionHelper.ThrowArgumentOutOfRange<ulong>("value");
         }
     }
+
 }
