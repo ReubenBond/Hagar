@@ -31,7 +31,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        public KeyValuePair<TKey, TValue> ReadValue(ref Reader reader, Field field)
+        public KeyValuePair<TKey, TValue> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {

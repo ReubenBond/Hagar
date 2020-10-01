@@ -92,7 +92,7 @@ public interface IInvokableWithResult
     void SerializeResult(ref Writer<TBuffer> writer) where TBuffer : IOutputStream;
 
     // Called on receiver side after call returns from (remote) target.
-    void DeserializeResult(ref Reader reader);
+    void DeserializeResult(ref Reader<TInput> reader);
 }
 
 [Serializable]
@@ -133,7 +133,7 @@ public struct MyInterface_MyMethod_Closure<TTarget, TMethodArg1, TMethodParam2> 
     public void SerializeResult(ref Writer<TBuffer> writer) where TBuffer : IOutputStream;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void DeserializeResult(ref Reader reader);
+    public void DeserializeResult(ref Reader<TInput> reader);
 
     void SetTarget<T>()
 

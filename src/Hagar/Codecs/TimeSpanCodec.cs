@@ -16,9 +16,9 @@ namespace Hagar.Codecs
             writer.Write(value.Ticks);
         }
 
-        TimeSpan IFieldCodec<TimeSpan>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        TimeSpan IFieldCodec<TimeSpan>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static TimeSpan ReadValue(ref Reader reader, Field field)
+        public static TimeSpan ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             if (field.WireType != WireType.Fixed64)

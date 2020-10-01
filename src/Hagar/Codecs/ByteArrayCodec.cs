@@ -7,13 +7,13 @@ namespace Hagar.Codecs
 {
     public sealed class ByteArrayCodec : TypedCodecBase<byte[], ByteArrayCodec>, IFieldCodec<byte[]>
     {
-        byte[] IFieldCodec<byte[]>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        byte[] IFieldCodec<byte[]>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static byte[] ReadValue(ref Reader reader, Field field)
+        public static byte[] ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<byte[]>(ref reader, field);
+                return ReferenceCodec.ReadReference<byte[], TInput>(ref reader, field);
             }
 
             if (field.WireType != WireType.LengthPrefixed)

@@ -19,7 +19,7 @@ namespace Hagar.Codecs
 
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value) => _codec.WriteField(ref writer, fieldIdDelta, expectedType, (TField)value);
 
-        object IFieldCodec<object>.ReadValue(ref Reader reader, Field field) => _codec.ReadValue(ref reader, field);
+        object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => _codec.ReadValue(ref reader, field);
 
         private static void ThrowInvalidSubclass() => throw new InvalidCastException($"Subclasses of {typeof(TypedCodecBase<TField, TCodec>)} must implement/derive from {typeof(TCodec)}.");
     }

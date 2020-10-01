@@ -64,7 +64,7 @@ namespace Hagar.TestKit
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
+            var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
 
             var previousPos = reader.Position;
             Assert.Equal(0, previousPos);
@@ -97,7 +97,7 @@ namespace Hagar.TestKit
                 var writer = new Writer<TestMultiSegmentBufferWriter>(buffer, _sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
-                var reader = new Reader(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
+                var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserialized = serializer.Deserialize(ref reader);
 
                 Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
@@ -116,7 +116,7 @@ namespace Hagar.TestKit
                 var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, _sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
-                var reader = new Reader(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
+                var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserializedObject = serializer.Deserialize(ref reader);
                 if (original != null)
                 {
@@ -180,7 +180,7 @@ namespace Hagar.TestKit
             _ = pipe.Reader.TryRead(out var readResult);
 
             {
-                var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
+                var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
                 var readField = reader.ReadFieldHeader();
                 reader.SkipField(readField);
                 Assert.Equal(expectedLength, reader.Position);
@@ -188,7 +188,7 @@ namespace Hagar.TestKit
 
             {
                 var codec = new SkipFieldCodec();
-                var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
+                var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
                 var readField = reader.ReadFieldHeader();
                 var shouldBeNull = codec.ReadValue(ref reader, readField);
                 Assert.Null(shouldBeNull);
@@ -210,7 +210,7 @@ namespace Hagar.TestKit
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);
-            var reader = new Reader(readResult.Buffer, _sessionPool.GetSession());
+            var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
             var readerCodec = CreateCodec();
             var readField = reader.ReadFieldHeader();
             var deserialized = readerCodec.ReadValue(ref reader, readField);

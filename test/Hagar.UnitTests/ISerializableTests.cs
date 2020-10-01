@@ -67,7 +67,7 @@ namespace Hagar.UnitTests
             using (var session = _sessionPool.GetSession())
             {
                 _ = pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer, session);
+                var reader = Reader.Create(readResult.Buffer, session);
                 var result = _serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();

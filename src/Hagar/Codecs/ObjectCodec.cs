@@ -9,13 +9,13 @@ namespace Hagar.Codecs
     {
         private static readonly Type ObjectType = typeof(object);
 
-        object IFieldCodec<object>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static object ReadValue(ref Reader reader, Field field)
+        public static object ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<object>(ref reader, field);
+                return ReferenceCodec.ReadReference<object, TInput>(ref reader, field);
             }
 
             if (field.FieldType == ObjectType || field.FieldType is null)

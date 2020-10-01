@@ -38,11 +38,11 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        T[] IFieldCodec<T[]>.ReadValue(ref Reader reader, Field field)
+        T[] IFieldCodec<T[]>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<T[]>(ref reader, field);
+                return ReferenceCodec.ReadReference<T[], TInput>(ref reader, field);
             }
 
             if (field.WireType != WireType.TagDelimited)

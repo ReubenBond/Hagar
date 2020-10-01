@@ -61,7 +61,7 @@ namespace Hagar.ISerializable
         }
 
         [SecurityCritical]
-        public object ReadValue(ref Reader reader, Type type, uint placeholderReferenceId)
+        public object ReadValue<TInput>(ref Reader<TInput> reader, Type type, uint placeholderReferenceId)
         {
             var callbacks = _serializationCallbacks.GetReferenceTypeCallbacks(type);
 

@@ -34,11 +34,11 @@ namespace Hagar.Serializers
             }
         }
 
-        public TField ReadValue(ref Reader reader, Field field)
+        public TField ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<TField>(ref reader, field);
+                return ReferenceCodec.ReadReference<TField, TInput>(ref reader, field);
             }
 
             var fieldType = field.FieldType;

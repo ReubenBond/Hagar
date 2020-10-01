@@ -95,7 +95,7 @@ namespace Benchmarks
             _hagarSerializer.Serialize(ref writer, _value);
 
             _session.FullReset();
-            var reader = new Reader(writer.Output.GetReadOnlySequence(), _session);
+            var reader = Reader.Create(writer.Output.GetReadOnlySequence(), _session);
             _ = _hagarSerializer.Deserialize(ref reader);
             HagarBuffer.Reset();
         }
@@ -109,7 +109,7 @@ namespace Benchmarks
             _structSerializer.Serialize(ref writer, _structValue);
 
             _session.FullReset();
-            var reader = new Reader(writer.Output.GetReadOnlySequence(), _session);
+            var reader = Reader.Create(writer.Output.GetReadOnlySequence(), _session);
             var result = _structSerializer.Deserialize(ref reader);
             HagarBuffer.Reset();
             return result;
@@ -132,7 +132,7 @@ namespace Benchmarks
             _hagarSerializer.Serialize(ref writer, _value);
 
             _session.FullReset();
-            var reader = new Reader(writer.Output.GetReadOnlySequence(), _session);
+            var reader = Reader.Create(writer.Output.GetReadOnlySequence(), _session);
             var result = _hagarSerializer.Deserialize(ref reader);
             HagarBuffer.Reset();
             return result;
@@ -170,7 +170,7 @@ namespace Benchmarks
         public object HagarDeserialize()
         {
             _session.FullReset();
-            var reader = new Reader(_hagarBytes, _session);
+            var reader = Reader.Create(_hagarBytes, _session);
             return _hagarSerializer.Deserialize(ref reader);
         }
 
@@ -182,7 +182,7 @@ namespace Benchmarks
         public int HagarReadEachByte()
         {
             var sum = 0;
-            var reader = new Reader(_hagarBytes, _session);
+            var reader = Reader.Create(_hagarBytes, _session);
             for (var i = 0; i < _readBytesLength; i++)
             {
                 sum ^= reader.ReadByte();

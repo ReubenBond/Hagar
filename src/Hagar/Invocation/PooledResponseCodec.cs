@@ -31,7 +31,7 @@ namespace Hagar.Invocation
             }
         }
 
-        public void Deserialize(ref Buffers.Reader reader, PooledResponse<TResult> instance)
+        public void Deserialize<TInput>(ref Buffers.Reader<TInput> reader, PooledResponse<TResult> instance)
         {
             uint fieldId = 0;
             while (true)

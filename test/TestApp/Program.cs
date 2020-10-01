@@ -123,7 +123,7 @@ namespace TestApp
             _ = pipe.Reader.TryRead(out var readResult);
 
             using var readerSession = sessionPool.GetSession();
-            var reader = new Reader(readResult.Buffer, readerSession);
+            var reader = Reader.Create(readResult.Buffer, readerSession);
             var initialHeader = reader.ReadFieldHeader();
             var result = codec.ReadValue(ref reader, initialHeader);
             Console.WriteLine(result);
@@ -205,7 +205,7 @@ namespace TestApp
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = getSession();
-            var reader = new Reader(readResult.Buffer, readerSesssion);
+            var reader = Reader.Create(readResult.Buffer, readerSesssion);
             var initialHeader = reader.ReadFieldHeader();
 
             Console.WriteLine("Header:");

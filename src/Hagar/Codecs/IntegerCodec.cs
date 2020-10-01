@@ -20,9 +20,9 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value ? 1 : 0);
         }
 
-        bool IFieldCodec<bool>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        bool IFieldCodec<bool>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static bool ReadValue(ref Reader reader, Field field)
+        public static bool ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType) == 1;
@@ -43,9 +43,9 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        char IFieldCodec<char>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        char IFieldCodec<char>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static char ReadValue(ref Reader reader, Field field)
+        public static char ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return (char)reader.ReadUInt16(field.WireType);
@@ -66,9 +66,9 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        byte IFieldCodec<byte>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        byte IFieldCodec<byte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static byte ReadValue(ref Reader reader, Field field)
+        public static byte ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType);
@@ -89,9 +89,9 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        sbyte IFieldCodec<sbyte>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        sbyte IFieldCodec<sbyte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static sbyte ReadValue(ref Reader reader, Field field)
+        public static sbyte ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt8(field.WireType);
@@ -100,9 +100,9 @@ namespace Hagar.Codecs
 
     public sealed class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
     {
-        ushort IFieldCodec<ushort>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        ushort IFieldCodec<ushort>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static ushort ReadValue(ref Reader reader, Field field)
+        public static ushort ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt16(field.WireType);
@@ -135,9 +135,9 @@ namespace Hagar.Codecs
             writer.WriteVarInt(value);
         }
 
-        short IFieldCodec<short>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        short IFieldCodec<short>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static short ReadValue(ref Reader reader, Field field)
+        public static short ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt16(field.WireType);
@@ -166,9 +166,9 @@ namespace Hagar.Codecs
             }
         }
 
-        uint IFieldCodec<uint>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        uint IFieldCodec<uint>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static uint ReadValue(ref Reader reader, Field field)
+        public static uint ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt32(field.WireType);
@@ -214,9 +214,9 @@ namespace Hagar.Codecs
             }
         }
 
-        int IFieldCodec<int>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        int IFieldCodec<int>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static int ReadValue(ref Reader reader, Field field)
+        public static int ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt32(field.WireType);
@@ -255,9 +255,9 @@ namespace Hagar.Codecs
             }
         }
 
-        long IFieldCodec<long>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        long IFieldCodec<long>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static long ReadValue(ref Reader reader, Field field)
+        public static long ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt64(field.WireType);
@@ -299,9 +299,9 @@ namespace Hagar.Codecs
             }
         }
 
-        ulong IFieldCodec<ulong>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        ulong IFieldCodec<ulong>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static ulong ReadValue(ref Reader reader, Field field)
+        public static ulong ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt64(field.WireType);

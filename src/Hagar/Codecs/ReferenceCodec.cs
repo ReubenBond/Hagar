@@ -34,10 +34,10 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadReference<T>(ref Reader reader, Field field) => (T)ReadReference(ref reader, field, typeof(T));
+        public static T ReadReference<T, TInput>(ref Reader<TInput> reader, Field field) => (T)ReadReference(ref reader, field, typeof(T));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object ReadReference(ref Reader reader, Field field, Type expectedType)
+        public static object ReadReference<TInput>(ref Reader<TInput> reader, Field field, Type expectedType)
         {
             var reference = reader.ReadVarUInt32();
             if (!reader.Session.ReferencedObjects.TryGetReferencedObject(reference, out var value))
@@ -52,8 +52,8 @@ namespace Hagar.Codecs
             };
         }
 
-        private static object DeserializeFromMarker(
-            ref Reader reader,
+        private static object DeserializeFromMarker<TInput>(
+            ref Reader<TInput> reader,
             Field field,
             UnknownFieldMarker marker,
             uint reference,
@@ -69,7 +69,7 @@ namespace Hagar.Codecs
             var session = reader.Session;
             var specificSerializer = session.CodecProvider.GetCodec(fieldType);
 
-            // Reset the session's reference id so that the deserialized object overwrites the marker.
+            // Reset the session's reference id so that the deserialized objects overwrite the placeholder markers.
             var referencedObjects = session.ReferencedObjects;
             var originalCurrentReferenceId = referencedObjects.CurrentReferenceId;
             var originalReferenceToObjectCount = referencedObjects.ReferenceToObjectCount;

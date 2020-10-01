@@ -88,7 +88,7 @@ namespace TestRpc.IO
 
             Message ReadMessage(ReadOnlySequence<byte> payload, SerializerSession session, out SequencePosition consumedTo)
             {
-                var reader = new Reader(payload, session);
+                var reader = Reader.Create(payload, session);
                 var result = _messageSerializer.Deserialize(ref reader);
                 consumedTo = payload.GetPosition(reader.Position);
                 return result;

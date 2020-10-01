@@ -21,7 +21,7 @@ namespace Hagar.CodeGenerator
                 TypedCodecProvider = Type("Hagar.Serializers.ITypedCodecProvider"),
                 Writer = Type("Hagar.Buffers.Writer`1"),
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
-                Reader = Type("Hagar.Buffers.Reader"),
+                Reader = Type("Hagar.Buffers.Reader`1"),
                 SerializerSession = Type("Hagar.Session.SerializerSession"),
                 Request = Type("Hagar.Invocation.Request"),
                 Request_1 = Type("Hagar.Invocation.Request`1"),

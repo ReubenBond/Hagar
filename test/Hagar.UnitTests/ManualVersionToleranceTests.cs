@@ -134,7 +134,7 @@ namespace Hagar.UnitTests
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = GetSession();
-            var reader = new Reader(readResult.Buffer, readerSesssion);
+            var reader = Reader.Create(readResult.Buffer, readerSesssion);
             var initialHeader = reader.ReadFieldHeader();
 
             _log.WriteLine("Header:");
@@ -168,7 +168,7 @@ namespace Hagar.UnitTests
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSession = GetSession();
-            var reader = new Reader(readResult.Buffer, readerSession);
+            var reader = Reader.Create(readResult.Buffer, readerSession);
             var initialHeader = reader.ReadFieldHeader();
             var skipCodec = new SkipFieldCodec();
             _ = skipCodec.ReadValue(ref reader, initialHeader);
@@ -295,7 +295,7 @@ namespace Hagar.UnitTests
                 writer.WriteFieldHeader(session, 1020, typeof(object), typeof(Program), WireType.Reference);*/
             }
 
-            public void Deserialize(ref Reader reader, SubType obj)
+            public void Deserialize<TInput>(ref Reader<TInput> reader, SubType obj)
             {
                 uint fieldId = 0;
                 _baseTypeSerializer.Deserialize(ref reader, obj);
@@ -335,7 +335,7 @@ namespace Hagar.UnitTests
                 StringCodec.WriteField(ref writer, 234, typeof(string), obj.AddedLaterString);
             }
 
-            public void Deserialize(ref Reader reader, BaseType obj)
+            public void Deserialize<TInput>(ref Reader<TInput> reader, BaseType obj)
             {
                 uint fieldId = 0;
                 while (true)

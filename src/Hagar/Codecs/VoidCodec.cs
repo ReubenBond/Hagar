@@ -14,14 +14,14 @@ namespace Hagar.Codecs
             }
         }
 
-        object IFieldCodec<object>.ReadValue(ref Reader reader, Field field)
+        object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.Reference)
             {
                 ThrowInvalidWireType(field);
             }
 
-            return ReferenceCodec.ReadReference<object>(ref reader, field);
+            return ReferenceCodec.ReadReference<object, TInput>(ref reader, field);
         }
 
         private static void ThrowInvalidWireType(Field field) => throw new UnsupportedWireTypeException($"Expected a reference, but encountered wire type of '{field.WireType}'.");

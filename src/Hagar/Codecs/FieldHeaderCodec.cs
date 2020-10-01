@@ -90,7 +90,7 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ReadFieldHeader(ref this Reader reader, ref Field field)
+        public static void ReadFieldHeader<TInput>(ref this Reader<TInput> reader, ref Field field)
         {
             var tag = reader.ReadByte();
 
@@ -108,7 +108,7 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Field ReadFieldHeader(ref this Reader reader)
+        public static Field ReadFieldHeader<TInput>(ref this Reader<TInput> reader)
         {
             Field field = default;
             var tag = reader.ReadByte();
@@ -128,7 +128,7 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ReadFieldHeaderSlow(ref this Reader reader, ref Field field)
+        private static void ReadFieldHeaderSlow<TInput>(ref this Reader<TInput> reader, ref Field field)
         {
             // If all of the field id delta bits are set and the field isn't an extended wiretype field, read the extended field id delta
             var notExtended = (field.Tag & (byte)WireType.Extended) != (byte)WireType.Extended;
@@ -154,7 +154,7 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static Type ReadType(this ref Reader reader, SchemaType schemaType)
+        private static Type ReadType<TInput>(this ref Reader<TInput> reader, SchemaType schemaType)
         {
             switch (schemaType)
             {

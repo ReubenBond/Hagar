@@ -7,7 +7,7 @@ namespace Hagar.Utilities
     public static class VarIntReaderExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte ReadUInt8(this ref Reader reader, WireType wireType) => wireType switch
+        public static byte ReadUInt8<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => (byte)reader.ReadVarUInt32(),
             WireType.Fixed32 => (byte)reader.ReadUInt32(),
@@ -16,7 +16,7 @@ namespace Hagar.Utilities
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ushort ReadUInt16(this ref Reader reader, WireType wireType) => wireType switch
+        public static ushort ReadUInt16<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => (ushort)reader.ReadVarUInt32(),
             WireType.Fixed32 => (ushort)reader.ReadUInt32(),
@@ -25,7 +25,7 @@ namespace Hagar.Utilities
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint ReadUInt32(this ref Reader reader, WireType wireType) => wireType switch
+        public static uint ReadUInt32<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => reader.ReadVarUInt32(),
             WireType.Fixed32 => reader.ReadUInt32(),
@@ -34,7 +34,7 @@ namespace Hagar.Utilities
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong ReadUInt64(this ref Reader reader, WireType wireType) => wireType switch
+        public static ulong ReadUInt64<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => reader.ReadVarUInt64(),
             WireType.Fixed32 => reader.ReadUInt32(),
@@ -43,7 +43,7 @@ namespace Hagar.Utilities
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static sbyte ReadInt8(this ref Reader reader, WireType wireType) => wireType switch
+        public static sbyte ReadInt8<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => ZigZagDecode((byte)reader.ReadVarUInt32()),
             WireType.Fixed32 => (sbyte)reader.ReadInt32(),
@@ -52,7 +52,7 @@ namespace Hagar.Utilities
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static short ReadInt16(this ref Reader reader, WireType wireType) => wireType switch
+        public static short ReadInt16<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => ZigZagDecode((ushort)reader.ReadVarUInt32()),
             WireType.Fixed32 => (short)reader.ReadInt32(),
@@ -62,7 +62,7 @@ namespace Hagar.Utilities
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReadInt32(this ref Reader reader, WireType wireType)
+        public static int ReadInt32<TInput>(this ref Reader<TInput> reader, WireType wireType)
         {
             if (wireType == WireType.VarInt)
             {
@@ -73,7 +73,7 @@ namespace Hagar.Utilities
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static int ReadInt32Slower(this ref Reader reader, WireType wireType) => wireType switch
+        private static int ReadInt32Slower<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.Fixed32 => reader.ReadInt32(),
             WireType.Fixed64 => (int)reader.ReadInt64(),
@@ -81,7 +81,7 @@ namespace Hagar.Utilities
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long ReadInt64(this ref Reader reader, WireType wireType) => wireType switch
+        public static long ReadInt64<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
             WireType.VarInt => ZigZagDecode(reader.ReadVarUInt64()),
             WireType.Fixed32 => reader.ReadInt32(),

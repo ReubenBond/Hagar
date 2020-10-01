@@ -49,7 +49,7 @@ namespace Hagar.TestKit
             public void Deserialize(ReadOnlySequence<byte> buffer, out TValue output)
             {
                 using var session = _sessionPool.GetSession();
-                var reader = new Reader(buffer, session);
+                var reader = Reader.Create(buffer, session);
                 output = _serializer.Deserialize(ref reader);
             }
         }

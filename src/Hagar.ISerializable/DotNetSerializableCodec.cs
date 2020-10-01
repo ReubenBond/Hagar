@@ -70,11 +70,11 @@ namespace Hagar.ISerializable
         }
 
         [SecurityCritical]
-        public object ReadValue(ref Reader reader, Field field)
+        public object ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<object>(ref reader, field);
+                return ReferenceCodec.ReadReference<object, TInput>(ref reader, field);
             }
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);

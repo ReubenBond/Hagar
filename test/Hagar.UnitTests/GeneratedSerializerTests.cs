@@ -157,7 +157,7 @@ namespace Hagar.UnitTests
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer, readerSession);
+                var reader = Reader.Create(readResult.Buffer, readerSession);
 
                 var previousPos = reader.Position;
                 var initialHeader = reader.ReadFieldHeader();
@@ -186,7 +186,7 @@ namespace Hagar.UnitTests
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer, readerSession);
+                var reader = Reader.Create(readResult.Buffer, readerSession);
 
                 result = serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);

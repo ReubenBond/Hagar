@@ -119,7 +119,7 @@ namespace Hagar
 
             public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value) where TBufferWriter : IBufferWriter<byte> => Value.WriteField(ref writer, fieldIdDelta, expectedType, value);
 
-            public TField ReadValue(ref Reader reader, Field field) => Value.ReadValue(ref reader, field);
+            public TField ReadValue<TInput>(ref Reader<TInput> reader, Field field) => Value.ReadValue(ref reader, field);
 
             public IFieldCodec<TField> Value => _codec ??= _codecProvider.GetCodec<TField>();
         }
@@ -136,7 +136,7 @@ namespace Hagar
 
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, TField value) where TBufferWriter : IBufferWriter<byte> => Value.Serialize(ref writer, value);
 
-            public void Deserialize(ref Reader reader, TField value) => Value.Deserialize(ref reader, value);
+            public void Deserialize<TInput>(ref Reader<TInput> reader, TField value) => Value.Deserialize(ref reader, value);
 
             public IPartialSerializer<TField> Value => _partialSerializer ??= _provider.GetPartialSerializer<TField>();
         }
@@ -153,7 +153,7 @@ namespace Hagar
 
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in TField value) where TBufferWriter : IBufferWriter<byte> => Value.Serialize(ref writer, in value);
 
-            public void Deserialize(ref Reader reader, ref TField value) => Value.Deserialize(ref reader, ref value);
+            public void Deserialize<TInput>(ref Reader<TInput> reader, ref TField value) => Value.Deserialize(ref reader, ref value);
 
             public IValueSerializer<TField> Value => _serializer ??= _provider.GetValueSerializer<TField>();
         }

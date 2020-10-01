@@ -72,11 +72,11 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        object IFieldCodec<object>.ReadValue(ref Reader reader, Field field)
+        object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<T[]>(ref reader, field);
+                return ReferenceCodec.ReadReference<T[], TInput>(ref reader, field);
             }
 
             if (field.WireType != WireType.TagDelimited)

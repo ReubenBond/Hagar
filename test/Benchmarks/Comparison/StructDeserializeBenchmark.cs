@@ -120,7 +120,7 @@ namespace Benchmarks.Comparison
         public int Hagar()
         {
             Session.FullReset();
-            var reader = new Reader(HagarInput, Session);
+            var reader = Reader.Create(HagarInput, Session);
             IntStruct result = default;
             HagarSerializer.Deserialize(ref reader, ref result);
             return SumResult(in result);

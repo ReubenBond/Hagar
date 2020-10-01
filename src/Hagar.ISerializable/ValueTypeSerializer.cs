@@ -64,7 +64,7 @@ namespace Hagar.ISerializable
         }
 
         [SecurityCritical]
-        object ISerializableSerializer.ReadValue(ref Reader reader, Type type, uint placeholderReferenceId)
+        object ISerializableSerializer.ReadValue<TInput>(ref Reader<TInput> reader, Type type, uint placeholderReferenceId)
         {
             var info = new SerializationInfo(Type, _formatterConverter);
             T result = default;

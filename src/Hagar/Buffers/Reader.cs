@@ -12,53 +12,57 @@ using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
-    public ref struct Reader<TBuffer>
+    public abstract class ReaderInput
     {
-#pragma warning disable IDE0044 // Add readonly modifier
-        private ReadOnlySequence<byte> _input;
-#pragma warning restore IDE0044 // Add readonly modifier
-
-        private ReadOnlySpan<byte> _currentSpan;
-        private SequencePosition _nextSequencePosition;
-        private int _bufferPos;
-        private int _bufferSize;
-        private long _previousBuffersSize;
-
-        private Reader(Stream reader)
-        {
-            if (typeof(TBuffer) == typeof(Stream))
-            {
-                _reader = reader;
-            }
-        }
-
-        public static Reader<Stream> Create(Stream stream)
-        {
-            return new Reader<Stream>(stream);
-        }
+        public abstract void Skip(long count);
+        internal ReaderInput Slice(long position) => throw new NotImplementedException();
     }
 
-    public ref struct ReadOnlySequenceReader
+    public static class Reader
     {
-#pragma warning disable IDE0044 // Add readonly modifier
-        private ReadOnlySequence<byte> _input;
-#pragma warning restore IDE0044 // Add readonly modifier
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Reader<Stream> Create(Stream stream, SerializerSession session) => new Reader<Stream>(stream, session);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Reader<ReadOnlySequence<byte>> Create(ReadOnlySequence<byte> sequence, SerializerSession session) => new Reader<ReadOnlySequence<byte>>(sequence, session);
+    }
+
+    public ref struct Reader<TInput>
+    {
+        private TInput _input;
         private ReadOnlySpan<byte> _currentSpan;
         private SequencePosition _nextSequencePosition;
         private int _bufferPos;
         private int _bufferSize;
         private long _previousBuffersSize;
 
-        public ReadOnlySequenceReader(ReadOnlySequence<byte> input, SerializerSession session)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Reader(TInput input, SerializerSession session)
         {
-            _input = input;
+            if (input is ReadOnlySequence<byte> sequence)
+            {
+                _input = input;
+                _nextSequencePosition = sequence.Start;
+                _currentSpan = sequence.First.Span;
+                _bufferPos = 0;
+                _bufferSize = _currentSpan.Length;
+                _previousBuffersSize = 0;
+            }
+            else if (input is ReaderInput)
+            {
+                _input = input;
+                _nextSequencePosition = default;
+                _currentSpan = default;
+                _bufferPos = 0;
+                _bufferSize = default;
+                _previousBuffersSize = 0;
+            }
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+            }
+
             Session = session;
-            _nextSequencePosition = input.Start;
-            _currentSpan = input.First.Span;
-            _bufferPos = 0;
-            _bufferSize = _currentSpan.Length;
-            _previousBuffersSize = 0;
         }
 
         public SerializerSession Session { get; }
@@ -71,45 +75,75 @@ namespace Hagar.Buffers
 
         public void Skip(long count)
         {
-            var end = Position + count;
-            while (Position < end)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
             {
-                if (Position + _bufferSize >= end)
+                var end = Position + count;
+                while (Position < end)
                 {
-                    _bufferPos = (int)(end - _previousBuffersSize);
+                    if (Position + _bufferSize >= end)
+                    {
+                        _bufferPos = (int)(end - _previousBuffersSize);
+                    }
+                    else
+                    {
+                        MoveNext();
+                    }
                 }
-                else
-                {
-                    MoveNext();
-                }
+            }
+            else if (_input is ReaderInput input)
+            {
+                input.Skip(count);
+            }
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
             }
         }
 
         /// <summary>
         /// Creates a new reader beginning at the specified position.
         /// </summary>
-        public ReadOnlySequenceReader ForkFrom(long position) => new ReadOnlySequenceReader(_input.Slice(position), Session);
+        public Reader<TInput> ForkFrom(long position)
+        {
+            if (_input is ReadOnlySequence<byte> sequence && sequence.Slice(position) is TInput slicedSequence)
+            {
+                return new Reader<TInput>(slicedSequence, Session);
+            }
+            else if (_input is ReaderInput input && input.Slice(position) is TInput slicedInput)
+            {
+                return new Reader<TInput>(slicedInput, Session);
+            }
+
+            throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void MoveNext()
         {
-            _previousBuffersSize += _bufferSize;
-
-            // If this is the first call to MoveNext then nextSequencePosition is invalid and must be moved to the second position.
-            if (_nextSequencePosition.Equals(_input.Start))
+            if (_input is ReadOnlySequence<byte> sequence)
             {
-                _ = _input.TryGet(ref _nextSequencePosition, out _);
-            }
+                _previousBuffersSize += _bufferSize;
 
-            if (!_input.TryGet(ref _nextSequencePosition, out var memory))
-            {
+                // If this is the first call to MoveNext then nextSequencePosition is invalid and must be moved to the second position.
+                if (_nextSequencePosition.Equals(sequence.Start))
+                {
+                    _ = sequence.TryGet(ref _nextSequencePosition, out _);
+                }
+
+                if (!sequence.TryGet(ref _nextSequencePosition, out var memory))
+                {
+                    _currentSpan = memory.Span;
+                    ThrowInsufficientData();
+                }
+
                 _currentSpan = memory.Span;
-                ThrowInsufficientData();
+                _bufferPos = 0;
+                _bufferSize = _currentSpan.Length;
             }
-
-            _currentSpan = memory.Span;
-            _bufferPos = 0;
-            _bufferSize = _currentSpan.Length;
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -119,7 +153,14 @@ namespace Hagar.Buffers
             var span = _currentSpan;
             if ((uint)pos >= (uint)span.Length)
             {
-                return ReadByteSlow();
+                return ReadByteSlow(ref this);
+                
+                [MethodImpl(MethodImplOptions.NoInlining)]
+                static byte ReadByteSlow(ref Reader<TInput> reader)
+                {
+                    reader.MoveNext();
+                    return reader._currentSpan[reader._bufferPos++];
+                }
             }
 
             var result = span[pos];
@@ -128,12 +169,6 @@ namespace Hagar.Buffers
             return result;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private byte ReadByteSlow()
-        {
-            MoveNext();
-            return _currentSpan[_bufferPos++];
-        }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadInt32() => (int)ReadUInt32();
@@ -151,7 +186,7 @@ namespace Hagar.Buffers
             _bufferPos += width;
             return result;
 
-            static uint ReadSlower(ref ReadOnlySequenceReader r)
+            static uint ReadSlower(ref Reader<TInput> r)
             {
                 uint b1 = r.ReadByte();
                 uint b2 = r.ReadByte();
@@ -178,7 +213,7 @@ namespace Hagar.Buffers
             _bufferPos += width;
             return result;
 
-            static ulong ReadSlower(ref ReadOnlySequenceReader r)
+            static ulong ReadSlower(ref Reader<TInput> r)
             {
                 ulong b1 = r.ReadByte();
                 ulong b2 = r.ReadByte();
@@ -241,7 +276,7 @@ namespace Hagar.Buffers
 
             CopySlower(in destination, ref this);
 
-            static void CopySlower(in Span<byte> d, ref ReadOnlySequenceReader reader)
+            static void CopySlower(in Span<byte> d, ref Reader<TInput> reader)
             {
                 var dest = d;
                 while (true)
@@ -422,6 +457,12 @@ namespace Hagar.Buffers
 
             return ExceptionHelper.ThrowArgumentOutOfRange<ulong>("value");
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static T ThrowNotSupportedInput<T>() => throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowNotSupportedInput() => throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
     }
 
 }

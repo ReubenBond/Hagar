@@ -438,9 +438,10 @@ namespace Hagar.CodeGenerator
 
             body.Add(WhileStatement(LiteralExpression(SyntaxKind.TrueLiteralExpression), Block(GetDeserializerLoopBody())));
 
+            var genericParam = ParseTypeName("TInput");
             var parameters = new[]
             {
-                Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
+                Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax(genericParam)).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
                 Parameter(instanceParam.Identifier).WithType(type.TypeSyntax)
             };
 
@@ -450,6 +451,7 @@ namespace Hagar.CodeGenerator
             }
 
             return MethodDeclaration(returnType, DeserializeMethodName)
+                .AddTypeParameterListParameters(TypeParameter("TInput"))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters)
                 .AddBodyStatements(body.ToArray());

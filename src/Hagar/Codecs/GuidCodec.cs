@@ -26,9 +26,9 @@ namespace Hagar.Codecs
             writer.Write(value.ToByteArray());
         }
 
-        Guid IFieldCodec<Guid>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        Guid IFieldCodec<Guid>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static Guid ReadValue(ref Reader reader, Field field)
+        public static Guid ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
 #if NETCOREAPP

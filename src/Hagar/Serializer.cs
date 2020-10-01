@@ -26,7 +26,7 @@ namespace Hagar
         {
             var sequence = new ReadOnlySequence<byte>(source);
             using var session = _sessionPool.GetSession();
-            var reader = new Reader(sequence, session);
+            var reader = Reader.Create(sequence, session);
             var codec = _codecProvider.GetCodec<T>();
             var field = reader.ReadFieldHeader();
             return codec.ReadValue(ref reader, field);
@@ -53,7 +53,7 @@ namespace Hagar
         public T Deserialize<T>(ReadOnlySequence<byte> source)
         {
             using var session = _sessionPool.GetSession();
-            var reader = new Reader(source, session);
+            var reader = Reader.Create(source, session);
             var codec = _codecProvider.GetCodec<T>();
             var field = reader.ReadFieldHeader();
             return codec.ReadValue(ref reader, field);
@@ -77,7 +77,7 @@ namespace Hagar
             writer.Commit();
         }
 
-        public T Deserialize(ref Reader reader)
+        public T Deserialize<TInput>(ref Reader<TInput> reader)
         {
             var field = reader.ReadFieldHeader();
             return _codec.ReadValue(ref reader, field);
@@ -103,7 +103,7 @@ namespace Hagar
             writer.Commit();
         }
 
-        public void Deserialize(ref Reader reader, ref T result)
+        public void Deserialize<TInput>(ref Reader<TInput> reader, ref T result)
         {
             Field ignored = default;
             reader.ReadFieldHeader(ref ignored);

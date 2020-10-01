@@ -12,6 +12,6 @@ namespace Hagar.Serializers
     public interface IValueSerializer<T> where T : struct
     {
         void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in T value) where TBufferWriter : IBufferWriter<byte>;
-        void Deserialize(ref Reader reader, ref T value);
+        void Deserialize<TInput>(ref Reader<TInput> reader, ref T value);
     }
 }
