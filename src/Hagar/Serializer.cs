@@ -45,7 +45,7 @@ namespace Hagar
         public void Serialize<T>(T value, IBufferWriter<byte> destination)
         {
             using var session = _sessionPool.GetSession();
-            var writer = new Writer<IBufferWriter<byte>>(destination, session);
+            var writer = Writer.Create(destination, session);
             var codec = _codecProvider.GetCodec<T>();
             codec.WriteField(ref writer, 0, typeof(T), value);
         }

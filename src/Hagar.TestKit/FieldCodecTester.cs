@@ -47,7 +47,7 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, _sessionPool.GetSession());
+            var writer = Writer.Create(pipe.Writer, _sessionPool.GetSession());
             var writerCodec = CreateCodec();
             var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
@@ -94,7 +94,7 @@ namespace Hagar.TestKit
             {
                 var buffer = new TestMultiSegmentBufferWriter(1024);
 
-                var writer = new Writer<TestMultiSegmentBufferWriter>(buffer, _sessionPool.GetSession());
+                var writer = Writer.Create(buffer, _sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
                 var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
@@ -113,7 +113,7 @@ namespace Hagar.TestKit
             {
                 var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
 
-                var writer = new Writer<TestSingleSegmentBufferWriter>(buffer, _sessionPool.GetSession());
+                var writer = Writer.Create(buffer, _sessionPool.GetSession());
                 serializer.Serialize(ref writer, original);
 
                 var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
@@ -169,7 +169,7 @@ namespace Hagar.TestKit
         private void CanBeSkipped(TValue original)
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, _sessionPool.GetSession());
+            var writer = Writer.Create(pipe.Writer, _sessionPool.GetSession());
             var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             var expectedLength = writer.Position;
@@ -202,7 +202,7 @@ namespace Hagar.TestKit
         private void TestRoundTrippedValue(TValue original)
         {
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, _sessionPool.GetSession());
+            var writer = Writer.Create(pipe.Writer, _sessionPool.GetSession());
             var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             writer.Commit();

@@ -58,7 +58,7 @@ namespace Hagar.UnitTests
 
             using (var session = _sessionPool.GetSession())
             {
-                var writer = new Writer<PipeWriter>(pipe.Writer, session);
+                var writer = Writer.Create(pipe.Writer, session);
                 _serializer.Serialize(ref writer, expected);
                 _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();

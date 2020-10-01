@@ -15,7 +15,7 @@ namespace Hagar.Buffers
                 ThrowSessionNull();
             }
 
-            return new Writer<TBufferWriter>(buffer, session);
+            return Writer.Create(buffer, session);
 
             void ThrowSessionNull() => throw new ArgumentNullException(nameof(session));
         }

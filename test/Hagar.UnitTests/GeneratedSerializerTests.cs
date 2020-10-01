@@ -145,7 +145,7 @@ namespace Hagar.UnitTests
             using (var readerSession = _sessionPool.GetSession())
             using (var writeSession = _sessionPool.GetSession())
             {
-                var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
+                var writer = Writer.Create(pipe.Writer, writeSession);
                 var codec = _codecProvider.GetCodec<T>();
                 codec.WriteField(
                     ref writer,
@@ -178,7 +178,7 @@ namespace Hagar.UnitTests
             using (var readerSession = _sessionPool.GetSession())
             using (var writeSession = _sessionPool.GetSession())
             {
-                var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
+                var writer = Writer.Create(pipe.Writer, writeSession);
                 var serializer = _serviceProvider.GetService<Serializer<object>>();
                 serializer.Serialize(ref writer, original);
 

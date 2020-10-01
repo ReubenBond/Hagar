@@ -122,7 +122,7 @@ namespace Hagar.UnitTests
         {
             using var writerSession = GetSession();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
+            var writer = Writer.Create(pipe.Writer, writerSession);
 
             _serializer.WriteField(ref writer, 0, typeof(SubType), expected);
             writer.Commit();
@@ -159,7 +159,7 @@ namespace Hagar.UnitTests
         {
             using var writerSession = GetSession();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
+            var writer = Writer.Create(pipe.Writer, writerSession);
 
             _serializer.WriteField(ref writer, 0, typeof(SubType), expected);
             writer.Commit();

@@ -41,7 +41,7 @@ namespace Hagar.TestKit
             public IOutputBuffer Serialize(TValue input)
             {
                 using var session = _sessionPool.GetSession();
-                var writer = new Writer<TBufferWriter>(CreateBufferWriter(), session);
+                var writer = Writer.Create(CreateBufferWriter(), session);
                 _serializer.Serialize(ref writer, input);
                 return writer.Output;
             }

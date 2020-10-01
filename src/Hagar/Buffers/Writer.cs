@@ -11,6 +11,13 @@ using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
+
+    public static class Writer
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<TBufferWriter> Create<TBufferWriter>(TBufferWriter output, SerializerSession session) where TBufferWriter : IBufferWriter<byte> => new Writer<TBufferWriter>(output, session);
+    }
+
     public ref struct Writer<TBufferWriter> where TBufferWriter : IBufferWriter<byte>
     {
 #pragma warning disable IDE0044 // Add readonly modifier
@@ -20,7 +27,7 @@ namespace Hagar.Buffers
         private int _bufferPos;
         private int _previousBuffersSize;
 
-        public Writer(TBufferWriter output, SerializerSession session)
+        internal Writer(TBufferWriter output, SerializerSession session)
         {
             _output = output;
             Session = session;

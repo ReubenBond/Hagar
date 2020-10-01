@@ -112,7 +112,7 @@ namespace TestApp
 
             var writeSession = sessionPool.GetSession();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
+            var writer = Writer.Create(pipe.Writer, writeSession);
             codec.WriteField(ref writer,
                              0,
                              typeof(SomeClassWithSerialzers),
@@ -193,7 +193,7 @@ namespace TestApp
         {
             using var writerSession = getSession();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
+            var writer = Writer.Create(pipe.Writer, writerSession);
 
             serializer.WriteField(ref writer, 0, typeof(T), expected);
             writer.Commit();
