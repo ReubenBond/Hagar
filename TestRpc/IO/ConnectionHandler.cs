@@ -125,7 +125,7 @@ namespace TestRpc.IO
             void WriteMessage(Message message, SerializerSession session)
             {
                 var writer = Writer.Create(_connection.Output, session);
-                _messageSerializer.Serialize(ref writer, message);
+                _messageSerializer.Serialize(message, ref writer);
             }
         }
     }

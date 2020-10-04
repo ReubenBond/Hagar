@@ -59,7 +59,7 @@ namespace Hagar.UnitTests
             using (var session = _sessionPool.GetSession())
             {
                 var writer = Writer.Create(pipe.Writer, session);
-                _serializer.Serialize(ref writer, expected);
+                _serializer.Serialize(expected, ref writer);
                 _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
             }

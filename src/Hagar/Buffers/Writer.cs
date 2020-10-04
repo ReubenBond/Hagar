@@ -1,21 +1,40 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.IO;
 #if NETCOREAPP
 using System.Numerics;
 #endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Hagar.Buffers.Adaptors;
 using Hagar.Session;
 using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
-
     public static class Writer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Writer<TBufferWriter> Create<TBufferWriter>(TBufferWriter output, SerializerSession session) where TBufferWriter : IBufferWriter<byte> => new Writer<TBufferWriter>(output, session);
+        public static Writer<TBufferWriter> Create<TBufferWriter>(TBufferWriter destination, SerializerSession session) where TBufferWriter : IBufferWriter<byte> => new Writer<TBufferWriter>(destination, session);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<MemoryStreamBufferWriter> Create(MemoryStream destination, SerializerSession session) => new Writer<MemoryStreamBufferWriter>(new MemoryStreamBufferWriter(destination), session);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<PoolingStreamBufferWriter> CreatePooled(Stream destination, SerializerSession session, int sizeHint = 0) => new Writer<PoolingStreamBufferWriter>(new PoolingStreamBufferWriter(destination, sizeHint), session);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<ArrayStreamBufferWriter> Create(Stream destination, SerializerSession session, int sizeHint = 0) => new Writer<ArrayStreamBufferWriter>(new ArrayStreamBufferWriter(destination, sizeHint), session);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<ArrayBufferWriter> Create(byte[] output, SerializerSession session) => new Writer<ArrayBufferWriter>(new ArrayBufferWriter(output), session);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<MemoryBufferWriter> Create(Memory<byte> output, SerializerSession session) => new Writer<MemoryBufferWriter>(new MemoryBufferWriter(output), session);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Writer<SpanBufferWriter> Create(Span<byte> output, SerializerSession session) => new Writer<SpanBufferWriter>(new SpanBufferWriter(output), output, session);
     }
 
     public ref struct Writer<TBufferWriter> where TBufferWriter : IBufferWriter<byte>
@@ -29,12 +48,36 @@ namespace Hagar.Buffers
 
         internal Writer(TBufferWriter output, SerializerSession session)
         {
-            _output = output;
-            Session = session;
-            _currentSpan = output.GetSpan();
-            _bufferPos = default;
-            _previousBuffersSize = default;
+            if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
+            {
+                throw new NotSupportedException($"Type {typeof(TBufferWriter)} is not supported by this constructor");
+            }
+            else
+            {
+                _output = output;
+                Session = session;
+                _currentSpan = output.GetSpan();
+                _bufferPos = default;
+                _previousBuffersSize = default;
+            }
         }
+
+        internal Writer(TBufferWriter output, Span<byte> span, SerializerSession session)
+        {
+            if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
+            {
+                _output = output;
+                Session = session;
+                _currentSpan = span;
+                _bufferPos = default;
+                _previousBuffersSize = default;
+            }
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TBufferWriter)} is not supported by this constructor");
+            }
+        }
+
 
         public SerializerSession Session { get; }
 

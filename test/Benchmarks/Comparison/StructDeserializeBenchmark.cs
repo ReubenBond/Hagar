@@ -26,6 +26,7 @@ namespace Benchmarks.Comparison
 {
     [Trait("Category", "Benchmark")]
     [Config(typeof(BenchmarkConfig))]
+    [DisassemblyDiagnoser(recursiveDepth: 4)]
     public class StructDeserializeBenchmark
     {
         private static readonly MemoryStream ProtoInput;

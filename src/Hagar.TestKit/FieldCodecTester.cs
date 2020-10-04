@@ -6,6 +6,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using Xunit;
@@ -42,6 +43,45 @@ namespace Hagar.TestKit
         protected abstract TValue CreateValue();
         protected abstract TValue[] TestValues { get; }
         protected virtual bool Equals(TValue left, TValue right) => EqualityComparer<TValue>.Default.Equals(left, right);
+
+        [Fact]
+        public void CorrectlyAdvancesReferenceCounterStream()
+        {
+            var stream = new MemoryStream();
+            var writer = Writer.Create(stream, _sessionPool.GetSession());
+            var writerCodec = CreateCodec();
+            var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
+
+            // Write the field. This should involve marking at least one reference in the session.
+            Assert.Equal(0, writer.Position);
+
+            writerCodec.WriteField(ref writer, 0, typeof(TValue), CreateValue());
+            Assert.True(writer.Position > 0);
+
+            writer.Commit();
+            var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
+            Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+            stream.Flush();
+
+            stream.Position = 0;
+            var reader = Reader.Create(stream, _sessionPool.GetSession());
+
+            var previousPos = reader.Position;
+            Assert.Equal(0, previousPos);
+            var readerCodec = CreateCodec();
+            var readField = reader.ReadFieldHeader();
+
+            Assert.True(reader.Position > previousPos);
+            previousPos = reader.Position;
+
+            beforeReference = reader.Session.ReferencedObjects.CurrentReferenceId;
+            _ = readerCodec.ReadValue(ref reader, readField);
+
+            Assert.True(reader.Position > previousPos);
+
+            afterReference = reader.Session.ReferencedObjects.CurrentReferenceId;
+            Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+        }
 
         [Fact]
         public void CorrectlyAdvancesReferenceCounter()
@@ -86,6 +126,171 @@ namespace Hagar.TestKit
         }
 
         [Fact]
+        public void CanRoundTripViaSerializer_StreamPooled()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                var buffer = new MemoryStream();
+
+                var writer = Writer.CreatePooled(buffer, _sessionPool.GetSession());
+                serializer.Serialize(original, ref writer);
+                buffer.Flush();
+
+                buffer.Position = 0;
+                var reader = Reader.Create(buffer, _sessionPool.GetSession());
+                var deserialized = serializer.Deserialize(ref reader);
+
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void CanRoundTripViaSerializer_Span()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                var buffer = new byte[8096].AsSpan();
+
+                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                serializer.Serialize(original, ref writer);
+
+                var reader = Reader.Create(buffer, _sessionPool.GetSession());
+                var deserialized = serializer.Deserialize(ref reader);
+
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void CanRoundTripViaSerializer_Array()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                var buffer = new byte[8096];
+
+                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                serializer.Serialize(original, ref writer);
+
+                var reader = Reader.Create(buffer, _sessionPool.GetSession());
+                var deserialized = serializer.Deserialize(ref reader);
+
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void CanRoundTripViaSerializer_Memory()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                var buffer = (new byte[8096]).AsMemory();
+
+                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                serializer.Serialize(original, ref writer);
+
+                var reader = Reader.Create(buffer, _sessionPool.GetSession());
+                var deserialized = serializer.Deserialize(ref reader);
+
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void CanRoundTripViaSerializer_MemoryStream()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                var buffer = new MemoryStream();
+
+                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                serializer.Serialize(original, ref writer);
+                buffer.Flush();
+                buffer.SetLength(buffer.Position);
+
+                buffer.Position = 0;
+                var reader = Reader.Create(buffer, _sessionPool.GetSession());
+                var deserialized = serializer.Deserialize(ref reader);
+
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void WritersProduceSameResults()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                byte[] expected;
+
+                {
+                    var buffer = new TestMultiSegmentBufferWriter(1024);
+                    var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    expected = buffer.GetReadOnlySequence(0).ToArray();
+                }
+
+                {
+                    var buffer = new MemoryStream();
+                    var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    buffer.Flush();
+                    buffer.SetLength(buffer.Position);
+                    buffer.Position = 0;
+                    var result = buffer.ToArray();
+                    Assert.Equal(expected, result);
+                }
+
+                {
+                    var buffer = (new byte[8096]).AsMemory();
+                    var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    var result = buffer.Slice(0, writer.Output.BytesWritten).ToArray();
+                    Assert.Equal(expected, result);
+                }
+
+                {
+                    var buffer = (new byte[8096]).AsSpan();
+                    var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    var result = buffer.Slice(0, writer.Output.BytesWritten).ToArray();
+                    Assert.Equal(expected, result);
+                }
+
+
+                {
+                    var buffer = new byte[8096];
+                    var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    var result = writer.Output.Memory.ToArray();
+                    Assert.Equal(expected, result);
+                }
+
+                {
+                    var buffer = new MemoryStream();
+                    var writer = Writer.CreatePooled(buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    buffer.Flush();
+                    buffer.SetLength(buffer.Position);
+                    buffer.Position = 0;
+                    var result = buffer.ToArray();
+                    Assert.Equal(expected, result);
+                }
+            }
+        }
+
+        [Fact]
         public void CanRoundTripViaSerializer()
         {
             var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
@@ -95,7 +300,7 @@ namespace Hagar.TestKit
                 var buffer = new TestMultiSegmentBufferWriter(1024);
 
                 var writer = Writer.Create(buffer, _sessionPool.GetSession());
-                serializer.Serialize(ref writer, original);
+                serializer.Serialize(original, ref writer);
 
                 var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserialized = serializer.Deserialize(ref reader);
@@ -114,7 +319,7 @@ namespace Hagar.TestKit
                 var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
 
                 var writer = Writer.Create(buffer, _sessionPool.GetSession());
-                serializer.Serialize(ref writer, original);
+                serializer.Serialize(original, ref writer);
 
                 var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserializedObject = serializer.Deserialize(ref reader);

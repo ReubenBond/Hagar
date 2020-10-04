@@ -8,36 +8,182 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Hagar.Session;
+#if !NETCOREAPP
 using Hagar.Utilities;
+#endif
 
 namespace Hagar.Buffers
 {
     public abstract class ReaderInput
     {
+        public abstract long Position { get; }
         public abstract void Skip(long count);
-        internal ReaderInput Slice(long position) => throw new NotImplementedException();
+        public abstract void Seek(long position);
+        public abstract byte ReadByte();
+        public abstract uint ReadUInt32();
+        public abstract ulong ReadUInt64();
+        public abstract void ReadBytes(in Span<byte> destination);
+        public abstract void ReadBytes(byte[] destination, int offset, int length);
+        public abstract bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes);
+    }
+
+    internal sealed class StreamReaderInput : ReaderInput
+    {
+        [ThreadStatic]
+        private static byte[] _scratch;
+
+        private readonly Stream _stream;
+        private readonly ArrayPool<byte> _memoryPool;
+
+        public override long Position => _stream.Position;
+
+        public StreamReaderInput(Stream stream, ArrayPool<byte> memoryPool)
+        {
+            _stream = stream;
+            _memoryPool = memoryPool;
+        }
+
+        public override byte ReadByte()
+        {
+            var c = _stream.ReadByte();
+            if (c < 0)
+            {
+                ThrowInsufficientData();
+            }
+
+            return (byte)c;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void ReadBytes(in Span<byte> destination)
+        {
+#if NETCOREAPP
+            var count = _stream.Read(destination);
+            if (count < destination.Length)
+            {
+                ThrowInsufficientData();
+            }
+#else
+            byte[] array = default;
+            try
+            {
+                array = _memoryPool.Rent(destination.Length);
+                var count = _stream.Read(array, 0, destination.Length);
+                if (count < destination.Length)
+                {
+                    ThrowInsufficientData();
+                }
+
+                array.CopyTo(destination);
+            }
+            finally
+            {
+                if (array is object)
+                {
+                    _memoryPool.Return(array);
+                }
+            }
+#endif
+        }
+
+        public override void ReadBytes(byte[] destination, int offset, int length)
+        {
+            var count = _stream.Read(destination, offset, length);
+            if (count < length)
+            {
+                ThrowInsufficientData();
+            }
+        }
+
+#if NET5_0
+        [SkipLocalsInit]
+#endif
+        public override uint ReadUInt32()
+        {
+#if NETCOREAPP
+            Span<byte> buffer = stackalloc byte[sizeof(uint)];
+            ReadBytes(buffer);
+            return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+#else
+            var buffer = GetScratchBuffer();
+            ReadBytes(buffer, 0, sizeof(uint));
+            return BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(0, sizeof(uint)));
+#endif
+        }
+
+#if NET5_0
+        [SkipLocalsInit]
+#endif
+        public override ulong ReadUInt64()
+        {
+#if NETCOREAPP
+            Span<byte> buffer = stackalloc byte[sizeof(ulong)];
+            ReadBytes(buffer);
+            return BinaryPrimitives.ReadUInt64LittleEndian(buffer);
+#else
+            var buffer = GetScratchBuffer();
+            ReadBytes(buffer, 0, sizeof(ulong));
+            return BinaryPrimitives.ReadUInt64LittleEndian(buffer.AsSpan(0, sizeof(ulong)));
+#endif
+        }
+
+        public override void Skip(long count)
+        {
+            _stream.Seek(count, SeekOrigin.Current);
+        }
+
+        public override void Seek(long position)
+        {
+            _stream.Seek(position, SeekOrigin.Begin);
+        }
+
+        public override bool TryReadBytes(int length, out ReadOnlySpan<byte> destination)
+        {
+            // Cannot get a span pointing to a stream's internal buffer.
+            destination = default;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInsufficientData() => throw new InvalidOperationException("Insufficient data present in buffer.");
+
+        private static byte[] GetScratchBuffer() => _scratch ??= new byte[1024];
     }
 
     public static class Reader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Reader<Stream> Create(Stream stream, SerializerSession session) => new Reader<Stream>(stream, session);
+        public static Reader<ReaderInput> Create(Stream stream, SerializerSession session) => new Reader<ReaderInput>(new StreamReaderInput(stream, ArrayPool<byte>.Shared), session, 0);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Reader<ReadOnlySequence<byte>> Create(ReadOnlySequence<byte> sequence, SerializerSession session) => new Reader<ReadOnlySequence<byte>>(sequence, session);
+        public static Reader<ReadOnlySequence<byte>> Create(ReadOnlySequence<byte> sequence, SerializerSession session) => new Reader<ReadOnlySequence<byte>>(sequence, session, 0);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Reader<SpanReaderInput> Create(ReadOnlySpan<byte> buffer, SerializerSession session) => new Reader<SpanReaderInput>(buffer, session, 0);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Reader<SpanReaderInput> Create(byte[] buffer, SerializerSession session) => new Reader<SpanReaderInput>(buffer, session, 0);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Reader<SpanReaderInput> Create(ReadOnlyMemory<byte> buffer, SerializerSession session) => new Reader<SpanReaderInput>(buffer.Span, session, 0);
+    }
+
+    public readonly struct SpanReaderInput
+    {
     }
 
     public ref struct Reader<TInput>
     {
-        private TInput _input;
         private ReadOnlySpan<byte> _currentSpan;
         private SequencePosition _nextSequencePosition;
         private int _bufferPos;
         private int _bufferSize;
         private long _previousBuffersSize;
+        private long _sequenceOffset;
+        private TInput _input;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Reader(TInput input, SerializerSession session)
+        internal Reader(TInput input, SerializerSession session, long globalOffset)
         {
             if (input is ReadOnlySequence<byte> sequence)
             {
@@ -47,6 +193,7 @@ namespace Hagar.Buffers
                 _bufferPos = 0;
                 _bufferSize = _currentSpan.Length;
                 _previousBuffersSize = 0;
+                _sequenceOffset = globalOffset;
             }
             else if (input is ReaderInput)
             {
@@ -56,10 +203,32 @@ namespace Hagar.Buffers
                 _bufferPos = 0;
                 _bufferSize = default;
                 _previousBuffersSize = 0;
+                _sequenceOffset = globalOffset;
             }
             else
             {
-                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported by this constructor");
+            }
+
+            Session = session;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Reader(ReadOnlySpan<byte> input, SerializerSession session, long globalOffset)
+        {
+            if (typeof(TInput) == typeof(SpanReaderInput))
+            {
+                _input = default;
+                _nextSequencePosition = default;
+                _currentSpan = input; 
+                _bufferPos = 0;
+                _bufferSize = _currentSpan.Length;
+                _previousBuffersSize = 0;
+                _sequenceOffset = globalOffset;
+            }
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported by this constructor");
             }
 
             Session = session;
@@ -70,7 +239,25 @@ namespace Hagar.Buffers
         public long Position
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _previousBuffersSize + _bufferPos;
+            get
+            {
+                if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+                {
+                    return _sequenceOffset + _previousBuffersSize + _bufferPos;
+                }
+                else if (typeof(TInput) == typeof(SpanReaderInput))
+                {
+                    return _sequenceOffset + _bufferPos;
+                }
+                else if (_input is ReaderInput readerInput)
+                {
+                    return readerInput.Position;
+                }
+                else
+                {
+                    return ThrowNotSupportedInput<long>();
+                }
+            }
         }
 
         public void Skip(long count)
@@ -90,31 +277,98 @@ namespace Hagar.Buffers
                     }
                 }
             }
+            else if (typeof(TInput) == typeof(SpanReaderInput))
+            {
+                _bufferPos += (int)count;
+                if (_bufferPos > _currentSpan.Length || count > int.MaxValue)
+                {
+                    ThrowInsufficientData();
+                }
+            }
             else if (_input is ReaderInput input)
             {
                 input.Skip(count);
             }
             else
             {
-                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+                ThrowNotSupportedInput();
             }
         }
 
         /// <summary>
         /// Creates a new reader beginning at the specified position.
         /// </summary>
-        public Reader<TInput> ForkFrom(long position)
+        public void ForkFrom(long position, out Reader<TInput> forked)
         {
-            if (_input is ReadOnlySequence<byte> sequence && sequence.Slice(position) is TInput slicedSequence)
+            if (_input is ReadOnlySequence<byte> sequence && sequence.Slice(position - _sequenceOffset) is TInput slicedSequence)
             {
-                return new Reader<TInput>(slicedSequence, Session);
+                forked = new Reader<TInput>(slicedSequence, Session, position);
+
+                if (forked.Position != position)
+                {
+                    ThrowInvalidPosition(position, forked.Position);
+                }
             }
-            else if (_input is ReaderInput input && input.Slice(position) is TInput slicedInput)
+            else if (typeof(TInput) == typeof(SpanReaderInput))
             {
-                return new Reader<TInput>(slicedInput, Session);
+                forked = new Reader<TInput>(_currentSpan.Slice((int)position), Session, position);
+                if (forked.Position != position || position > int.MaxValue)
+                {
+                    ThrowInvalidPosition(position, forked.Position);
+                }
+            }
+            else if (_input is ReaderInput input)
+            {
+                input.Seek(position);
+                forked = new Reader<TInput>(_input, Session, 0);
+
+                if (forked.Position != position)
+                {
+                    ThrowInvalidPosition(position, forked.Position);
+                }
+            }
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+            }
+            
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void ThrowInvalidPosition(long expectedPosition, long actualPosition)
+            {
+                throw new InvalidOperationException($"Expected to arrive at position {expectedPosition} after {nameof(ForkFrom)}, but resulting position is {actualPosition}");
+            }
+        }
+
+        public void ResumeFrom(long position)
+        {
+            if (_input is ReadOnlySequence<byte> sequence)
+            {
+                // Nothing is required.
+            }
+            else if (typeof(TInput) == typeof(SpanReaderInput))
+            {
+                // Nothing is required.
+            }
+            else if (_input is ReaderInput input)
+            {
+                // Seek the input stream.
+                input.Seek(Position);
+            }
+            else
+            {
+                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
             }
 
-            throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+            if (position != Position)
+            {
+                ThrowInvalidPosition(position, Position);
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void ThrowInvalidPosition(long expectedPosition, long actualPosition)
+            {
+                throw new InvalidOperationException($"Expected to arrive at position {expectedPosition} after {nameof(ResumeFrom)}, but resulting position is {actualPosition}");
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -140,33 +394,48 @@ namespace Hagar.Buffers
                 _bufferPos = 0;
                 _bufferSize = _currentSpan.Length;
             }
+            else if (typeof(TInput) == typeof(SpanReaderInput))
+            {
+                ThrowInsufficientData();
+            }
             else
             {
-                throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+                ThrowNotSupportedInput();
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte()
         {
-            var pos = _bufferPos;
-            var span = _currentSpan;
-            if ((uint)pos >= (uint)span.Length)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
             {
-                return ReadByteSlow(ref this);
-                
-                [MethodImpl(MethodImplOptions.NoInlining)]
-                static byte ReadByteSlow(ref Reader<TInput> reader)
+                var pos = _bufferPos;
+                var span = _currentSpan;
+                if ((uint)pos >= (uint)span.Length)
                 {
-                    reader.MoveNext();
-                    return reader._currentSpan[reader._bufferPos++];
+                    return ReadByteSlow(ref this);
+
+                    [MethodImpl(MethodImplOptions.NoInlining)]
+                    static byte ReadByteSlow(ref Reader<TInput> reader)
+                    {
+                        reader.MoveNext();
+                        return reader._currentSpan[reader._bufferPos++];
+                    }
                 }
+
+                var result = span[pos];
+
+                _bufferPos = pos + 1;
+                return result;
             }
-
-            var result = span[pos];
-
-            _bufferPos = pos + 1;
-            return result;
+            else if (_input is ReaderInput readerInput)
+            {
+                return readerInput.ReadByte();
+            }
+            else
+            {
+                return ThrowNotSupportedInput<byte>();
+            }
         }
 
 
@@ -176,24 +445,35 @@ namespace Hagar.Buffers
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadUInt32()
         {
-            const int width = 4;
-            if (_bufferPos + width > _bufferSize)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
             {
-                return ReadSlower(ref this);
+                const int width = 4;
+                if (_bufferPos + width > _bufferSize)
+                {
+                    return ReadSlower(ref this);
+                }
+
+                var result = BinaryPrimitives.ReadUInt32LittleEndian(_currentSpan.Slice(_bufferPos, width));
+                _bufferPos += width;
+                return result;
+
+                static uint ReadSlower(ref Reader<TInput> r)
+                {
+                    uint b1 = r.ReadByte();
+                    uint b2 = r.ReadByte();
+                    uint b3 = r.ReadByte();
+                    uint b4 = r.ReadByte();
+
+                    return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24);
+                }
             }
-
-            var result = BinaryPrimitives.ReadUInt32LittleEndian(_currentSpan.Slice(_bufferPos, width));
-            _bufferPos += width;
-            return result;
-
-            static uint ReadSlower(ref Reader<TInput> r)
+            else if (_input is ReaderInput readerInput)
             {
-                uint b1 = r.ReadByte();
-                uint b2 = r.ReadByte();
-                uint b3 = r.ReadByte();
-                uint b4 = r.ReadByte();
-
-                return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24);
+                return readerInput.ReadUInt32();
+            }
+            else
+            {
+                return ThrowNotSupportedInput<uint>();
             }
         }
 
@@ -203,29 +483,40 @@ namespace Hagar.Buffers
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadUInt64()
         {
-            const int width = 8;
-            if (_bufferPos + width > _bufferSize)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
             {
-                return ReadSlower(ref this);
+                const int width = 8;
+                if (_bufferPos + width > _bufferSize)
+                {
+                    return ReadSlower(ref this);
+                }
+
+                var result = BinaryPrimitives.ReadUInt64LittleEndian(_currentSpan.Slice(_bufferPos, width));
+                _bufferPos += width;
+                return result;
+
+                static ulong ReadSlower(ref Reader<TInput> r)
+                {
+                    ulong b1 = r.ReadByte();
+                    ulong b2 = r.ReadByte();
+                    ulong b3 = r.ReadByte();
+                    ulong b4 = r.ReadByte();
+                    ulong b5 = r.ReadByte();
+                    ulong b6 = r.ReadByte();
+                    ulong b7 = r.ReadByte();
+                    ulong b8 = r.ReadByte();
+
+                    return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24)
+                           | (b5 << 32) | (b6 << 40) | (b7 << 48) | (b8 << 56);
+                }
             }
-
-            var result = BinaryPrimitives.ReadUInt64LittleEndian(_currentSpan.Slice(_bufferPos, width));
-            _bufferPos += width;
-            return result;
-
-            static ulong ReadSlower(ref Reader<TInput> r)
+            else if (_input is ReaderInput readerInput)
             {
-                ulong b1 = r.ReadByte();
-                ulong b2 = r.ReadByte();
-                ulong b3 = r.ReadByte();
-                ulong b4 = r.ReadByte();
-                ulong b5 = r.ReadByte();
-                ulong b6 = r.ReadByte();
-                ulong b7 = r.ReadByte();
-                ulong b8 = r.ReadByte();
-
-                return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24)
-                       | (b5 << 32) | (b6 << 40) | (b7 << 48) | (b8 << 56);
+                return readerInput.ReadUInt64();
+            }
+            else
+            {
+                return ThrowNotSupportedInput<uint>();
             }
         }
 
@@ -260,54 +551,85 @@ namespace Hagar.Buffers
             }
 
             var bytes = new byte[count];
-            var destination = new Span<byte>(bytes);
-            ReadBytes(in destination);
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            {
+                var destination = new Span<byte>(bytes);
+                ReadBytes(in destination);
+            }
+            else if (_input is ReaderInput readerInput)
+            {
+                readerInput.ReadBytes(bytes, 0, (int)count);
+            }
+
             return bytes;
         }
 
         public void ReadBytes(in Span<byte> destination)
         {
-            if (_bufferPos + destination.Length <= _bufferSize)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
             {
-                _currentSpan.Slice(_bufferPos, destination.Length).CopyTo(destination);
-                _bufferPos += destination.Length;
-                return;
-            }
-
-            CopySlower(in destination, ref this);
-
-            static void CopySlower(in Span<byte> d, ref Reader<TInput> reader)
-            {
-                var dest = d;
-                while (true)
+                if (_bufferPos + destination.Length <= _bufferSize)
                 {
-                    var writeSize = Math.Min(dest.Length, reader._currentSpan.Length - reader._bufferPos);
-                    reader._currentSpan.Slice(reader._bufferPos, writeSize).CopyTo(dest);
-                    reader._bufferPos += writeSize;
-                    dest = dest.Slice(writeSize);
-
-                    if (dest.Length == 0)
-                    {
-                        break;
-                    }
-
-                    reader.MoveNext();
+                    _currentSpan.Slice(_bufferPos, destination.Length).CopyTo(destination);
+                    _bufferPos += destination.Length;
+                    return;
                 }
+
+                CopySlower(in destination, ref this);
+
+                static void CopySlower(in Span<byte> d, ref Reader<TInput> reader)
+                {
+                    var dest = d;
+                    while (true)
+                    {
+                        var writeSize = Math.Min(dest.Length, reader._currentSpan.Length - reader._bufferPos);
+                        reader._currentSpan.Slice(reader._bufferPos, writeSize).CopyTo(dest);
+                        reader._bufferPos += writeSize;
+                        dest = dest.Slice(writeSize);
+
+                        if (dest.Length == 0)
+                        {
+                            break;
+                        }
+
+                        reader.MoveNext();
+                    }
+                }
+            }
+            else if (_input is ReaderInput readerInput)
+            {
+                readerInput.ReadBytes(in destination);
+            }
+            else
+            {
+                ThrowNotSupportedInput();
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes)
         {
-            if (_bufferPos + length <= _bufferSize)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
             {
-                bytes = _currentSpan.Slice(_bufferPos, length);
-                _bufferPos += length;
-                return true;
-            }
+                if (_bufferPos + length <= _bufferSize)
+                {
+                    bytes = _currentSpan.Slice(_bufferPos, length);
+                    _bufferPos += length;
+                    return true;
+                }
 
-            bytes = default;
-            return false;
+                bytes = default;
+                return false;
+            }
+            else if (_input is ReaderInput readerInput)
+            {
+                return readerInput.TryReadBytes(length, out bytes);
+            }
+            else
+            {
+                bytes = default;
+                return ThrowNotSupportedInput<bool>();
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -316,28 +638,35 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe uint ReadVarUInt32()
         {
-            var pos = _bufferPos;
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            {
+                var pos = _bufferPos;
 
-            if (!BitConverter.IsLittleEndian || pos + 8 > _currentSpan.Length)
+                if (!BitConverter.IsLittleEndian || pos + 8 > _currentSpan.Length)
+                {
+                    return ReadVarUInt32Slow();
+                }
+
+                // The number of zeros in the msb position dictates the number of bytes to be read.
+                // Up to a maximum of 5 for a 32bit integer.
+                ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
+
+                ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
+                var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
+                result >>= bytesNeeded;
+                _bufferPos += bytesNeeded;
+
+                // Mask off invalid data
+                var fullWidthReadMask = ~((ulong)bytesNeeded - 5 + 1);
+                var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
+                result &= mask;
+
+                return (uint)result;
+            }
+            else
             {
                 return ReadVarUInt32Slow();
             }
-
-            // The number of zeros in the msb position dictates the number of bytes to be read.
-            // Up to a maximum of 5 for a 32bit integer.
-            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
-
-            ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
-            var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
-            result >>= bytesNeeded;
-            _bufferPos += bytesNeeded;
-
-            // Mask off invalid data
-            var fullWidthReadMask = ~((ulong)bytesNeeded - 5 + 1);
-            var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
-            result &= mask;
-
-            return (uint)result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -365,32 +694,39 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadVarUInt64()
         {
-            var pos = _bufferPos;
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            {
+                var pos = _bufferPos;
 
-            if (!BitConverter.IsLittleEndian || pos + 10 > _currentSpan.Length)
+                if (!BitConverter.IsLittleEndian || pos + 10 > _currentSpan.Length)
+                {
+                    return ReadVarUInt64Slow();
+                }
+
+                // The number of zeros in the msb position dictates the number of bytes to be read.
+                // Up to a maximum of 5 for a 32bit integer.
+                ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
+
+                ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
+
+                var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
+                result >>= bytesNeeded;
+                _bufferPos += bytesNeeded;
+
+                ushort upper = Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref readHead, sizeof(ulong)));
+                result |= ((ulong)upper) << (64 - bytesNeeded);
+
+                // Mask off invalid data
+                var fullWidthReadMask = ~((ulong)bytesNeeded - 10 + 1);
+                var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
+                result &= mask;
+
+                return result;
+            }
+            else
             {
                 return ReadVarUInt64Slow();
             }
-
-            // The number of zeros in the msb position dictates the number of bytes to be read.
-            // Up to a maximum of 5 for a 32bit integer.
-            ref byte readHead = ref Unsafe.Add(ref MemoryMarshal.GetReference(_currentSpan), pos);
-
-            ulong result = Unsafe.ReadUnaligned<ulong>(ref readHead);
-
-            var bytesNeeded = BitOperations.TrailingZeroCount(result) + 1;
-            result >>= bytesNeeded;
-            _bufferPos += bytesNeeded;
-
-            ushort upper = Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref readHead, sizeof(ulong)));
-            result |= ((ulong)upper) << (64 - bytesNeeded);
-
-            // Mask off invalid data
-            var fullWidthReadMask = ~((ulong)bytesNeeded - 10 + 1);
-            var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
-            result &= mask;
-
-            return result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

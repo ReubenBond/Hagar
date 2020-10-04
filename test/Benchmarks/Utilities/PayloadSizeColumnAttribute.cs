@@ -7,7 +7,8 @@ namespace Benchmarks.Utilities
     {
         public PayloadSizeColumnAttribute(string columnName = "Payload")
         {
-            Config = ManualConfig.CreateEmpty().AddColumn(
+            var config = ManualConfig.CreateEmpty();
+            config.Add(
                 new MethodResultColumn(columnName,
                     val =>
                     {
@@ -31,6 +32,7 @@ namespace Benchmarks.Utilities
 
                         return result + " B";
                     }));
+            this.Config = config;
         }
 
         public IConfig Config { get; }

@@ -42,7 +42,7 @@ namespace Hagar.TestKit
             {
                 using var session = _sessionPool.GetSession();
                 var writer = Writer.Create(CreateBufferWriter(), session);
-                _serializer.Serialize(ref writer, input);
+                _serializer.Serialize(input, ref writer);
                 return writer.Output;
             }
 

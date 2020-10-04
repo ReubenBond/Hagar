@@ -180,7 +180,7 @@ namespace Hagar.UnitTests
             {
                 var writer = Writer.Create(pipe.Writer, writeSession);
                 var serializer = _serviceProvider.GetService<Serializer<object>>();
-                serializer.Serialize(ref writer, original);
+                serializer.Serialize(original, ref writer);
 
                 _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
