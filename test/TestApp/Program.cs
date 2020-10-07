@@ -112,7 +112,7 @@ namespace TestApp
 
             var writeSession = sessionPool.GetSession();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
+            var writer = Writer.Create(pipe.Writer, writeSession);
             codec.WriteField(ref writer,
                              0,
                              typeof(SomeClassWithSerialzers),
@@ -123,7 +123,7 @@ namespace TestApp
             _ = pipe.Reader.TryRead(out var readResult);
 
             using var readerSession = sessionPool.GetSession();
-            var reader = new Reader(readResult.Buffer, readerSession);
+            var reader = Reader.Create(readResult.Buffer, readerSession);
             var initialHeader = reader.ReadFieldHeader();
             var result = codec.ReadValue(ref reader, initialHeader);
             Console.WriteLine(result);
@@ -193,7 +193,7 @@ namespace TestApp
         {
             using var writerSession = getSession();
             var pipe = new Pipe();
-            var writer = new Writer<PipeWriter>(pipe.Writer, writerSession);
+            var writer = Writer.Create(pipe.Writer, writerSession);
 
             serializer.WriteField(ref writer, 0, typeof(T), expected);
             writer.Commit();
@@ -205,7 +205,7 @@ namespace TestApp
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = getSession();
-            var reader = new Reader(readResult.Buffer, readerSesssion);
+            var reader = Reader.Create(readResult.Buffer, readerSesssion);
             var initialHeader = reader.ReadFieldHeader();
 
             Console.WriteLine("Header:");

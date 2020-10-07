@@ -10,8 +10,8 @@ namespace Benchmarks.Utilities
         public BenchmarkConfig()
         {
             ArtifactsPath = ".\\BenchmarkDotNet.Aritfacts." + DateTime.Now.ToString("u").Replace(' ', '_').Replace(':', '-');
-            _ = AddExporter(MarkdownExporter.GitHub);
-            _ = AddDiagnoser(MemoryDiagnoser.Default);
+            Add(MarkdownExporter.GitHub);
+            Add(MemoryDiagnoser.Default);
         }
     }
 }

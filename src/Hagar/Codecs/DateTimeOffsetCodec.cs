@@ -18,9 +18,9 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        DateTimeOffset IFieldCodec<DateTimeOffset>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        DateTimeOffset IFieldCodec<DateTimeOffset>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static DateTimeOffset ReadValue(ref Reader reader, Field field)
+        public static DateTimeOffset ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             if (field.WireType != WireType.TagDelimited)

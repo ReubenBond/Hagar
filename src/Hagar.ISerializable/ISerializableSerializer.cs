@@ -7,6 +7,6 @@ namespace Hagar.ISerializable
     internal interface ISerializableSerializer
     {
         void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value) where TBufferWriter : IBufferWriter<byte>;
-        object ReadValue(ref Reader reader, Type type, uint placeholderReferenceId);
+        object ReadValue<TInput>(ref Reader<TInput> reader, Type type, uint placeholderReferenceId);
     }
 }

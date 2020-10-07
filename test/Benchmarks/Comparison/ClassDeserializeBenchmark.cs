@@ -28,7 +28,7 @@ namespace Benchmarks.Comparison
 {
     [Trait("Category", "Benchmark")]
     [Config(typeof(BenchmarkConfig))]
-    [DisassemblyDiagnoser(maxDepth: 2, printSource: true)]
+    [DisassemblyDiagnoser(recursiveDepth: 2, printSource: true)]
     //[EtwProfiler]
     public class ClassDeserializeBenchmark
     {
@@ -128,7 +128,7 @@ namespace Benchmarks.Comparison
         public int Hagar()
         {
             Session.FullReset();
-            var reader = new Reader(HagarInput, Session);
+            var reader = Reader.Create(HagarInput, Session);
             var instance = IntClass.Create();
             _ = reader.ReadFieldHeader();
             Generated.DeserializeNew(ref reader, instance);
@@ -195,7 +195,7 @@ namespace Benchmarks.Comparison
             global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty9);
         }
 
-        public void Deserialize(ref global::Hagar.Buffers.Reader reader, global::Benchmarks.Models.IntClass instance)
+        public void Deserialize<TInput>(ref global::Hagar.Buffers.Reader<TInput> reader, global::Benchmarks.Models.IntClass instance)
         {
             uint fieldId = 0;
             while (true)
@@ -242,7 +242,7 @@ namespace Benchmarks.Comparison
                 }
             }
         }
-        public void DeserializeNew(ref global::Hagar.Buffers.Reader reader, global::Benchmarks.Models.IntClass instance)
+        public void DeserializeNew<TInput>(ref global::Hagar.Buffers.Reader<TInput> reader, global::Benchmarks.Models.IntClass instance)
         {
             int id = 0;
             Field header = default;
@@ -322,7 +322,7 @@ namespace Benchmarks.Comparison
             }
         }
 
-        private static int ReadHeader(ref Reader reader, ref Field header, int id)
+        private static int ReadHeader<TInput>(ref Reader<TInput> reader, ref Field header, int id)
         {
             reader.ReadFieldHeader(ref header);
             if (header.IsEndBaseOrEndObject)
@@ -333,7 +333,7 @@ namespace Benchmarks.Comparison
             return (int)(id + header.FieldIdDelta);
         }
 
-        private static int ReadHeaderExpectingEndBaseOrEndObject(ref Reader reader, ref Field header, int id)
+        private static int ReadHeaderExpectingEndBaseOrEndObject<TInput>(ref Reader<TInput> reader, ref Field header, int id)
         {
             reader.ReadFieldHeader(ref header);
             if (header.IsEndBaseOrEndObject)

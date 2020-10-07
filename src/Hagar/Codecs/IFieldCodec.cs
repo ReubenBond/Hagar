@@ -12,6 +12,6 @@ namespace Hagar.Codecs
     public interface IFieldCodec<T> : IFieldCodec
     {
         void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, T value) where TBufferWriter : IBufferWriter<byte>;
-        T ReadValue(ref Reader reader, Field field);
+        T ReadValue<TInput>(ref Reader<TInput> reader, Field field);
     }
 }

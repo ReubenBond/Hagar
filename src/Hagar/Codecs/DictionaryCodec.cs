@@ -52,11 +52,11 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        Dictionary<TKey, TValue> IFieldCodec<Dictionary<TKey, TValue>>.ReadValue(ref Reader reader, Field field)
+        Dictionary<TKey, TValue> IFieldCodec<Dictionary<TKey, TValue>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>>(ref reader, field);
+                return ReferenceCodec.ReadReference<Dictionary<TKey, TValue>, TInput>(ref reader, field);
             }
 
             if (field.WireType != WireType.TagDelimited)

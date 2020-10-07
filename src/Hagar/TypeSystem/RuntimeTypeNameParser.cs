@@ -35,7 +35,7 @@ namespace Hagar.TypeSystem
         {
             TypeSpec result;
             char c;
-            Reader s = default;
+            BufferReader s = default;
             s.Input = input;
 
             // Read namespace and class name, including generic arity, which is a part of the class name.
@@ -129,7 +129,7 @@ namespace Hagar.TypeSystem
             return result;
         }
 
-        private static ReadOnlySpan<char> ParseTypeName(ref Reader s)
+        private static ReadOnlySpan<char> ParseTypeName(ref BufferReader s)
         {
             var start = s.Index;
             var typeName = ParseSpan(ref s, TypeNameDelimiters);
@@ -171,7 +171,7 @@ namespace Hagar.TypeSystem
             return typeName;
         }
 
-        private static int ParseArraySpecifier(ref Reader s)
+        private static int ParseArraySpecifier(ref BufferReader s)
         {
             s.ConsumeCharacter(ArrayStartIndicator);
             var dimensions = 1;
@@ -186,13 +186,13 @@ namespace Hagar.TypeSystem
             return dimensions;
         }
 
-        private static ReadOnlySpan<char> ExtractAssemblySpec(ref Reader s)
+        private static ReadOnlySpan<char> ExtractAssemblySpec(ref BufferReader s)
         {
             s.ConsumeWhitespace();
             return ParseSpan(ref s, AssemblyDelimiters);
         }
 
-        private static ReadOnlySpan<char> ParseSpan(ref Reader s, ReadOnlySpan<char> delimiters)
+        private static ReadOnlySpan<char> ParseSpan(ref BufferReader s, ReadOnlySpan<char> delimiters)
         {
             ReadOnlySpan<char> result;
             if (s.Remaining.IndexOfAny(delimiters) is int index && index > 0)
@@ -211,7 +211,7 @@ namespace Hagar.TypeSystem
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowGenericArityTooLarge(int arity) => throw new NotSupportedException($"An arity of {arity} is not supported");
 
-        private ref struct Reader
+        private ref struct BufferReader
         {
             public ReadOnlySpan<char> Input;
             public int Index;

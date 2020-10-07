@@ -13,7 +13,7 @@ namespace Hagar.Codecs
             throw new NotImplementedException();
         }
 
-        public object ReadValue(ref Reader reader, Field field)
+        public object ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             reader.SkipField(field);
@@ -23,7 +23,7 @@ namespace Hagar.Codecs
 
     public static class SkipFieldExtension
     {
-        public static void SkipField(this ref Reader reader, Field field)
+        public static void SkipField<TInput>(this ref Reader<TInput> reader, Field field)
         {
             switch (field.WireType)
             {
@@ -65,13 +65,13 @@ namespace Hagar.Codecs
         internal static void ThrowUnexpectedWireType(Field field) => throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(WireType)} value [{field.WireType}] in field {field} while skipping field.");
 
-        internal static void SkipLengthPrefixedField(ref Reader reader)
+        internal static void SkipLengthPrefixedField<TInput>(ref Reader<TInput> reader)
         {
             var length = reader.ReadVarUInt32();
             reader.Skip(length);
         }
 
-        private static void SkipTagDelimitedField(ref Reader reader)
+        private static void SkipTagDelimitedField<TInput>(ref Reader<TInput> reader)
         {
             while (true)
             {

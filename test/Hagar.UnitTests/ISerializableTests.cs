@@ -58,8 +58,8 @@ namespace Hagar.UnitTests
 
             using (var session = _sessionPool.GetSession())
             {
-                var writer = new Writer<PipeWriter>(pipe.Writer, session);
-                _serializer.Serialize(ref writer, expected);
+                var writer = Writer.Create(pipe.Writer, session);
+                _serializer.Serialize(expected, ref writer);
                 _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
             }
@@ -67,7 +67,7 @@ namespace Hagar.UnitTests
             using (var session = _sessionPool.GetSession())
             {
                 _ = pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer, session);
+                var reader = Reader.Create(readResult.Buffer, session);
                 var result = _serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();

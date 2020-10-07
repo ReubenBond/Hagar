@@ -28,7 +28,7 @@ namespace Hagar.TypeSystem
             writer.Write(key.TypeName);
         }
 
-        public unsafe bool TryRead(ref Reader reader, out Type type)
+        public unsafe bool TryRead<TInput>(ref Reader<TInput> reader, out Type type)
         {
             var hashCode = reader.ReadInt32();
             var count = (int)reader.ReadVarUInt32();
@@ -81,7 +81,7 @@ namespace Hagar.TypeSystem
             return false;
         }
 
-        public unsafe Type Read(ref Reader reader)
+        public unsafe Type Read<TInput>(ref Reader<TInput> reader)
         {
             var hashCode = reader.ReadInt32();
             var count = (int)reader.ReadVarUInt32();
@@ -131,7 +131,7 @@ namespace Hagar.TypeSystem
             return type;
         }
 
-        private static TypeKey ReadTypeKey(ref Reader reader)
+        private static TypeKey ReadTypeKey<TInput>(ref Reader<TInput> reader)
         {
             var hashCode = reader.ReadInt32();
             var count = reader.ReadVarUInt32();

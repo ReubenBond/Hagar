@@ -48,13 +48,13 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        Type IFieldCodec<Type>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        Type IFieldCodec<Type>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static Type ReadValue(ref Reader reader, Field field)
+        public static Type ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<Type>(ref reader, field);
+                return ReferenceCodec.ReadReference<Type, TInput>(ref reader, field);
             }
 
             uint fieldId = 0;

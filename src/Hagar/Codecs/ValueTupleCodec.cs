@@ -14,7 +14,7 @@ namespace Hagar.Codecs
             writer.WriteVarInt(0);
         }
 
-        ValueTuple IFieldCodec<ValueTuple>.ReadValue(ref Reader reader, Field field)
+        ValueTuple IFieldCodec<ValueTuple>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.VarInt)
             {
@@ -54,7 +54,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        ValueTuple<T> IFieldCodec<ValueTuple<T>>.ReadValue(ref Reader reader, Field field)
+        ValueTuple<T> IFieldCodec<ValueTuple<T>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {
@@ -117,7 +117,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        (T1, T2) IFieldCodec<ValueTuple<T1, T2>>.ReadValue(ref Reader reader, Field field)
+        (T1, T2) IFieldCodec<ValueTuple<T1, T2>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {
@@ -190,7 +190,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        (T1, T2, T3) IFieldCodec<ValueTuple<T1, T2, T3>>.ReadValue(ref Reader reader, Field field)
+        (T1, T2, T3) IFieldCodec<ValueTuple<T1, T2, T3>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {
@@ -271,7 +271,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        (T1, T2, T3, T4) IFieldCodec<ValueTuple<T1, T2, T3, T4>>.ReadValue(ref Reader reader, Field field)
+        (T1, T2, T3, T4) IFieldCodec<ValueTuple<T1, T2, T3, T4>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {
@@ -359,7 +359,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        (T1, T2, T3, T4, T5) IFieldCodec<ValueTuple<T1, T2, T3, T4, T5>>.ReadValue(ref Reader reader, Field field)
+        (T1, T2, T3, T4, T5) IFieldCodec<ValueTuple<T1, T2, T3, T4, T5>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {
@@ -456,7 +456,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        (T1, T2, T3, T4, T5, T6) IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6>>.ReadValue(ref Reader reader, Field field)
+        (T1, T2, T3, T4, T5, T6) IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType != WireType.TagDelimited)
             {
@@ -561,8 +561,8 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        (T1, T2, T3, T4, T5, T6, T7) IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>.ReadValue(
-            ref Reader reader,
+        (T1, T2, T3, T4, T5, T6, T7) IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>.ReadValue<TInput>(
+            ref Reader<TInput> reader,
             Field field)
         {
             if (field.WireType != WireType.TagDelimited)
@@ -676,7 +676,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8> IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>>.ReadValue(ref Reader reader,
+        ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8> IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>>.ReadValue<TInput>(ref Reader<TInput> reader,
             Field field)
         {
             if (field.WireType != WireType.TagDelimited)

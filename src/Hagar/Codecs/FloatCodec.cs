@@ -21,9 +21,9 @@ namespace Hagar.Codecs
             writer.Write((uint)BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         }
 
-        float IFieldCodec<float>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        float IFieldCodec<float>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static float ReadValue(ref Reader reader, Field field)
+        public static float ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             switch (field.WireType)
@@ -74,9 +74,9 @@ namespace Hagar.Codecs
             writer.Write((ulong)BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
         }
 
-        double IFieldCodec<double>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        double IFieldCodec<double>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static double ReadValue(ref Reader reader, Field field)
+        public static double ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             switch (field.WireType)
@@ -112,9 +112,9 @@ namespace Hagar.Codecs
             }
         }
 
-        decimal IFieldCodec<decimal>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        decimal IFieldCodec<decimal>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static decimal ReadValue(ref Reader reader, Field field)
+        public static decimal ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             switch (field.WireType)

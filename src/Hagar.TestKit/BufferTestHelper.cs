@@ -41,15 +41,15 @@ namespace Hagar.TestKit
             public IOutputBuffer Serialize(TValue input)
             {
                 using var session = _sessionPool.GetSession();
-                var writer = new Writer<TBufferWriter>(CreateBufferWriter(), session);
-                _serializer.Serialize(ref writer, input);
+                var writer = Writer.Create(CreateBufferWriter(), session);
+                _serializer.Serialize(input, ref writer);
                 return writer.Output;
             }
 
             public void Deserialize(ReadOnlySequence<byte> buffer, out TValue output)
             {
                 using var session = _sessionPool.GetSession();
-                var reader = new Reader(buffer, session);
+                var reader = Reader.Create(buffer, session);
                 output = _serializer.Deserialize(ref reader);
             }
         }

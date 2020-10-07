@@ -8,7 +8,7 @@ namespace Hagar.Codecs
         /// <summary>
         /// Consumes an unknown field.
         /// </summary>
-        public static void ConsumeUnknownField(this ref Reader reader, Field field)
+        public static void ConsumeUnknownField<TInput>(this ref Reader<TInput> reader, Field field)
         {
             // References cannot themselves be referenced.
             if (field.WireType == WireType.Reference)
@@ -53,7 +53,7 @@ namespace Hagar.Codecs
         /// <summary>
         /// Consumes a tag-delimited field.
         /// </summary>
-        private static void ConsumeTagDelimitedField(this ref Reader reader)
+        private static void ConsumeTagDelimitedField<TInput>(this ref Reader<TInput> reader)
         {
             while (true)
             {

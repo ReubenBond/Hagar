@@ -30,6 +30,6 @@ namespace Hagar.Codecs
             _codec.WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         /// <inheritdoc />
-        public TConcrete ReadValue(ref Reader reader, Field field) => (TConcrete)_codec.ReadValue(ref reader, field);
+        public TConcrete ReadValue<TInput>(ref Reader<TInput> reader, Field field) => (TConcrete)_codec.ReadValue(ref reader, field);
     }
 }

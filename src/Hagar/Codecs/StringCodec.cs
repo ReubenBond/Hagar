@@ -9,14 +9,14 @@ namespace Hagar.Codecs
 {
     public sealed class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
-        string IFieldCodec<string>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        string IFieldCodec<string>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ReadValue(ref Reader reader, Field field)
+        public static string ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
-                return ReferenceCodec.ReadReference<string>(ref reader, field);
+                return ReferenceCodec.ReadReference<string, TInput>(ref reader, field);
             }
 
             if (field.WireType != WireType.LengthPrefixed)

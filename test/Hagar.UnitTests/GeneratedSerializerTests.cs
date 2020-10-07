@@ -145,7 +145,7 @@ namespace Hagar.UnitTests
             using (var readerSession = _sessionPool.GetSession())
             using (var writeSession = _sessionPool.GetSession())
             {
-                var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
+                var writer = Writer.Create(pipe.Writer, writeSession);
                 var codec = _codecProvider.GetCodec<T>();
                 codec.WriteField(
                     ref writer,
@@ -157,7 +157,7 @@ namespace Hagar.UnitTests
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer, readerSession);
+                var reader = Reader.Create(readResult.Buffer, readerSession);
 
                 var previousPos = reader.Position;
                 var initialHeader = reader.ReadFieldHeader();
@@ -178,15 +178,15 @@ namespace Hagar.UnitTests
             using (var readerSession = _sessionPool.GetSession())
             using (var writeSession = _sessionPool.GetSession())
             {
-                var writer = new Writer<PipeWriter>(pipe.Writer, writeSession);
+                var writer = Writer.Create(pipe.Writer, writeSession);
                 var serializer = _serviceProvider.GetService<Serializer<object>>();
-                serializer.Serialize(ref writer, original);
+                serializer.Serialize(original, ref writer);
 
                 _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
-                var reader = new Reader(readResult.Buffer, readerSession);
+                var reader = Reader.Create(readResult.Buffer, readerSession);
 
                 result = serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);

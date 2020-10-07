@@ -16,9 +16,9 @@ namespace Hagar.Codecs
             writer.Write(value.ToBinary());
         }
 
-        DateTime IFieldCodec<DateTime>.ReadValue(ref Reader reader, Field field) => ReadValue(ref reader, field);
+        DateTime IFieldCodec<DateTime>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
-        public static DateTime ReadValue(ref Reader reader, Field field)
+        public static DateTime ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             if (field.WireType != WireType.Fixed64)

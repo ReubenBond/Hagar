@@ -26,7 +26,7 @@ namespace Hagar.ISerializable
         }
 
         [SecurityCritical]
-        public SerializationEntrySurrogate ReadValue(ref Reader reader, Field field)
+        public SerializationEntrySurrogate ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
             var result = new SerializationEntrySurrogate();
