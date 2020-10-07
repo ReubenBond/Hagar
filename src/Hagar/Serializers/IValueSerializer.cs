@@ -11,7 +11,7 @@ namespace Hagar.Serializers
     [SuppressMessage("ReSharper", "TypeParameterCanBeVariant")]
     public interface IValueSerializer<T> where T : struct
     {
-        void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in T value) where TBufferWriter : IBufferWriter<byte>;
+        void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ref T value) where TBufferWriter : IBufferWriter<byte>;
         void Deserialize<TInput>(ref Reader<TInput> reader, ref T value);
     }
 }

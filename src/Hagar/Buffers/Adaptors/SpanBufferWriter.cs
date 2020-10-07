@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Buffers;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 
 namespace Hagar.Buffers.Adaptors
 {
     /// <summary>
-    /// A special-purpose <see cref="IBufferWriter{byte}"/> implementation for supporting <see cref="Span{Byte}"/> in <see cref="Writer{TBufferWriter}"/>.
+    /// A special-purpose <see cref="IBufferWriter{T}"/> implementation for supporting <see cref="Span{T}"/> in <see cref="Writer{TBufferWriter}"/>.
     /// </summary>
     public struct SpanBufferWriter : IBufferWriter<byte>
     {
@@ -24,13 +23,6 @@ namespace Hagar.Buffers.Adaptors
         /// <inheritdoc />
         public void Advance(int count)
         {
-            if (_bytesWritten + count > _maxLength)
-            {
-                ThrowInvalidCount();
-                [MethodImpl(MethodImplOptions.NoInlining)]
-                static void ThrowInvalidCount() => throw new InvalidOperationException("Cannot advance past the end of the buffer");
-            }
-
             _bytesWritten += count;
         }
 

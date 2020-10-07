@@ -5,7 +5,7 @@ using System.IO;
 namespace Hagar.Buffers.Adaptors
 {
     /// <summary>
-    /// An implementation of <see cref="IBufferWriter{byte}"/> which writes to a <see cref="MemoryStream"/>.
+    /// An implementation of <see cref="IBufferWriter{T}"/> which writes to a <see cref="MemoryStream"/>.
     /// </summary>
     public readonly struct MemoryStreamBufferWriter : IBufferWriter<byte>
     {

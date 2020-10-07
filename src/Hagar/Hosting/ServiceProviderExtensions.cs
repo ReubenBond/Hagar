@@ -151,7 +151,7 @@ namespace Hagar
                 _provider = provider;
             }
 
-            public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, in TField value) where TBufferWriter : IBufferWriter<byte> => Value.Serialize(ref writer, in value);
+            public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ref TField value) where TBufferWriter : IBufferWriter<byte> => Value.Serialize(ref writer, ref value);
 
             public void Deserialize<TInput>(ref Reader<TInput> reader, ref TField value) => Value.Deserialize(ref reader, ref value);
 

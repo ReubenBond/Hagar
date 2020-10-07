@@ -24,7 +24,7 @@ namespace Hagar.Serializers
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteStartObject(fieldIdDelta, expectedType, CodecFieldType);
-            _serializer.Serialize(ref writer, in value);
+            _serializer.Serialize(ref writer, ref value);
             writer.WriteEndObject();
         }
 
