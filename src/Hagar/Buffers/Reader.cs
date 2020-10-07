@@ -185,8 +185,9 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Reader(TInput input, SerializerSession session, long globalOffset)
         {
-            if (input is ReadOnlySequence<byte> sequence)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
             {
+                ref var sequence = ref Unsafe.As<TInput, ReadOnlySequence<byte>>(ref input);
                 _input = input;
                 _nextSequencePosition = sequence.Start;
                 _currentSpan = sequence.First.Span;
@@ -300,9 +301,11 @@ namespace Hagar.Buffers
         /// </summary>
         public void ForkFrom(long position, out Reader<TInput> forked)
         {
-            if (_input is ReadOnlySequence<byte> sequence && sequence.Slice(position - _sequenceOffset) is TInput slicedSequence)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
             {
-                forked = new Reader<TInput>(slicedSequence, Session, position);
+                ref var sequence = ref Unsafe.As<TInput, ReadOnlySequence<byte>>(ref _input);
+                var slicedSequence = sequence.Slice(position - _sequenceOffset);
+                forked = new Reader<TInput>(Unsafe.As<ReadOnlySequence<byte>, TInput>(ref slicedSequence), Session, position);
 
                 if (forked.Position != position)
                 {
@@ -341,7 +344,7 @@ namespace Hagar.Buffers
 
         public void ResumeFrom(long position)
         {
-            if (_input is ReadOnlySequence<byte> sequence)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
             {
                 // Nothing is required.
             }
@@ -374,8 +377,9 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void MoveNext()
         {
-            if (_input is ReadOnlySequence<byte> sequence)
+            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
             {
+                ref var sequence = ref Unsafe.As<TInput, ReadOnlySequence<byte>>(ref _input);
                 _previousBuffersSize += _bufferSize;
 
                 // If this is the first call to MoveNext then nextSequencePosition is invalid and must be moved to the second position.

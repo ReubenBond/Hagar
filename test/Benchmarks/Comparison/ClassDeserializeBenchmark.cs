@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Diagnostics.Windows.Configs;
 using Benchmarks.Models;
 using Benchmarks.Utilities;
 using Hagar;
@@ -28,7 +29,7 @@ namespace Benchmarks.Comparison
 {
     [Trait("Category", "Benchmark")]
     [Config(typeof(BenchmarkConfig))]
-    [DisassemblyDiagnoser(recursiveDepth: 2, printSource: true)]
+    //[DisassemblyDiagnoser(recursiveDepth: 2, printSource: true)]
     //[EtwProfiler]
     public class ClassDeserializeBenchmark
     {
@@ -44,12 +45,9 @@ namespace Benchmarks.Comparison
         private static readonly MemoryStream HyperionInput;
 
         private static readonly Serializer<IntClass> HagarSerializer;
-        private static readonly ReadOnlySequence<byte> HagarInput;
+        private static readonly byte[] HagarInput;
         private static readonly SerializerSession Session;
 
-        private static readonly SerializationManager OrleansSerializer;
-        private static readonly List<ArraySegment<byte>> OrleansInput;
-        private static readonly BinaryTokenStreamReader OrleansBuffer;
         private static readonly HagarGen_Serializer_IntClass_1843466 Generated = new HagarGen_Serializer_IntClass_1843466();
         private static readonly DeserializerSession HyperionSession;
 
@@ -79,28 +77,7 @@ namespace Benchmarks.Comparison
             writer.WriteStartObject(0, typeof(IntClass), typeof(IntClass));
             Generated.Serialize(ref writer, IntClass.Create());
             writer.WriteEndObject();
-            HagarInput = new ReadOnlySequence<byte>(bytes);
-
-            // Orleans
-            OrleansSerializer = new ClientBuilder()
-                .ConfigureDefaults()
-                .UseLocalhostClustering()
-                .ConfigureServices(s => s.ToList().ForEach(r =>
-                {
-                    if (r.ServiceType == typeof(IConfigurationValidator))
-                    {
-                        _ = s.Remove(r);
-                    }
-                }))
-                .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
-                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
-                .Configure<SerializationProviderOptions>(options => options.FallbackSerializationProvider = typeof(SupportsNothingSerializer).GetTypeInfo())
-                .Build().ServiceProvider.GetRequiredService<SerializationManager>();
-
-            var writer2 = new BinaryTokenStreamWriter();
-            OrleansSerializer.Serialize(IntClass.Create(), writer2);
-            OrleansInput = writer2.ToBytes();
-            OrleansBuffer = new BinaryTokenStreamReader(OrleansInput);
+            HagarInput = bytes;
 
             Utf8JsonInput = Utf8JsonNS.JsonSerializer.Serialize(IntClass.Create(), Utf8JsonResolver);
 
@@ -128,6 +105,14 @@ namespace Benchmarks.Comparison
         public int Hagar()
         {
             Session.FullReset();
+            var instance = HagarSerializer.Deserialize(HagarInput, Session);
+            return SumResult(instance);
+        }
+        
+        [Benchmark]
+        public int HagarHandCrafted()
+        {
+            Session.FullReset();
             var reader = Reader.Create(HagarInput, Session);
             var instance = IntClass.Create();
             _ = reader.ReadFieldHeader();
@@ -141,13 +126,6 @@ namespace Benchmarks.Comparison
 
         [Benchmark]
         public int SystemTextJson() => SumResult(System.Text.Json.JsonSerializer.Deserialize<IntClass>(SystemTextJsonInput));
-
-        //[Benchmark]
-        public int Orleans()
-        {
-            OrleansBuffer.Reset(OrleansInput);
-            return SumResult(OrleansSerializer.Deserialize<IntClass>(OrleansBuffer));
-        }
 
         [Benchmark]
         public int MessagePackCSharp() => SumResult(MessagePack.MessagePackSerializer.Deserialize<IntClass>(MsgPackInput));

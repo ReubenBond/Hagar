@@ -28,7 +28,7 @@ namespace Hagar.Buffers
         public static Writer<ArrayStreamBufferWriter> Create(Stream destination, SerializerSession session, int sizeHint = 0) => new Writer<ArrayStreamBufferWriter>(new ArrayStreamBufferWriter(destination, sizeHint), session);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Writer<ArrayBufferWriter> Create(byte[] output, SerializerSession session) => new Writer<ArrayBufferWriter>(new ArrayBufferWriter(output), session);
+        public static Writer<SpanBufferWriter> Create(byte[] output, SerializerSession session) => Create(output.AsSpan(), session);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer<MemoryBufferWriter> Create(Memory<byte> output, SerializerSession session) => new Writer<MemoryBufferWriter>(new MemoryBufferWriter(output), session);
@@ -46,6 +46,7 @@ namespace Hagar.Buffers
         private int _bufferPos;
         private int _previousBuffersSize;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Writer(TBufferWriter output, SerializerSession session)
         {
             if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
@@ -62,6 +63,7 @@ namespace Hagar.Buffers
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Writer(TBufferWriter output, Span<byte> span, SerializerSession session)
         {
             if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
@@ -77,7 +79,6 @@ namespace Hagar.Buffers
                 throw new NotSupportedException($"Type {typeof(TBufferWriter)} is not supported by this constructor");
             }
         }
-
 
         public SerializerSession Session { get; }
 
@@ -131,6 +132,7 @@ namespace Hagar.Buffers
 #endif
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Allocate(int length)
         {
             // Commit the bytes which have been written.
@@ -159,6 +161,7 @@ namespace Hagar.Buffers
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void WriteMultiSegment(in ReadOnlySpan<byte> source)
         {
             var input = source;

@@ -36,7 +36,6 @@ namespace Benchmarks.Comparison
         private static readonly Serializer<IntStruct> HagarSerializer;
         private static readonly byte[] HagarData;
         private static readonly SerializerSession Session;
-        private static readonly SerializationManager OrleansSerializer;
         private static readonly MemoryStream ProtoBuffer = new MemoryStream();
         private static readonly MemoryStream HyperionBuffer = new MemoryStream();
 
@@ -56,22 +55,6 @@ namespace Benchmarks.Comparison
             HagarData = new byte[1000];
             Session = services.GetRequiredService<SessionPool>().GetSession();
 
-            // Orleans
-            OrleansSerializer = new ClientBuilder()
-                .ConfigureDefaults()
-                .UseLocalhostClustering()
-                .ConfigureServices(s => s.ToList().ForEach(r =>
-                {
-                    if (r.ServiceType == typeof(IConfigurationValidator))
-                    {
-                        _ = s.Remove(r);
-                    }
-                }))
-                .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
-                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
-                .Configure<SerializationProviderOptions>(options => options.FallbackSerializationProvider = typeof(SupportsNothingSerializer).GetTypeInfo())
-                .Build().ServiceProvider.GetRequiredService<SerializationManager>();
-
             HyperionSession = HyperionSerializer.GetSerializerSession();
 
             SystemTextJsonWriter = new Utf8JsonWriter(SystemTextJsonOutput);
@@ -82,9 +65,7 @@ namespace Benchmarks.Comparison
         public long Hagar()
         {
             Session.FullReset();
-            var writer = new SingleSegmentBuffer(HagarData).CreateWriter(Session);
-            HagarSerializer.Serialize(Input, ref writer);
-            return writer.Output.Length;
+            return HagarSerializer.Serialize(Input, HagarData, Session);
         }
 
         [Benchmark]
@@ -103,16 +84,6 @@ namespace Benchmarks.Comparison
 
             SystemTextJsonWriter.Reset();
             return SystemTextJsonOutput.Length;
-        }
-
-        //[Benchmark]
-        public int Orleans()
-        {
-            var orleansBuffer = new BinaryTokenStreamWriter();
-            OrleansSerializer.Serialize(Input, orleansBuffer);
-            var result = orleansBuffer.CurrentOffset;
-            orleansBuffer.ReleaseBuffers();
-            return result;
         }
 
         [Benchmark]

@@ -388,7 +388,7 @@ namespace Hagar.CodeGenerator
 
             if (type.IsValueType)
             {
-                parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.InKeyword)));
+                parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
             }
 
             return MethodDeclaration(returnType, SerializeMethodName)

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace Hagar.Buffers.Adaptors
 {
     /// <summary>
-    /// An implementation of <see cref="IBufferWriter{byte}"/> for writing to a <see cref="Stream"/>, using pooled arrays as an intermediate buffer.
+    /// An implementation of <see cref="IBufferWriter{T}"/> for writing to a <see cref="Stream"/>, using pooled arrays as an intermediate buffer.
     /// </summary>
     public struct PoolingStreamBufferWriter : IBufferWriter<byte>, IDisposable
     {

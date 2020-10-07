@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Hagar.Buffers.Adaptors
 {
     /// <summary>
-    /// A <see cref="IBufferWriter{byte}"/> implementation implemented using pooled arrays.
+    /// A <see cref="IBufferWriter{T}"/> implementation implemented using pooled arrays.
     /// </summary>
     public struct PooledArrayBufferWriter : IBufferWriter<byte>, IDisposable
     {

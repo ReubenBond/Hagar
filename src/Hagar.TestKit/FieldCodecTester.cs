@@ -273,7 +273,7 @@ namespace Hagar.TestKit
                     var buffer = new byte[8096];
                     var writer = Writer.Create(buffer, _sessionPool.GetSession());
                     serializer.Serialize(original, ref writer);
-                    var result = writer.Output.Memory.ToArray();
+                    var result = buffer.AsSpan(0, writer.Output.BytesWritten).ToArray();
                     Assert.Equal(expected, result);
                 }
 

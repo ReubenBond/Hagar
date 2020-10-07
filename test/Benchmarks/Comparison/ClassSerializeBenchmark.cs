@@ -39,8 +39,6 @@ namespace Benchmarks.Comparison
         private static readonly byte[] HagarData;
         private static readonly SerializerSession Session;
 
-        private static readonly SerializationManager OrleansSerializer;
-
         private static readonly MemoryStream ProtoBuffer = new MemoryStream();
 
         private static readonly MemoryStream Utf8JsonOutput = new MemoryStream();
@@ -59,22 +57,6 @@ namespace Benchmarks.Comparison
             Session = services.GetRequiredService<SessionPool>().GetSession();
             HagarData = new byte[1000];
 
-            // Orleans
-            OrleansSerializer = new ClientBuilder()
-                .ConfigureDefaults()
-                .UseLocalhostClustering()
-                .ConfigureServices(s => s.ToList().ForEach(r =>
-                {
-                    if (r.ServiceType == typeof(IConfigurationValidator))
-                    {
-                        _ = s.Remove(r);
-                    }
-                }))
-                .Configure<ClusterOptions>(o => o.ClusterId = o.ServiceId = "test")
-                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(SimpleClass).Assembly).WithCodeGeneration())
-                .Configure<SerializationProviderOptions>(options => options.FallbackSerializationProvider = typeof(SupportsNothingSerializer).GetTypeInfo())
-                .Build().ServiceProvider.GetRequiredService<SerializationManager>();
-
             HyperionSession = HyperionSerializer.GetSerializerSession();
 
             SystemTextJsonWriter = new Utf8JsonWriter(SystemTextJsonOutput);
@@ -85,9 +67,7 @@ namespace Benchmarks.Comparison
         public long Hagar()
         {
             Session.PartialReset();
-            var writer = new SingleSegmentBuffer(HagarData).CreateWriter(Session);
-            HagarSerializer.Serialize(Input, ref writer);
-            return writer.Output.Length;
+            return HagarSerializer.Serialize(Input, HagarData, Session);
         }
 
         [Benchmark]
@@ -105,16 +85,6 @@ namespace Benchmarks.Comparison
             System.Text.Json.JsonSerializer.Serialize<IntClass>(SystemTextJsonWriter, Input);
             SystemTextJsonWriter.Reset();
             return SystemTextJsonOutput.Length;
-        }
-
-        //[Benchmark]
-        public int Orleans()
-        {
-            var orleansBuffer = new BinaryTokenStreamWriter();
-            OrleansSerializer.Serialize(Input, orleansBuffer);
-            var result = orleansBuffer.CurrentOffset;
-            orleansBuffer.ReleaseBuffers();
-            return result;
         }
 
         [Benchmark]
