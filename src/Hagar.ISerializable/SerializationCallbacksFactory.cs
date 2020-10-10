@@ -30,7 +30,7 @@ namespace Hagar.ISerializable
             SerializationCallbacks<TDelegate>)_cache.GetOrAdd(type, t => (object)CreateTypedCallbacks<TOwner, TDelegate>(type));
 
         [SecurityCritical]
-        private SerializationCallbacks<TDelegate> CreateTypedCallbacks<TOwner, TDelegate>(Type type)
+        private static SerializationCallbacks<TDelegate> CreateTypedCallbacks<TOwner, TDelegate>(Type type)
         {
             var typeInfo = type.GetTypeInfo();
             var onDeserializing = default(TDelegate);

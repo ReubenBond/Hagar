@@ -12,17 +12,17 @@ namespace Benchmarks.Utilities
 
         public SingleSegmentBuffer(byte[] buffer)
         {
-            this._buffer = buffer;
+            _buffer = buffer;
             _written = 0;
         }
 
         public void Advance(int bytes) => _written += bytes;
 
         [Pure]
-        public Memory<byte> GetMemory(int sizeHint = 0) => _buffer.AsMemory().Slice(_written);
+        public Memory<byte> GetMemory(int sizeHint = 0) => _buffer.AsMemory(_written);
 
         [Pure]
-        public Span<byte> GetSpan(int sizeHint) => _buffer.AsSpan().Slice(_written);
+        public Span<byte> GetSpan(int sizeHint) => _buffer.AsSpan(_written);
 
         public byte[] ToArray() => _buffer.AsSpan(0, _written).ToArray();
 

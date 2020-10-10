@@ -130,7 +130,7 @@ namespace Hagar.UnitTests
             _log.WriteLine($"Size: {writer.Position} bytes.");
             _log.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
 
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = GetSession();
@@ -164,7 +164,7 @@ namespace Hagar.UnitTests
             _serializer.WriteField(ref writer, 0, typeof(SubType), expected);
             writer.Commit();
 
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSession = GetSession();

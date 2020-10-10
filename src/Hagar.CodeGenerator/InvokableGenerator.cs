@@ -72,7 +72,7 @@ namespace Hagar.CodeGenerator
                 .AddMembers(
                     GenerateGetArgumentCount(libraryTypes, methodDescription),
                     GenerateSetTargetMethod(libraryTypes, interfaceDescription, targetField),
-                    GenerateGetTargetMethod(libraryTypes, targetField),
+                    GenerateGetTargetMethod(targetField),
                     GenerateDisposeMethod(libraryTypes, fieldDescriptions),
                     GenerateGetArgumentMethod(libraryTypes, methodDescription, fieldDescriptions),
                     GenerateSetArgumentMethod(libraryTypes, methodDescription, fieldDescriptions),
@@ -128,7 +128,6 @@ namespace Hagar.CodeGenerator
         }
 
         private static MemberDeclarationSyntax GenerateGetTargetMethod(
-            LibraryTypes libraryTypes,
             TargetFieldDescription targetField)
         {
             var type = IdentifierName("TTarget");

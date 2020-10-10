@@ -105,7 +105,7 @@ namespace Hagar.CodeGenerator
                 var rootNode = syntaxTree.GetRoot(cancellationToken);
                 foreach (var node in GetTypeDeclarations(rootNode))
                 {
-                    var symbol = semanticModel.GetDeclaredSymbol(node);
+                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken: cancellationToken);
 
                     bool ShouldGenerateSerializer(INamedTypeSymbol t)
                     {
@@ -294,7 +294,7 @@ namespace Hagar.CodeGenerator
         }
 
         // Returns descriptions of all methods 
-        private IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
+        private static IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
         {
             foreach (var member in symbol.GetMembers())
             {
@@ -306,7 +306,7 @@ namespace Hagar.CodeGenerator
         }
 
         // Returns true if the type declaration has the specified attribute.
-        private AttributeData HasAttribute(INamedTypeSymbol symbol, ISymbol attributeType, bool inherited = false)
+        private static AttributeData HasAttribute(INamedTypeSymbol symbol, ISymbol attributeType, bool inherited = false)
         {
             foreach (var attribute in symbol.GetAttributes())
             {

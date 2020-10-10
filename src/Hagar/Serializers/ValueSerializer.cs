@@ -17,7 +17,7 @@ namespace Hagar.Serializers
 
         public ValueSerializer(TValueSerializer serializer)
         {
-            this._serializer = serializer;
+            _serializer = serializer;
         }
 
         void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)

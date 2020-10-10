@@ -16,13 +16,14 @@ namespace Hagar.ISerializable
         private static readonly TypeInfo SerializableType = typeof(System.Runtime.Serialization.ISerializable).GetTypeInfo();
         private readonly IFieldCodec<Type> _typeCodec;
 
-        private readonly StreamingContext _streamingContext = new StreamingContext();
+        private readonly StreamingContext _streamingContext;
         private readonly ObjectSerializer _objectSerializer;
         private readonly ValueTypeSerializerFactory _valueTypeSerializerFactory;
 
         public DotNetSerializableCodec(
             IFieldCodec<Type> typeCodec)
         {
+            _streamingContext = default;
             _typeCodec = typeCodec;
             var entrySerializer = new SerializationEntryCodec();
             var constructorFactory = new SerializationConstructorFactory();

@@ -9,7 +9,7 @@ namespace Hagar.Buffers.Adaptors
     /// </summary>
     public struct SpanBufferWriter : IBufferWriter<byte>
     {
-        private int _maxLength;
+        private readonly int _maxLength;
         private int _bytesWritten;
 
         internal SpanBufferWriter(Span<byte> buffer)
@@ -21,13 +21,9 @@ namespace Hagar.Buffers.Adaptors
         public int BytesWritten => _bytesWritten;
 
         /// <inheritdoc />
-        public void Advance(int count)
-        {
-            _bytesWritten += count;
-        }
+        public void Advance(int count) => _bytesWritten += count;
 
         /// <inheritdoc />
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public Memory<byte> GetMemory(int sizeHint = 0)
         {
             if (_bytesWritten + sizeHint > _maxLength)
@@ -35,11 +31,14 @@ namespace Hagar.Buffers.Adaptors
                 ThrowInsufficientCapacity(sizeHint);
             }
 
-            throw new NotSupportedException("Method is not supported on this instance");
+            ThrowNotSupported();
+            return default;
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void ThrowNotSupported() => throw new NotSupportedException("Method is not supported on this instance");
         }
 
         /// <inheritdoc />
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public Span<byte> GetSpan(int sizeHint = 0)
         {
             if (_bytesWritten + sizeHint > _maxLength)
@@ -47,7 +46,11 @@ namespace Hagar.Buffers.Adaptors
                 ThrowInsufficientCapacity(sizeHint);
             }
 
-            throw new NotSupportedException("Method is not supported on this instance");
+            ThrowNotSupported();
+            return default;
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void ThrowNotSupported() => throw new NotSupportedException("Method is not supported on this instance");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

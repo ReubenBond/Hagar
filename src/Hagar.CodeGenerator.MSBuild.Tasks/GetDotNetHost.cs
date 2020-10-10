@@ -10,7 +10,7 @@ namespace Hagar.CodeGenerator.MSBuild.Tasks
 
         public override bool Execute()
         {
-            this.DotNetHost = TryFindDotNetExePath();
+            DotNetHost = TryFindDotNetExePath();
             return true;
         }
 

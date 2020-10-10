@@ -24,7 +24,7 @@ namespace Hagar.TypeSystem
         {
             if (elementType is null)
             {
-                throw new ArgumentNullException(nameof(ElementType));
+                throw new ArgumentNullException(nameof(elementType));
             }
 
             ElementType = elementType;
@@ -51,7 +51,7 @@ namespace Hagar.TypeSystem
         {
             if (elementType is null)
             {
-                throw new ArgumentNullException(nameof(ElementType));
+                throw new ArgumentNullException(nameof(elementType));
             }
 
             ElementType = elementType;
@@ -78,7 +78,7 @@ namespace Hagar.TypeSystem
         {
             if (elementType is null)
             {
-                throw new ArgumentNullException(nameof(ElementType));
+                throw new ArgumentNullException(nameof(elementType));
             }
 
             if (dimensions <= 0)
@@ -126,14 +126,14 @@ namespace Hagar.TypeSystem
 
             if (unconstructedType.Arity != arguments.Length)
             {
-                throw new ArgumentException($"Invalid number of arguments {arguments.Length} provided while constructing generic type of arity {unconstructedType.Arity}: {unconstructedType}");
+                throw new ArgumentException($"Invalid number of arguments {arguments.Length} provided while constructing generic type of arity {unconstructedType.Arity}: {unconstructedType}", nameof(arguments));
             }
 
             foreach (var arg in arguments)
             {
                 if (arg is null)
                 {
-                    throw new ArgumentNullException("Cannot construct a generic type using a null argument");
+                    throw new ArgumentNullException(nameof(arguments), "Cannot construct a generic type using a null argument");
                 }
             }
 
@@ -169,12 +169,12 @@ namespace Hagar.TypeSystem
             Name = name;
             if (containingType is NamedTypeSpec c && c.Arity > arity)
             {
-                throw new ArgumentException("A named type cannot have an arity less than that of its containing type");
+                throw new ArgumentException("A named type cannot have an arity less than that of its containing type", nameof(arity));
             }
 
             if (arity < 0)
             {
-                throw new ArgumentOutOfRangeException("A type cannot have a negative arity");
+                throw new ArgumentOutOfRangeException(nameof(arity), "A type cannot have a negative arity");
             }
 
             Arity = arity;

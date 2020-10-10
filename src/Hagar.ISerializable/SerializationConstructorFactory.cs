@@ -44,7 +44,7 @@ namespace Hagar.ISerializable
                 null);
 
         [SecurityCritical]
-        private TConstructor GetSerializationConstructorInvoker<TOwner, TConstructor>(Type type)
+        private static TConstructor GetSerializationConstructorInvoker<TOwner, TConstructor>(Type type)
         {
             var constructor = GetSerializationConstructor(type);
             if (constructor is null)

@@ -23,12 +23,12 @@ namespace Hagar.CodeGenerator
             Methods = methods.ToList();
         }
 
-        private void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
+        private static void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
         {
             var found = false;
             foreach (var member in baseClass.GetMembers("SendRequest"))
             {
-                if (!(member is IMethodSymbol method))
+                if (member is not IMethodSymbol method)
                 {
                     Throw(member, "not method");
                 }

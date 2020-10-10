@@ -21,9 +21,7 @@ namespace Hagar.CodeGenerator
         {
             var generatedClassName = GetSimpleClassName(interfaceDescription.InterfaceType);
 
-            /*var fieldDescriptions = GetFieldDescriptions(methodDescription.Method, libraryTypes);
-            var fields = GetFieldDeclarations(fieldDescriptions);*/
-            var ctors = GenerateConstructors(generatedClassName, libraryTypes, interfaceDescription).ToArray();
+            var ctors = GenerateConstructors(generatedClassName, interfaceDescription).ToArray();
             var proxyMethods = CreateProxyMethods(libraryTypes, interfaceDescription, metadataModel).ToArray();
 
             var classDeclaration = ClassDeclaration(generatedClassName)
@@ -112,39 +110,14 @@ namespace Hagar.CodeGenerator
             return allConstraints;
         }
 
-        private static MemberDeclarationSyntax[] GetFieldDeclarations(List<FieldDescription> fieldDescriptions)
-        {
-            return fieldDescriptions.Select(GetFieldDeclaration).ToArray();
-
-            static MemberDeclarationSyntax GetFieldDeclaration(FieldDescription description)
-            {
-                switch (description)
-                {
-                    case MethodParameterFieldDescription serializable:
-                        return FieldDeclaration(
-                                VariableDeclaration(
-                                    description.FieldType.ToTypeSyntax(),
-                                    SingletonSeparatedList(VariableDeclarator(description.FieldName))))
-                            .AddModifiers(Token(SyntaxKind.PublicKeyword));
-                    default:
-                        return FieldDeclaration(
-                                VariableDeclaration(
-                                    description.FieldType.ToTypeSyntax(),
-                                    SingletonSeparatedList(VariableDeclarator(description.FieldName))))
-                            .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword));
-                }
-            }
-        }
-
         private static IEnumerable<MemberDeclarationSyntax> GenerateConstructors(
             string simpleClassName,
-            LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription)
         {
             var baseType = interfaceDescription.ProxyBaseType;
             foreach (var member in baseType.GetMembers())
             {
-                if (!(member is IMethodSymbol method))
+                if (member is not IMethodSymbol method)
                 {
                     continue;
                 }
@@ -231,7 +204,7 @@ namespace Hagar.CodeGenerator
                     .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddParameterListParameters(method.Parameters.Select(GetParameterSyntax).ToArray())
                     .WithBody(
-                        CreateProxyMethodBody(libraryTypes, metadataModel, interfaceDescription, methodDescription));
+                        CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
 
                 var typeParameters = GetTypeParametersWithConstraints(method.TypeParameters);
                 foreach (var (name, constraints) in typeParameters)
@@ -256,7 +229,6 @@ namespace Hagar.CodeGenerator
         private static BlockSyntax CreateProxyMethodBody(
             LibraryTypes libraryTypes,
             MetadataModel metadataModel,
-            IInvokableInterfaceDescription interfaceDescription,
             MethodDescription methodDescription)
         {
             var statements = new List<StatementSyntax>();

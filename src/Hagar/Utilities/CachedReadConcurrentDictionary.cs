@@ -62,7 +62,7 @@ namespace Hagar.Utilities
         /// </param>
         public CachedReadConcurrentDictionary(IEqualityComparer<TKey> comparer)
         {
-            this._comparer = comparer;
+            _comparer = comparer;
             _dictionary = new ConcurrentDictionary<TKey, TValue>(comparer);
         }
 
@@ -79,7 +79,7 @@ namespace Hagar.Utilities
         /// </param>
         public CachedReadConcurrentDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey> comparer)
         {
-            this._comparer = comparer;
+            _comparer = comparer;
             _dictionary = new ConcurrentDictionary<TKey, TValue>(collection, comparer);
         }
 

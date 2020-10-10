@@ -3,6 +3,7 @@ using System;
 
 namespace Benchmarks.Utilities
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class PayloadSizeColumnAttribute : Attribute, IConfigSource
     {
         public PayloadSizeColumnAttribute(string columnName = "Payload")
@@ -32,7 +33,7 @@ namespace Benchmarks.Utilities
 
                         return result + " B";
                     }));
-            this.Config = config;
+            Config = config;
         }
 
         public IConfig Config { get; }

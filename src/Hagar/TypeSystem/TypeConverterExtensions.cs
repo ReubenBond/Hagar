@@ -121,7 +121,7 @@ namespace Hagar.TypeSystem
 
             var safeString = "safer" + str.Substring(str.IndexOf(GenericTypeIndicator));
             var parsed = RuntimeTypeNameParser.Parse(safeString);
-            if (!(parsed is ConstructedGenericTypeSpec spec))
+            if (parsed is not ConstructedGenericTypeSpec spec)
             {
                 throw new InvalidOperationException($"Unable to correctly parse grain type {str}");
             }

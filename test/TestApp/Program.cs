@@ -118,7 +118,7 @@ namespace TestApp
                              typeof(SomeClassWithSerialzers),
                              new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
             writer.Commit();
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
 
@@ -201,7 +201,7 @@ namespace TestApp
             Console.WriteLine($"Size: {writer.Position} bytes.");
             Console.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
 
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSesssion = getSession();

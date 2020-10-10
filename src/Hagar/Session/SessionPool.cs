@@ -28,7 +28,7 @@ namespace Hagar.Session
             {
                 _serviceProvider = serviceProvider;
                 _onSessionDisposed = onSessionDisposed;
-                _factory = ActivatorUtilities.CreateFactory(typeof(SerializerSession), new Type[0]);
+                _factory = ActivatorUtilities.CreateFactory(typeof(SerializerSession), Array.Empty<Type>());
             }
 
             public SerializerSession Create()

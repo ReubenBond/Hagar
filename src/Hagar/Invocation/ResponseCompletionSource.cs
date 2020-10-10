@@ -6,7 +6,7 @@ namespace Hagar.Invocation
 {
     public sealed class ResponseCompletionSource<TResult> : IResponseCompletionSource, IValueTaskSource<TResult>, IValueTaskSource
     {
-        private ManualResetValueTaskSourceCore<TResult> _core = new ManualResetValueTaskSourceCore<TResult>();
+        private ManualResetValueTaskSourceCore<TResult> _core;
 
         public ValueTask<TResult> AsValueTask() => new ValueTask<TResult>(this, _core.Version);
 

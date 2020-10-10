@@ -30,7 +30,7 @@ namespace Hagar.UnitTests
         }
 
 #pragma warning disable SYSLIB0011 // Type or member is obsolete
-        private object DotNetSerializationLoop(object input)
+        private static object DotNetSerializationLoop(object input)
         {
             byte[] bytes;
             object deserialized;
@@ -60,7 +60,7 @@ namespace Hagar.UnitTests
             {
                 var writer = Writer.Create(pipe.Writer, session);
                 _serializer.Serialize(expected, ref writer);
-                _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
             }
 

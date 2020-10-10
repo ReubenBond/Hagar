@@ -82,16 +82,31 @@ namespace TestRpc.Runtime
                             return;
                         }
 
-                        _ = HandleRequestAsync(_runtimeClient, message, responseTask);
+                        HandleRequestAsync(_runtimeClient, message, responseTask);
                         return;
 
-                        static async ValueTask HandleRequestAsync(IRuntimeClient runtimeClient, Message message, ValueTask<Response> responseTask)
+                        static async void HandleRequestAsync(IRuntimeClient runtimeClient, Message message, ValueTask<Response> responseTask)
                         {
-                            // Ensure the message is disposed upon leaving this scope.
-                            using var _ = message;
+                            try
+                            {
+                                // Ensure the message is disposed upon leaving this scope.
+                                using var _ = message;
 
-                            var response = await responseTask;
-                            runtimeClient.SendResponse(message.MessageId, message.Source, response);
+                                var response = await responseTask;
+                                runtimeClient.SendResponse(message.MessageId, message.Source, response);
+                            }
+                            catch (Exception exception)
+                            {
+                                try
+                                {
+                                    runtimeClient.SendResponse(message.MessageId, message.Source, Response.FromException<object>(exception));
+                                }
+                                catch (Exception innerException)
+                                {
+                                    _ = innerException;
+                                    // log something
+                                }
+                            }
                         }
                     }
 
