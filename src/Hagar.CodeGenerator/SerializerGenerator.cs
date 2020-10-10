@@ -409,17 +409,26 @@ namespace Hagar.CodeGenerator
 
             var readerParam = "reader".ToIdentifierName();
             var instanceParam = "instance".ToIdentifierName();
-            var fieldIdVar = "fieldId".ToIdentifierName();
+            var idVar = "id".ToIdentifierName();
             var headerVar = "header".ToIdentifierName();
+            var readHeaderLocalFunc = "ReadHeader".ToIdentifierName();
+            var readHeaderEndLocalFunc = "ReadHeaderExpectingEndBaseOrEndObject".ToIdentifierName();
 
             var body = new List<StatementSyntax>
             {
-                // C#: uint fieldId = 0;
+                // C#: int id = 0;
                 LocalDeclarationStatement(
                     VariableDeclaration(
-                        PredefinedType(Token(SyntaxKind.UIntKeyword)),
-                        SingletonSeparatedList(VariableDeclarator(fieldIdVar.Identifier)
-                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))))
+                        PredefinedType(Token(SyntaxKind.IntKeyword)),
+                        SingletonSeparatedList(VariableDeclarator(idVar.Identifier)
+                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))))),
+
+                // C#: Field header = default;
+                LocalDeclarationStatement(
+                    VariableDeclaration(
+                        libraryTypes.Field.ToTypeSyntax(),
+                        SingletonSeparatedList(VariableDeclarator(headerVar.Identifier)
+                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.DefaultLiteralExpression))))))
             };
 
             if (type.HasComplexBaseType)
@@ -459,51 +468,41 @@ namespace Hagar.CodeGenerator
             // Create the loop body.
             List<StatementSyntax> GetDeserializerLoopBody()
             {
-                return new List<StatementSyntax>
+                var loopBody = new List<StatementSyntax>();
+                var codecs = serializerFields.OfType<ICodecDescription>()
+                        .Concat(libraryTypes.StaticCodecs)
+                        .ToList();
+
+                var orderedMembers = members.OrderBy(m => m.Description.FieldId).ToList();
+                var lastMember = orderedMembers.LastOrDefault();
+
+                // C#: id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
                 {
-                    // C#: var header = reader.ReadFieldHeader();
-                    LocalDeclarationStatement(
-                        VariableDeclaration(
-                            IdentifierName("var"),
-                            SingletonSeparatedList(
-                                VariableDeclarator(headerVar.Identifier)
-                                    .WithInitializer(EqualsValueClause(InvocationExpression(readerParam.Member("ReadFieldHeader"),
-                                        ArgumentList())))))),
+                    var readHeaderMethodName = orderedMembers.Count == 0 ? "ReadHeaderExpectingEndBaseOrEndObject" : "ReadHeader";
+                    var readFieldHeader =
+                        ExpressionStatement(
+                            AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                IdentifierName(idVar.Identifier),
+                                InvocationExpression(
+                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("HagarGeneratedCodeHelper"), IdentifierName(readHeaderMethodName)),
+                                    ArgumentList(SeparatedList(new[]
+                                    {
+                                        Argument(readerParam).WithRefKindKeyword(Token(SyntaxKind.RefKeyword)),
+                                        Argument(headerVar).WithRefKindKeyword(Token(SyntaxKind.RefKeyword)),
+                                        Argument(idVar)
+                                    })))));
+                    loopBody.Add(readFieldHeader);
+                }
 
-                    // C#: if (header.IsEndBaseOrEndObject) break;
-                    IfStatement(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, headerVar, IdentifierName("IsEndBaseOrEndObject")), BreakStatement()),
-
-                    // C#: fieldId += header.FieldIdDelta;
-                    ExpressionStatement(
-                        AssignmentExpression(
-                            SyntaxKind.AddAssignmentExpression,
-                            fieldIdVar,
-                            Token(SyntaxKind.PlusEqualsToken),
-                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, headerVar, IdentifierName("FieldIdDelta")))),
-
-                    // C#: switch (fieldId) { ... }
-                    SwitchStatement(ParenthesizedExpression(fieldIdVar), List(GetSwitchSections()))
-                };
-            }
-
-            // Creates switch sections for each member.
-            List<SwitchSectionSyntax> GetSwitchSections()
-            {
-                var switchSections = new List<SwitchSectionSyntax>();
-                foreach (var member in members.OrderBy(m => m.Description.FieldId))
+                foreach (var member in orderedMembers)
                 {
                     var description = member.Description;
 
-                    // C#: case <fieldId>:
-                    var label = CaseSwitchLabel(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(description.FieldId)));
-
-                    // C#: instance.<member> = this.<codec>.ReadValue(ref reader, header);
-                    var codec = serializerFields.OfType<ICodecDescription>()
-                        .Concat(libraryTypes.StaticCodecs)
-                        .First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, GetExpectedType(description.Type)));
-
+                    // C#: instance.<member> = <codec>.ReadValue(ref reader, header);
                     // Codecs can either be static classes or injected into the constructor.
                     // Either way, the member signatures are the same.
+                    var codec = codecs.First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, GetExpectedType(description.Type)));
                     var memberType = GetExpectedType(description.Type);
                     var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, memberType));
                     ExpressionSyntax codecExpression;
@@ -527,19 +526,42 @@ namespace Hagar.CodeGenerator
                     }
 
                     var memberAssignment = ExpressionStatement(member.GetSetter(instanceParam, readValueExpression));
-                    var caseBody = List(new StatementSyntax[] { memberAssignment, BreakStatement() });
 
-                    // Create the switch section with a break at the end.
-                    // C#: break;
-                    switchSections.Add(SwitchSection(SingletonList<SwitchLabelSyntax>(label), caseBody));
+                    var readHeaderMethodName = ReferenceEquals(member, lastMember) ? "ReadHeaderExpectingEndBaseOrEndObject" : "ReadHeader";
+                    var readFieldHeader =
+                        ExpressionStatement(
+                            AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                IdentifierName(idVar.Identifier),
+                                InvocationExpression(
+                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("HagarGeneratedCodeHelper"), IdentifierName(readHeaderMethodName)),
+                                    ArgumentList(SeparatedList(new[]
+                                    {
+                                        Argument(readerParam).WithRefKindKeyword(Token(SyntaxKind.RefKeyword)),
+                                        Argument(headerVar).WithRefKindKeyword(Token(SyntaxKind.RefKeyword)),
+                                        Argument(idVar)
+                                    })))));
+
+                    var ifBody = Block(List(new StatementSyntax[] { memberAssignment, readFieldHeader }));
+                    
+                    // C#: if (id == <fieldId>) { ... }
+                    var ifStatement = IfStatement(BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(idVar.Identifier), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal((int)description.FieldId))),
+                        ifBody);
+
+                    loopBody.Add(ifStatement);
                 }
 
-                // Add the default switch section.
+                // C#: if (id == -1) { break; }
+                loopBody.Add(IfStatement(BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(idVar.Identifier), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(-1))),
+                    Block(List(new StatementSyntax[] { BreakStatement() }))));
+
+                // Consume any unknown fields
+                // C#: reader.ConsumeUnknownField(header);
                 var consumeUnknown = ExpressionStatement(InvocationExpression(readerParam.Member("ConsumeUnknownField"),
                     ArgumentList(SeparatedList(new[] { Argument(headerVar) }))));
-                switchSections.Add(SwitchSection(SingletonList<SwitchLabelSyntax>(DefaultSwitchLabel()), List(new StatementSyntax[] { consumeUnknown, BreakStatement() })));
+                loopBody.Add(consumeUnknown);
 
-                return switchSections;
+                return loopBody;
             }
         }
 

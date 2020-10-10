@@ -216,7 +216,7 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            var nextFieldId = 0U;
+            var nextFieldId = (ushort)0;
             foreach (var member in symbol.GetMembers().OrderBy(m => m.MetadataName))
             {
                 // Only consider fields and properties.
@@ -230,7 +230,7 @@ namespace Hagar.CodeGenerator
                     continue;
                 }
 
-                uint? GetId(ISymbol memberSymbol)
+                ushort? GetId(ISymbol memberSymbol)
                 {
                     var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => _libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
                     if (idAttr is null)
@@ -238,7 +238,7 @@ namespace Hagar.CodeGenerator
                         return null;
                     }
 
-                    var id = (uint)idAttr.ConstructorArguments.First().Value;
+                    var id = (ushort)idAttr.ConstructorArguments.First().Value;
                     return id;
                 }
 

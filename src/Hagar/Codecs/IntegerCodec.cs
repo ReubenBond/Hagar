@@ -3,6 +3,7 @@ using Hagar.Utilities;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -22,6 +23,7 @@ namespace Hagar.Codecs
 
         bool IFieldCodec<bool>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -45,6 +47,7 @@ namespace Hagar.Codecs
 
         char IFieldCodec<char>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static char ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -68,6 +71,7 @@ namespace Hagar.Codecs
 
         byte IFieldCodec<byte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -91,6 +95,7 @@ namespace Hagar.Codecs
 
         sbyte IFieldCodec<sbyte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -102,6 +107,7 @@ namespace Hagar.Codecs
     {
         ushort IFieldCodec<ushort>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -137,6 +143,7 @@ namespace Hagar.Codecs
 
         short IFieldCodec<short>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -168,6 +175,7 @@ namespace Hagar.Codecs
 
         uint IFieldCodec<uint>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -216,6 +224,7 @@ namespace Hagar.Codecs
 
         int IFieldCodec<int>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -257,6 +266,7 @@ namespace Hagar.Codecs
 
         long IFieldCodec<long>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
@@ -301,6 +311,7 @@ namespace Hagar.Codecs
 
         ulong IFieldCodec<ulong>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);

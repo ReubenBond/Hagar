@@ -29,7 +29,7 @@ namespace Hagar
         | AttributeTargets.Method)]
     public sealed class IdAttribute : Attribute
     {
-        public IdAttribute(uint id)
+        public IdAttribute(ushort id)
         {
             Id = id;
         }

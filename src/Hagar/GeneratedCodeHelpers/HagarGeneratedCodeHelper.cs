@@ -1,4 +1,7 @@
+using Hagar.Buffers;
+using Hagar.Codecs;
 using Hagar.Serializers;
+using Hagar.WireProtocol;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -100,5 +103,30 @@ namespace Hagar.GeneratedCodeHelpers
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static TArgument InvokableThrowArgumentOutOfRange<TArgument>(int index, int maxArgs) => throw new ArgumentOutOfRangeException($"The argument index value {index} must be between 0 and {maxArgs}");
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadHeader<TInput>(ref Reader<TInput> reader, ref Field header, int id)
+        {
+            reader.ReadFieldHeader(ref header);
+            if (header.IsEndBaseOrEndObject)
+            {
+                return -1;
+            }
+
+            return (int)(id + header.FieldIdDelta);
+        }
+
+        /// <remarks>This method exists separate from <see cref="ReadHeader{TInput}(ref Reader{TInput}, ref Field, int)"/> in order to assist the CPU branch predictor.</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadHeaderExpectingEndBaseOrEndObject<TInput>(ref Reader<TInput> reader, ref Field header, int id)
+        {
+            reader.ReadFieldHeader(ref header);
+            if (header.IsEndBaseOrEndObject)
+            {
+                return -1;
+            }
+
+            return (int)(id + header.FieldIdDelta);
+        }
     }
 }
