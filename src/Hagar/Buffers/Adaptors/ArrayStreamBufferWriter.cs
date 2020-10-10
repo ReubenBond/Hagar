@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Buffers.Adaptors
 {
@@ -31,12 +32,14 @@ namespace Hagar.Buffers.Adaptors
         {
             if (count < 0)
             {
-                throw new ArgumentException(nameof(count));
+                ThrowNegativeAdvanceCount();
+                return;
             }
 
             if (_index > _buffer.Length - count)
             {
-                throw new InvalidOperationException("Cannot advance past the end of the current capacity");
+                ThrowAdvancePastCapacity();
+                return;
             }
 
             _index += count;
@@ -62,7 +65,8 @@ namespace Hagar.Buffers.Adaptors
         {
             if (sizeHint < 0)
             {
-                throw new ArgumentException(nameof(sizeHint));
+                ThrowNegativeSizeHint();
+                return;
             }
 
             if (sizeHint == 0)
@@ -84,5 +88,14 @@ namespace Hagar.Buffers.Adaptors
                 Array.Resize(ref _buffer, newSize);
             }
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowNegativeSizeHint() => throw new ArgumentException("Negative values are not supported", "sizeHint");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowNegativeAdvanceCount() => throw new ArgumentException("Negative values are not supported", "count");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowAdvancePastCapacity() => throw new InvalidOperationException("Cannod advance past the end of the current capacity");
     }
 }

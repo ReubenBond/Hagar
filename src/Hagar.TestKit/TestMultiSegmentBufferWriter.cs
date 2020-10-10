@@ -12,7 +12,7 @@ namespace Hagar.TestKit
     {
         private readonly List<byte[]> _committed = new List<byte[]>();
         private readonly int _maxAllocationSize;
-        private byte[] _current = new byte[0];
+        private byte[] _current = Array.Empty<byte>();
 
         public TestMultiSegmentBufferWriter(int maxAllocationSize)
         {
@@ -27,7 +27,7 @@ namespace Hagar.TestKit
             }
 
             _committed.Add(_current.AsSpan(0, bytes).ToArray());
-            _current = new byte[0];
+            _current = Array.Empty<byte>();
         }
 
         public Memory<byte> GetMemory(int sizeHint = 0)

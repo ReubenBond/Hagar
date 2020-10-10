@@ -927,7 +927,7 @@ namespace Hagar.CodeGenerator
                         .AddArgumentListArguments(instanceArg, Argument(value));
             }
 
-            private bool IsDeclaredAccessible(ISymbol symbol) => symbol.DeclaredAccessibility switch
+            private static bool IsDeclaredAccessible(ISymbol symbol) => symbol.DeclaredAccessibility switch
             {
                 Accessibility.Public => true,
                 _ => false,

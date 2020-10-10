@@ -33,7 +33,7 @@ namespace Hagar.TestKit
             _sessionPool = _serviceProvider.GetService<SessionPool>();
         }
 
-        private int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };
+        private static int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };
 
         protected virtual void Configure(IHagarBuilder builder)
         {
@@ -100,7 +100,7 @@ namespace Hagar.TestKit
             writer.Commit();
             var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
             Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);
@@ -378,7 +378,7 @@ namespace Hagar.TestKit
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             var expectedLength = writer.Position;
             writer.Commit();
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);
@@ -410,7 +410,7 @@ namespace Hagar.TestKit
             var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             writer.Commit();
-            _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);

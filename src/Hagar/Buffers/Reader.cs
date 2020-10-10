@@ -30,7 +30,7 @@ namespace Hagar.Buffers
     internal sealed class StreamReaderInput : ReaderInput
     {
         [ThreadStatic]
-        private static byte[] _scratch;
+        private static byte[] Scratch;
 
         private readonly Stream _stream;
         private readonly ArrayPool<byte> _memoryPool;
@@ -127,15 +127,9 @@ namespace Hagar.Buffers
 #endif
         }
 
-        public override void Skip(long count)
-        {
-            _stream.Seek(count, SeekOrigin.Current);
-        }
+        public override void Skip(long count) => _ = _stream.Seek(count, SeekOrigin.Current);
 
-        public override void Seek(long position)
-        {
-            _stream.Seek(position, SeekOrigin.Begin);
-        }
+        public override void Seek(long position) => _ = _stream.Seek(position, SeekOrigin.Begin);
 
         public override bool TryReadBytes(int length, out ReadOnlySpan<byte> destination)
         {
@@ -147,7 +141,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowInsufficientData() => throw new InvalidOperationException("Insufficient data present in buffer.");
 
-        private static byte[] GetScratchBuffer() => _scratch ??= new byte[1024];
+        private static byte[] GetScratchBuffer() => Scratch ??= new byte[1024];
     }
 
     public static class Reader
@@ -179,7 +173,7 @@ namespace Hagar.Buffers
         private int _bufferPos;
         private int _bufferSize;
         private long _previousBuffersSize;
-        private long _sequenceOffset;
+        private readonly long _sequenceOffset;
         private TInput _input;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

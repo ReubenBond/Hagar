@@ -29,7 +29,7 @@ namespace Hagar.Invocation
         }
 
         [DebuggerHidden]
-        private async ValueTask<Response> CompleteInvokeAsync(ValueTask resultTask)
+        private static async ValueTask<Response> CompleteInvokeAsync(ValueTask resultTask)
         {
             try
             {
@@ -76,7 +76,7 @@ namespace Hagar.Invocation
         }
 
         [DebuggerHidden]
-        private async ValueTask<Response> CompleteInvokeAsync(ValueTask<TResult> resultTask)
+        private static async ValueTask<Response> CompleteInvokeAsync(ValueTask<TResult> resultTask)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace Hagar.Invocation
         }
 
         [DebuggerHidden]
-        private async ValueTask<Response> CompleteInvokeAsync(Task<TResult> resultTask)
+        private static async ValueTask<Response> CompleteInvokeAsync(Task<TResult> resultTask)
         {
             try
             {
@@ -173,7 +173,7 @@ namespace Hagar.Invocation
         }
 
         [DebuggerHidden]
-        private async ValueTask<Response> CompleteInvokeAsync(Task resultTask)
+        private static async ValueTask<Response> CompleteInvokeAsync(Task resultTask)
         {
             try
             {

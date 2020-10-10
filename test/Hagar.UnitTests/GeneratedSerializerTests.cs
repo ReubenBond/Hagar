@@ -153,7 +153,7 @@ namespace Hagar.UnitTests
                     null,
                     original);
                 writer.Commit();
-                _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
@@ -182,7 +182,7 @@ namespace Hagar.UnitTests
                 var serializer = _serviceProvider.GetService<Serializer<object>>();
                 serializer.Serialize(original, ref writer);
 
-                _ = pipe.Writer.FlushAsync().GetAwaiter().GetResult();
+                _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);

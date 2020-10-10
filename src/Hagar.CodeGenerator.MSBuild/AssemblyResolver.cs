@@ -17,18 +17,18 @@ namespace Hagar.CodeGenerator.MSBuild
     /// </summary>
     internal class AssemblyResolver : IDisposable
     {
-        private readonly ICompilationAssemblyResolver assemblyResolver;
+        private readonly ICompilationAssemblyResolver _assemblyResolver;
         
-        private readonly DependencyContext resolverRependencyContext;
+        private readonly DependencyContext _resolverRependencyContext;
 #if NETCOREAPP
-        private readonly AssemblyLoadContext loadContext;
+        private readonly AssemblyLoadContext _loadContext;
 #endif
 
         public AssemblyResolver()
         {
-            resolverRependencyContext = DependencyContext.Load(typeof(AssemblyResolver).Assembly);
+            _resolverRependencyContext = DependencyContext.Load(typeof(AssemblyResolver).Assembly);
             var codegenPath = Path.GetDirectoryName(new Uri(typeof(AssemblyResolver).Assembly.CodeBase).LocalPath);
-            assemblyResolver = new CompositeCompilationAssemblyResolver(
+            _assemblyResolver = new CompositeCompilationAssemblyResolver(
                 new ICompilationAssemblyResolver[]
                 {
                     new AppBaseCompilationAssemblyResolver(codegenPath),
@@ -38,9 +38,9 @@ namespace Hagar.CodeGenerator.MSBuild
 
             AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
 #if NETCOREAPP
-            loadContext = AssemblyLoadContext.GetLoadContext(typeof(AssemblyResolver).Assembly);
-            loadContext.Resolving += AssemblyLoadContextResolving;
-            if (loadContext != AssemblyLoadContext.Default)
+            _loadContext = AssemblyLoadContext.GetLoadContext(typeof(AssemblyResolver).Assembly);
+            _loadContext.Resolving += AssemblyLoadContextResolving;
+            if (_loadContext != AssemblyLoadContext.Default)
             {
                 AssemblyLoadContext.Default.Resolving += AssemblyLoadContextResolving;
             }
@@ -52,8 +52,8 @@ namespace Hagar.CodeGenerator.MSBuild
             AppDomain.CurrentDomain.AssemblyResolve -= ResolveAssembly;
 
 #if NETCOREAPP
-            loadContext.Resolving -= AssemblyLoadContextResolving;
-            if (loadContext != AssemblyLoadContext.Default)
+            _loadContext.Resolving -= AssemblyLoadContextResolving;
+            if (_loadContext != AssemblyLoadContext.Default)
             {
                 AssemblyLoadContext.Default.Resolving -= AssemblyLoadContextResolving;
             }
@@ -68,15 +68,12 @@ namespace Hagar.CodeGenerator.MSBuild
         /// <returns>The assembly that resolves the type, assembly, or resource; 
         /// or null if theassembly cannot be resolved.
         /// </returns>
-        public Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-        {
-            return AssemblyLoadContextResolving(null, new AssemblyName(args.Name));
-        }
+        public Assembly ResolveAssembly(object sender, ResolveEventArgs args) => AssemblyLoadContextResolving(null, new AssemblyName(args.Name));
 
         public Assembly AssemblyLoadContextResolving(AssemblyLoadContext context, AssemblyName name)
         {
             // Attempt to resolve the library from one of the dependency contexts.
-            var library = resolverRependencyContext?.RuntimeLibraries?.FirstOrDefault(NamesMatch);
+            var library = _resolverRependencyContext?.RuntimeLibraries?.FirstOrDefault(NamesMatch);
             if (library is null)
             {
                 return null;
@@ -92,7 +89,7 @@ namespace Hagar.CodeGenerator.MSBuild
                 library.Serviceable);
 
             var assemblies = new List<string>();
-            if (assemblyResolver.TryResolveAssemblyPaths(wrapper, assemblies))
+            if (_assemblyResolver.TryResolveAssemblyPaths(wrapper, assemblies))
             {
                 foreach (var asm in assemblies)
                 {
@@ -117,7 +114,7 @@ namespace Hagar.CodeGenerator.MSBuild
             try
             {
 #if NETCOREAPP
-                return loadContext.LoadFromAssemblyPath(path);
+                return _loadContext.LoadFromAssemblyPath(path);
 #else
                 return Assembly.LoadFrom(path);
 #endif

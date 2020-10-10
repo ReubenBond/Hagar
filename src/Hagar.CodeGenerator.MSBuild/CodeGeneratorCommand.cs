@@ -113,7 +113,7 @@ namespace Hagar.CodeGenerator.MSBuild
                 Log.LogDebug($"Project: {projectInfo}");
 
                 var workspace = new AdhocWorkspace();
-                workspace.AddProject(projectInfo);
+                _ = workspace.AddProject(projectInfo);
 
                 var project = workspace.CurrentSolution.Projects.Single();
 
@@ -197,19 +197,12 @@ namespace Hagar.CodeGenerator.MSBuild
             ?? (IEnumerable<MetadataReference>)Array.Empty<MetadataReference>();
 
 
-        private static string GetLanguageName(string projectPath)
+        private static string GetLanguageName(string projectPath) => (Path.GetExtension(projectPath)) switch
         {
-            switch (Path.GetExtension(projectPath))
-            {
-                case ".csproj":
-                    return LanguageNames.CSharp;
-                case string ext when !string.IsNullOrWhiteSpace(ext):
-                    throw new NotSupportedException($"Projects of type {ext} are not supported.");
-                default:
-                    throw new InvalidOperationException("Could not determine supported language from project path");
-
-            }
-        }
+            ".csproj" => LanguageNames.CSharp,
+            string ext when !string.IsNullOrWhiteSpace(ext) => throw new NotSupportedException($"Projects of type {ext} are not supported."),
+            _ => throw new InvalidOperationException("Could not determine supported language from project path"),
+        };
 
         private static CompilationOptions CreateCompilationOptions(string outputType, string languageName)
         {
