@@ -14,7 +14,7 @@ namespace Benchmarks.Utilities
         public MethodResultColumn(string columnName, Func<object, string> formatter, string legend = null)
         {
             ColumnName = columnName;
-            this._formatter = formatter;
+            _formatter = formatter;
             Legend = legend;
         }
 

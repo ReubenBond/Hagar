@@ -17,8 +17,8 @@ namespace Hagar.Codecs
 
         public MultiDimensionalArrayCodec(IFieldCodec<int[]> intArrayCodec, IFieldCodec<T> elementCodec)
         {
-            this._intArrayCodec = HagarGeneratedCodeHelper.UnwrapService(this, intArrayCodec);
-            this._elementCodec = HagarGeneratedCodeHelper.UnwrapService(this, elementCodec);
+            _intArrayCodec = HagarGeneratedCodeHelper.UnwrapService(this, intArrayCodec);
+            _elementCodec = HagarGeneratedCodeHelper.UnwrapService(this, elementCodec);
         }
 
         void IFieldCodec<object>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value)

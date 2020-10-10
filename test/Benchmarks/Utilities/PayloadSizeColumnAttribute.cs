@@ -32,7 +32,7 @@ namespace Benchmarks.Utilities
 
                         return result + " B";
                     }));
-            this.Config = config;
+            Config = config;
         }
 
         public IConfig Config { get; }

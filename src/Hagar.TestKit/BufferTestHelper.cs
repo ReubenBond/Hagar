@@ -62,7 +62,7 @@ namespace Hagar.TestKit
 
             public MultiSegmentBufferWriterTester(IServiceProvider serviceProvider, Options options) : base(serviceProvider)
             {
-                this._options = options;
+                _options = options;
             }
 
             public class Options

@@ -12,7 +12,7 @@ namespace Benchmarks.Utilities
 
         public SingleSegmentBuffer(byte[] buffer)
         {
-            this._buffer = buffer;
+            _buffer = buffer;
             _written = 0;
         }
 

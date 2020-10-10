@@ -20,8 +20,8 @@ namespace Hagar.Serializers
 
         public ConcreteTypeSerializer(IActivator<TField> activator, TPartialSerializer serializer)
         {
-            this._activator = activator;
-            this._serializer = serializer;
+            _activator = activator;
+            _serializer = serializer;
         }
 
         void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)

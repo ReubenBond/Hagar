@@ -21,9 +21,9 @@ namespace TestRpc.Runtime
 
         public RuntimeClient(ConnectionHandler connection, Catalog catalog, ChannelReader<Message> incomingMessages)
         {
-            this._connection = connection;
-            this._catalog = catalog;
-            this._incomingMessages = incomingMessages;
+            _connection = connection;
+            _catalog = catalog;
+            _incomingMessages = incomingMessages;
         }
 
         public void SendRequest(GrainId grainId, IResponseCompletionSource completion, IInvokable body)

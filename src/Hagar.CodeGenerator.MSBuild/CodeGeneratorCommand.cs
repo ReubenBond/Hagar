@@ -75,27 +75,27 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             try
             {
-                var projectName = Path.GetFileNameWithoutExtension(this.ProjectPath);
-                var projectId = !string.IsNullOrEmpty(this.ProjectGuid) && Guid.TryParse(this.ProjectGuid, out var projectIdGuid)
+                var projectName = Path.GetFileNameWithoutExtension(ProjectPath);
+                var projectId = !string.IsNullOrEmpty(ProjectGuid) && Guid.TryParse(ProjectGuid, out var projectIdGuid)
                     ? ProjectId.CreateFromSerialized(projectIdGuid)
                     : ProjectId.CreateNewId();
 
 
-                this.Log.LogDebug($"ProjectGuid: {this.ProjectGuid}");
-                this.Log.LogDebug($"ProjectID: {projectId}");
+                Log.LogDebug($"ProjectGuid: {ProjectGuid}");
+                Log.LogDebug($"ProjectID: {projectId}");
 
-                var languageName = GetLanguageName(this.ProjectPath);
-                var documents = GetDocuments(this.Compile, projectId).ToList();
-                var metadataReferences = GetMetadataReferences(this.Reference).ToList();
+                var languageName = GetLanguageName(ProjectPath);
+                var documents = GetDocuments(Compile, projectId).ToList();
+                var metadataReferences = GetMetadataReferences(Reference).ToList();
                 
                 foreach (var doc in documents)
                 {
-                    this.Log.LogDebug($"Document: {doc.FilePath}");
+                    Log.LogDebug($"Document: {doc.FilePath}");
                 }
 
                 foreach (var reference in metadataReferences)
                 {
-                    this.Log.LogDebug($"Reference: {reference.Display}");
+                    Log.LogDebug($"Reference: {reference.Display}");
                 }
 
                 var projectInfo = ProjectInfo.Create(
@@ -104,13 +104,13 @@ namespace Hagar.CodeGenerator.MSBuild
                     projectName,
                     projectName,
                     languageName,
-                    this.ProjectPath,
-                    this.TargetPath,
-                    CreateCompilationOptions(this.OutputType, languageName),
+                    ProjectPath,
+                    TargetPath,
+                    CreateCompilationOptions(OutputType, languageName),
                     documents: documents,
                     metadataReferences: metadataReferences
                 );
-                this.Log.LogDebug($"Project: {projectInfo}");
+                Log.LogDebug($"Project: {projectInfo}");
 
                 var workspace = new AdhocWorkspace();
                 workspace.AddProject(projectInfo);
@@ -119,7 +119,7 @@ namespace Hagar.CodeGenerator.MSBuild
 
                 var stopwatch = Stopwatch.StartNew();
                 var compilation = await project.GetCompilationAsync(cancellationToken);
-                this.Log.LogInformation($"GetCompilation completed in {stopwatch.ElapsedMilliseconds}ms.");
+                Log.LogInformation($"GetCompilation completed in {stopwatch.ElapsedMilliseconds}ms.");
 
                 if (compilation.ReferencedAssemblyNames.All(name => name.Name != HagarAssemblyShortName))
                 {
@@ -128,22 +128,22 @@ namespace Hagar.CodeGenerator.MSBuild
 
                 var codeGeneratorOptions = new CodeGeneratorOptions
                 {
-                    IdAttributeTypes = this.IdAttributeTypes
+                    IdAttributeTypes = IdAttributeTypes
                 };
                 var generator = new CodeGenerator(compilation, codeGeneratorOptions);
                 stopwatch.Restart();
                 var syntax = generator.GenerateCode(cancellationToken);
-                this.Log.LogInformation($"GenerateCode completed in {stopwatch.ElapsedMilliseconds}ms.");
+                Log.LogInformation($"GenerateCode completed in {stopwatch.ElapsedMilliseconds}ms.");
                 stopwatch.Restart();
                 
                 var normalized = syntax.NormalizeWhitespace();
-                this.Log.LogInformation($"NormalizeWhitespace completed in {stopwatch.ElapsedMilliseconds}ms.");
+                Log.LogInformation($"NormalizeWhitespace completed in {stopwatch.ElapsedMilliseconds}ms.");
                 stopwatch.Restart();
 
                 var source = normalized.ToFullString();
-                this.Log.LogInformation($"Generate source from syntax completed in {stopwatch.ElapsedMilliseconds}ms.");
+                Log.LogInformation($"Generate source from syntax completed in {stopwatch.ElapsedMilliseconds}ms.");
                 stopwatch.Restart();
-                using (var sourceWriter = new StreamWriter(this.CodeGenOutputFile))
+                using (var sourceWriter = new StreamWriter(CodeGenOutputFile))
                 {
                     sourceWriter.WriteLine("#if !EXCLUDE_GENERATED_CODE");
                     foreach (var warningNum in SuppressCompilerWarnings)
@@ -163,7 +163,7 @@ namespace Hagar.CodeGenerator.MSBuild
 
                     sourceWriter.WriteLine("#endif");
                 }
-                this.Log.LogInformation($"Write source to disk completed in {stopwatch.ElapsedMilliseconds}ms.");
+                Log.LogInformation($"Write source to disk completed in {stopwatch.ElapsedMilliseconds}ms.");
 
                 return true;
             }
@@ -171,7 +171,7 @@ namespace Hagar.CodeGenerator.MSBuild
             {
                 foreach (var ex in rtle.LoaderExceptions)
                 {
-                    this.Log.LogDebug($"Exception: {ex}");
+                    Log.LogDebug($"Exception: {ex}");
                 }
 
                 throw;
