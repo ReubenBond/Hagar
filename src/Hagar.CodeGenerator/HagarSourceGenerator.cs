@@ -18,6 +18,12 @@ namespace Hagar.CodeGenerator
 
         public void Initialize(GeneratorInitializationContext context)
         {
+#if false 
+            if (!System.Diagnostics.Debugger.IsAttached)
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+#endif 
         }
     }
 }

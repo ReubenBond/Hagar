@@ -268,7 +268,6 @@ namespace Hagar.TestKit
                     Assert.Equal(expected, result);
                 }
 
-
                 {
                     var buffer = new byte[8096];
                     var writer = Writer.Create(buffer, _sessionPool.GetSession());
