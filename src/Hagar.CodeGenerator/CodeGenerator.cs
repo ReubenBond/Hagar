@@ -2,6 +2,7 @@ using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -157,6 +158,19 @@ namespace Hagar.CodeGenerator
                                 baseClass,
                                 isExtension);
                             metadataModel.InvokableInterfaces.Add(description);
+                        }
+                    }
+
+                    if ((symbol.TypeKind == TypeKind.Class || symbol.TypeKind == TypeKind.Struct) && !symbol.IsAbstract && (symbol.DeclaredAccessibility == Accessibility.Public || symbol.DeclaredAccessibility == Accessibility.Internal))
+                    {
+                        if (symbol.HasAttribute(_libraryTypes.RegisterSerializerAttribute))
+                        {
+                            metadataModel.DetectedSerializers.Add(symbol);
+                        }
+
+                        if (symbol.HasAttribute(_libraryTypes.RegisterActivatorAttribute))
+                        {
+                            metadataModel.DetectedActivators.Add(symbol);
                         }
                     }
                 }

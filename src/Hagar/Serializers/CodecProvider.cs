@@ -65,6 +65,7 @@ namespace Hagar.Serializers
             var metadata = codecConfiguration.Value;
             AddFromMetadata(_partialSerializers, metadata.Serializers, typeof(IPartialSerializer<>));
             AddFromMetadata(_valueSerializers, metadata.Serializers, typeof(IValueSerializer<>));
+            AddFromMetadata(_fieldCodecs, metadata.Serializers, typeof(IFieldCodec<>));
             AddFromMetadata(_fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
             AddFromMetadata(_activators, metadata.Activators, typeof(IActivator<>));
 
@@ -413,6 +414,14 @@ namespace Hagar.Serializers
                 // Depending on the rank of the array (1 or higher), select the base array codec or the multi-dimensional codec.
                 var arrayCodecType = fieldType.GetArrayRank() == 1 ? typeof(ArrayCodec<>) : typeof(MultiDimensionalArrayCodec<>);
                 codecType = arrayCodecType.MakeGenericType(fieldType.GetElementType());
+            }
+            else if (searchType.BaseType is object && CreateCodecInstance(fieldType, searchType.BaseType) is IFieldCodec baseCodec)
+            {
+                // Find codecs which generalize over all subtypes.
+                if (baseCodec is IDerivedTypeCodec)
+                {
+                    return baseCodec;
+                }
             }
 
             return codecType != null ? (IFieldCodec)GetServiceOrCreateInstance(codecType, constructorArguments) : null;

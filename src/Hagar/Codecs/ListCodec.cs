@@ -11,6 +11,7 @@ namespace Hagar.Codecs
     /// Codec for <see cref="List{T}"/>.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
+    [RegisterSerializer]
     public sealed class ListCodec<T> : IFieldCodec<List<T>>
     {
         private readonly IFieldCodec<T> _fieldCodec;

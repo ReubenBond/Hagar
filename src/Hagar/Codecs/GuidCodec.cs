@@ -5,6 +5,7 @@ using System.Buffers;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class GuidCodec : IFieldCodec<Guid>
     {
         private const int Width = 16;

@@ -5,6 +5,7 @@ using System.Buffers;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class ByteArrayCodec : TypedCodecBase<byte[], ByteArrayCodec>, IFieldCodec<byte[]>
     {
         byte[] IFieldCodec<byte[]>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -45,6 +46,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for byte[] fields. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ReadOnlyMemoryOfByteCodec : TypedCodecBase<ReadOnlyMemory<byte>, ReadOnlyMemoryOfByteCodec>, IFieldCodec<ReadOnlyMemory<byte>>
     {
         ReadOnlyMemory<byte> IFieldCodec<ReadOnlyMemory<byte>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -85,6 +87,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for ReadOnlyMemory<byte> fields. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class MemoryOfByteCodec : TypedCodecBase<Memory<byte>, MemoryOfByteCodec>, IFieldCodec<Memory<byte>>
     {
         Memory<byte> IFieldCodec<Memory<byte>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);

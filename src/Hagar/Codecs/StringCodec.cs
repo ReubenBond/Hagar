@@ -7,6 +7,7 @@ using System.Text;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
         string IFieldCodec<string>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);

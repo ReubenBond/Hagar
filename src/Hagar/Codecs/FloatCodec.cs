@@ -5,6 +5,7 @@ using System.Buffers;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
         void IFieldCodec<float>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -58,6 +59,7 @@ namespace Hagar.Codecs
             $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(float)}.");
     }
 
+    [RegisterSerializer]
     public sealed class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
         void IFieldCodec<double>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -97,6 +99,7 @@ namespace Hagar.Codecs
             $"{nameof(wireType)} {wireType} is not supported by this codec.");
     }
 
+    [RegisterSerializer]
     public sealed class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
     {
         void IFieldCodec<decimal>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, decimal value) => WriteField(ref writer, fieldIdDelta, expectedType, value);

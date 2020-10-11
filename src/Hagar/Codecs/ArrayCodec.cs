@@ -10,6 +10,7 @@ namespace Hagar.Codecs
     /// Codec for arrays of rank 1.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
+    [RegisterSerializer]
     public sealed class ArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> _fieldCodec;
@@ -108,6 +109,7 @@ namespace Hagar.Codecs
     /// Codec for <see cref="ReadOnlyMemory{T}"/>.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
+    [RegisterSerializer]
     public sealed class ReadOnlyMemoryCodec<T> : IFieldCodec<ReadOnlyMemory<T>>
     {
         private readonly IFieldCodec<T> _fieldCodec;
@@ -206,6 +208,7 @@ namespace Hagar.Codecs
     /// Codec for <see cref="Memory{T}"/>.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
+    [RegisterSerializer]
     public sealed class MemoryCodec<T> : IFieldCodec<Memory<T>>
     {
         private readonly IFieldCodec<T> _fieldCodec;

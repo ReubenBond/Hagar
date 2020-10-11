@@ -262,7 +262,7 @@ namespace Hagar.CodeGenerator
 
             CodecFieldDescription GetCodecDescription(ITypeSymbol t)
             {
-                var codecType = libraryTypes.FieldCodec.Construct(t).ToTypeSyntax();
+                var codecType = libraryTypes.FieldCodec_1.Construct(t).ToTypeSyntax();
                 var fieldName = '_' + ToLowerCamelCase(t.GetValidIdentifier()) + "Codec";
                 return new CodecFieldDescription(codecType, fieldName, t);
             }

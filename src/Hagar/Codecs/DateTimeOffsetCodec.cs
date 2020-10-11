@@ -5,6 +5,7 @@ using System.Buffers;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class DateTimeOffsetCodec : IFieldCodec<DateTimeOffset>
     {
         void IFieldCodec<DateTimeOffset>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, DateTimeOffset value) => WriteField(ref writer, fieldIdDelta, expectedType, value);

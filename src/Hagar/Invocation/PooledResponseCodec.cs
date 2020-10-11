@@ -5,6 +5,7 @@ using System;
 
 namespace Hagar.Invocation
 {
+    [RegisterSerializer]
     internal sealed class PooledResponseCodec<TResult> : IPartialSerializer<PooledResponse<TResult>>
     {
         private static readonly Type ExceptionType = typeof(Exception);

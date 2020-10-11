@@ -36,4 +36,14 @@ namespace Hagar
 
         public ushort Id { get; }
     }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class RegisterSerializerAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class RegisterActivatorAttribute : Attribute
+    {
+    }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class KeyValuePairCodec<TKey, TValue> : IFieldCodec<KeyValuePair<TKey, TValue>>
     {
         private readonly IFieldCodec<TKey> _keyCodec;

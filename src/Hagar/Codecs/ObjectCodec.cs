@@ -5,6 +5,7 @@ using System.Buffers;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class ObjectCodec : IFieldCodec<object>
     {
         private static readonly Type ObjectType = typeof(object);

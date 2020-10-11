@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>
     {
         void IFieldCodec<bool>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -31,6 +32,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>
     {
         void IFieldCodec<char>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -55,6 +57,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class ByteCodec : TypedCodecBase<byte, ByteCodec>, IFieldCodec<byte>
     {
         void IFieldCodec<byte>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -79,6 +82,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class SByteCodec : TypedCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>
     {
         void IFieldCodec<sbyte>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -103,6 +107,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
     {
         ushort IFieldCodec<ushort>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -127,6 +132,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class Int16Codec : TypedCodecBase<short, Int16Codec>, IFieldCodec<short>
     {
         void IFieldCodec<short>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -151,6 +157,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class UInt32Codec : TypedCodecBase<uint, UInt32Codec>, IFieldCodec<uint>
     {
         void IFieldCodec<uint>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -183,6 +190,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class Int32Codec : TypedCodecBase<int, Int32Codec>, IFieldCodec<int>
     {
         void IFieldCodec<int>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -232,6 +240,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>
     {
         void IFieldCodec<long>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
@@ -274,6 +283,7 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterSerializer]
     public sealed class UInt64Codec : TypedCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>
     {
         void IFieldCodec<ulong>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
