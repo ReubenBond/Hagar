@@ -34,6 +34,6 @@ namespace Hagar
             Id = id;
         }
 
-        public uint Id { get; }
+        public ushort Id { get; }
     }
 }

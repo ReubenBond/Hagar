@@ -389,7 +389,7 @@ namespace Hagar.CodeGenerator
 
         internal class MethodParameterFieldDescription : FieldDescription, IMemberDescription
         {
-            public MethodParameterFieldDescription(IParameterSymbol parameter, string fieldName, uint fieldId)
+            public MethodParameterFieldDescription(IParameterSymbol parameter, string fieldName, ushort fieldId)
                 : base(parameter.Type, fieldName)
             {
                 FieldId = fieldId;
@@ -397,7 +397,7 @@ namespace Hagar.CodeGenerator
             }
 
             public override bool IsInjected => false;
-            public uint FieldId { get; }
+            public ushort FieldId { get; }
             public ISymbol Member => Parameter;
             public ITypeSymbol Type => FieldType;
             public IParameterSymbol Parameter { get; }
