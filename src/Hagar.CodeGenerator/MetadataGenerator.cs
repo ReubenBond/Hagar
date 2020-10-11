@@ -25,6 +25,16 @@ namespace Hagar.CodeGenerator
                                     SingletonSeparatedList(
                                         Argument(TypeOfExpression(GetPartialSerializerTypeName(type)))))))
                 ));
+            body.AddRange(
+                metadataModel.DetectedSerializers.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addSerializerMethod,
+                                ArgumentList(
+                                    SingletonSeparatedList(
+                                        Argument(TypeOfExpression(type.ToOpenTypeSyntax()))))))
+                ));
             var addProxyMethod = configParam.Member("InterfaceProxies").Member("Add");
             body.AddRange(
                 metadataModel.GeneratedProxies.Select(
@@ -47,6 +57,16 @@ namespace Hagar.CodeGenerator
                                 ArgumentList(
                                     SingletonSeparatedList(
                                         Argument(TypeOfExpression(GetActivatorTypeName(type)))))))
+                ));
+            body.AddRange(
+                metadataModel.DetectedActivators.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addActivatorMethod,
+                                ArgumentList(
+                                    SingletonSeparatedList(
+                                        Argument(TypeOfExpression(type.ToOpenTypeSyntax()))))))
                 ));
 
             var configType = libraryTypes.SerializerConfiguration;

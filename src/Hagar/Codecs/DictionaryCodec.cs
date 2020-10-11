@@ -12,6 +12,7 @@ namespace Hagar.Codecs
     /// </summary>
     /// <typeparam name="TKey">The key type.</typeparam>
     /// <typeparam name="TValue">The value type.</typeparam>
+    [RegisterSerializer]
     public sealed class DictionaryCodec<TKey, TValue> : IFieldCodec<Dictionary<TKey, TValue>>
     {
         private readonly IFieldCodec<KeyValuePair<TKey, TValue>> _pairCodec;

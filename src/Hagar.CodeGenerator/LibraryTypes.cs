@@ -18,7 +18,8 @@ namespace Hagar.CodeGenerator
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
                 Field = Type("Hagar.WireProtocol.Field"),
-                FieldCodec = Type("Hagar.Codecs.IFieldCodec`1"),
+                FieldCodec = Type("Hagar.Codecs.IFieldCodec"),
+                FieldCodec_1 = Type("Hagar.Codecs.IFieldCodec`1"),
                 Func_2 = Type("System.Func`2"),
                 GenerateMethodSerializersAttribute = Type("Hagar.GenerateMethodSerializersAttribute"),
                 GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
@@ -26,6 +27,8 @@ namespace Hagar.CodeGenerator
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 IdAttributeTypes = options.IdAttributeTypes.Select(Type).ToList(),
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
+                RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
+                RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
                 Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
                 InvalidOperationException = Type("System.InvalidOperationException"),
                 InvokablePool = Type("Hagar.Invocation.InvokablePool"),
@@ -77,6 +80,8 @@ namespace Hagar.CodeGenerator
                     new StaticCodecDescription(Type("System.DateTimeOffset"), Type("Hagar.Codecs.DateTimeOffsetCodec")),
                     new StaticCodecDescription(Type("System.Guid"), Type("Hagar.Codecs.GuidCodec")),
                     new StaticCodecDescription(Type("System.Type"), Type("Hagar.Codecs.TypeSerializerCodec")),
+                    new StaticCodecDescription(Type("System.ReadOnlyMemory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.ReadOnlyMemoryOfByteCodec")),
+                    new StaticCodecDescription(Type("System.Memory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.MemoryOfByteCodec")),
                 }
             };
 
@@ -95,6 +100,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Byte { get; private set; }
         public INamedTypeSymbol ConfigurationProvider { get; private set; }
         public INamedTypeSymbol Field { get; private set; }
+        public INamedTypeSymbol FieldCodec_1 { get; private set; }
         public INamedTypeSymbol FieldCodec { get; private set; }
         public INamedTypeSymbol Func_2 { get; private set; }
         public INamedTypeSymbol GenerateMethodSerializersAttribute { get; private set; }
@@ -132,5 +138,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Writer { get; private set; }
         public List<INamedTypeSymbol> IdAttributeTypes { get; private set; }
         public List<StaticCodecDescription> StaticCodecs { get; private set; }
+        public INamedTypeSymbol RegisterSerializerAttribute { get; private set; }
+        public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }
     }
 }

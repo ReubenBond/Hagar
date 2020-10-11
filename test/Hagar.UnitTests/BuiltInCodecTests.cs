@@ -1,8 +1,12 @@
 using Hagar.Codecs;
+using Hagar.Codecs.SystemNet;
+using Hagar.Serializers;
 using Hagar.TestKit;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 // ReSharper disable UnusedMember.Global
 
 namespace Hagar.UnitTests
@@ -319,5 +323,34 @@ namespace Hagar.UnitTests
 
         protected override Dictionary<string, int>[] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+    }
+
+    public class IPAddressTests : FieldCodecTester<IPAddress, IPAddressCodec>
+    {
+
+        protected override void Configure(IHagarBuilder builder)
+        {
+            base.Configure(builder);
+            builder.AddAssembly(typeof(IPAddressCodec).Assembly);
+        }
+
+        protected override IPAddress[] TestValues => new[] { IPAddress.Any, IPAddress.IPv6Any, IPAddress.IPv6Loopback, IPAddress.IPv6None, IPAddress.Loopback, IPAddress.Parse("123.123.10.3"), CreateValue() };
+
+        protected override IPAddress CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            byte[] bytes;
+            if (rand.Next(1) == 0)
+            {
+                bytes = new byte[4];
+            }
+            else
+            {
+                bytes = new byte[16];
+            }
+
+            rand.NextBytes(bytes);
+            return new IPAddress(bytes);
+        } 
     }
 }

@@ -5,6 +5,7 @@ using System;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class TupleCodec<T> : IFieldCodec<Tuple<T>>
     {
         private readonly IFieldCodec<T> _valueCodec;
@@ -67,6 +68,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2> : IFieldCodec<Tuple<T1, T2>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -136,6 +138,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2, T3> : IFieldCodec<Tuple<T1, T2, T3>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -215,6 +218,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4> : IFieldCodec<Tuple<T1, T2, T3, T4>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -302,6 +306,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5> : IFieldCodec<Tuple<T1, T2, T3, T4, T5>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -400,6 +405,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -506,6 +512,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5, T6, T7> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -621,6 +628,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited}. {field}");
     }
 
+    [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>> where T8 : struct
     {
         private readonly IFieldCodec<T1> _item1Codec;

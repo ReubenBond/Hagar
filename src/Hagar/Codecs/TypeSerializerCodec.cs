@@ -6,7 +6,8 @@ using System.Buffers;
 
 namespace Hagar.Codecs
 {
-    public sealed class TypeSerializerCodec : IFieldCodec<Type>
+    [RegisterSerializer]
+    public sealed class TypeSerializerCodec : IFieldCodec<Type>, IDerivedTypeCodec
     {
         private static readonly Type SchemaTypeType = typeof(SchemaType);
         private static readonly Type TypeType = typeof(Type);

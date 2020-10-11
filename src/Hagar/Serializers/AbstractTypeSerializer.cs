@@ -56,7 +56,7 @@ namespace Hagar.Serializers
             return ThrowSerializerNotFound(fieldType);
         }
 
-        private static TField ThrowSerializerNotFound(Type type) => throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
+        private static TField ThrowSerializerNotFound(Type type) => throw new KeyNotFoundException($"Could not find a serializer for type {type}.");
 
         private static void ThrowMissingFieldType() => throw new FieldTypeMissingException(typeof(TField));
     }

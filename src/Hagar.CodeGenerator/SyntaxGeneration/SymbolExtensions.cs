@@ -46,6 +46,34 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             }
         }
 
+        public static TypeSyntax ToOpenTypeSyntax(this INamedTypeSymbol typeSymbol)
+        {
+            var displayString = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var nameSyntax = ParseName(displayString);
+
+            switch (nameSyntax)
+            {
+                case AliasQualifiedNameSyntax aliased:
+                    return aliased.WithName(WithGenericParameters(aliased.Name, typeSymbol.Arity));
+                case QualifiedNameSyntax qualified:
+                    return qualified.WithRight(WithGenericParameters(qualified.Right, typeSymbol.Arity));
+                case GenericNameSyntax g:
+                    return WithGenericParameters(g, typeSymbol.Arity);
+                default:
+                    return nameSyntax;
+            }
+
+            static SimpleNameSyntax WithGenericParameters(SimpleNameSyntax simpleNameSyntax, int arity)
+            {
+                if (simpleNameSyntax is GenericNameSyntax generic)
+                {
+                    return generic.WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>(Enumerable.Range(0, arity).Select(_ => OmittedTypeArgument()))));
+                }
+
+                return simpleNameSyntax;
+            }
+        }
+
         public static NameSyntax ToNameSyntax(this ITypeSymbol typeSymbol) => ParseName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
 
         public static string GetValidIdentifier(this ITypeSymbol type) => type switch

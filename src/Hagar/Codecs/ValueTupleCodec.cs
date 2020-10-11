@@ -5,6 +5,7 @@ using System;
 
 namespace Hagar.Codecs
 {
+    [RegisterSerializer]
     public sealed class ValueTupleCodec : IFieldCodec<ValueTuple>
     {
         void IFieldCodec<ValueTuple>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ValueTuple value)
@@ -31,6 +32,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.VarInt} is supported for string fields. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T> : IFieldCodec<ValueTuple<T>>
     {
         private readonly IFieldCodec<T> _valueCodec;
@@ -91,6 +93,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2> : IFieldCodec<ValueTuple<T1, T2>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -158,6 +161,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3> : IFieldCodec<ValueTuple<T1, T2, T3>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -235,6 +239,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4> : IFieldCodec<ValueTuple<T1, T2, T3, T4>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -320,6 +325,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -412,6 +418,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -513,6 +520,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6, T7> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
@@ -624,6 +632,7 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 
+    [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>> where T8 : struct
     {
         private readonly IFieldCodec<T1> _item1Codec;

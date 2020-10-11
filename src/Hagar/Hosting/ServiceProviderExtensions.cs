@@ -22,9 +22,8 @@ namespace Hagar
             if (context is null)
             {
                 context = new HagarConfigurationContext(services);
+                _ = context.Builder.AddAssembly(typeof(ServiceProviderExtensions).Assembly);
                 services.Add(context.CreateServiceDescriptor());
-
-                _ = services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultSerializerConfiguration>();
                 _ = services.AddSingleton<IConfigurationProvider<TypeConfiguration>, DefaultTypeConfiguration>();
                 _ = services.AddSingleton<TypeConverter>();
                 services.TryAddSingleton(typeof(ListActivator<>));
