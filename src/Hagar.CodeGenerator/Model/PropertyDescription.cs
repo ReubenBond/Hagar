@@ -4,13 +4,13 @@ namespace Hagar.CodeGenerator
 {
     internal class PropertyDescription : IMemberDescription
     {
-        public PropertyDescription(uint fieldId, IPropertySymbol property)
+        public PropertyDescription(ushort fieldId, IPropertySymbol property)
         {
             FieldId = fieldId;
             Property = property;
         }
 
-        public uint FieldId { get; }
+        public ushort FieldId { get; }
         public ISymbol Member => Property;
         public ITypeSymbol Type => Property.Type;
         public IPropertySymbol Property { get; }
