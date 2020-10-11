@@ -59,7 +59,7 @@ namespace Benchmarks.Comparison
                 .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<ValueSerializer<IntStruct>>();
-            Session = services.GetRequiredService<SessionPool>().GetSession();
+            Session = services.GetRequiredService<SerializerSessionPool>().GetSession();
             var bytes = new byte[1000];
             var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
             IntStruct intStruct = IntStruct.Create();

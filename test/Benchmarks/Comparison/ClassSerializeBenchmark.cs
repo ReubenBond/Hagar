@@ -54,7 +54,7 @@ namespace Benchmarks.Comparison
                 .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntClass>>();
-            Session = services.GetRequiredService<SessionPool>().GetSession();
+            Session = services.GetRequiredService<SerializerSessionPool>().GetSession();
             HagarData = new byte[1000];
 
             HyperionSession = HyperionSerializer.GetSerializerSession();

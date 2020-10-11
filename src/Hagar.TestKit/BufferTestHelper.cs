@@ -27,12 +27,12 @@ namespace Hagar.TestKit
         [ExcludeFromCodeCoverage]
         private abstract class BufferTester<TBufferWriter> : IBufferTestSerializer where TBufferWriter : IBufferWriter<byte>, IOutputBuffer
         {
-            private readonly SessionPool _sessionPool;
+            private readonly SerializerSessionPool _sessionPool;
             private readonly Serializer<TValue> _serializer;
 
             protected BufferTester(IServiceProvider serviceProvider)
             {
-                _sessionPool = serviceProvider.GetRequiredService<SessionPool>();
+                _sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
                 _serializer = serviceProvider.GetRequiredService<Serializer<TValue>>();
             }
 

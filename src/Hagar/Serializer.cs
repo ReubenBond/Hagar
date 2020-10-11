@@ -16,10 +16,10 @@ namespace Hagar
     /// </summary>
     public sealed class Serializer 
     {
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
         private readonly ICodecProvider _codecProvider;
 
-        public Serializer(SessionPool sessionPool, ICodecProvider codecProvider)
+        public Serializer(SerializerSessionPool sessionPool, ICodecProvider codecProvider)
         {
             _sessionPool = sessionPool;
             _codecProvider = codecProvider;
@@ -402,10 +402,10 @@ namespace Hagar
     public sealed class Serializer<T>
     {
         private readonly IFieldCodec<T> _codec;
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
         private readonly Type _expectedType;
 
-        public Serializer(ITypedCodecProvider codecProvider, SessionPool sessionPool)
+        public Serializer(ITypedCodecProvider codecProvider, SerializerSessionPool sessionPool)
         {
             _expectedType = typeof(T);
             _codec = HagarGeneratedCodeHelper.UnwrapService(null, codecProvider.GetCodec<T>());
@@ -745,10 +745,10 @@ namespace Hagar
     public sealed class ValueSerializer<T> where T : struct
     {
         private readonly IValueSerializer<T> _codec;
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
         private readonly Type _expectedType;
 
-        public ValueSerializer(IValueSerializerProvider codecProvider, SessionPool sessionPool)
+        public ValueSerializer(IValueSerializerProvider codecProvider, SerializerSessionPool sessionPool)
         {
             _sessionPool = sessionPool;
             _expectedType = typeof(T);

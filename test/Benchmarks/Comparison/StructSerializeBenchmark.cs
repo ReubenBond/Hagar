@@ -53,7 +53,7 @@ namespace Benchmarks.Comparison
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
             HagarData = new byte[1000];
-            Session = services.GetRequiredService<SessionPool>().GetSession();
+            Session = services.GetRequiredService<SerializerSessionPool>().GetSession();
 
             HyperionSession = HyperionSerializer.GetSerializerSession();
 

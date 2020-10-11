@@ -17,10 +17,10 @@ namespace TestRpc.IO
         private readonly ChannelReader<Message> _outgoingReader;
         private readonly ConnectionContext _connection;
         private readonly ChannelWriter<Message> _incoming;
-        private readonly SessionPool _serializerSessionPool;
+        private readonly SerializerSessionPool _serializerSessionPool;
         private readonly Serializer<Message> _messageSerializer;
 
-        public ConnectionHandler(ConnectionContext connection, ChannelWriter<Message> received, SessionPool sessionPool, Serializer<Message> messageSerializer)
+        public ConnectionHandler(ConnectionContext connection, ChannelWriter<Message> received, SerializerSessionPool sessionPool, Serializer<Message> messageSerializer)
         {
             _connection = connection;
             var outgoing = Channel.CreateUnbounded<Message>(
