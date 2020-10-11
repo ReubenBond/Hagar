@@ -15,7 +15,7 @@ namespace Hagar.UnitTests
     {
         private readonly ServiceProvider _serviceProvider;
         private readonly ITypedCodecProvider _codecProvider;
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
 
         public GeneratedSerializerTests()
         {
@@ -23,7 +23,7 @@ namespace Hagar.UnitTests
                 .AddHagar(hagar => hagar.AddAssembly(typeof(GeneratedSerializerTests).Assembly))
                 .BuildServiceProvider();
             _codecProvider = _serviceProvider.GetRequiredService<ITypedCodecProvider>();
-            _sessionPool = _serviceProvider.GetRequiredService<SessionPool>();
+            _sessionPool = _serviceProvider.GetRequiredService<SerializerSessionPool>();
         }
 
         [Fact]

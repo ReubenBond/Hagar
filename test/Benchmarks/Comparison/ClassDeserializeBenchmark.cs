@@ -71,7 +71,7 @@ namespace Benchmarks.Comparison
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntClass>>();
             var bytes = new byte[1000];
-            Session = services.GetRequiredService<SessionPool>().GetSession();
+            Session = services.GetRequiredService<SerializerSessionPool>().GetSession();
             var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
             //HagarSerializer.Serialize(ref writer, IntClass.Create());
             writer.WriteStartObject(0, typeof(IntClass), typeof(IntClass));

@@ -16,7 +16,7 @@ namespace Hagar.UnitTests
     public class ISerializableTests
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
         private readonly Serializer<object> _serializer;
 
         public ISerializableTests()
@@ -25,7 +25,7 @@ namespace Hagar.UnitTests
             _ = services.AddHagar(hagar => hagar.AddISerializableSupport());
 
             _serviceProvider = services.BuildServiceProvider();
-            _sessionPool = _serviceProvider.GetService<SessionPool>();
+            _sessionPool = _serviceProvider.GetService<SerializerSessionPool>();
             _serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
         }
 

@@ -45,7 +45,7 @@ namespace Hagar
                 services.TryAddSingleton<TypeCodec>();
 
                 // Session
-                services.TryAddSingleton<SessionPool>();
+                services.TryAddSingleton<SerializerSessionPool>();
 
                 // Serializer
                 services.TryAddSingleton(typeof(Serializer<>));

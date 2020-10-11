@@ -18,7 +18,7 @@ namespace Hagar.TestKit
     public abstract class FieldCodecTester<TValue, TCodec> where TCodec : class, IFieldCodec<TValue>
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
 
         protected FieldCodecTester()
         {
@@ -30,7 +30,7 @@ namespace Hagar.TestKit
             _ = services.AddHagar(Configure);
 
             _serviceProvider = services.BuildServiceProvider();
-            _sessionPool = _serviceProvider.GetService<SessionPool>();
+            _sessionPool = _serviceProvider.GetService<SerializerSessionPool>();
         }
 
         private static int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };

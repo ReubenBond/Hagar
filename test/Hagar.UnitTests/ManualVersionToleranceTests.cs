@@ -116,7 +116,7 @@ namespace Hagar.UnitTests
             RoundTripTest(self);
         }
 
-        private SerializerSession GetSession() => _serviceProvider.GetRequiredService<SessionPool>().GetSession();
+        private SerializerSession GetSession() => _serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
 
         private void RoundTripTest(SubType expected)
         {

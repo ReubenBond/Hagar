@@ -3,7 +3,9 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.WireProtocol;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Serializers
 {
@@ -24,7 +26,7 @@ namespace Hagar.Serializers
             _serializer = serializer;
         }
 
-        void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value)
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value) where TBufferWriter : IBufferWriter<byte>
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
             {
@@ -40,19 +42,25 @@ namespace Hagar.Serializers
             }
             else
             {
-                var specificSerializer = writer.Session.CodecProvider.GetCodec(fieldType);
-                if (specificSerializer != null)
-                {
-                    specificSerializer.WriteField(ref writer, fieldIdDelta, expectedType, value);
-                }
-                else
-                {
-                    ThrowSerializerNotFoundException(fieldType);
-                }
+                SerializeUnexpectedType(ref writer, fieldIdDelta, expectedType, value, fieldType);
             }
         }
 
-        TField IFieldCodec<TField>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void SerializeUnexpectedType<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value, Type fieldType) where TBufferWriter : IBufferWriter<byte>
+        {
+            var specificSerializer = writer.Session.CodecProvider.GetCodec(fieldType);
+            if (specificSerializer != null)
+            {
+                specificSerializer.WriteField(ref writer, fieldIdDelta, expectedType, value);
+            }
+            else
+            {
+                ThrowSerializerNotFoundException(fieldType);
+            }
+        }
+
+        public TField ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {

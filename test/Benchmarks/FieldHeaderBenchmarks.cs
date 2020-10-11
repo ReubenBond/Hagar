@@ -23,7 +23,7 @@ namespace Benchmarks
                     hagar.AddISerializableSupport()
                         .AddAssembly(typeof(Program).Assembly));
             var serviceProvider = services.BuildServiceProvider();
-            var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
+            var sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
             Session = sessionPool.GetSession();
         }
 

@@ -39,7 +39,11 @@ namespace Hagar.Configuration
             _ = codecs.Add(typeof(TypeSerializerCodec));
 
             _ = codecs.Add(typeof(ArrayCodec<>));
+            _ = codecs.Add(typeof(ReadOnlyMemoryCodec<>));
+            _ = codecs.Add(typeof(MemoryCodec<>));
             _ = codecs.Add(typeof(ByteArrayCodec));
+            _ = codecs.Add(typeof(ReadOnlyMemoryOfByteCodec));
+            _ = codecs.Add(typeof(MemoryOfByteCodec));
 
             _ = codecs.Add(typeof(ListCodec<>));
 

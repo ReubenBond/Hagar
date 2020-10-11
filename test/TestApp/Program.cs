@@ -108,7 +108,7 @@ namespace TestApp
             var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();
-            var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
+            var sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
 
             var writeSession = sessionPool.GetSession();
             var pipe = new Pipe();
@@ -135,7 +135,7 @@ namespace TestApp
                 .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
                 .BuildServiceProvider();
 
-            SerializerSession GetSession() => serviceProvider.GetRequiredService<SessionPool>().GetSession();
+            SerializerSession GetSession() => serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
             TestRpc().GetAwaiter().GetResult();
             //return;
             TestOne();

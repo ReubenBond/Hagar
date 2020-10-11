@@ -4,11 +4,11 @@ using System;
 
 namespace Hagar.Session
 {
-    public sealed class SessionPool
+    public sealed class SerializerSessionPool
     {
         private readonly ObjectPool<SerializerSession> _sessionPool;
 
-        public SessionPool(IServiceProvider serviceProvider)
+        public SerializerSessionPool(IServiceProvider serviceProvider)
         {
             var sessionPoolPolicy = new SerializerSessionPoolPolicy(serviceProvider, ReturnSession);
             _sessionPool = new DefaultObjectPool<SerializerSession>(sessionPoolPolicy);

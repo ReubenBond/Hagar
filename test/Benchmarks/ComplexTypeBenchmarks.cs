@@ -25,7 +25,7 @@ namespace Benchmarks
         private static SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer(new byte[1000]);
         private readonly Serializer<SimpleStruct> _structSerializer;
         private readonly Serializer<ComplexClass> _hagarSerializer;
-        private readonly SessionPool _sessionPool;
+        private readonly SerializerSessionPool _sessionPool;
         private readonly ComplexClass _value;
         private readonly SerializationManager _orleansSerializer;
         private readonly SerializerSession _session;
@@ -55,7 +55,7 @@ namespace Benchmarks
             var serviceProvider = services.BuildServiceProvider();
             _hagarSerializer = serviceProvider.GetRequiredService<Serializer<ComplexClass>>();
             _structSerializer = serviceProvider.GetRequiredService<Serializer<SimpleStruct>>();
-            _sessionPool = serviceProvider.GetRequiredService<SessionPool>();
+            _sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
             _value = new ComplexClass
             {
                 BaseInt = 192,
