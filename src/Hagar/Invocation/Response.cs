@@ -2,6 +2,7 @@ using System;
 
 namespace Hagar.Invocation
 {
+    [GenerateSerializer]
     public abstract class Response : IDisposable
     {
         public static Response FromException<TResult>(Exception exception)
@@ -18,11 +19,24 @@ namespace Hagar.Invocation
             return result;
         }
 
-        public abstract Exception Exception { get; set; }
+        public static Response Completed => new SuccessResponse();
 
+        [Id(1)]
         public abstract object Result { get; set; }
 
+        [Id(2)]
+        public abstract Exception Exception { get; set; }
+
         public abstract void Dispose();
+    }
+
+    [GenerateSerializer]
+    public sealed class SuccessResponse : Response
+    {
+        public override object Result { get; set; } 
+        public override Exception Exception { get; set; }
+
+        public override void Dispose() { }
     }
 
     public abstract class Response<TResult> : Response

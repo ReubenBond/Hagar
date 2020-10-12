@@ -708,7 +708,6 @@ namespace Hagar.UnitTests
         protected override Dictionary<string, int>[] TestValues => new[] { null, new Dictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
 
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
-
         [GenerateSerializer]
         public class CaseInsensitiveEqualityComparer : IEqualityComparer<string>
         {
@@ -814,12 +813,6 @@ namespace Hagar.UnitTests
 
     public class IPAddressTests : FieldCodecTester<IPAddress, IPAddressCodec>
     {
-        protected override void Configure(IHagarBuilder builder)
-        {
-            base.Configure(builder);
-            builder.AddAssembly(typeof(IPAddressCodec).Assembly);
-        }
-
         protected override IPAddress[] TestValues => new[] { null, IPAddress.Any, IPAddress.IPv6Any, IPAddress.IPv6Loopback, IPAddress.IPv6None, IPAddress.Loopback, IPAddress.Parse("123.123.10.3"), CreateValue() };
 
         protected override IPAddress CreateValue()

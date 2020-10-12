@@ -16,5 +16,7 @@ namespace Hagar.Configuration
         public Dictionary<uint, Type> WellKnownTypeIds { get; } = new Dictionary<uint, Type>();
 
         public Dictionary<string, Type> WellKnownTypeAliases { get; } = new Dictionary<string, Type>();
+
+        public Dictionary<string, Type> TypeAliases = new Dictionary<string, Type>();
     }
 }

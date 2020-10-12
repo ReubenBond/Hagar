@@ -50,6 +50,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Analyzers", "src\Haga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild.Tasks", "src\Hagar.CodeGenerator.MSBuild.Tasks\Hagar.CodeGenerator.MSBuild.Tasks.csproj", "{38CB9FFF-226C-49F2-A6C4-4F89C92B5714}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallLog", "test\CallLog\CallLog.csproj", "{9048E345-238F-4391-AA54-61FBF62B0822}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,10 @@ Global
 		{38CB9FFF-226C-49F2-A6C4-4F89C92B5714}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38CB9FFF-226C-49F2-A6C4-4F89C92B5714}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38CB9FFF-226C-49F2-A6C4-4F89C92B5714}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9048E345-238F-4391-AA54-61FBF62B0822}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9048E345-238F-4391-AA54-61FBF62B0822}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9048E345-238F-4391-AA54-61FBF62B0822}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9048E345-238F-4391-AA54-61FBF62B0822}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,6 +132,7 @@ Global
 		{D8C98426-966B-4FCB-AB70-1165444BFFE2} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
 		{700733C3-B97F-487E-876A-AF2692379D39} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{38CB9FFF-226C-49F2-A6C4-4F89C92B5714} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
+		{9048E345-238F-4391-AA54-61FBF62B0822} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8125413B-1B31-40F0-BA6B-BFD0C6925F6C}

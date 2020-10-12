@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices.ComTypes;
+
 namespace Hagar.Invocation
 {
     public interface IResponseCompletionSource
@@ -7,5 +9,7 @@ namespace Hagar.Invocation
         /// </summary>
         /// <param name="value">The result value.</param>
         void Complete(Response value);
+
+        void Complete(); 
     }
 }

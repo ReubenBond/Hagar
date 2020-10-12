@@ -65,6 +65,8 @@ namespace Hagar.Invocation
             }
         }
 
+        public void Complete() => SetResult(default);
+
         void IValueTaskSource.GetResult(short token)
         {
             _ = _core.GetResult(token);
