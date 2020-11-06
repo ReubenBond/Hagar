@@ -24,7 +24,11 @@ namespace Hagar.TestKit
         {
             var services = new ServiceCollection();
             _ = services.AddHagar(hagar => hagar.Configure(config => config.FieldCodecs.Add(typeof(TCodec))));
-            _ = services.AddSingleton<TCodec>();
+
+            if (!typeof(TCodec).IsAbstract && !typeof(TCodec).IsInterface)
+            {
+                _ = services.AddSingleton<TCodec>();
+            }
 
             // ReSharper disable once VirtualMemberCallInConstructor
             _ = services.AddHagar(Configure);
@@ -50,39 +54,53 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounterStream()
         {
             var stream = new MemoryStream();
-            var writer = Writer.Create(stream, _sessionPool.GetSession());
+            using var writerSession = _sessionPool.GetSession();
+            using var readerSession = _sessionPool.GetSession();
+            var writer = Writer.Create(stream, writerSession);
             var writerCodec = CreateCodec();
-            var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
             // Write the field. This should involve marking at least one reference in the session.
             Assert.Equal(0, writer.Position);
 
-            writerCodec.WriteField(ref writer, 0, typeof(TValue), CreateValue());
-            Assert.True(writer.Position > 0);
+            foreach (var value in TestValues)
+            {
+                var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
+                writerCodec.WriteField(ref writer, 0, typeof(TValue), value);
+                Assert.True(writer.Position > 0);
 
-            writer.Commit();
-            var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
-            Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
-            stream.Flush();
+                writer.Commit();
+                var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
+                Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+                if (ReferenceEquals(null, value))
+                {
+                    Assert.True(beforeReference + 1 == afterReference, $"Writing a null field should result in exactly one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+                }
 
-            stream.Position = 0;
-            var reader = Reader.Create(stream, _sessionPool.GetSession());
+                stream.Flush();
 
-            var previousPos = reader.Position;
-            Assert.Equal(0, previousPos);
-            var readerCodec = CreateCodec();
-            var readField = reader.ReadFieldHeader();
+                stream.Position = 0;
+                var reader = Reader.Create(stream, readerSession);
 
-            Assert.True(reader.Position > previousPos);
-            previousPos = reader.Position;
+                var previousPos = reader.Position;
+                Assert.Equal(0, previousPos);
+                var readerCodec = CreateCodec();
+                var readField = reader.ReadFieldHeader();
 
-            beforeReference = reader.Session.ReferencedObjects.CurrentReferenceId;
-            _ = readerCodec.ReadValue(ref reader, readField);
+                Assert.True(reader.Position > previousPos);
+                previousPos = reader.Position;
 
-            Assert.True(reader.Position > previousPos);
+                beforeReference = reader.Session.ReferencedObjects.CurrentReferenceId;
+                var readValue = readerCodec.ReadValue(ref reader, readField);
 
-            afterReference = reader.Session.ReferencedObjects.CurrentReferenceId;
-            Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+                Assert.True(reader.Position > previousPos);
+
+                afterReference = reader.Session.ReferencedObjects.CurrentReferenceId;
+                Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+                if (ReferenceEquals(null, readValue))
+                {
+                    Assert.True(beforeReference + 1 == afterReference, $"Reading a null field should result in at exactly one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
+                }
+            }
         }
 
         [Fact]

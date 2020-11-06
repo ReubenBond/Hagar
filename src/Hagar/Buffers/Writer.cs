@@ -104,10 +104,18 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Commit()
         {
-            _output.Advance(_bufferPos);
-            _previousBuffersSize += _bufferPos;
-            _currentSpan = default;
-            _bufferPos = default;
+            if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
+            {
+                _output.Advance(_bufferPos);
+                _previousBuffersSize += _bufferPos;
+            }
+            else
+            {
+                _output.Advance(_bufferPos);
+                _previousBuffersSize += _bufferPos;
+                _currentSpan = default;
+                _bufferPos = default;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
