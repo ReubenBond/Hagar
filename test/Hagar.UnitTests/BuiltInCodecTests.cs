@@ -39,7 +39,15 @@ namespace Hagar.UnitTests
         protected override DayOfWeek CreateValue() => (DayOfWeek)(new Random(Guid.NewGuid().GetHashCode()).Next((int)DayOfWeek.Sunday, (int)DayOfWeek.Saturday));
         protected override bool Equals(DayOfWeek left, DayOfWeek right) => left.Equals(right);
         protected override DayOfWeek[] TestValues => new[] { DayOfWeek.Monday, DayOfWeek.Sunday, (DayOfWeek)(-1), (DayOfWeek)10_000};
-        protected override void Configure(IHagarBuilder builder) => ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.RemoveAll(typeof(IFieldCodec<DayOfWeek>)));
+    }
+
+    public class NullableIntTests : FieldCodecTester<int?, IFieldCodec<int?>>
+    {
+        private int?[] Values = new int?[] { null, 1, 2, -3, null };
+        protected override IFieldCodec<int?> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<int?>();
+        protected override int? CreateValue() => Values[new Random(Guid.NewGuid().GetHashCode()).Next(Values.Length)];
+        protected override bool Equals(int? left, int? right) => left.Equals(right);
+        protected override int?[] TestValues => Values;
     }
 
     public class DateTimeTests : FieldCodecTester<DateTime, DateTimeCodec>

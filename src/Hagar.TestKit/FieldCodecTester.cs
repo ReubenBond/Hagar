@@ -24,7 +24,11 @@ namespace Hagar.TestKit
         {
             var services = new ServiceCollection();
             _ = services.AddHagar(hagar => hagar.Configure(config => config.FieldCodecs.Add(typeof(TCodec))));
-            _ = services.AddSingleton<TCodec>();
+
+            if (!typeof(TCodec).IsAbstract && !typeof(TCodec).IsInterface)
+            {
+                _ = services.AddSingleton<TCodec>();
+            }
 
             // ReSharper disable once VirtualMemberCallInConstructor
             _ = services.AddHagar(Configure);
