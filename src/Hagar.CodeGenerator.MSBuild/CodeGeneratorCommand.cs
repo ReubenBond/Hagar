@@ -80,7 +80,6 @@ namespace Hagar.CodeGenerator.MSBuild
                     ? ProjectId.CreateFromSerialized(projectIdGuid)
                     : ProjectId.CreateNewId();
 
-
                 Log.LogDebug($"ProjectGuid: {ProjectGuid}");
                 Log.LogDebug($"ProjectID: {projectId}");
 

@@ -449,6 +449,7 @@ namespace Hagar.CodeGenerator
             public INamedTypeSymbol BaseType => throw new NotImplementedException();
             public string Name { get; }
             public bool IsValueType => false;
+            public bool IsEnumType => false;
             public bool IsGenericType => _methodDescription.Method.IsGenericMethod;
             public ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
             public List<IMemberDescription> Members { get; }

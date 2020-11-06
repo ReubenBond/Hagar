@@ -33,6 +33,8 @@ namespace Hagar.TestKit
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>();
         }
 
+        protected IServiceProvider ServiceProvider => _serviceProvider;
+
         private static int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };
 
         protected virtual void Configure(IHagarBuilder builder)
@@ -322,9 +324,14 @@ namespace Hagar.TestKit
 
                 var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
                 var deserializedObject = serializer.Deserialize(ref reader);
-                if (original != null)
+                if (original != null && !typeof(TValue).IsEnum)
                 {
                     var deserialized = Assert.IsAssignableFrom<TValue>(deserializedObject);
+                    Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                }
+                else if (typeof(TValue).IsEnum)
+                {
+                    var deserialized = (TValue)deserializedObject;
                     Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
                 }
                 else

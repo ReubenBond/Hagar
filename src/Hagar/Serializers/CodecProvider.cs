@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 namespace Hagar.Serializers
@@ -414,6 +415,10 @@ namespace Hagar.Serializers
                 // Depending on the rank of the array (1 or higher), select the base array codec or the multi-dimensional codec.
                 var arrayCodecType = fieldType.GetArrayRank() == 1 ? typeof(ArrayCodec<>) : typeof(MultiDimensionalArrayCodec<>);
                 codecType = arrayCodecType.MakeGenericType(fieldType.GetElementType());
+            }
+            else if (fieldType.IsEnum)
+            {
+                return CreateCodecInstance(fieldType, fieldType.GetEnumUnderlyingType());
             }
             else if (searchType.BaseType is object && CreateCodecInstance(fieldType, searchType.BaseType) is IFieldCodec baseCodec)
             {

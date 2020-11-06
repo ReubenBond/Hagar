@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -106,7 +107,11 @@ namespace Hagar.CodeGenerator
                 var rootNode = syntaxTree.GetRoot(cancellationToken);
                 foreach (var node in GetTypeDeclarations(rootNode))
                 {
-                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken: cancellationToken);
+                    var symbolRaw = semanticModel.GetDeclaredSymbol(node, cancellationToken: cancellationToken);
+                    if (symbolRaw is not INamedTypeSymbol symbol)
+                    {
+                        continue;
+                    }
 
                     bool ShouldGenerateSerializer(INamedTypeSymbol t)
                     {
@@ -179,11 +184,14 @@ namespace Hagar.CodeGenerator
             return metadataModel;
         }
 
-        private static IEnumerable<TypeDeclarationSyntax> GetTypeDeclarations(SyntaxNode node)
+        private static IEnumerable<MemberDeclarationSyntax> GetTypeDeclarations(SyntaxNode node)
         {
             SyntaxList<MemberDeclarationSyntax> members;
             switch (node)
             {
+                case EnumDeclarationSyntax enumDecl:
+                    yield return enumDecl;
+                    break;
                 case TypeDeclarationSyntax type:
                     yield return type;
                     members = type.Members;

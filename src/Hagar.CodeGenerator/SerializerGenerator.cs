@@ -17,12 +17,14 @@ namespace Hagar.CodeGenerator
         private const string BaseTypeSerializerFieldName = "baseTypeSerializer";
         private const string SerializeMethodName = "Serialize";
         private const string DeserializeMethodName = "Deserialize";
+        private const string WriteFieldMethodName = "WriteField";
+        private const string ReadValueMethodName = "ReadValue";
 
         public static ClassDeclarationSyntax GenerateSerializer(LibraryTypes libraryTypes, ISerializableTypeDescription type)
         {
             var simpleClassName = GetSimpleClassName(type);
 
-            var serializerInterface = type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer;
+            var serializerInterface = type.IsEnumType ? libraryTypes.FieldCodec_1 : type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer;
             var baseInterface = serializerInterface.ToTypeSyntax(type.TypeSyntax);
 
             var members = new List<ISerializableMember>();
@@ -42,15 +44,26 @@ namespace Hagar.CodeGenerator
             var fieldDeclarations = GetFieldDeclarations(fieldDescriptions);
             var ctor = GenerateConstructor(simpleClassName, fieldDescriptions);
 
-            var serializeMethod = GenerateSerializeMethod(type, fieldDescriptions, members, libraryTypes);
-            var deserializeMethod = GenerateDeserializeMethod(type, fieldDescriptions, members, libraryTypes);
-
             var classDeclaration = ClassDeclaration(simpleClassName)
                 .AddBaseListTypes(SimpleBaseType(baseInterface))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fieldDeclarations)
-                .AddMembers(ctor, serializeMethod, deserializeMethod);
+                .AddMembers(ctor);
+
+            if (type.IsEnumType)
+            {
+                var writeMethod = GenerateWriteFieldMethod(type, fieldDescriptions, libraryTypes);
+                var readMethod = GenerateReadValueMethod(type, fieldDescriptions, libraryTypes);
+                classDeclaration = classDeclaration.AddMembers(writeMethod, readMethod);
+            }
+            else
+            {
+                var serializeMethod = GenerateSerializeMethod(type, fieldDescriptions, members, libraryTypes);
+                var deserializeMethod = GenerateDeserializeMethod(type, fieldDescriptions, members, libraryTypes);
+                classDeclaration = classDeclaration.AddMembers(serializeMethod, deserializeMethod);
+            }
+
             if (type.IsGenericType)
             {
                 classDeclaration = AddGenericTypeConstraints(classDeclaration, type);
@@ -563,6 +576,101 @@ namespace Hagar.CodeGenerator
 
                 return loopBody;
             }
+        }
+
+        private static MemberDeclarationSyntax GenerateWriteFieldMethod(
+            ISerializableTypeDescription type,
+            List<FieldDescription> serializerFields,
+            LibraryTypes libraryTypes)
+        {
+            var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
+
+            var writerParam = "writer".ToIdentifierName();
+            var fieldIdDeltaParam = "fieldIdDelta".ToIdentifierName();
+            var expectedTypeParam = "expectedType".ToIdentifierName();
+            var valueParam = "value".ToIdentifierName();
+
+            var body = new List<StatementSyntax>();
+
+            // Codecs can either be static classes or injected into the constructor.
+            // Either way, the member signatures are the same.
+            var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, type.BaseType));
+            ExpressionSyntax codecExpression;
+            if (staticCodec != null)
+            {
+                codecExpression = staticCodec.CodecType.ToNameSyntax();
+            }
+            else
+            {
+                var instanceCodec = serializerFields.OfType<CodecFieldDescription>().First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, type.BaseType));
+                codecExpression = ThisExpression().Member(instanceCodec.FieldName);
+            }
+
+            body.Add(
+                ExpressionStatement(
+                    InvocationExpression(
+                        codecExpression.Member("WriteField"),
+                        ArgumentList(
+                            SeparatedList(
+                                new[]
+                                {
+                                    Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
+                                    Argument(fieldIdDeltaParam),
+                                    Argument(expectedTypeParam),
+                                    Argument(CastExpression(type.BaseType.ToTypeSyntax(), valueParam))
+                                })))));
+
+            var parameters = new[]
+            {
+                Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
+                Parameter("fieldIdDelta".ToIdentifier()).WithType(libraryTypes.UInt32.ToTypeSyntax()),
+                Parameter("expectedType".ToIdentifier()).WithType(libraryTypes.Type.ToTypeSyntax()),
+                Parameter("value".ToIdentifier()).WithType(type.TypeSyntax)
+            };
+
+            return MethodDeclaration(returnType, WriteFieldMethodName)
+                .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                .AddParameterListParameters(parameters)
+                .AddTypeParameterListParameters(TypeParameter("TBufferWriter"))
+                .AddConstraintClauses(TypeParameterConstraintClause("TBufferWriter").AddConstraints(TypeConstraint(libraryTypes.IBufferWriter.Construct(libraryTypes.Byte).ToTypeSyntax())))
+                .AddBodyStatements(body.ToArray());
+        }
+
+        private static MemberDeclarationSyntax GenerateReadValueMethod(
+            ISerializableTypeDescription type,
+            List<FieldDescription> serializerFields,
+            LibraryTypes libraryTypes)
+        {
+            var readerParam = "reader".ToIdentifierName();
+            var fieldParam = "field".ToIdentifierName();
+
+            var codecs = serializerFields.OfType<ICodecDescription>()
+                    .Concat(libraryTypes.StaticCodecs)
+                    .ToList();
+            var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, type.BaseType));
+            ExpressionSyntax codecExpression = staticCodec.CodecType.ToNameSyntax();
+            ExpressionSyntax readValueExpression = InvocationExpression(
+                codecExpression.Member("ReadValue"),
+                ArgumentList(SeparatedList(new[] { Argument(readerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(fieldParam) })));
+
+            readValueExpression = CastExpression(type.TypeSyntax, readValueExpression);
+            var body = new List<StatementSyntax>
+            {
+                ReturnStatement(readValueExpression)
+            };
+
+            var genericParam = ParseTypeName("TInput");
+            var parameters = new[]
+            {
+                Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax(genericParam)).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
+                Parameter(fieldParam.Identifier).WithType(libraryTypes.Field.ToTypeSyntax())
+            };
+
+            return MethodDeclaration(type.TypeSyntax, ReadValueMethodName)
+                .AddTypeParameterListParameters(TypeParameter("TInput"))
+                .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                .AddParameterListParameters(parameters)
+                .AddBodyStatements(body.ToArray());
         }
 
         internal abstract class FieldDescription

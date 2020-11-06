@@ -3,6 +3,7 @@ using Hagar.Codecs.SystemNet;
 using Hagar.Serializers;
 using Hagar.TestKit;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,36 @@ using System.Net;
 
 namespace Hagar.UnitTests
 {
+    [GenerateSerializer]
+    public enum MyEnum : short
+    {
+        None,
+        One,
+        Two
+    }
+
+    public class EnumTests : FieldCodecTester<MyEnum, IFieldCodec<MyEnum>>
+    {
+        protected override IFieldCodec<MyEnum> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<MyEnum>();
+        protected override MyEnum CreateValue() => (MyEnum)(new Random(Guid.NewGuid().GetHashCode()).Next((int)MyEnum.None, (int)MyEnum.Two));
+        protected override bool Equals(MyEnum left, MyEnum right) => left.Equals(right);
+        protected override MyEnum[] TestValues => new[] { MyEnum.None, MyEnum.One, MyEnum.Two, (MyEnum)(-1), (MyEnum)10_000};
+        protected override void Configure(IHagarBuilder builder)
+        {
+            ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.RemoveAll(typeof(IFieldCodec<MyEnum>)));
+            builder.AddAssembly(typeof(EnumTests).Assembly);
+        }
+    }
+
+    public class DayOfWeekTests : FieldCodecTester<DayOfWeek, IFieldCodec<DayOfWeek>>
+    {
+        protected override IFieldCodec<DayOfWeek> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<DayOfWeek>();
+        protected override DayOfWeek CreateValue() => (DayOfWeek)(new Random(Guid.NewGuid().GetHashCode()).Next((int)DayOfWeek.Sunday, (int)DayOfWeek.Saturday));
+        protected override bool Equals(DayOfWeek left, DayOfWeek right) => left.Equals(right);
+        protected override DayOfWeek[] TestValues => new[] { DayOfWeek.Monday, DayOfWeek.Sunday, (DayOfWeek)(-1), (DayOfWeek)10_000};
+        protected override void Configure(IHagarBuilder builder) => ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.RemoveAll(typeof(IFieldCodec<DayOfWeek>)));
+    }
+
     public class DateTimeTests : FieldCodecTester<DateTime, DateTimeCodec>
     {
         protected override DateTime CreateValue() => DateTime.UtcNow;
