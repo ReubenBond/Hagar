@@ -57,6 +57,9 @@ namespace Hagar.Session
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool GetOrAddReference(object value, out uint reference)
         {
+            // Unconditionally bump the reference counter since a call to this method signifies a potential reference.
+            var nextReference = ++CurrentReferenceId;
+
             // Null is always at reference 0
             if (value is null)
             {
@@ -75,7 +78,7 @@ namespace Hagar.Session
             }
 
             // Add the reference.
-            reference = ++CurrentReferenceId;
+            reference = nextReference;
             AddToReferenceToIdMap(value, reference);
             return false;
         }

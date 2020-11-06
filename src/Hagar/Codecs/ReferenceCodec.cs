@@ -39,6 +39,7 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object ReadReference<TInput>(ref Reader<TInput> reader, Field field, Type expectedType)
         {
+            MarkValueField(reader.Session);
             var reference = reader.ReadVarUInt32();
             if (!reader.Session.ReferencedObjects.TryGetReferencedObject(reference, out var value))
             {
