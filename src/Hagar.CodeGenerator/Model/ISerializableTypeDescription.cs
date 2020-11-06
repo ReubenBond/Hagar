@@ -13,6 +13,7 @@ namespace Hagar.CodeGenerator
         INamedTypeSymbol BaseType { get; }
         string Name { get; }
         bool IsValueType { get; }
+        bool IsEnumType { get; }
         bool IsGenericType { get; }
         ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         List<IMemberDescription> Members { get; }

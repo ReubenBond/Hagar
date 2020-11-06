@@ -26,11 +26,12 @@ namespace Hagar.CodeGenerator
                                           Type.BaseType != null &&
                                           Type.BaseType.SpecialType != SpecialType.System_Object;
 
-        public INamedTypeSymbol BaseType => Type.BaseType;
+        public INamedTypeSymbol BaseType => Type.EnumUnderlyingType ?? Type.BaseType;
 
         public string Name => Type.Name;
 
         public bool IsValueType => Type.IsValueType;
+        public bool IsEnumType => Type.EnumUnderlyingType != null;
 
         public bool IsGenericType => Type.IsGenericType;
 

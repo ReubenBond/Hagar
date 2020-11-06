@@ -30,6 +30,7 @@ namespace Hagar
                 services.TryAddSingleton(typeof(DictionaryActivator<,>));
                 services.TryAddSingleton(typeof(IConfiguration<>), typeof(ConfigurationHolder<>));
                 services.TryAddSingleton<CodecProvider>();
+                services.TryAddSingleton<ICodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IUntypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<ITypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IPartialSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());

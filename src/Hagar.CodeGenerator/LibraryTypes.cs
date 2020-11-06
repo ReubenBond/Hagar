@@ -30,6 +30,7 @@ namespace Hagar.CodeGenerator
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
                 Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
+                UInt32 = compilation.GetSpecialType(SpecialType.System_UInt32),
                 InvalidOperationException = Type("System.InvalidOperationException"),
                 InvokablePool = Type("Hagar.Invocation.InvokablePool"),
                 IResponseCompletionSource = Type("Hagar.Invocation.IResponseCompletionSource"),
@@ -109,6 +110,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol IBufferWriter { get; private set; }
         public INamedTypeSymbol IInvokable { get; private set; }
         public INamedTypeSymbol Int32 { get; private set; }
+        public INamedTypeSymbol UInt32 { get; private set; }
         public INamedTypeSymbol InvalidOperationException { get; private set; }
         public INamedTypeSymbol InvokablePool { get; private set; }
         public INamedTypeSymbol IResponseCompletionSource { get; private set; }
