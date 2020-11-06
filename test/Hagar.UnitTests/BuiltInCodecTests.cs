@@ -43,11 +43,10 @@ namespace Hagar.UnitTests
 
     public class NullableIntTests : FieldCodecTester<int?, IFieldCodec<int?>>
     {
-        private int?[] Values = new int?[] { null, 1, 2, -3, null };
         protected override IFieldCodec<int?> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<int?>();
-        protected override int? CreateValue() => Values[new Random(Guid.NewGuid().GetHashCode()).Next(Values.Length)];
+        protected override int? CreateValue() => TestValues[new Random(Guid.NewGuid().GetHashCode()).Next(TestValues.Length)];
         protected override bool Equals(int? left, int? right) => left.Equals(right);
-        protected override int?[] TestValues => Values;
+        protected override int?[] TestValues => new int?[] { null, 1, 2, -3 };
     }
 
     public class DateTimeTests : FieldCodecTester<DateTime, DateTimeCodec>
@@ -82,7 +81,7 @@ namespace Hagar.UnitTests
     {
         protected override string CreateValue() => Guid.NewGuid().ToString();
         protected override bool Equals(string left, string right) => StringComparer.Ordinal.Equals(left, right);
-        protected override string[] TestValues => new[] { string.Empty, new string('*', 6), new string('x', 4097), "Hello, World!" };
+        protected override string[] TestValues => new[] { null, string.Empty, new string('*', 6), new string('x', 4097), "Hello, World!" };
     }
 
     public class ObjectCodecTests : FieldCodecTester<object, ObjectCodec>
@@ -100,7 +99,9 @@ namespace Hagar.UnitTests
 
         protected override byte[][] TestValues => new[]
         {
-            Array.Empty<byte>(), Enumerable.Range(0, 4097).Select(b => unchecked((byte)b)).ToArray(), CreateValue(),
+            null,
+            Array.Empty<byte>(),
+            Enumerable.Range(0, 4097).Select(b => unchecked((byte)b)).ToArray(), CreateValue(),
         };
     }
 
@@ -108,7 +109,7 @@ namespace Hagar.UnitTests
     {
         protected override int[] CreateValue() => Enumerable.Range(0, new Random(Guid.NewGuid().GetHashCode()).Next(120) + 50).Select(_ => Guid.NewGuid().GetHashCode()).ToArray();
         protected override bool Equals(int[] left, int[] right) => ReferenceEquals(left, right) || left.SequenceEqual(right);
-        protected override int[][] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
+        protected override int[][] TestValues => new[] { null, Array.Empty<int>(), CreateValue(), CreateValue(), CreateValue() };
     }
 
     public class UInt64CodecTests : FieldCodecTester<ulong, UInt64Codec>
@@ -289,6 +290,7 @@ namespace Hagar.UnitTests
     {
         private readonly Type[] _values =
         {
+            null,
             typeof(Dictionary<Guid, List<string>>),
             typeof(Type).MakeByRefType(),
             typeof(Guid),
@@ -341,7 +343,7 @@ namespace Hagar.UnitTests
         }
 
         protected override bool Equals(List<int> left, List<int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
-        protected override List<int>[] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
+        protected override List<int>[] TestValues => new[] { null, new List<int>(), CreateValue(), CreateValue(), CreateValue() };
     }
 
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
@@ -360,20 +362,19 @@ namespace Hagar.UnitTests
             return result;
         }
 
-        protected override Dictionary<string, int>[] TestValues => new[] { CreateValue(), CreateValue(), CreateValue() };
+        protected override Dictionary<string, int>[] TestValues => new[] { null, new Dictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 
     public class IPAddressTests : FieldCodecTester<IPAddress, IPAddressCodec>
     {
-
         protected override void Configure(IHagarBuilder builder)
         {
             base.Configure(builder);
             builder.AddAssembly(typeof(IPAddressCodec).Assembly);
         }
 
-        protected override IPAddress[] TestValues => new[] { IPAddress.Any, IPAddress.IPv6Any, IPAddress.IPv6Loopback, IPAddress.IPv6None, IPAddress.Loopback, IPAddress.Parse("123.123.10.3"), CreateValue() };
+        protected override IPAddress[] TestValues => new[] { null, IPAddress.Any, IPAddress.IPv6Any, IPAddress.IPv6Loopback, IPAddress.IPv6None, IPAddress.Loopback, IPAddress.Parse("123.123.10.3"), CreateValue() };
 
         protected override IPAddress CreateValue()
         {
