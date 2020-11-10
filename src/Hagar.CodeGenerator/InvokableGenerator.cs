@@ -154,7 +154,7 @@ namespace Hagar.CodeGenerator
             var cases = new List<SwitchSectionSyntax>();
             foreach (var field in fields)
             {
-                if (!(field is MethodParameterFieldDescription parameter))
+                if (field is not MethodParameterFieldDescription parameter)
                 {
                     continue;
                 }
@@ -224,7 +224,7 @@ namespace Hagar.CodeGenerator
             var cases = new List<SwitchSectionSyntax>();
             foreach (var field in fields)
             {
-                if (!(field is MethodParameterFieldDescription parameter))
+                if (field is not MethodParameterFieldDescription parameter)
                 {
                     continue;
                 }

@@ -11,6 +11,8 @@ namespace Hagar.CodeGenerator
 
         public IMethodSymbol Method { get; }
 
+#pragma warning disable RS1024 // Compare symbols correctly
         public override int GetHashCode() => Method.GetHashCode();
+#pragma warning restore RS1024 // Compare symbols correctly
     }
 }

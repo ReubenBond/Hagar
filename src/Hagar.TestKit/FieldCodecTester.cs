@@ -71,7 +71,7 @@ namespace Hagar.TestKit
                 writer.Commit();
                 var afterReference = writer.Session.ReferencedObjects.CurrentReferenceId;
                 Assert.True(beforeReference < afterReference, $"Writing a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
-                if (ReferenceEquals(null, value))
+                if (value is null)
                 {
                     Assert.True(beforeReference + 1 == afterReference, $"Writing a null field should result in exactly one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
                 }
@@ -96,7 +96,7 @@ namespace Hagar.TestKit
 
                 afterReference = reader.Session.ReferencedObjects.CurrentReferenceId;
                 Assert.True(beforeReference < afterReference, $"Reading a field should result in at least one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
-                if (ReferenceEquals(null, readValue))
+                if (readValue is null)
                 {
                     Assert.True(beforeReference + 1 == afterReference, $"Reading a null field should result in at exactly one reference being marked in the session. Before: {beforeReference}, After: {afterReference}");
                 }

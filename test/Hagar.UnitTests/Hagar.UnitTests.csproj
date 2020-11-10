@@ -3,8 +3,8 @@
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
     <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != '' ">$(TestTargetFrameworks)</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;netcoreapp3.1;net5</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;netcoreapp3.1;net5;net48</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;netcoreapp3.1;net5.0;net48</TargetFrameworks>
 	<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
 
@@ -14,22 +14,22 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
     <PackageReference Include="System.Buffers" Version="4.5.1" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build" Version="16.6.0" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.6.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.6.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.7.2" />
+    <PackageReference Include="Microsoft.Build" Version="16.7.0" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.7.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.7.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-    <PackageReference Include="System.CodeDom" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="System.CodeDom" Version="5.0.0" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -40,14 +40,8 @@
     <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.TestKit\Hagar.TestKit.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
-    <ProjectReference
-      Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj"
-      ReferenceOutputAssembly="false"
-      OutputItemType="Analyzer" />
-    <ProjectReference
-      Include="$(SourceRoot)src/Hagar.Analyzers/Hagar.Analyzers.csproj"
-      ReferenceOutputAssembly="false"
-      OutputItemType="Analyzer" />
+    <ProjectReference Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(SourceRoot)src/Hagar.Analyzers/Hagar.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

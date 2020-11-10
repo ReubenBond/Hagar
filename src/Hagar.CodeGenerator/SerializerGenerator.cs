@@ -74,7 +74,9 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(ISerializableTypeDescription serializableType)
         {
+#pragma warning disable RS1024 // Compare symbols correctly
             var uniquifier = RuntimeHelpers.GetHashCode(serializableType).ToString("X");
+#pragma warning restore RS1024 // Compare symbols correctly
             return $"{CodeGenerator.CodeGeneratorName}_Serializer_{serializableType.Name}_{uniquifier}";
         }
 
@@ -245,7 +247,9 @@ namespace Hagar.CodeGenerator
             LibraryTypes libraryTypes)
         {
             var fields = new List<FieldDescription>();
-            fields.AddRange(serializableTypeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct().Select(GetTypeDescription));
+#pragma warning disable RS1024 // Compare symbols correctly
+            fields.AddRange(serializableTypeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct(SymbolEqualityComparer.Default).OfType<ITypeSymbol>().Select(GetTypeDescription));
+#pragma warning restore RS1024 // Compare symbols correctly
 
             if (serializableTypeDescription.HasComplexBaseType)
             {
@@ -253,8 +257,11 @@ namespace Hagar.CodeGenerator
             }
 
             // Add a codec field for any field in the target which does not have a static codec.
+#pragma warning disable RS1024 // Compare symbols correctly
             fields.AddRange(serializableTypeDescription.Members
-                .Select(m => GetExpectedType(m.Type)).Distinct()
+                .Select(m => GetExpectedType(m.Type)).Distinct(SymbolEqualityComparer.Default)
+#pragma warning restore RS1024 // Compare symbols correctly
+                .Cast<ITypeSymbol>()
                 .Where(t => !libraryTypes.StaticCodecs.Any(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, t)))
                 .Select(GetCodecDescription));
 

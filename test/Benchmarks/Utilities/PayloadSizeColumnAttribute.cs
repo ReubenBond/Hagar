@@ -9,7 +9,7 @@ namespace Benchmarks.Utilities
         public PayloadSizeColumnAttribute(string columnName = "Payload")
         {
             var config = ManualConfig.CreateEmpty();
-            config.Add(
+            config.AddColumn(
                 new MethodResultColumn(columnName,
                     val =>
                     {

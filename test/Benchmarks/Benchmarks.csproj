@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
-    <TargetFrameworks>netcoreapp3.1;net5</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -12,31 +12,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" />
     <PackageReference Include="Hyperion" Version="0.9.16" />
-    <PackageReference Include="MessagePack" Version="2.1.165" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.7" />
-    <PackageReference Include="Microsoft.Orleans.Core" Version="3.2.2" />
-    <PackageReference Include="protobuf-net" Version="3.0.29" />
+    <PackageReference Include="MessagePack" Version="2.2.60" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="3.3.0" />
+    <PackageReference Include="protobuf-net" Version="3.0.52" />
     <PackageReference Include="SpanJson" Version="3.0.1" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.7.2" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="3.2.2" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="4.7.0" />
-    <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    <PackageReference Include="System.IO.Pipelines" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="3.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
+    <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-    <PackageReference Include="System.CodeDom" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="System.CodeDom" Version="5.0.0" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -48,10 +48,7 @@
     <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.NewtonsoftJson\Hagar.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
-    <ProjectReference
-      Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj"
-      ReferenceOutputAssembly="false"
-      OutputItemType="Analyzer" />
+    <ProjectReference Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

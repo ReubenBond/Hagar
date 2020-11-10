@@ -191,6 +191,7 @@ namespace Hagar.CodeGenerator
             {
                 case EnumDeclarationSyntax enumDecl:
                     yield return enumDecl;
+                    members = new SyntaxList<MemberDeclarationSyntax>();
                     break;
                 case TypeDeclarationSyntax type:
                     yield return type;
