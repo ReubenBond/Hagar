@@ -42,7 +42,7 @@ namespace Hagar
             writer.Commit();
 
             // Copy the result into a fresh array.
-            var written = buffer.WrittenSpan;
+            var written = writer.Output.WrittenSpan;
             var result = new byte[written.Length];
             written.CopyTo(result);
 
@@ -467,7 +467,7 @@ namespace Hagar
             writer.Commit();
 
             // Copy the result into a fresh array.
-            var written = buffer.WrittenSpan;
+            var written = writer.Output.WrittenSpan;
             var result = new byte[written.Length];
             written.CopyTo(result);
 
@@ -812,7 +812,7 @@ namespace Hagar
             writer.Commit();
 
             // Copy the result into a fresh array.
-            var written = buffer.WrittenSpan;
+            var written = writer.Output.WrittenSpan;
             var result = new byte[written.Length];
             written.CopyTo(result);
 
