@@ -9,13 +9,11 @@ namespace Hagar.Codecs
     {
         public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
-            ReferenceCodec.MarkValueField(writer.Session);
             throw new NotImplementedException();
         }
 
         public object ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
-            ReferenceCodec.MarkValueField(reader.Session);
             reader.SkipField(field);
             return null;
         }
@@ -29,21 +27,27 @@ namespace Hagar.Codecs
             {
                 case WireType.Reference:
                 case WireType.VarInt:
+                    reader.Session.ReferencedObjects.MarkValueField();
                     _ = reader.ReadVarUInt64();
                     break;
                 case WireType.TagDelimited:
+                    reader.Session.ReferencedObjects.MarkValueField();
                     SkipTagDelimitedField(ref reader);
                     break;
                 case WireType.LengthPrefixed:
+                    reader.Session.ReferencedObjects.MarkValueField();
                     SkipLengthPrefixedField(ref reader);
                     break;
                 case WireType.Fixed32:
+                    reader.Session.ReferencedObjects.MarkValueField();
                     reader.Skip(4);
                     break;
                 case WireType.Fixed64:
+                    reader.Session.ReferencedObjects.MarkValueField();
                     reader.Skip(8);
                     break;
                 case WireType.Fixed128:
+                    reader.Session.ReferencedObjects.MarkValueField();
                     reader.Skip(16);
                     break;
                 case WireType.Extended:

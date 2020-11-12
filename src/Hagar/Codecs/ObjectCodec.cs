@@ -45,6 +45,7 @@ namespace Hagar.Codecs
 
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, ObjectType, WireType.LengthPrefixed);
                 writer.WriteVarInt(0U);
+                return;
             }
 
             var specificSerializer = writer.Session.CodecProvider.GetCodec(fieldType);

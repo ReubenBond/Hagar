@@ -150,6 +150,8 @@ namespace Hagar.UnitTests
             Assert.Null(actual.AddedLaterString); // The deserializer isn't 'aware' of this field which was added later - version tolerance.
             Assert.Equal(expected.String, actual.String);
             Assert.Equal(expected.Int, actual.Int);
+            Assert.Equal(writer.Position, reader.Position);
+            Assert.Equal(writer.Session.ReferencedObjects.CurrentReferenceId, reader.Session.ReferencedObjects.CurrentReferenceId);
 
             var references = GetReadReferenceTable(reader.Session);
             _log.WriteLine($"Read references:\n{references}");
@@ -174,6 +176,7 @@ namespace Hagar.UnitTests
             _ = skipCodec.ReadValue(ref reader, initialHeader);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
+            Assert.Equal(writer.Session.ReferencedObjects.CurrentReferenceId, reader.Session.ReferencedObjects.CurrentReferenceId);
             _log.WriteLine($"Skipped {reader.Position} bytes.");
         }
 

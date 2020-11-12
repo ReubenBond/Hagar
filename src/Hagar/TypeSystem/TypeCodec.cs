@@ -20,7 +20,14 @@ namespace Hagar.TypeSystem
             _getTypeKey = type => new TypeKey(Encoding.UTF8.GetBytes(_typeConverter.Format(type)));
         }
 
-        public void Write<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
+        public void WriteLengthPrefixed<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
+        {
+            var key = _typeCache.GetOrAdd(type, _getTypeKey);
+            writer.WriteVarInt((uint)key.TypeName.Length);
+            writer.Write(key.TypeName);
+        }
+
+        public void WriteEncodedType<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = _typeCache.GetOrAdd(type, _getTypeKey);
             writer.Write(key.HashCode);
@@ -81,34 +88,13 @@ namespace Hagar.TypeSystem
             return false;
         }
 
-        public unsafe Type Read<TInput>(ref Reader<TInput> reader)
+        public unsafe Type ReadLengthPrefixed<TInput>(ref Reader<TInput> reader)
         {
-            var hashCode = reader.ReadInt32();
             var count = (int)reader.ReadVarUInt32();
 
             if (!reader.TryReadBytes(count, out var typeName))
             {
                 typeName = reader.ReadBytes((uint)count);
-            }
-
-            // Search through 
-            var candidateHashCode = hashCode;
-            while (_typeKeyCache.TryGetValue(candidateHashCode, out var entry))
-            {
-                var existingKey = entry.Key;
-                if (existingKey.HashCode != hashCode)
-                {
-                    break;
-                }
-
-                var existingSpan = new ReadOnlySpan<byte>(existingKey.TypeName);
-                if (existingSpan.SequenceEqual(typeName))
-                {
-                    return entry.Type;
-                }
-
-                // Try the next entry.
-                ++candidateHashCode;
             }
 
             // Allocate a string for the type name.
@@ -119,15 +105,6 @@ namespace Hagar.TypeSystem
             }
 
             var type = _typeConverter.Parse(typeNameString);
-            if (type is object)
-            {
-                var key = new TypeKey(hashCode, typeName.ToArray());
-                while (!_typeKeyCache.TryAdd(candidateHashCode++, (key, type)))
-                {
-                    // Insert the type at the first available position.
-                }
-            }
-
             return type;
         }
 
@@ -138,6 +115,29 @@ namespace Hagar.TypeSystem
             var typeName = reader.ReadBytes(count);
             var key = new TypeKey(hashCode, typeName);
             return key;
+        }
+
+        public unsafe bool TryReadForAnalysis<TInput>(ref Reader<TInput> reader, out Type type, out string typeString)
+        {
+            var hashCode = reader.ReadInt32();
+            var count = (int)reader.ReadVarUInt32();
+
+            if (!reader.TryReadBytes(count, out var typeName))
+            {
+                typeName = reader.ReadBytes((uint)count);
+            }
+
+            // Allocate a string for the type name.
+            string typeNameString;
+            fixed (byte* typeNameBytes = typeName)
+            {
+                typeNameString = Encoding.UTF8.GetString(typeNameBytes, count);
+            }
+
+            _ = _typeConverter.TryParse(typeNameString, out type);
+            var key = new TypeKey(hashCode, typeName.ToArray());
+            typeString = key.ToString();
+            return type is object; 
         }
 
         /// <summary>
@@ -181,6 +181,8 @@ namespace Hagar.TypeSystem
             public override bool Equals(object obj) => obj is TypeKey key && Equals(key);
 
             public override int GetHashCode() => HashCode;
+
+            public override string ToString() => $"TypeName \"{Encoding.UTF8.GetString(TypeName)}\" (hash {HashCode:X8})";
 
             internal class Comparer : IEqualityComparer<TypeKey>
             {

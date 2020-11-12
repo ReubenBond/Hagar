@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
-
-#if NETCOREAPP
-using System.Runtime.Loader;
-#endif
 
 namespace Hagar.CodeGenerator.MSBuild
 {
@@ -20,14 +17,12 @@ namespace Hagar.CodeGenerator.MSBuild
         private readonly ICompilationAssemblyResolver _assemblyResolver;
         
         private readonly DependencyContext _resolverRependencyContext;
-#if NETCOREAPP
         private readonly AssemblyLoadContext _loadContext;
-#endif
 
         public AssemblyResolver()
         {
             _resolverRependencyContext = DependencyContext.Load(typeof(AssemblyResolver).Assembly);
-            var codegenPath = Path.GetDirectoryName(new Uri(typeof(AssemblyResolver).Assembly.CodeBase).LocalPath);
+            var codegenPath = Path.GetDirectoryName(new Uri(typeof(AssemblyResolver).Assembly.Location).LocalPath);
             _assemblyResolver = new CompositeCompilationAssemblyResolver(
                 new ICompilationAssemblyResolver[]
                 {
@@ -37,27 +32,23 @@ namespace Hagar.CodeGenerator.MSBuild
                 });
 
             AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
-#if NETCOREAPP
             _loadContext = AssemblyLoadContext.GetLoadContext(typeof(AssemblyResolver).Assembly);
             _loadContext.Resolving += AssemblyLoadContextResolving;
             if (_loadContext != AssemblyLoadContext.Default)
             {
                 AssemblyLoadContext.Default.Resolving += AssemblyLoadContextResolving;
             }
-#endif
         }
 
         public void Dispose()
         {
             AppDomain.CurrentDomain.AssemblyResolve -= ResolveAssembly;
 
-#if NETCOREAPP
             _loadContext.Resolving -= AssemblyLoadContextResolving;
             if (_loadContext != AssemblyLoadContext.Default)
             {
                 AssemblyLoadContext.Default.Resolving -= AssemblyLoadContextResolving;
             }
-#endif
         }
 
         /// <summary>
@@ -113,22 +104,12 @@ namespace Hagar.CodeGenerator.MSBuild
         {
             try
             {
-#if NETCOREAPP
                 return _loadContext.LoadFromAssemblyPath(path);
-#else
-                return Assembly.LoadFrom(path);
-#endif
             }
             catch
             {
                 return null;
             }
         }
-
-#if !NETCOREAPP
-        internal class AssemblyLoadContext
-        {
-        }
-#endif
     }
 }

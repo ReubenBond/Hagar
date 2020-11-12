@@ -34,19 +34,25 @@ namespace Hagar
         /// <returns>A byte array containing the serialized value.</returns>
         public byte[] SerializeToArray<T>(T value, int sizeHint = 0)
         {
-            using var buffer = new PooledArrayBufferWriter(sizeHint);
             using var session = _sessionPool.GetSession();
+            var buffer = new PooledArrayBufferWriter(sizeHint);
             var writer = Writer.Create(buffer, session);
-            var codec = _codecProvider.GetCodec<T>();
-            codec.WriteField(ref writer, 0, typeof(T), value);
-            writer.Commit();
+            try
+            {
+                var codec = _codecProvider.GetCodec<T>();
+                codec.WriteField(ref writer, 0, typeof(T), value);
+                writer.Commit();
 
-            // Copy the result into a fresh array.
-            var written = writer.Output.WrittenSpan;
-            var result = new byte[written.Length];
-            written.CopyTo(result);
-
-            return result;
+                // Copy the result into a fresh array.
+                var written = writer.Output.WrittenSpan;
+                var result = new byte[written.Length];
+                written.CopyTo(result);
+                return result;
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
 
         /// <summary>
@@ -95,21 +101,26 @@ namespace Hagar
         {
             if (destination is MemoryStream memoryStream)
             {
-                var buffer = new MemoryStreamBufferWriter(memoryStream);
                 using var session = _sessionPool.GetSession();
-                var writer = Writer.Create(buffer, session);
+                var writer = Writer.Create(memoryStream, session);
                 var codec = _codecProvider.GetCodec<T>();
                 codec.WriteField(ref writer, 0, typeof(T), value);
                 writer.Commit();
             }
             else
             {
-                using var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
                 using var session = _sessionPool.GetSession();
-                var writer = Writer.Create(buffer, session);
-                var codec = _codecProvider.GetCodec<T>();
-                codec.WriteField(ref writer, 0, typeof(T), value);
-                writer.Commit();
+                var writer = Writer.CreatePooled(destination, session, sizeHint);
+                try
+                {
+                    var codec = _codecProvider.GetCodec<T>();
+                    codec.WriteField(ref writer, 0, typeof(T), value);
+                    writer.Commit();
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
         }
 
@@ -134,11 +145,18 @@ namespace Hagar
             }
             else
             {
-                using var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
+                var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
                 var writer = Writer.Create(buffer, session);
-                var codec = _codecProvider.GetCodec<T>();
-                codec.WriteField(ref writer, 0, typeof(T), value);
-                writer.Commit();
+                try
+                {
+                    var codec = _codecProvider.GetCodec<T>();
+                    codec.WriteField(ref writer, 0, typeof(T), value);
+                    writer.Commit();
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
         }
 
@@ -156,6 +174,8 @@ namespace Hagar
             var codec = _codecProvider.GetCodec<T>();
             codec.WriteField(ref writer, 0, typeof(T), value);
             writer.Commit();
+
+            // Do not dispose, since the buffer writer is not owned by the method.
         }
 
         /// <summary>
@@ -172,6 +192,8 @@ namespace Hagar
             var codec = _codecProvider.GetCodec<T>();
             codec.WriteField(ref writer, 0, typeof(T), value);
             writer.Commit();
+
+            // Do not dispose, since the buffer writer is not owned by the method.
         }
 
         /// <summary>
@@ -436,6 +458,8 @@ namespace Hagar
             var writer = Writer.Create(destination, session);
             _codec.WriteField(ref writer, 0, typeof(T), value);
             writer.Commit();
+
+            // Do not dispose, since the buffer writer is not owned by the method.
         }
 
         /// <summary>
@@ -450,6 +474,8 @@ namespace Hagar
             var writer = Writer.Create(destination, session);
             _codec.WriteField(ref writer, 0, typeof(T), value);
             writer.Commit();
+
+            // Do not dispose, since the buffer writer is not owned by the method.
         }
 
         /// <summary>
@@ -460,18 +486,23 @@ namespace Hagar
         /// <returns>A byte array containing the serialized value.</returns>
         public byte[] SerializeToArray(T value, int sizeHint = 0)
         {
-            using var buffer = new PooledArrayBufferWriter(sizeHint);
             using var session = _sessionPool.GetSession();
-            var writer = Writer.Create(buffer, session);
-            _codec.WriteField(ref writer, 0, typeof(T), value);
-            writer.Commit();
+            var writer = Writer.Create(new PooledArrayBufferWriter(sizeHint), session);
+            try
+            {
+                _codec.WriteField(ref writer, 0, typeof(T), value);
+                writer.Commit();
 
-            // Copy the result into a fresh array.
-            var written = writer.Output.WrittenSpan;
-            var result = new byte[written.Length];
-            written.CopyTo(result);
-
-            return result;
+                // Copy the result into a fresh array.
+                var written = writer.Output.WrittenSpan;
+                var result = new byte[written.Length];
+                written.CopyTo(result);
+                return result;
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
 
         /// <summary>
@@ -583,11 +614,17 @@ namespace Hagar
             }
             else
             {
-                using var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
                 using var session = _sessionPool.GetSession();
-                var writer = Writer.Create(buffer, session);
-                _codec.WriteField(ref writer, 0, typeof(T), value);
-                writer.Commit();
+                var writer = Writer.Create(new PoolingStreamBufferWriter(destination, sizeHint), session);
+                try
+                {
+                    _codec.WriteField(ref writer, 0, typeof(T), value);
+                    writer.Commit();
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
         }
 
@@ -610,10 +647,16 @@ namespace Hagar
             }
             else
             {
-                using var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
-                var writer = Writer.Create(buffer, session);
-                _codec.WriteField(ref writer, 0, typeof(T), value);
-                writer.Commit();
+                var writer = Writer.Create(new PoolingStreamBufferWriter(destination, sizeHint), session);
+                try
+                {
+                    _codec.WriteField(ref writer, 0, typeof(T), value);
+                    writer.Commit();
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
         }
 
@@ -781,6 +824,8 @@ namespace Hagar
             var writer = Writer.Create(destination, session);
             _codec.Serialize(ref writer, ref value);
             writer.Commit();
+
+            // Do not dispose, since the buffer writer is not owned by the method.
         }
 
         /// <summary>
@@ -795,6 +840,8 @@ namespace Hagar
             var writer = Writer.Create(destination, session);
             _codec.Serialize(ref writer, ref value);
             writer.Commit();
+
+            // Do not dispose, since the buffer writer is not owned by the method.
         }
 
         /// <summary>
@@ -805,18 +852,24 @@ namespace Hagar
         /// <returns>A byte array containing the serialized value.</returns>
         public byte[] SerializeToArray(ref T value, int sizeHint = 0)
         {
-            using var buffer = new PooledArrayBufferWriter(sizeHint);
             using var session = _sessionPool.GetSession();
-            var writer = Writer.Create(buffer, session);
-            _codec.Serialize(ref writer, ref value);
-            writer.Commit();
+            var writer = Writer.Create(new PooledArrayBufferWriter(sizeHint), session);
+            try
+            {
+                _codec.Serialize(ref writer, ref value);
+                writer.Commit();
 
-            // Copy the result into a fresh array.
-            var written = writer.Output.WrittenSpan;
-            var result = new byte[written.Length];
-            written.CopyTo(result);
+                // Copy the result into a fresh array.
+                var written = writer.Output.WrittenSpan;
+                var result = new byte[written.Length];
+                written.CopyTo(result);
 
-            return result;
+                return result;
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
 
         /// <summary>
@@ -928,11 +981,17 @@ namespace Hagar
             }
             else
             {
-                using var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
                 using var session = _sessionPool.GetSession();
-                var writer = Writer.Create(buffer, session);
-                _codec.Serialize(ref writer, ref value);
-                writer.Commit();
+                var writer = Writer.Create(new PoolingStreamBufferWriter(destination, sizeHint), session);
+                try
+                {
+                    _codec.Serialize(ref writer, ref value);
+                    writer.Commit();
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
         }
 
@@ -955,10 +1014,16 @@ namespace Hagar
             }
             else
             {
-                using var buffer = new PoolingStreamBufferWriter(destination, sizeHint);
-                var writer = Writer.Create(buffer, session);
-                _codec.Serialize(ref writer, ref value);
-                writer.Commit();
+                var writer = Writer.Create(new PoolingStreamBufferWriter(destination, sizeHint), session);
+                try
+                {
+                    _codec.Serialize(ref writer, ref value);
+                    writer.Commit();
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
         }
 

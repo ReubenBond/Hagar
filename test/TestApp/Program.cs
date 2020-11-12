@@ -5,6 +5,7 @@ using Hagar.Configuration;
 using Hagar.Invocation;
 using Hagar.Serializers;
 using Hagar.Session;
+using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using MyPocos;
 using Newtonsoft.Json;
@@ -122,24 +123,34 @@ namespace TestApp
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
 
-            using var readerSession = sessionPool.GetSession();
-            var reader = Reader.Create(readResult.Buffer, readerSession);
-            var initialHeader = reader.ReadFieldHeader();
-            var result = codec.ReadValue(ref reader, initialHeader);
-            Console.WriteLine(result);
+            {
+                using var readerSession = sessionPool.GetSession();
+                var reader = Reader.Create(readResult.Buffer, readerSession);
+                var result = BitStreamFormatter.Format(ref reader);
+                Console.WriteLine(result);
+            }
+
+            {
+                using var readerSession = sessionPool.GetSession();
+                var reader = Reader.Create(readResult.Buffer, readerSession);
+                var initialHeader = reader.ReadFieldHeader();
+                var result = codec.ReadValue(ref reader, initialHeader);
+                Console.WriteLine(result);
+            }
         }
 
         public static void Main(string[] args)
         {
             var serviceProvider = new ServiceCollection()
-                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
+                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly).AddISerializableSupport())
                 .BuildServiceProvider();
 
             SerializerSession GetSession() => serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
-            TestRpc().GetAwaiter().GetResult();
+            //TestRpc().GetAwaiter().GetResult();
             //return;
             TestOne();
 
+            /*
             Test(
                 GetSession,
                 new AbstractTypeSerializer<object>(),
@@ -148,6 +159,7 @@ namespace TestApp
                     Number = 7,
                     String = "bananas!"
                 });
+            */
             var mySerializable = new MySerializableClass
             {
                 String = "yolooo",
@@ -167,6 +179,7 @@ namespace TestApp
                 mySerializable
             );
 
+            /*
             Exception exception = null;
             try
             {
@@ -182,6 +195,7 @@ namespace TestApp
                 new AbstractTypeSerializer<object>(),
                 exception
             );
+            */
 
             Test(GetSession, new AbstractTypeSerializer<object>(), new LocalDate());
 
@@ -204,21 +218,29 @@ namespace TestApp
             _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
-            using var readerSesssion = getSession();
-            var reader = Reader.Create(readResult.Buffer, readerSesssion);
-            var initialHeader = reader.ReadFieldHeader();
+            {
+                using var readerSesssion = getSession();
+                var reader = Reader.Create(readResult.Buffer, readerSesssion);
+                var result = BitStreamFormatter.Format(ref reader);
+                Console.WriteLine(result);
+            }
+            {
+                using var readerSesssion = getSession();
+                var reader = Reader.Create(readResult.Buffer, readerSesssion);
+                var initialHeader = reader.ReadFieldHeader();
 
-            Console.WriteLine("Header:");
-            Console.WriteLine(initialHeader.ToString());
+                Console.WriteLine("Header:");
+                Console.WriteLine(initialHeader.ToString());
 
-            var actual = serializer.ReadValue(ref reader, initialHeader);
-            pipe.Reader.AdvanceTo(readResult.Buffer.End);
-            pipe.Reader.Complete();
+                var actual = serializer.ReadValue(ref reader, initialHeader);
+                pipe.Reader.AdvanceTo(readResult.Buffer.End);
+                pipe.Reader.Complete();
 
-            Console.WriteLine($"Expect: {expected}\nActual: {actual}");
+                Console.WriteLine($"Expect: {expected}\nActual: {actual}");
 
-            var references = GetReadReferenceTable(reader.Session);
-            Console.WriteLine($"Read references:\n{references}");
+                var references = GetReadReferenceTable(reader.Session);
+                Console.WriteLine($"Read references:\n{references}");
+            }
         }
 
         private static StringBuilder GetReadReferenceTable(SerializerSession session)

@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="3.3.0" />
-    <PackageReference Include="protobuf-net" Version="3.0.52" />
+    <PackageReference Include="protobuf-net" Version="3.0.62" />
     <PackageReference Include="SpanJson" Version="3.0.1" />
     <PackageReference Include="System.IO.Pipelines" Version="5.0.0" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator" Version="3.3.0" />
