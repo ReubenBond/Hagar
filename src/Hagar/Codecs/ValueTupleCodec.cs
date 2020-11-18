@@ -51,7 +51,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _valueCodec.WriteField(ref writer, 0, typeof(T), value.Item1);
+            _valueCodec.WriteField(ref writer, 1, typeof(T), value.Item1);
 
             writer.WriteEndObject();
         }
@@ -77,7 +77,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _valueCodec.ReadValue(ref reader, header);
                         break;
                     default:
@@ -114,7 +114,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
 
             writer.WriteEndObject();
@@ -142,7 +142,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -187,7 +187,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
 
@@ -217,7 +217,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -268,7 +268,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -300,7 +300,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -356,7 +356,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -390,7 +390,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -452,7 +452,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -489,7 +489,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -557,7 +557,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -598,7 +598,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -673,7 +673,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -714,7 +714,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
