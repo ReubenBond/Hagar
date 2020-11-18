@@ -1,0 +1,1314 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ValueSerializer&lt;T&gt;
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ValueSerializer&lt;T&gt;
+   ">
+    <meta name="generator" content="docfx 2.56.4.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Hagar.ValueSerializer`1">
+  
+  
+  <h1 id="Hagar_ValueSerializer_1" data-uid="Hagar.ValueSerializer`1" class="text-break">Class ValueSerializer&lt;T&gt;
+  </h1>
+  <div class="markdown level0 summary"><p>Serializes and deserializes value types.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">ValueSerializer&lt;T&gt;</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Hagar.html">Hagar</a></h6>
+  <h6><strong>Assembly</strong>: Hagar.dll</h6>
+  <h5 id="Hagar_ValueSerializer_1_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class ValueSerializer&lt;T&gt; : object where T : struct</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The type which this instance operates on.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1__ctor_Hagar_Serializers_IValueSerializerProvider_Hagar_Session_SerializerSessionPool_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.%23ctor(Hagar.Serializers.IValueSerializerProvider%2CHagar.Session.SerializerSessionPool)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L794">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1__ctor_" data-uid="Hagar.ValueSerializer`1.#ctor*"></a>
+  <h4 id="Hagar_ValueSerializer_1__ctor_Hagar_Serializers_IValueSerializerProvider_Hagar_Session_SerializerSessionPool_" data-uid="Hagar.ValueSerializer`1.#ctor(Hagar.Serializers.IValueSerializerProvider,Hagar.Session.SerializerSessionPool)">ValueSerializer(IValueSerializerProvider, SerializerSessionPool)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueSerializer(IValueSerializerProvider codecProvider, SerializerSessionPool sessionPool)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Hagar.Serializers.IValueSerializerProvider.html">IValueSerializerProvider</a></td>
+        <td><span class="parametername">codecProvider</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSessionPool.html">SerializerSessionPool</a></td>
+        <td><span class="parametername">sessionPool</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_ReadOnlyMemory_System_Byte___0__.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(ReadOnlyMemory%7BSystem.Byte%7D%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1157">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_ReadOnlyMemory_System_Byte___0__" data-uid="Hagar.ValueSerializer`1.Deserialize(ReadOnlyMemory{System.Byte},`0@)">Deserialize(ReadOnlyMemory&lt;Byte&gt;, ref T)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(ReadOnlyMemory&lt;byte&gt; source, ref T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ReadOnlyMemory</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_ReadOnlyMemory_System_Byte___0__Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(ReadOnlyMemory%7BSystem.Byte%7D%2C%600%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1166">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_ReadOnlyMemory_System_Byte___0__Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Deserialize(ReadOnlyMemory{System.Byte},`0@,Hagar.Session.SerializerSession)">Deserialize(ReadOnlyMemory&lt;Byte&gt;, ref T, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(ReadOnlyMemory&lt;byte&gt; source, ref T result, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ReadOnlyMemory</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_ReadOnlySequence_System_Byte___0__.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(ReadOnlySequence%7BSystem.Byte%7D%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1080">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_ReadOnlySequence_System_Byte___0__" data-uid="Hagar.ValueSerializer`1.Deserialize(ReadOnlySequence{System.Byte},`0@)">Deserialize(ReadOnlySequence&lt;Byte&gt;, ref T)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(ReadOnlySequence&lt;byte&gt; source, ref T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ReadOnlySequence</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_ReadOnlySequence_System_Byte___0__Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(ReadOnlySequence%7BSystem.Byte%7D%2C%600%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1096">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_ReadOnlySequence_System_Byte___0__Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Deserialize(ReadOnlySequence{System.Byte},`0@,Hagar.Session.SerializerSession)">Deserialize(ReadOnlySequence&lt;Byte&gt;, ref T, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(ReadOnlySequence&lt;byte&gt; source, ref T result, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ReadOnlySequence</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_ReadOnlySpan_System_Byte___0__.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(ReadOnlySpan%7BSystem.Byte%7D%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1110">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_ReadOnlySpan_System_Byte___0__" data-uid="Hagar.ValueSerializer`1.Deserialize(ReadOnlySpan{System.Byte},`0@)">Deserialize(ReadOnlySpan&lt;Byte&gt;, ref T)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(ReadOnlySpan&lt;byte&gt; source, ref T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ReadOnlySpan</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_ReadOnlySpan_System_Byte___0__Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(ReadOnlySpan%7BSystem.Byte%7D%2C%600%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1126">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_ReadOnlySpan_System_Byte___0__Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Deserialize(ReadOnlySpan{System.Byte},`0@,Hagar.Session.SerializerSession)">Deserialize(ReadOnlySpan&lt;Byte&gt;, ref T, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(ReadOnlySpan&lt;byte&gt; source, ref T result, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ReadOnlySpan</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_Stream__0__.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(Stream%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1050">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_Stream__0__" data-uid="Hagar.ValueSerializer`1.Deserialize(Stream,`0@)">Deserialize(Stream, ref T)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(Stream source, ref T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Stream</span></td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_Stream__0__Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(Stream%2C%600%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1066">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_Stream__0__Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Deserialize(Stream,`0@,Hagar.Session.SerializerSession)">Deserialize(Stream, ref T, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(Stream source, ref T result, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Stream</span></td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_System_Byte____0__.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(System.Byte%5B%5D%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1140">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_System_Byte____0__" data-uid="Hagar.ValueSerializer`1.Deserialize(System.Byte[],`0@)">Deserialize(Byte[], ref T)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(byte[] source, ref T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize_System_Byte____0__Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize(System.Byte%5B%5D%2C%600%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1149">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize_System_Byte____0__Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Deserialize(System.Byte[],`0@,Hagar.Session.SerializerSession)">Deserialize(Byte[], ref T, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize(byte[] source, ref T result, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Deserialize__1_Hagar_Buffers_Reader___0____0__.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Deserialize%60%601(Hagar.Buffers.Reader%7B%60%600%7D%40%2C%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1037">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Deserialize_" data-uid="Hagar.ValueSerializer`1.Deserialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Deserialize__1_Hagar_Buffers_Reader___0____0__" data-uid="Hagar.ValueSerializer`1.Deserialize``1(Hagar.Buffers.Reader{``0}@,`0@)">Deserialize&lt;TInput&gt;(ref Reader&lt;TInput&gt;, ref T)</h4>
+  <div class="markdown level1 summary"><p>Deserialize a value of type <code data-dev-comment-type="typeparamref" class="typeparamref">T</code> from <code data-dev-comment-type="paramref" class="paramref">source</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Deserialize&lt;TInput&gt;(ref Reader&lt;TInput&gt; source, ref T result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Hagar.Buffers.Reader-1.html">Reader</a>&lt;TInput&gt;</td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source buffer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">result</span></td>
+        <td><p>The deserialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TInput</span></td>
+        <td><p>The reader input type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__Memory_System_Byte___.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CMemory%7BSystem.Byte%7D%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L881">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__Memory_System_Byte___" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,Memory{System.Byte}@)">Serialize(ref T, ref Memory&lt;Byte&gt;)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(ref T value, ref Memory&lt;byte&gt; destination)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Memory</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Hagar_ValueSerializer_1_Serialize__0__Memory_System_Byte____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method slices the <code data-dev-comment-type="paramref" class="paramref">destination</code> to the serialized data length.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__Memory_System_Byte___Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CMemory%7BSystem.Byte%7D%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L897">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__Memory_System_Byte___Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,Memory{System.Byte}@,Hagar.Session.SerializerSession)">Serialize(ref T, ref Memory&lt;Byte&gt;, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(ref T value, ref Memory&lt;byte&gt; destination, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Memory</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Hagar_ValueSerializer_1_Serialize__0__Memory_System_Byte___Hagar_Session_SerializerSession__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method slices the <code data-dev-comment-type="paramref" class="paramref">destination</code> to the serialized data length.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__Span_System_Byte___.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CSpan%7BSystem.Byte%7D%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L911">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__Span_System_Byte___" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,Span{System.Byte}@)">Serialize(ref T, ref Span&lt;Byte&gt;)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(ref T value, ref Span&lt;byte&gt; destination)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Span</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Hagar_ValueSerializer_1_Serialize__0__Span_System_Byte____remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method slices the <code data-dev-comment-type="paramref" class="paramref">destination</code> to the serialized data length.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__Span_System_Byte___Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CSpan%7BSystem.Byte%7D%40%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L927">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__Span_System_Byte___Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,Span{System.Byte}@,Hagar.Session.SerializerSession)">Serialize(ref T, ref Span&lt;Byte&gt;, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(ref T value, ref Span&lt;byte&gt; destination, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Span</span>&lt;<span class="xref">System.Byte</span>&gt;</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Hagar_ValueSerializer_1_Serialize__0__Span_System_Byte___Hagar_Session_SerializerSession__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method slices the <code data-dev-comment-type="paramref" class="paramref">destination</code> to the serialized data length.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__Stream_Hagar_Session_SerializerSession_System_Int32_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CStream%2CHagar.Session.SerializerSession%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L1006">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__Stream_Hagar_Session_SerializerSession_System_Int32_" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,Stream,Hagar.Session.SerializerSession,System.Int32)">Serialize(ref T, Stream, SerializerSession, Int32)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(ref T value, Stream destination, SerializerSession session, int sizeHint = 0)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Stream</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">sizeHint</span></td>
+        <td><p>The estimated upper bound for the length of the serialized data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Hagar_ValueSerializer_1_Serialize__0__Stream_Hagar_Session_SerializerSession_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The destination stream will not be flushed by this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__Stream_System_Int32_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CStream%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L972">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__Stream_System_Int32_" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,Stream,System.Int32)">Serialize(ref T, Stream, Int32)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize(ref T value, Stream destination, int sizeHint = 0)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">Stream</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">sizeHint</span></td>
+        <td><p>The estimated upper bound for the length of the serialized data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Hagar_ValueSerializer_1_Serialize__0__Stream_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>The destination stream will not be flushed by this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__System_Byte___.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CSystem.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L941">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__System_Byte___" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,System.Byte[])">Serialize(ref T, Byte[])</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Serialize(ref T value, byte[] destination)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The length of the serialized data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__0__System_Byte___Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize(%600%40%2CSystem.Byte%5B%5D%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L957">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__0__System_Byte___Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Serialize(`0@,System.Byte[],Hagar.Session.SerializerSession)">Serialize(ref T, Byte[], SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Serialize(ref T value, byte[] destination, SerializerSession session)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The length of the serialized data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__1__0___0_Hagar_Session_SerializerSession_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize%60%601(%600%2C%60%600%2CHagar.Session.SerializerSession)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L838">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__1__0___0_Hagar_Session_SerializerSession_" data-uid="Hagar.ValueSerializer`1.Serialize``1(`0,``0,Hagar.Session.SerializerSession)">Serialize&lt;TBufferWriter&gt;(T, TBufferWriter, SerializerSession)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize&lt;TBufferWriter&gt;(T value, TBufferWriter destination, SerializerSession session)
+    where TBufferWriter : IBufferWriter&lt;byte&gt;</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">TBufferWriter</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Session.SerializerSession.html">SerializerSession</a></td>
+        <td><span class="parametername">session</span></td>
+        <td><p>The serializer session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TBufferWriter</span></td>
+        <td><p>The output buffer writer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__1__0____0_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize%60%601(%600%40%2C%60%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L821">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__1__0____0_" data-uid="Hagar.ValueSerializer`1.Serialize``1(`0@,``0)">Serialize&lt;TBufferWriter&gt;(ref T, TBufferWriter)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize&lt;TBufferWriter&gt;(ref T value, TBufferWriter destination)
+    where TBufferWriter : IBufferWriter&lt;byte&gt;</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">TBufferWriter</span></td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TBufferWriter</span></td>
+        <td><p>The output buffer writer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_Serialize__1__0__Hagar_Buffers_Writer___0___.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.Serialize%60%601(%600%40%2CHagar.Buffers.Writer%7B%60%600%7D%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L807">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_Serialize_" data-uid="Hagar.ValueSerializer`1.Serialize*"></a>
+  <h4 id="Hagar_ValueSerializer_1_Serialize__1__0__Hagar_Buffers_Writer___0___" data-uid="Hagar.ValueSerializer`1.Serialize``1(`0@,Hagar.Buffers.Writer{``0}@)">Serialize&lt;TBufferWriter&gt;(ref T, ref Writer&lt;TBufferWriter&gt;)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into <code data-dev-comment-type="paramref" class="paramref">destination</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Serialize&lt;TBufferWriter&gt;(ref T value, ref Writer&lt;TBufferWriter&gt; destination)
+    where TBufferWriter : IBufferWriter&lt;byte&gt;</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Hagar.Buffers.Writer-1.html">Writer</a>&lt;TBufferWriter&gt;</td>
+        <td><span class="parametername">destination</span></td>
+        <td><p>The destination where serialized data will be written.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TBufferWriter</span></td>
+        <td><p>The output buffer writer.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1_SerializeToArray__0__System_Int32_.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601.SerializeToArray(%600%40%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L853">View Source</a>
+  </span>
+  <a id="Hagar_ValueSerializer_1_SerializeToArray_" data-uid="Hagar.ValueSerializer`1.SerializeToArray*"></a>
+  <h4 id="Hagar_ValueSerializer_1_SerializeToArray__0__System_Int32_" data-uid="Hagar.ValueSerializer`1.SerializeToArray(`0@,System.Int32)">SerializeToArray(ref T, Int32)</h4>
+  <div class="markdown level1 summary"><p>Serializes the provided <code data-dev-comment-type="paramref" class="paramref">value</code> into a new array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte[] SerializeToArray(ref T value, int sizeHint = 0)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The value to serialize.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">sizeHint</span></td>
+        <td><p>The estimated upper bound for the length of the serialized data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>A byte array containing the serialized value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_ValueSerializer_1.md&amp;value=---%0Auid%3A%20Hagar.ValueSerializer%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Serializer.cs/#L788" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

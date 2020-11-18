@@ -1,0 +1,510 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ResponseCompletionSource&lt;TResult&gt;
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ResponseCompletionSource&lt;TResult&gt;
+   ">
+    <meta name="generator" content="docfx 2.56.4.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Hagar.Invocation.ResponseCompletionSource`1">
+  
+  
+  <h1 id="Hagar_Invocation_ResponseCompletionSource_1" data-uid="Hagar.Invocation.ResponseCompletionSource`1" class="text-break">Class ResponseCompletionSource&lt;TResult&gt;
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">ResponseCompletionSource&lt;TResult&gt;</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Hagar.Invocation.IResponseCompletionSource.html">IResponseCompletionSource</a></div>
+    <div><span class="xref">IValueTaskSource</span>&lt;TResult&gt;</div>
+    <div><span class="xref">IValueTaskSource</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Hagar.Invocation.html">Hagar.Invocation</a></h6>
+  <h6><strong>Assembly</strong>: Hagar.dll</h6>
+  <h5 id="Hagar_Invocation_ResponseCompletionSource_1_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class ResponseCompletionSource&lt;TResult&gt; : object, IResponseCompletionSource, IValueTaskSource&lt;TResult&gt;, IValueTaskSource</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TResult</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_AsValueTask.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.AsValueTask%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L11">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_AsValueTask_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.AsValueTask*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_AsValueTask" data-uid="Hagar.Invocation.ResponseCompletionSource`1.AsValueTask">AsValueTask()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueTask&lt;TResult&gt; AsValueTask()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ValueTask</span>&lt;TResult&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_AsVoidValueTask.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.AsVoidValueTask%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L13">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_AsVoidValueTask_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.AsVoidValueTask*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_AsVoidValueTask" data-uid="Hagar.Invocation.ResponseCompletionSource`1.AsVoidValueTask">AsVoidValueTask()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueTask AsVoidValueTask()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ValueTask</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_Complete_Hagar_Invocation_Response_.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.Complete(Hagar.Invocation.Response)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L36">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_Complete_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.Complete*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_Complete_Hagar_Invocation_Response_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.Complete(Hagar.Invocation.Response)">Complete(Response)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Complete(Response value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Hagar.Invocation.Response.html">Response</a></td>
+        <td><span class="parametername">value</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_Complete_Hagar_Invocation_Response__0__.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.Complete(Hagar.Invocation.Response%7B%600%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L56">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_Complete_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.Complete*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_Complete_Hagar_Invocation_Response__0__" data-uid="Hagar.Invocation.ResponseCompletionSource`1.Complete(Hagar.Invocation.Response{`0})">Complete(Response&lt;TResult&gt;)</h4>
+  <div class="markdown level1 summary"><p>Sets the result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Complete(Response&lt;TResult&gt; value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Hagar.Invocation.Response-1.html">Response</a>&lt;TResult&gt;</td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The result value.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_GetResult_System_Int16_.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.GetResult(System.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L15">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_GetResult_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.GetResult*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_GetResult_System_Int16_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.GetResult(System.Int16)">GetResult(Int16)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TResult GetResult(short token)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">token</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TResult</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_GetStatus_System_Int16_.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.GetStatus(System.Int16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L22">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_GetStatus_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.GetStatus*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_GetStatus_System_Int16_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.GetStatus(System.Int16)">GetStatus(Int16)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ValueTaskSourceStatus GetStatus(short token)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">token</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">ValueTaskSourceStatus</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_OnCompleted_Action_System_Object__System_Object_System_Int16_ValueTaskSourceOnCompletedFlags_.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.OnCompleted(Action%7BSystem.Object%7D%2CSystem.Object%2CSystem.Int16%2CValueTaskSourceOnCompletedFlags)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L24">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_OnCompleted_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.OnCompleted*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_OnCompleted_Action_System_Object__System_Object_System_Int16_ValueTaskSourceOnCompletedFlags_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.OnCompleted(Action{System.Object},System.Object,System.Int16,ValueTaskSourceOnCompletedFlags)">OnCompleted(Action&lt;Object&gt;, Object, Int16, ValueTaskSourceOnCompletedFlags)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void OnCompleted(Action&lt;object&gt; continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Action</span>&lt;<span class="xref">System.Object</span>&gt;</td>
+        <td><span class="parametername">continuation</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><span class="parametername">state</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int16</span></td>
+        <td><span class="parametername">token</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">ValueTaskSourceOnCompletedFlags</span></td>
+        <td><span class="parametername">flags</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_Reset.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.Reset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L26">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_Reset_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.Reset*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_Reset" data-uid="Hagar.Invocation.ResponseCompletionSource`1.Reset">Reset()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Reset()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_SetException_Exception_.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.SetException(Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L32">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_SetException_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.SetException*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_SetException_Exception_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.SetException(Exception)">SetException(Exception)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetException(Exception exception)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Exception</span></td>
+        <td><span class="parametername">exception</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1_SetResult__0_.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601.SetResult(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L34">View Source</a>
+  </span>
+  <a id="Hagar_Invocation_ResponseCompletionSource_1_SetResult_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.SetResult*"></a>
+  <h4 id="Hagar_Invocation_ResponseCompletionSource_1_SetResult__0_" data-uid="Hagar.Invocation.ResponseCompletionSource`1.SetResult(`0)">SetResult(TResult)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetResult(TResult result)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">TResult</span></td>
+        <td><span class="parametername">result</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Hagar.Invocation.IResponseCompletionSource.html">IResponseCompletionSource</a>
+  </div>
+  <div>
+      <span class="xref">IValueTaskSource&lt;&gt;</span>
+  </div>
+  <div>
+      <span class="xref">IValueTaskSource</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/ReubenBond/Hagar/new/master/apiSpec/new?filename=Hagar_Invocation_ResponseCompletionSource_1.md&amp;value=---%0Auid%3A%20Hagar.Invocation.ResponseCompletionSource%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/ReubenBond/Hagar/blob/master/src/Hagar/Invocation/ResponseCompletionSource.cs/#L7" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,3092 @@
+{
+  "homepages": [],
+  "source_base_path": "D:/a/Hagar/Hagar/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.DefaultActivator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.DefaultActivator-1.html",
+          "hash": "fKwcgcmhKHrHhL50iTEGlQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.DictionaryActivator-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.DictionaryActivator-2.html",
+          "hash": "iduxtXmf9mWidMyCEvN4mA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.IActivator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.IActivator-1.html",
+          "hash": "LVhyV2iMStC8canjgrgm+Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.IActivator-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.IActivator-2.html",
+          "hash": "C0sE58edW1Rre7qfVMGr5A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.IActivator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.IActivator.html",
+          "hash": "GTz3R1uNqNLRv0aInNvDGA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.ListActivator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.ListActivator-1.html",
+          "hash": "WKZqXMo9rci1vCsdrhH4FA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Activators.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Activators.html",
+          "hash": "h03dJEFvp6oEqUyfhx1c/g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Analyzers.AddGenerateHagarSerializationAttributeAnalyzer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Analyzers.AddGenerateHagarSerializationAttributeAnalyzer.html",
+          "hash": "kViyjTWtP0YpxbdnDrl7Xw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Analyzers.GenerateHagarSerializationAttributesAnalyzer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Analyzers.GenerateHagarSerializationAttributesAnalyzer.html",
+          "hash": "22I+ulfHPKkrpEeWFaZdbA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Analyzers.GenerateHagarSerializationAttributesCodeFix.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Analyzers.GenerateHagarSerializationAttributesCodeFix.html",
+          "hash": "7MsDdhE48YxT1AQt+h8h0A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Analyzers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Analyzers.html",
+          "hash": "Z7tDIA9hshQRkxmE7u632A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.ArrayBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.ArrayBufferWriter.html",
+          "hash": "PnX0YRoiucloZ153HCznrQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.ArrayStreamBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.ArrayStreamBufferWriter.html",
+          "hash": "RCHVo52+JK8P4iMYj1mxdA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.MemoryBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.MemoryBufferWriter.html",
+          "hash": "pi8C8OKiBlveSdsc6tCy8A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.MemoryStreamBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.MemoryStreamBufferWriter.html",
+          "hash": "KaezexaQhPy6LE8LwWzWNA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.PooledArrayBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.PooledArrayBufferWriter.html",
+          "hash": "ue6/ys+YGxMNe3FQt//Fxw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.PoolingStreamBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.PoolingStreamBufferWriter.html",
+          "hash": "F8XfHlj02+V1F3V7T8pX7Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.SpanBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.SpanBufferWriter.html",
+          "hash": "36EHraLZnmQ+zRdcDMvuIA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Adaptors.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Adaptors.html",
+          "hash": "6Y1aGGHnv4BkHLqhpCbk1A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.BufferWriterExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.BufferWriterExtensions.html",
+          "hash": "JD1k6ptARFD/sbUJWzu7IA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Reader-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Reader-1.html",
+          "hash": "8Uxys90Q0zPvUOObG1kbfQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Reader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Reader.html",
+          "hash": "sIW02pzexm+RBuYan6euqA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.ReaderInput.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.ReaderInput.html",
+          "hash": "NhdVrLsY9ZcQkgWOzveo3Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.SpanReaderInput.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.SpanReaderInput.html",
+          "hash": "KAzmVLymp7A+EQsgLiUK7g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Writer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Writer-1.html",
+          "hash": "c24Lu3CxMPTs+I2s38p7yg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.Writer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.Writer.html",
+          "hash": "nQw6RMIPkSFMkS2csSEJuA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Buffers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Buffers.html",
+          "hash": "HwHrPDFQ9wF8AQY7y+EG1g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.CodeGenerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.CodeGenerator.html",
+          "hash": "E4GfWBR5YpMcGvwlMZCS4w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.CodeGeneratorOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.CodeGeneratorOptions.html",
+          "hash": "fZ5r2Wsce+L+d5u8syS4Cw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.HagarSourceGenerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.HagarSourceGenerator.html",
+          "hash": "da2ZgCaWWonEg8cnD4hnDg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.MSBuild.CodeGeneratorCommand.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.MSBuild.CodeGeneratorCommand.html",
+          "hash": "tQznAljKdBBf2OThSm/YJg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.MSBuild.Program.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.MSBuild.Program.html",
+          "hash": "SX22Peyd6hve1yavKmb8Eg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.MSBuild.Tasks.GetDotNetHost.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.MSBuild.Tasks.GetDotNetHost.html",
+          "hash": "t67iugUwFROzjx9hnFymkw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.MSBuild.Tasks.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.MSBuild.Tasks.html",
+          "hash": "PJKiLLGzQsu2zeoXQZqzYg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.MSBuild.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.MSBuild.html",
+          "hash": "Lcjgt/tp+oyQbvHPBZBpQA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.PropertyUtility.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.PropertyUtility.html",
+          "hash": "AOwA6Vp978RPmcieW55e1A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodeGenerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodeGenerator.html",
+          "hash": "n7vQsKGLK7BWeeKaWyIovQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.CodecNotFoundException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.CodecNotFoundException.html",
+          "hash": "GNRu93gfnezOKq7YFZ2aeQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ArrayCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ArrayCodec-1.html",
+          "hash": "brf/RpTVUH6RdpK+wjGzKA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ArrayListCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ArrayListCodec.html",
+          "hash": "pb+9gPpJdI0g41+VmiqYQg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ArrayListSurrogate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ArrayListSurrogate.html",
+          "hash": "T6UXlwPsyhI9zB42GeS+gw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.BoolCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.BoolCodec.html",
+          "hash": "DScLCmuINi9MqhY9cxq3zg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ByteArrayCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ByteArrayCodec.html",
+          "hash": "bVDBzqu9NDAzCWZbESVmXw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ByteCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ByteCodec.html",
+          "hash": "VOc3jj1BphK8lXMu3CrnMw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.CharCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.CharCodec.html",
+          "hash": "YCJbYF9m5wIvwoCQBRvgHg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ConsumeFieldExtension.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ConsumeFieldExtension.html",
+          "hash": "BhtntoM/Ycp7jw3mb2BNng=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.CultureInfoCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.CultureInfoCodec.html",
+          "hash": "rfOR185xxP4JArac0pyBmA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.CultureInfoSurrogate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.CultureInfoSurrogate.html",
+          "hash": "8q8gRk9RvG3Fr3Zu8KOVEQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.DateTimeCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.DateTimeCodec.html",
+          "hash": "ID9MYcSmUAyc4kfxJbwVlQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.DateTimeOffsetCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.DateTimeOffsetCodec.html",
+          "hash": "ifHsYE0fSL5kfsIeUc5TNQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.DecimalCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.DecimalCodec.html",
+          "hash": "KdUuBt/PEU3v3XoNBAB1TQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.DictionaryCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.DictionaryCodec-2.html",
+          "hash": "7x5l2bzriARZ0PZgRroJTw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.DoubleCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.DoubleCodec.html",
+          "hash": "A8DutcZkgD0TA6FcXL/Qww=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.FieldHeaderCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.FieldHeaderCodec.html",
+          "hash": "xBX4rv0kx6Y60jBVZc4uYA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.FloatCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.FloatCodec.html",
+          "hash": "ha2Sqf2fqjqZp0nYl79zFw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.GeneralizedReferenceTypeSurrogateCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.GeneralizedReferenceTypeSurrogateCodec-2.html",
+          "hash": "fDLEK9otHwRZUsJOM1CNCw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.GeneralizedValueTypeSurrogateCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.GeneralizedValueTypeSurrogateCodec-2.html",
+          "hash": "pUv3UA+fjPljQyAPF55MCw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.GuidCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.GuidCodec.html",
+          "hash": "cTXI+LxGhPFEydPIZ+4VZw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.IDerivedTypeCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.IDerivedTypeCodec.html",
+          "hash": "JBzWHavFqjvQ/SQSFLAHAg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.IFieldCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.IFieldCodec-1.html",
+          "hash": "eBLEIGhIE3a/gBZ8i1JfEQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.IFieldCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.IFieldCodec.html",
+          "hash": "CGSIArH1jj0TnMBC7GeKzg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableArrayCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableArrayCodec-1.html",
+          "hash": "4AH5up2qxJKFqAal1wIBXQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableArraySurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableArraySurrogate-1.html",
+          "hash": "nNuNmsRXi9s8rnMfmr9/xg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableDictionaryCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableDictionaryCodec-2.html",
+          "hash": "AsjDfMUEkIekORjKx2SKoQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableDictionarySurrogate-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableDictionarySurrogate-2.html",
+          "hash": "2KQ9hk6IrY+dhr80l1ZlmQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableHashSetCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableHashSetCodec-1.html",
+          "hash": "W11diu9LdrlUSZCGRyLvgg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableHashSetSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableHashSetSurrogate-1.html",
+          "hash": "n85wuClHyPuUu8mdgE2igg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableListCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableListCodec-1.html",
+          "hash": "umN7Bh4Tirhabf0Am7nG9w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableListSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableListSurrogate-1.html",
+          "hash": "IMsNzr631GKzdlvTpXtCsw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableQueueCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableQueueCodec-1.html",
+          "hash": "APe3MBMEAwLl5D5gFvctiw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableQueueSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableQueueSurrogate-1.html",
+          "hash": "tMDgSnrbKmVbyRVn9IVWLQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableSortedDictionaryCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableSortedDictionaryCodec-2.html",
+          "hash": "uC2k09X0KKxDqM5UbrZZzw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableSortedDictionarySurrogate-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableSortedDictionarySurrogate-2.html",
+          "hash": "zRZ7NI9KoHKWTG3MVR3yLQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableSortedSetCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableSortedSetCodec-1.html",
+          "hash": "os1WO+KJjpJ3WtywcJxvYg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableSortedSetSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableSortedSetSurrogate-1.html",
+          "hash": "Zb1nDHtpH27zW+1le1+zvg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableStackCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableStackCodec-1.html",
+          "hash": "YDnk5Qd8OKNQz6wpk8Q6eg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ImmutableStackSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ImmutableStackSurrogate-1.html",
+          "hash": "kmiiIeCHGWDvbK65vjLX2w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.Int16Codec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.Int16Codec.html",
+          "hash": "Tok27g04HgmIgqb/SK5bAQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.Int32Codec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.Int32Codec.html",
+          "hash": "5lVHme78hkAk0aOspxiSKw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.Int64Codec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.Int64Codec.html",
+          "hash": "avvnkvHs0vyAtgfk8dEUlw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.KeyValuePairCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.KeyValuePairCodec-2.html",
+          "hash": "N8bi7VwQDA95UhrW6SjLFg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ListCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ListCodec-1.html",
+          "hash": "ZT0NlHPmpwvl87foPuht5g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.MemoryCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.MemoryCodec-1.html",
+          "hash": "cNj6nn8NA5fm6baN5Mqv4A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.MemoryOfByteCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.MemoryOfByteCodec.html",
+          "hash": "PwJx+9XqDeI2sepOrXX2xw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.NameValueCollectionCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.NameValueCollectionCodec.html",
+          "hash": "4DBFmUlAVeGFvehIpXvnWg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.NameValueCollectionSurrogate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.NameValueCollectionSurrogate.html",
+          "hash": "D9aqOnBBLS146kHzrmghNw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.NullableCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.NullableCodec-1.html",
+          "hash": "heWOqSMHFmoVh0HlcyO8HA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ObjectCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ObjectCodec.html",
+          "hash": "GbzfmuccZjOVQG08fk4DUw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.QueueCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.QueueCodec-1.html",
+          "hash": "vFnKiPVCHFRfr/gw97HWYg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReadOnlyCollectionCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReadOnlyCollectionCodec-1.html",
+          "hash": "UAe3+b0lU6RnWrUvUa3H3g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReadOnlyCollectionSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReadOnlyCollectionSurrogate-1.html",
+          "hash": "0azYl/2dXPdbMzFccd25Gg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReadOnlyDictionaryCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReadOnlyDictionaryCodec-2.html",
+          "hash": "LAyzidnMiObMmoHlkUQR7w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReadOnlyDictionarySurrogate-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReadOnlyDictionarySurrogate-2.html",
+          "hash": "Q7mMq+dXAl5dcibaF1M2iQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReadOnlyMemoryCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReadOnlyMemoryCodec-1.html",
+          "hash": "z+gyL/CCzuNUFs5eFt5LdQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReadOnlyMemoryOfByteCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReadOnlyMemoryOfByteCodec.html",
+          "hash": "xUS00+IShb05U095e8Hl+g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReferenceCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReferenceCodec.html",
+          "hash": "+YMa6SBICehNr4zD1Qkdsw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ReferenceTypeSurrogateCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ReferenceTypeSurrogateCodec-2.html",
+          "hash": "dfR8EBZJYUqJRoEAbhu/CA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SByteCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SByteCodec.html",
+          "hash": "bIUGJLS/Ge6+EwiZCQmzWw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SkipFieldCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SkipFieldCodec.html",
+          "hash": "79PrblY806i1rToNdlR44Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SkipFieldExtension.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SkipFieldExtension.html",
+          "hash": "4Nxc/HxU1MWxh8tkFB63Rg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SortedDictionaryCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SortedDictionaryCodec-2.html",
+          "hash": "0Zle13MBLxa8a0I+0JsMRw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SortedDictionarySurrogate-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SortedDictionarySurrogate-2.html",
+          "hash": "WL4mys9ZfqEdX3ca/6TTeQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SortedListCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SortedListCodec-2.html",
+          "hash": "ydvEO3Nsr1FfSJjtyxmwgw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SortedListSurrogate-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SortedListSurrogate-2.html",
+          "hash": "ZcpiXsCwR9C/00QS3Uu+pw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SortedSetCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SortedSetCodec-1.html",
+          "hash": "s90tx0yhyH+8rdM/g8kvLg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SortedSetSurrogate-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SortedSetSurrogate-1.html",
+          "hash": "zoe7DKtq2FGRpSSdwX0m8A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.StringCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.StringCodec.html",
+          "hash": "02QIVJgKfO8REiyuH4UB8w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SystemNet.IPAddressCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SystemNet.IPAddressCodec.html",
+          "hash": "nyKAi5WsHpyDprELqkzxZA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SystemNet.IPAddressSurrogate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SystemNet.IPAddressSurrogate.html",
+          "hash": "Ux2WKT+nHmD6+2FQByGvTg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SystemNet.IPEndPointCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SystemNet.IPEndPointCodec.html",
+          "hash": "WVglQV7+gBqwYev4u6kezw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SystemNet.IPEndPointSurrogate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SystemNet.IPEndPointSurrogate.html",
+          "hash": "7PiVDVBMy2dp+SIxL3oO1w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.SystemNet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.SystemNet.html",
+          "hash": "Rodb8QPlwP2rUhqc9au6ag=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TagDelimitedFieldCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TagDelimitedFieldCodec.html",
+          "hash": "hCUQxNNSkSsGZLmi1LOKag=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TimeSpanCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TimeSpanCodec.html",
+          "hash": "wS9jlE+a0ljc9sTc9o/a1g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-1.html",
+          "hash": "Gzntr3ZCGbj252v1fKbeGg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-2.html",
+          "hash": "IifmI+N4OEs/Yf1+KdRlkw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-3.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-3.html",
+          "hash": "Mwx6823OOQsoS87tNvuO5w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-4.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-4.html",
+          "hash": "4WRmYcK6SesLpfz4GixGOQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-5.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-5.html",
+          "hash": "lvVUbYiC4B9txe2be3fxWg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-6.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-6.html",
+          "hash": "6JZlCSfKkKfk/7ui1T1KBQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-7.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-7.html",
+          "hash": "XpGfdtawRfRoqu78pkyL4A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TupleCodec-8.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TupleCodec-8.html",
+          "hash": "4Ved1pRJs+QLZP7bol+4ZQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TypeSerializerCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TypeSerializerCodec.html",
+          "hash": "SKy4pDpxPa1mPRTUJxN1tA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.TypedCodecBase-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.TypedCodecBase-2.html",
+          "hash": "uMXcNH9lkZN6opro6llujw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.UInt16Codec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.UInt16Codec.html",
+          "hash": "0wXh6Nc4XSctmQUWwKwn8g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.UInt32Codec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.UInt32Codec.html",
+          "hash": "spmlVWkqC9XuiV79yjw9pw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.UInt64Codec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.UInt64Codec.html",
+          "hash": "t05uUnYflxPaJLpuB/yH6A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.UnknownFieldMarker.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.UnknownFieldMarker.html",
+          "hash": "aPIwWmhcvtf6nf1OnS2Uzg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.UriCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.UriCodec.html",
+          "hash": "5EMXbuyMBiG2TAmXkV4AXQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.UriSurrogate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.UriSurrogate.html",
+          "hash": "Dly/snD+B3SllfIWShCvQA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-1.html",
+          "hash": "EwLA2zvf9U1Rm4wfXX1MMQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-2.html",
+          "hash": "K3amK1QeqQPAewGZhaayVw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-3.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-3.html",
+          "hash": "ADI+ldP3biC76wXfhl3Plw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-4.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-4.html",
+          "hash": "mMvYakqGXq6roSf9Qv88qg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-5.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-5.html",
+          "hash": "s06UgVoxobVbamq5JD0YQg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-6.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-6.html",
+          "hash": "/ROVK3mg0XIB2PKN7EpfuA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-7.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-7.html",
+          "hash": "HS+jePB4EmFgxxxEetTFNA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec-8.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec-8.html",
+          "hash": "nXf4nMctdQHwOu07bJE1NA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.ValueTupleCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.ValueTupleCodec.html",
+          "hash": "1Yu7BiVICyD1fqSY+h53fw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.VoidCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.VoidCodec.html",
+          "hash": "Hsi9KyJxDxfqlMrf26/7Kg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Codecs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Codecs.html",
+          "hash": "xpfgNZwraVCR+cTVILzAwA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Configuration.IConfiguration-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Configuration.IConfiguration-1.html",
+          "hash": "Ev71I4BSNUKSGh9y7xTgYg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Configuration.IConfigurationProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Configuration.IConfigurationProvider-1.html",
+          "hash": "CA1/t4eOkVs2uB/nu3CQwQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Configuration.MetadataProviderAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Configuration.MetadataProviderAttribute.html",
+          "hash": "WtIcgiSbjtxxmc/DESGWOQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Configuration.SerializerConfiguration.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Configuration.SerializerConfiguration.html",
+          "hash": "sFpmi5+XzZ66YlDFmOlEog=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Configuration.TypeConfiguration.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Configuration.TypeConfiguration.html",
+          "hash": "qycii7Cv5pRm/3XmU1z0Lw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Configuration.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Configuration.html",
+          "hash": "8Cj7/UlKtiHFe5fiIZ/Nhw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ExtendedWireTypeInvalidException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ExtendedWireTypeInvalidException.html",
+          "hash": "iVdNKuuiou/tInw6FxN/Ug=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.FieldIdNotPresentException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.FieldIdNotPresentException.html",
+          "hash": "3sfTHsJnfeU8eAVT+vjU5Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.FieldTypeInvalidException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.FieldTypeInvalidException.html",
+          "hash": "CqIO3Z/N1OJkG57NCC6Asg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.FieldTypeMissingException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.FieldTypeMissingException.html",
+          "hash": "nCtFVsEMazuAQetonKHvog=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.GenerateMethodSerializersAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.GenerateMethodSerializersAttribute.html",
+          "hash": "W63o7ULEkpCUvgUgeM8RNA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.GenerateSerializerAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.GenerateSerializerAttribute.html",
+          "hash": "A9PiwY5CEtPL2HZ9NCVQjw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.GeneratedCodeHelpers.HagarGeneratedCodeHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.GeneratedCodeHelpers.HagarGeneratedCodeHelper.html",
+          "hash": "IM4IdfhhXOh+T3A/N//JwQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.GeneratedCodeHelpers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.GeneratedCodeHelpers.html",
+          "hash": "G/A6Uc+eB6iZ3s73bXkjjQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.HagarBuilderExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.HagarBuilderExtensions.html",
+          "hash": "nkCGe7sg5Kwp2z1PRXMrYg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.HagarException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.HagarException.html",
+          "hash": "1aqbyfuj1fgx6TWwceyT2A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.IHagarBuilder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.IHagarBuilder.html",
+          "hash": "OeBRXe5NASCMK/kPu1Fa/Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.IHagarBuilderImplementation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.IHagarBuilderImplementation.html",
+          "hash": "AEXRJGNWppNn9mdqR6JXcQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ISerializable.DotNetSerializableCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ISerializable.DotNetSerializableCodec.html",
+          "hash": "PNrMC+rRbJDm/l4TsMBo3Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ISerializable.SerializationConstructorNotFoundException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ISerializable.SerializationConstructorNotFoundException.html",
+          "hash": "uNZ0Rzq26qQoJX0pKunbFw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ISerializable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ISerializable.html",
+          "hash": "YH65h/D7hvr9aiOeClTCyA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.IdAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.IdAttribute.html",
+          "hash": "Xs7g1PTjo3BxZuMdHM1FXg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.IllegalTypeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.IllegalTypeException.html",
+          "hash": "0/LYan+4xx5Ug1aqF4f4NA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.IInvokable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.IInvokable.html",
+          "hash": "xSJIAneM8vXKu2l74eZdqw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.IResponseCompletionSource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.IResponseCompletionSource.html",
+          "hash": "RuBjbaRMu3sDCh4jrDUtYQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.ITargetHolder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.ITargetHolder.html",
+          "hash": "qq5OBcFMEKR8WYUrPiH9iA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.InvokablePool.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.InvokablePool.html",
+          "hash": "zLCsdEugFVPjf4FZ0ioaCQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.PooledResponse-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.PooledResponse-1.html",
+          "hash": "YacSOu6ES48iAUCS04eWyQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.Request-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.Request-1.html",
+          "hash": "qzzTSD3ubpYhT5/5yd0U0A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.Request.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.Request.html",
+          "hash": "OKIQaWVDyK+OMrI5r6hT/g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.Response-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.Response-1.html",
+          "hash": "X/uONvQRqmPU7cad1dHQsg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.Response.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.Response.html",
+          "hash": "otbJcCJvzzlx9BwFppfvYw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.ResponseCompletionSource-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.ResponseCompletionSource-1.html",
+          "hash": "w5zcoTf2T315bnWqr29pgQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.ResponseCompletionSourcePool.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.ResponseCompletionSourcePool.html",
+          "hash": "4iEqdgCTr95NsLEA3G4YjA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.ResponsePool.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.ResponsePool.html",
+          "hash": "q8kGJEiIEPeQFVV/GYq5tA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.TaskRequest-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.TaskRequest-1.html",
+          "hash": "DdfFKIXOUqkmQxZl7PPGcw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.TaskRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.TaskRequest.html",
+          "hash": "1Rj4SO80RqtKCgabjj7Zlw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Invocation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Invocation.html",
+          "hash": "YpSDbYs36Dw3On7F+XBr5w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Json.NewtonsoftJsonCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Json.NewtonsoftJsonCodec.html",
+          "hash": "/KJ2j+JGxmGjBLJ3Yu4CdQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Json.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Json.html",
+          "hash": "InTZsg12lgDxEPf4/gnTBQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ReferenceNotFoundException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ReferenceNotFoundException.html",
+          "hash": "lSVK4aVd1NmCDvDCDorELA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.RegisterActivatorAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.RegisterActivatorAttribute.html",
+          "hash": "wrsLet7u/uzmXiz/vYsD1w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.RegisterSerializerAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.RegisterSerializerAttribute.html",
+          "hash": "LaapmJpEeU8JKagzGzDkag=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.RequiredFieldMissingException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.RequiredFieldMissingException.html",
+          "hash": "QcBV24jtrzy5jXrENCyVpA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.SchemaTypeInvalidException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.SchemaTypeInvalidException.html",
+          "hash": "QdTjW8QsqNW+Q3hoyi1qNA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializer-1.html",
+          "hash": "HDe8w5Al149A3fMO0pK5EA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializer.html",
+          "hash": "XqNHz6M5prb/RVpoTOVZOw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.AbstractTypeSerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.AbstractTypeSerializer-1.html",
+          "hash": "dV8PnauNuBP86KZlKTAhLg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.CodecProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.CodecProvider.html",
+          "hash": "tmfEpHPNKsPSYgPTQeYy7g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.ConcreteTypeSerializer-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.ConcreteTypeSerializer-2.html",
+          "hash": "4p2diUuRJz/5MctmDSA/hw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IActivatorProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IActivatorProvider.html",
+          "hash": "NF67ByAEDsZQdg365ONAXQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.ICodecProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.ICodecProvider.html",
+          "hash": "t+ofJ5vtsFDgN8SBdH/9dA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IGeneralizedCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IGeneralizedCodec.html",
+          "hash": "+193n0DenFwT/z3yplv4ig=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IPartialSerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IPartialSerializer-1.html",
+          "hash": "bLzA+RPuTt6JGhitL/AuJA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IPartialSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IPartialSerializer.html",
+          "hash": "Fc1pPjWK3mn9uNqhvij9TQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IPartialSerializerProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IPartialSerializerProvider.html",
+          "hash": "BYOvNlN+p0dckXN/RPnkpA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.ITypedCodecProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.ITypedCodecProvider.html",
+          "hash": "9MPxLYtCdbR38WpGOykdPw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IUntypedCodecProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IUntypedCodecProvider.html",
+          "hash": "/ijPC150FpwFg8JZKpL9Mw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IValueSerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IValueSerializer-1.html",
+          "hash": "6R/CTUYRY9U4AkGUBKLEFw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IValueSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IValueSerializer.html",
+          "hash": "gZdb2FRrk5vdmejezDvItQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.IValueSerializerProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.IValueSerializerProvider.html",
+          "hash": "ohjF0V+ZSfVtSZ8UCp2kKA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.ValueSerializer-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.ValueSerializer-2.html",
+          "hash": "M1okyxr6EDwumBARpUgCOQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Serializers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Serializers.html",
+          "hash": "F12PRpPlTcO5gP93epmE+A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ServiceCollectionExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ServiceCollectionExtensions.html",
+          "hash": "jhfm/QbVTzgnAOPcDsGtZA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ServiceProviderExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ServiceProviderExtensions.html",
+          "hash": "3T+s/KATDRO+ZCw6OYf6Pg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Session.ReferencedObjectCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Session.ReferencedObjectCollection.html",
+          "hash": "/Nt89k+iKplwDorjg0QAdQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Session.ReferencedTypeCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Session.ReferencedTypeCollection.html",
+          "hash": "JLej9aMEXNnQMdA8JUfPLQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Session.SerializerSession.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Session.SerializerSession.html",
+          "hash": "5ErxNlOQteBjd6Ay5sDNLQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Session.SerializerSessionPool.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Session.SerializerSessionPool.html",
+          "hash": "jl4TUQLoX1r7+2qSJnFScg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Session.WellKnownTypeCollection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Session.WellKnownTypeCollection.html",
+          "hash": "VU2Rswy7WUQS8Nw3YCPaKA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Session.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Session.html",
+          "hash": "rpP8cWjzUdpeVSVvMFNzog=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.BufferTestHelper-1.IBufferTestSerializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.BufferTestHelper-1.IBufferTestSerializer.html",
+          "hash": "duLupr8xHL5+YTRl3uXMnQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.BufferTestHelper-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.BufferTestHelper-1.html",
+          "hash": "twatnINiclKgOtTRy/QzQQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.FieldCodecTester-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.FieldCodecTester-2.html",
+          "hash": "WfL8lR6IrQkyKOBcdpG9Cw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.IOutputBuffer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.IOutputBuffer.html",
+          "hash": "VB/wXzEL8rSwWfiU10JFFg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.ReadOnlySequenceHelper.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.ReadOnlySequenceHelper.html",
+          "hash": "0NXDmfcyvVy0HswIwcCj4A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.TestBufferWriterStruct.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.TestBufferWriterStruct.html",
+          "hash": "eakV841ujv3EO09uNEmFsw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.TestMultiSegmentBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.TestMultiSegmentBufferWriter.html",
+          "hash": "IPz3R/qjR/hWLL3f8L1x2g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.TestSingleSegmentBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.TestSingleSegmentBufferWriter.html",
+          "hash": "7Uj3vi2QDv+Oc1OQGpK1Qg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TestKit.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TestKit.html",
+          "hash": "jqH7EIJEzIZBG4gxwnCRjA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeMissingException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeMissingException.html",
+          "hash": "Dz0Q3//AOpIjE7bjlnTH6A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.ITypeConverter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.ITypeConverter.html",
+          "hash": "Nb9ChC60FjEtog1k8A+B1g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.ITypeResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.ITypeResolver.html",
+          "hash": "NSYOabXKfxuQ3Qkzup73nw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.QualifiedType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.QualifiedType.html",
+          "hash": "jpPchVusoQ3pSwlegvclMw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.RuntimeTypeNameFormatter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.RuntimeTypeNameFormatter.html",
+          "hash": "VtEO9cRnU8uf8+2oLRHH0g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.TypeCodec.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.TypeCodec.html",
+          "hash": "nwKQwER+UfW0bZRl4TgrIQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.TypeConverter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.TypeConverter.html",
+          "hash": "Uukdmx57TWt7T2MmzSyF1Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.TypeConverterExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.TypeConverterExtensions.html",
+          "hash": "3t2QnWB4zoDRPhrULuYFug=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.TypeSystem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.TypeSystem.html",
+          "hash": "+6IlTVtURNQ8iFk4fqUrZg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.UnknownReferencedTypeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.UnknownReferencedTypeException.html",
+          "hash": "Mwr56ZwcThHSpprK3SlX4Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.UnknownWellKnownTypeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.UnknownWellKnownTypeException.html",
+          "hash": "Oay8oHZx6gOADHQiqlSkmA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.UnsupportedWireTypeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.UnsupportedWireTypeException.html",
+          "hash": "Oa5hGbrYszFQxP/rf6+xcw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Utilities.BitStreamFormatter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Utilities.BitStreamFormatter.html",
+          "hash": "WV7EqTmD1UT1FDzMtxFZ7A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Utilities.FieldAccessor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Utilities.FieldAccessor.html",
+          "hash": "dWU35zsDSO9dLuU9jIJaJQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Utilities.ValueTypeSetter-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Utilities.ValueTypeSetter-2.html",
+          "hash": "0aHHBYDFzwga4EzQOHO+9Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Utilities.VarIntReaderExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Utilities.VarIntReaderExtensions.html",
+          "hash": "4rBDyOXtIg8HSdpBA/ITnQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Utilities.VarIntWriterExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Utilities.VarIntWriterExtensions.html",
+          "hash": "PGPEmz7YqY4UdsVhA1C1vw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.Utilities.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.Utilities.html",
+          "hash": "O0n6bAM0XLl33gtSVUd2VQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.ValueSerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.ValueSerializer-1.html",
+          "hash": "Z5BED6tUC9+3E2rrp0qLlA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.WireProtocol.ExtendedWireType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.WireProtocol.ExtendedWireType.html",
+          "hash": "akr7N0FGm9xoZQ8dR3B5nQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.WireProtocol.Field.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.WireProtocol.Field.html",
+          "hash": "WIl/GkA/Z4LLXAG4uL2Ovg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.WireProtocol.SchemaType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.WireProtocol.SchemaType.html",
+          "hash": "utVXsKlZwK6ne9v2YbCE3Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.WireProtocol.Tag.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.WireProtocol.Tag.html",
+          "hash": "fBa/5m+SJXYe2V2u6+OVdA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.WireProtocol.WireType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.WireProtocol.WireType.html",
+          "hash": "B42elNV06tOTYU9fc3G4XA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.WireProtocol.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.WireProtocol.html",
+          "hash": "TJsV1AMedh5wSqu5MF5Rzw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Hagar.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Hagar.html",
+          "hash": "X3bFYli8ZXdxiTv+xFlGrg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "y7voyx/PeZv7h8AbF+Er2Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "AIqt9pXJkulVNOHGXodyzA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/intro.html",
+          "hash": "X9bCVXTVHMLmd0seqGGjEw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html",
+          "hash": "gB8AESyvNru97tzIZofEEg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "NniiMhVgJfqGwLiFvWUC9Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "+rHUkRZHZRi5gd1aTU6lJA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": false,
+        "details": "Cannot build incrementally because last build info is missing.",
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0,
+        "full_build_reason_code": "NoAvailableBuildCache"
+      },
+      "processors": {
+        "ConceptualDocumentProcessor": {
+          "can_incremental": false,
+          "incrementalPhase": "build",
+          "total_file_count": 3,
+          "skipped_file_count": 0
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": false,
+          "incrementalPhase": "build",
+          "total_file_count": 247,
+          "skipped_file_count": 0
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": false,
+        "details": "Cannot support incremental post processing, the reason is: last post processor info is null.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
