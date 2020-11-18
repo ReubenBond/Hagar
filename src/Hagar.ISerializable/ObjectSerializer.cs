@@ -49,7 +49,12 @@ namespace Hagar.ISerializable
             var first = true;
             foreach (var field in info)
             {
-                var surrogate = new SerializationEntrySurrogate(field);
+                var surrogate = new SerializationEntrySurrogate
+                {
+                    Name = field.Name,
+                    Value = field.Value
+                };
+
                 _entrySerializer.WriteField(ref writer, first ? 1 : (uint)0, SerializationEntryCodec.SerializationEntryType, surrogate);
                 if (first)
                 {

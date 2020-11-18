@@ -1,6 +1,7 @@
 using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Session;
+using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Buffers;
@@ -9,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace Hagar.TestKit
@@ -107,7 +109,8 @@ namespace Hagar.TestKit
         public void CorrectlyAdvancesReferenceCounter()
         {
             var pipe = new Pipe();
-            var writer = Writer.Create(pipe.Writer, _sessionPool.GetSession());
+            using var writerSession = _sessionPool.GetSession(); 
+            var writer = Writer.Create(pipe.Writer, writerSession);
             var writerCodec = CreateCodec();
             var beforeReference = writer.Session.ReferencedObjects.CurrentReferenceId;
 
@@ -124,7 +127,8 @@ namespace Hagar.TestKit
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);
-            var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
+            using var readerSession = _sessionPool.GetSession(); 
+            var reader = Reader.Create(readResult.Buffer, readerSession);
 
             var previousPos = reader.Position;
             Assert.Equal(0, previousPos);
@@ -157,6 +161,7 @@ namespace Hagar.TestKit
                 var writer = Writer.CreatePooled(buffer, _sessionPool.GetSession());
                 serializer.Serialize(original, ref writer);
                 buffer.Flush();
+                writer.Output.Dispose();
 
                 buffer.Position = 0;
                 var reader = Reader.Create(buffer, _sessionPool.GetSession());
@@ -232,16 +237,42 @@ namespace Hagar.TestKit
             {
                 var buffer = new MemoryStream();
 
-                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                using var writerSession = _sessionPool.GetSession();
+                var writer = Writer.Create(buffer, writerSession);
                 serializer.Serialize(original, ref writer);
-                buffer.Flush();
+                buffer.Flush();_sessionPool.GetSession();
                 buffer.SetLength(buffer.Position);
 
                 buffer.Position = 0;
-                var reader = Reader.Create(buffer, _sessionPool.GetSession());
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(buffer, readerSession);
                 var deserialized = serializer.Deserialize(ref reader);
 
                 Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                Assert.Equal(writer.Position, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
+            }
+        }
+
+        [Fact]
+        public void ProducesValidBitStream()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+            foreach (var value in TestValues)
+            {
+                var array = serializer.SerializeToArray(value);
+                using var session = _sessionPool.GetSession();
+                var reader = Reader.Create(array, session);
+                var formatted = new StringBuilder();
+                try
+                {
+                    BitStreamFormatter.Format(ref reader, formatted);
+                    Assert.True(formatted.ToString() is string { Length: > 0 });
+                }
+                catch (Exception exception)
+                {
+                    Assert.True(false, $"Formatting failed with exception: {exception} and partial result: \"{formatted}\"");
+                }
             }
         }
 
@@ -304,6 +335,18 @@ namespace Hagar.TestKit
                     buffer.SetLength(buffer.Position);
                     buffer.Position = 0;
                     var result = buffer.ToArray();
+                    writer.Output.Dispose();
+                    Assert.Equal(expected, result);
+                }
+
+                {
+                    var buffer = new MemoryStream();
+                    var writer = Writer.Create((Stream)buffer, _sessionPool.GetSession());
+                    serializer.Serialize(original, ref writer);
+                    buffer.Flush();
+                    buffer.SetLength(buffer.Position);
+                    buffer.Position = 0;
+                    var result = buffer.ToArray();
                     Assert.Equal(expected, result);
                 }
             }
@@ -318,13 +361,17 @@ namespace Hagar.TestKit
             {
                 var buffer = new TestMultiSegmentBufferWriter(1024);
 
-                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                using var writerSession = _sessionPool.GetSession();
+                var writer = Writer.Create(buffer, writerSession);
                 serializer.Serialize(original, ref writer);
 
-                var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(buffer.GetReadOnlySequence(0), readerSession);
                 var deserialized = serializer.Deserialize(ref reader);
 
                 Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                Assert.Equal(writer.Position, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
             }
         }
 
@@ -337,10 +384,12 @@ namespace Hagar.TestKit
             {
                 var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
 
-                var writer = Writer.Create(buffer, _sessionPool.GetSession());
+                using var writerSession = _sessionPool.GetSession();
+                var writer = Writer.Create(buffer, writerSession);
                 serializer.Serialize(original, ref writer);
 
-                var reader = Reader.Create(buffer.GetReadOnlySequence(0), _sessionPool.GetSession());
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(buffer.GetReadOnlySequence(0), readerSession);
                 var deserializedObject = serializer.Deserialize(ref reader);
                 if (original != null && !typeof(TValue).IsEnum)
                 {
@@ -356,6 +405,9 @@ namespace Hagar.TestKit
                 {
                     Assert.Null(deserializedObject);
                 }
+
+                Assert.Equal(writer.Position, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
             }
         }
 
@@ -398,7 +450,8 @@ namespace Hagar.TestKit
         private void CanBeSkipped(TValue original)
         {
             var pipe = new Pipe();
-            var writer = Writer.Create(pipe.Writer, _sessionPool.GetSession());
+            using var writerSession = _sessionPool.GetSession();
+            var writer = Writer.Create(pipe.Writer, writerSession);
             var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             var expectedLength = writer.Position;
@@ -409,19 +462,23 @@ namespace Hagar.TestKit
             _ = pipe.Reader.TryRead(out var readResult);
 
             {
-                var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(readResult.Buffer, readerSession);
                 var readField = reader.ReadFieldHeader();
                 reader.SkipField(readField);
                 Assert.Equal(expectedLength, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
             }
 
             {
                 var codec = new SkipFieldCodec();
-                var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(readResult.Buffer, readerSession);
                 var readField = reader.ReadFieldHeader();
                 var shouldBeNull = codec.ReadValue(ref reader, readField);
                 Assert.Null(shouldBeNull);
                 Assert.Equal(expectedLength, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
             }
 
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
@@ -431,7 +488,8 @@ namespace Hagar.TestKit
         private void TestRoundTrippedValue(TValue original)
         {
             var pipe = new Pipe();
-            var writer = Writer.Create(pipe.Writer, _sessionPool.GetSession());
+            using var writerSession = _sessionPool.GetSession();
+            var writer = Writer.Create(pipe.Writer, writerSession);
             var writerCodec = CreateCodec();
             writerCodec.WriteField(ref writer, 0, typeof(TValue), original);
             writer.Commit();
@@ -439,13 +497,15 @@ namespace Hagar.TestKit
             pipe.Writer.Complete();
 
             _ = pipe.Reader.TryRead(out var readResult);
-            var reader = Reader.Create(readResult.Buffer, _sessionPool.GetSession());
+            using var readerSession = _sessionPool.GetSession();
+            var reader = Reader.Create(readResult.Buffer, readerSession);
             var readerCodec = CreateCodec();
             var readField = reader.ReadFieldHeader();
             var deserialized = readerCodec.ReadValue(ref reader, readField);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
             Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+            Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
         }
     }
 }

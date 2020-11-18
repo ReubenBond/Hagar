@@ -1,5 +1,6 @@
 using Hagar.Buffers;
 using Hagar.Session;
+using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.IO.Pipelines;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Xunit;
+using Xunit.Abstractions;
 // ReSharper disable InconsistentNaming
 
 namespace Hagar.UnitTests
@@ -18,8 +20,9 @@ namespace Hagar.UnitTests
         private readonly IServiceProvider _serviceProvider;
         private readonly SerializerSessionPool _sessionPool;
         private readonly Serializer<object> _serializer;
+        private readonly ITestOutputHelper _log;
 
-        public ISerializableTests()
+        public ISerializableTests(ITestOutputHelper log)
         {
             var services = new ServiceCollection();
             _ = services.AddHagar(hagar => hagar.AddISerializableSupport());
@@ -27,6 +30,7 @@ namespace Hagar.UnitTests
             _serviceProvider = services.BuildServiceProvider();
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>();
             _serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
+            _log = log;
         }
 
 #pragma warning disable SYSLIB0011 // Type or member is obsolete
@@ -52,26 +56,35 @@ namespace Hagar.UnitTests
         }
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
 
-        private object SerializationLoop(object expected)
+        private object SerializationLoop(object original)
         {
             var pipe = new Pipe();
 
-            using (var session = _sessionPool.GetSession())
-            {
-                var writer = Writer.Create(pipe.Writer, session);
-                _serializer.Serialize(expected, ref writer);
-                _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
-                pipe.Writer.Complete();
-            }
+            using var writerSession = _sessionPool.GetSession();
+            var writer = Writer.Create(pipe.Writer, writerSession);
+            _serializer.Serialize(original, ref writer);
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
 
-            using (var session = _sessionPool.GetSession())
+            _ = pipe.Reader.TryRead(out var readResult);
             {
-                _ = pipe.Reader.TryRead(out var readResult);
-                var reader = Reader.Create(readResult.Buffer, session);
-                var result = _serializer.Deserialize(ref reader);
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(readResult.Buffer, readerSession);
+                var output = BitStreamFormatter.Format(ref reader);
+                _log.WriteLine(output);
+            }
+ 
+            {
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(readResult.Buffer, readerSession);
+                var deserialized = _serializer.Deserialize(ref reader);
                 pipe.Reader.AdvanceTo(readResult.Buffer.End);
                 pipe.Reader.Complete();
-                return result;
+
+                //Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                Assert.Equal(writer.Position, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
+                return deserialized;
             }
         }
 

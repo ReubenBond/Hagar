@@ -36,7 +36,7 @@ namespace Hagar.Codecs
                 // If the type is encoded, write the length-prefixed bytes.
                 ReferenceCodec.MarkValueField(writer.Session);
                 writer.WriteFieldHeader(1, ByteArrayType, ByteArrayType, WireType.LengthPrefixed);
-                writer.Session.TypeCodec.Write(ref writer, value);
+                writer.Session.TypeCodec.WriteLengthPrefixed(ref writer, value);
             }
             else
             {
@@ -58,6 +58,7 @@ namespace Hagar.Codecs
                 return ReferenceCodec.ReadReference<Type, TInput>(ref reader, field);
             }
 
+            ReferenceCodec.MarkValueField(reader.Session);
             uint fieldId = 0;
             var schemaType = default(SchemaType);
             uint id = 0;
@@ -78,7 +79,7 @@ namespace Hagar.Codecs
                         schemaType = (SchemaType)reader.ReadVarUInt32();
                         break;
                     case 1:
-                        result = reader.Session.TypeCodec.Read(ref reader);
+                        result = reader.Session.TypeCodec.ReadLengthPrefixed(ref reader);
                         break;
                     case 2:
                         id = reader.ReadVarUInt32();

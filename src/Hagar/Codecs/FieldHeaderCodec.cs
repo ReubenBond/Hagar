@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.TypeSystem;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -59,7 +60,7 @@ namespace Hagar.Codecs
                     writer.WriteVarInt(fieldId);
                 }
 
-                writer.Session.TypeCodec.Write(ref writer, actualType);
+                writer.Session.TypeCodec.WriteEncodedType(ref writer, actualType);
             }
         }
 
@@ -173,5 +174,88 @@ namespace Hagar.Codecs
                     return ExceptionHelper.ThrowArgumentOutOfRange<Type>(nameof(SchemaType));
             }
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (Type type, string typeName) ReadTypeForAnalysis<TInput>(this ref Reader<TInput> reader, SchemaType schemaType)
+        {
+            switch (schemaType)
+            {
+                case SchemaType.Expected:
+                    return (null, "Expected");
+                case SchemaType.WellKnown:
+                    { 
+                        var typeId = reader.ReadVarUInt32();
+                        if (reader.Session.WellKnownTypes.TryGetWellKnownType(typeId, out var type))
+                        {
+                            return (type, $"WellKnown {typeId} ({(type is null ? "null" : RuntimeTypeNameFormatter.Format(type))})");
+                        }
+                        else
+                        {
+                            return (null, $"WellKnown {typeId} (unknown)");
+                        }
+                    }
+                case SchemaType.Encoded:
+                    {
+                        var found = reader.Session.TypeCodec.TryReadForAnalysis(ref reader, out Type encoded, out var typeString);
+                        return (encoded, $"Encoded \"{typeString}\" ({(found ? RuntimeTypeNameFormatter.Format(encoded) : "not found")})");
+                    }
+                case SchemaType.Referenced:
+                    {
+                        var reference = reader.ReadVarUInt32();
+                        var found = reader.Session.ReferencedTypes.TryGetReferencedType(reference, out var type);
+                        return (type, $"Referenced {reference} ({(found ? RuntimeTypeNameFormatter.Format(type) : "not found")})");
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(schemaType));
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (Field Field, string Type) ReadFieldHeaderForAnalysis<TInput>(ref this Reader<TInput> reader)
+        {
+            Field field = default;
+            string type = default;
+            var tag = reader.ReadByte();
+            if (tag != (byte)WireType.Extended && ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask || (tag & Tag.SchemaTypeMask) != (byte)SchemaType.Expected))
+            {
+                field.Tag = tag;
+                ReadFieldHeaderForAnalysisSlow(ref reader, ref field, ref type);
+            }
+            else
+            {
+                field.Tag = tag;
+                field.FieldIdDeltaRaw = default;
+                field.FieldTypeRaw = default;
+                type = "Expected";
+            }
+
+            return (field, type);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ReadFieldHeaderForAnalysisSlow<TInput>(ref this Reader<TInput> reader, ref Field field, ref string type)
+        {
+            var notExtended = (field.Tag & (byte)WireType.Extended) != (byte)WireType.Extended;
+            if ((field.Tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask && notExtended)
+            {
+                field.FieldIdDeltaRaw = reader.ReadVarUInt32NoInlining();
+            }
+            else
+            {
+                field.FieldIdDeltaRaw = 0;
+            }
+
+            // If schema type is valid, read the type.
+            var schemaType = (SchemaType)(field.Tag & Tag.SchemaTypeMask);
+            if (notExtended && schemaType != SchemaType.Expected)
+            {
+                (field.FieldTypeRaw, type) = reader.ReadTypeForAnalysis(schemaType);
+            }
+            else
+            {
+                field.FieldTypeRaw = default;
+            }
+        }
+
     }
 }

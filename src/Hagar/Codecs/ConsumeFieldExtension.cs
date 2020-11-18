@@ -13,6 +13,7 @@ namespace Hagar.Codecs
             // References cannot themselves be referenced.
             if (field.WireType == WireType.Reference)
             {
+                ReferenceCodec.MarkValueField(reader.Session);
                 _ = reader.ReadVarUInt32();
                 return;
             }

@@ -21,7 +21,6 @@ namespace Hagar.ISerializable
             writer.WriteFieldHeader(fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
             StringCodec.WriteField(ref writer, 0, typeof(string), value.Name);
             ObjectCodec.WriteField(ref writer, 1, typeof(object), value.Value);
-
             writer.WriteEndObject();
         }
 

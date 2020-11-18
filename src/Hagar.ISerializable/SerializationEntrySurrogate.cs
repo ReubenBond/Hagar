@@ -3,16 +3,13 @@ using System.Security;
 
 namespace Hagar.ISerializable
 {
+    [GenerateSerializer]
     internal struct SerializationEntrySurrogate
     {
-        [SecurityCritical]
-        public SerializationEntrySurrogate(SerializationEntry entry)
-        {
-            Name = entry.Name;
-            Value = entry.Value;
-        }
-
-        public object Value { get; set; }
+        [Id(1)]
         public string Name { get; set; }
+
+        [Id(2)]
+        public object Value { get; set; }
     }
 }

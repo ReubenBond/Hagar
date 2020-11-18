@@ -100,11 +100,16 @@ namespace Hagar.TypeSystem
                 }
             }
 
-            type = Type.GetType(fullName, throwOnError: false) ?? Type.GetType(
+            type = Type.GetType(fullName, throwOnError: false);
+            if (type is null)
+            { 
+                type = Type.GetType(
                        fullName,
                        ResolveAssembly,
                        ResolveType,
                        false);
+            }
+
             return type != null;
 
             Assembly ResolveAssembly(AssemblyName assemblyName)
@@ -131,6 +136,7 @@ namespace Hagar.TypeSystem
                 var resultName = result.GetName();
                 _assemblyCache[resultName.Name] = result;
                 _assemblyCache[resultName.FullName] = result;
+
                 return result;
             }
 

@@ -80,6 +80,29 @@ namespace Hagar.Buffers
             }
         }
 
+        public void Dispose()
+        {
+            if (typeof(TBufferWriter) == typeof(SpanBufferWriter)
+                || typeof(TBufferWriter) == typeof(MemoryBufferWriter)
+                || typeof(TBufferWriter) == typeof(MemoryStreamBufferWriter)
+                || typeof(TBufferWriter) == typeof(ArrayStreamBufferWriter))
+            {
+                // Do nothing
+            }
+            else if (_output is PooledArrayBufferWriter pooledArray)
+            {
+                pooledArray.Dispose();
+            }
+            else if (_output is PoolingStreamBufferWriter poolingStream)
+            {
+                poolingStream.Dispose();
+            }
+            else if (_output is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
         public SerializerSession Session { get; }
 
         public TBufferWriter Output => _output;
