@@ -117,13 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddGenerateSerializerAttributeDescription" xml:space="preserve">
+    <value>Add the [GenerateSerializer] attribute.</value>
+  </data>
+  <data name="AddGenerateSerializerAttributeMessageFormat" xml:space="preserve">
+    <value>Add the [GenerateSerializer] attribute.</value>
+  </data>
+  <data name="AddGenerateSerializerAttributesTitle" xml:space="preserve">
+    <value>Add the [GenerateSerializer] attribute.</value>
+  </data>
   <data name="AddSerializationAttributesDescription" xml:space="preserve">
-    <value>Adds attributes to properties and fields to direct serializer generation.</value>
+    <value>Add attributes to properties and fields to direct serializer generation.</value>
   </data>
   <data name="AddSerializationAttributesMessageFormat" xml:space="preserve">
-    <value>Add missing serialization attributes</value>
+    <value>Add missing serialization attributes.</value>
   </data>
   <data name="AddSerializationAttributesTitle" xml:space="preserve">
-    <value>Add missing serialization attributes</value>
+    <value>Add missing serialization attributes.</value>
   </data>
 </root>

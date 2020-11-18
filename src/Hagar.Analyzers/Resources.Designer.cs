@@ -61,7 +61,34 @@ namespace Hagar.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adds attributes to properties and fields to direct serializer generation..
+        ///   Looks up a localized string similar to Add the [GenerateSerializer] attribute..
+        /// </summary>
+        internal static string AddGenerateSerializerAttributeDescription {
+            get {
+                return ResourceManager.GetString("AddGenerateSerializerAttributeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add the [GenerateSerializer] attribute..
+        /// </summary>
+        internal static string AddGenerateSerializerAttributeMessageFormat {
+            get {
+                return ResourceManager.GetString("AddGenerateSerializerAttributeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add the [GenerateSerializer] attribute..
+        /// </summary>
+        internal static string AddGenerateSerializerAttributesTitle {
+            get {
+                return ResourceManager.GetString("AddGenerateSerializerAttributesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add attributes to properties and fields to direct serializer generation..
         /// </summary>
         internal static string AddSerializationAttributesDescription {
             get {
@@ -70,7 +97,7 @@ namespace Hagar.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add missing serialization attributes.
+        ///   Looks up a localized string similar to Add missing serialization attributes..
         /// </summary>
         internal static string AddSerializationAttributesMessageFormat {
             get {
@@ -79,7 +106,7 @@ namespace Hagar.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add missing serialization attributes.
+        ///   Looks up a localized string similar to Add missing serialization attributes..
         /// </summary>
         internal static string AddSerializationAttributesTitle {
             get {
