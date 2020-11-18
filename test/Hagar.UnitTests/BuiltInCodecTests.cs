@@ -24,7 +24,6 @@ namespace Hagar.UnitTests
     {
         protected override IFieldCodec<MyEnum> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<MyEnum>();
         protected override MyEnum CreateValue() => (MyEnum)(new Random(Guid.NewGuid().GetHashCode()).Next((int)MyEnum.None, (int)MyEnum.Two));
-        protected override bool Equals(MyEnum left, MyEnum right) => left.Equals(right);
         protected override MyEnum[] TestValues => new[] { MyEnum.None, MyEnum.One, MyEnum.Two, (MyEnum)(-1), (MyEnum)10_000};
         protected override void Configure(IHagarBuilder builder)
         {
@@ -37,7 +36,6 @@ namespace Hagar.UnitTests
     {
         protected override IFieldCodec<DayOfWeek> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<DayOfWeek>();
         protected override DayOfWeek CreateValue() => (DayOfWeek)(new Random(Guid.NewGuid().GetHashCode()).Next((int)DayOfWeek.Sunday, (int)DayOfWeek.Saturday));
-        protected override bool Equals(DayOfWeek left, DayOfWeek right) => left.Equals(right);
         protected override DayOfWeek[] TestValues => new[] { DayOfWeek.Monday, DayOfWeek.Sunday, (DayOfWeek)(-1), (DayOfWeek)10_000};
     }
 
@@ -45,28 +43,24 @@ namespace Hagar.UnitTests
     {
         protected override IFieldCodec<int?> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<int?>();
         protected override int? CreateValue() => TestValues[new Random(Guid.NewGuid().GetHashCode()).Next(TestValues.Length)];
-        protected override bool Equals(int? left, int? right) => left.Equals(right);
         protected override int?[] TestValues => new int?[] { null, 1, 2, -3 };
     }
 
     public class DateTimeTests : FieldCodecTester<DateTime, DateTimeCodec>
     {
         protected override DateTime CreateValue() => DateTime.UtcNow;
-        protected override bool Equals(DateTime left, DateTime right) => left.Equals(right);
         protected override DateTime[] TestValues => new[] { DateTime.MinValue, DateTime.MaxValue, new DateTime(1970, 1, 1, 0, 0, 0) };
     }
 
     public class TimeSpanTests : FieldCodecTester<TimeSpan, TimeSpanCodec>
     {
         protected override TimeSpan CreateValue() => TimeSpan.FromMilliseconds(Guid.NewGuid().GetHashCode());
-        protected override bool Equals(TimeSpan left, TimeSpan right) => left.Equals(right);
         protected override TimeSpan[] TestValues => new[] { TimeSpan.MinValue, TimeSpan.MaxValue, TimeSpan.Zero, TimeSpan.FromSeconds(12345) };
     }
 
     public class DateTimeOffsetTests : FieldCodecTester<DateTimeOffset, DateTimeOffsetCodec>
     {
         protected override DateTimeOffset CreateValue() => DateTime.UtcNow;
-        protected override bool Equals(DateTimeOffset left, DateTimeOffset right) => left.Equals(right);
 
         protected override DateTimeOffset[] TestValues => new[]
         {
@@ -74,6 +68,293 @@ namespace Hagar.UnitTests
             DateTimeOffset.MaxValue,
             new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(11.5)),
             new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(-11.5)),
+        };
+    }
+
+    public class Tuple1Tests : FieldCodecTester<Tuple<string>, TupleCodec<string>>
+    {
+        protected override Tuple<string> CreateValue() => Tuple.Create(Guid.NewGuid().ToString());
+
+        protected override Tuple<string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create<string>(null),
+            Tuple.Create<string>(string.Empty),
+            Tuple.Create<string>("foobar")
+        };
+    }
+
+    public class Tuple2Tests : FieldCodecTester<Tuple<string, string>, TupleCodec<string, string>>
+    {
+        protected override Tuple<string, string> CreateValue() => Tuple.Create(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+
+        protected override Tuple<string, string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create<string, string>(null, null),
+            Tuple.Create<string, string>(string.Empty, "foo"),
+            Tuple.Create<string, string>("foo", "bar"),
+            Tuple.Create<string, string>("foo", "foo"),
+        };
+    }
+
+    public class Tuple3Tests : FieldCodecTester<Tuple<string, string, string>, TupleCodec<string, string, string>>
+    {
+        protected override Tuple<string, string, string> CreateValue() => Tuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override Tuple<string, string, string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create(default(string), default(string), default(string)),
+            Tuple.Create(string.Empty, string.Empty, "foo"),
+            Tuple.Create("foo", "bar", "baz"),
+            Tuple.Create("foo", "foo", "foo")
+        };
+    }
+
+    public class Tuple4Tests : FieldCodecTester<Tuple<string, string, string, string>, TupleCodec<string, string, string, string>>
+    {
+        protected override Tuple<string, string, string, string> CreateValue() => Tuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override Tuple<string, string, string, string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create(default(string), default(string), default(string), default(string)),
+            Tuple.Create(string.Empty, string.Empty, string.Empty, "foo"),
+            Tuple.Create("foo", "bar", "baz", "4"),
+            Tuple.Create("foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class Tuple5Tests : FieldCodecTester<Tuple<string, string, string, string, string>, TupleCodec<string, string, string, string, string>>
+    {
+        protected override Tuple<string, string, string, string, string> CreateValue() => Tuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override Tuple<string, string, string, string, string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create(default(string), default(string), default(string), default(string), default(string)),
+            Tuple.Create(string.Empty, string.Empty, string.Empty,string.Empty, "foo"),
+            Tuple.Create("foo", "bar", "baz", "4", "5"),
+            Tuple.Create("foo", "foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class Tuple6Tests : FieldCodecTester<Tuple<string, string,string, string, string, string>, TupleCodec<string, string, string, string, string, string>>
+    {
+        protected override Tuple<string, string, string, string, string, string> CreateValue() => Tuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override Tuple<string, string, string, string, string, string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create(default(string), default(string), default(string), default(string), default(string), default(string)),
+            Tuple.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "foo"),
+            Tuple.Create("foo", "bar", "baz", "4", "5", "6"),
+            Tuple.Create("foo", "foo", "foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class Tuple7Tests : FieldCodecTester<Tuple<string, string, string, string, string, string, string>, TupleCodec<string, string, string, string, string, string, string>>
+    {
+        protected override Tuple<string, string, string, string, string, string, string> CreateValue() => Tuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override Tuple<string, string, string, string, string, string, string>[] TestValues => new[]
+        {
+            null,
+            Tuple.Create(default(string), default(string), default(string), default(string), default(string), default(string), default(string)),
+            Tuple.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "foo"),
+            Tuple.Create("foo", "bar", "baz", "4", "5", "6", "7"),
+            Tuple.Create("foo", "foo", "foo", "foo", "foo", "foo", "foo")
+        };
+    }
+    public class Tuple8Tests : FieldCodecTester<Tuple<string, string, string, string, string, string, string, Tuple<string>>, TupleCodec<string, string, string, string, string, string, string, Tuple<string>>>
+    {
+        protected override Tuple<string, string, string, string, string, string, string, Tuple<string>> CreateValue() => new Tuple<string, string, string, string, string, string, string, Tuple<string>>(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            new Tuple<string>(Guid.NewGuid().ToString()));
+
+        protected override Tuple<string, string, string, string, string, string, string, Tuple<string>>[] TestValues => new[]
+        {
+            null,
+            new Tuple<string, string, string, string, string, string, string, Tuple<string>>(default(string), default(string), default(string), default(string), default(string), default(string), default(string), new Tuple<string>(default(string))),
+            new Tuple<string, string, string, string, string, string, string, Tuple<string>>(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "foo", Tuple.Create("foo")),
+            new Tuple<string, string, string, string, string, string, string, Tuple<string>>("foo", "bar", "baz", "4", "5", "6", "7", Tuple.Create("8")),
+            new Tuple<string, string, string, string, string, string, string, Tuple<string>>("foo", "foo", "foo", "foo", "foo", "foo", "foo", Tuple.Create("foo"))
+        };
+    }
+
+    public class ValueTuple1Tests : FieldCodecTester<ValueTuple<string>, ValueTupleCodec<string>>
+    {
+        protected override ValueTuple<string> CreateValue() => ValueTuple.Create(Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create<string>(null),
+            ValueTuple.Create<string>(string.Empty),
+            ValueTuple.Create<string>("foobar")
+        };
+    }
+
+    public class ValueTuple2Tests : FieldCodecTester<ValueTuple<string, string>, ValueTupleCodec<string, string>>
+    {
+        protected override ValueTuple<string, string> CreateValue() => ValueTuple.Create(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string, string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create<string, string>(null, null),
+            ValueTuple.Create<string, string>(string.Empty, "foo"),
+            ValueTuple.Create<string, string>("foo", "bar"),
+            ValueTuple.Create<string, string>("foo", "foo"),
+        };
+    }
+
+    public class ValueTuple3Tests : FieldCodecTester<ValueTuple<string, string, string>, ValueTupleCodec<string, string, string>>
+    {
+        protected override ValueTuple<string, string, string> CreateValue() => ValueTuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string, string, string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create(default(string), default(string), default(string)),
+            ValueTuple.Create(string.Empty, string.Empty, "foo"),
+            ValueTuple.Create("foo", "bar", "baz"),
+            ValueTuple.Create("foo", "foo", "foo")
+        };
+    }
+
+    public class ValueTuple4Tests : FieldCodecTester<ValueTuple<string, string, string, string>, ValueTupleCodec<string, string, string, string>>
+    {
+        protected override ValueTuple<string, string, string, string> CreateValue() => ValueTuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string, string, string, string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create(default(string), default(string), default(string), default(string)),
+            ValueTuple.Create(string.Empty, string.Empty, string.Empty, "foo"),
+            ValueTuple.Create("foo", "bar", "baz", "4"),
+            ValueTuple.Create("foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class ValueTuple5Tests : FieldCodecTester<ValueTuple<string, string, string, string, string>, ValueTupleCodec<string, string, string, string, string>>
+    {
+        protected override ValueTuple<string, string, string, string, string> CreateValue() => ValueTuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string, string, string, string, string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create(default(string), default(string), default(string), default(string), default(string)),
+            ValueTuple.Create(string.Empty, string.Empty, string.Empty,string.Empty, "foo"),
+            ValueTuple.Create("foo", "bar", "baz", "4", "5"),
+            ValueTuple.Create("foo", "foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class ValueTuple6Tests : FieldCodecTester<ValueTuple<string, string,string, string, string, string>, ValueTupleCodec<string, string, string, string, string, string>>
+    {
+        protected override ValueTuple<string, string, string, string, string, string> CreateValue() => ValueTuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string, string, string, string, string, string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create(default(string), default(string), default(string), default(string), default(string), default(string)),
+            ValueTuple.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "foo"),
+            ValueTuple.Create("foo", "bar", "baz", "4", "5", "6"),
+            ValueTuple.Create("foo", "foo", "foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class ValueTuple7Tests : FieldCodecTester<ValueTuple<string, string, string, string, string, string, string>, ValueTupleCodec<string, string, string, string, string, string, string>>
+    {
+        protected override ValueTuple<string, string, string, string, string, string, string> CreateValue() => ValueTuple.Create(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString());
+
+        protected override ValueTuple<string, string, string, string, string, string, string>[] TestValues => new[]
+        {
+            default,
+            ValueTuple.Create(default(string), default(string), default(string), default(string), default(string), default(string), default(string)),
+            ValueTuple.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "foo"),
+            ValueTuple.Create("foo", "bar", "baz", "4", "5", "6", "7"),
+            ValueTuple.Create("foo", "foo", "foo", "foo", "foo", "foo", "foo")
+        };
+    }
+
+    public class ValueTuple8Tests : FieldCodecTester<ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>, ValueTupleCodec<string, string, string, string, string, string, string, ValueTuple<string>>>
+    {
+        protected override ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>> CreateValue() => new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>(
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
+            ValueTuple.Create(Guid.NewGuid().ToString()));
+
+        protected override ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>[] TestValues => new[]
+        {
+            default,
+            new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>(default(string), default(string), default(string), default(string), default(string), default(string), default(string), ValueTuple.Create(default(string))),
+            new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "foo", ValueTuple.Create("foo")),
+            new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>("foo", "bar", "baz", "4", "5", "6", "7", ValueTuple.Create("8")),
+            new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>("foo", "foo", "foo", "foo", "foo", "foo", "foo", ValueTuple.Create("foo"))
         };
     }
 

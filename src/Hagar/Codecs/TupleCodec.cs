@@ -24,13 +24,18 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _valueCodec.WriteField(ref writer, 0, typeof(T), value.Item1);
+            _valueCodec.WriteField(ref writer, 1, typeof(T), value.Item1);
 
             writer.WriteEndObject();
         }
 
         Tuple<T> IFieldCodec<Tuple<T>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -50,7 +55,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _valueCodec.ReadValue(ref reader, header);
                         break;
                     default:
@@ -89,7 +94,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
 
             writer.WriteEndObject();
@@ -97,6 +102,11 @@ namespace Hagar.Codecs
 
         Tuple<T1, T2> IFieldCodec<Tuple<T1, T2>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -117,7 +127,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -164,7 +174,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
 
@@ -173,6 +183,11 @@ namespace Hagar.Codecs
 
         Tuple<T1, T2, T3> IFieldCodec<Tuple<T1, T2, T3>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2, T3>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -194,7 +209,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -247,7 +262,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -257,6 +272,11 @@ namespace Hagar.Codecs
 
         Tuple<T1, T2, T3, T4> IFieldCodec<Tuple<T1, T2, T3, T4>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2, T3, T4>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -279,7 +299,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -341,7 +361,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -352,6 +372,11 @@ namespace Hagar.Codecs
 
         Tuple<T1, T2, T3, T4, T5> IFieldCodec<Tuple<T1, T2, T3, T4, T5>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2, T3, T4, T5>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -375,7 +400,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -443,7 +468,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -455,6 +480,11 @@ namespace Hagar.Codecs
 
         Tuple<T1, T2, T3, T4, T5, T6> IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2, T3, T4, T5, T6>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -479,7 +509,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -553,7 +583,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -567,6 +597,11 @@ namespace Hagar.Codecs
 
         Tuple<T1, T2, T3, T4, T5, T6, T7> IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2, T3, T4, T5, T6, T7>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -592,7 +627,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
@@ -629,7 +664,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterSerializer]
-    public class TupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>> where T8 : struct
+    public class TupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>
     {
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
@@ -672,7 +707,7 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 0, typeof(T1), value.Item1);
+            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
             _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
             _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
             _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
@@ -681,12 +716,16 @@ namespace Hagar.Codecs
             _item7Codec.WriteField(ref writer, 1, typeof(T7), value.Item7);
             _item8Codec.WriteField(ref writer, 1, typeof(T8), value.Rest);
 
-
             writer.WriteEndObject();
         }
 
         Tuple<T1, T2, T3, T4, T5, T6, T7, T8> IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>, TInput>(ref reader, field);
+            }
+
             if (field.WireType != WireType.TagDelimited)
             {
                 ThrowUnsupportedWireTypeException(field);
@@ -713,7 +752,7 @@ namespace Hagar.Codecs
                 fieldId += header.FieldIdDelta;
                 switch (fieldId)
                 {
-                    case 0:
+                    case 1:
                         item1 = _item1Codec.ReadValue(ref reader, header);
                         break;
                     case 2:
