@@ -57,6 +57,7 @@ namespace Hagar.Utilities
         private static void FormatField<TInput>(ref Reader<TInput> reader, Field field, string typeName, uint id, StringBuilder res, int indentation)
         {
             var indentString = new string(' ', indentation);
+            AppendAddress(ref reader, res);
             res.Append(indentString);
 
             // References cannot themselves be referenced.
@@ -99,7 +100,9 @@ namespace Hagar.Utilities
 
                     res.Append($"{{\n");
                     reader.FormatTagDelimitedField(res, indentation + 1);
-                    res.Append($"\n{indentString}}}");
+                    res.AppendLine();
+                    AppendAddress(ref reader, res);
+                    res.Append($"{indentString}}}");
                     break;
                 case WireType.LengthPrefixed:
                     {
@@ -231,7 +234,9 @@ namespace Hagar.Utilities
 
                 if (field.IsEndBaseFields)
                 {
-                    res.Append($"\n{new string(' ', indentation)}- End of base type fields -");
+                    res.AppendLine();
+                    AppendAddress(ref reader, res);
+                    res.Append($"{new string(' ', indentation)}- End of base type fields -");
                     if (first)
                     {
                         first = false;
@@ -253,6 +258,11 @@ namespace Hagar.Utilities
 
                 FormatField(ref reader, field, type, id, res, indentation);
             }
+        }
+
+        private static void AppendAddress<TInput>(ref Reader<TInput> reader, StringBuilder res)
+        {
+            res.Append($"0x{reader.Position:X4} ");
         }
     }
 }
