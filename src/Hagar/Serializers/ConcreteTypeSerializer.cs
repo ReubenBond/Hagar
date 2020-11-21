@@ -28,14 +28,14 @@ namespace Hagar.Serializers
 
         public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            var fieldType = value?.GetType();
+            if (fieldType is null || fieldType == CodecFieldType)
             {
-                return;
-            }
+                if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+                {
+                    return;
+                }
 
-            var fieldType = value.GetType();
-            if (fieldType == CodecFieldType)
-            {
                 writer.WriteStartObject(fieldIdDelta, expectedType, fieldType);
                 _serializer.Serialize(ref writer, value);
                 writer.WriteEndObject();

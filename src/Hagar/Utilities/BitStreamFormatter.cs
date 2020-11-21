@@ -2,6 +2,9 @@
 using Hagar.Codecs;
 using Hagar.Session;
 using Hagar.WireProtocol;
+using System;
+using System.Buffers;
+using System.IO;
 using System.Text;
 
 namespace Hagar.Utilities
@@ -13,6 +16,36 @@ namespace Hagar.Utilities
             var res = new StringBuilder();
             Format(ref reader, res);
             return res.ToString();
+        }
+
+        public static string Format(byte[] array, SerializerSession session)
+        {
+            var reader = Reader.Create(array, session);
+            return Format(ref reader);
+        }
+
+        public static string Format(ReadOnlySpan<byte> input, SerializerSession session)
+        {
+            var reader = Reader.Create(input, session);
+            return Format(ref reader);
+        }
+
+        public static string Format(ReadOnlyMemory<byte> input, SerializerSession session)
+        {
+            var reader = Reader.Create(input, session);
+            return Format(ref reader);
+        }
+
+        public static string Format(ReadOnlySequence<byte> input, SerializerSession session)
+        {
+            var reader = Reader.Create(input, session);
+            return Format(ref reader);
+        }
+
+        public static string Format(Stream input, SerializerSession session)
+        {
+            var reader = Reader.Create(input, session);
+            return Format(ref reader);
         }
 
         public static void Format<TInput>(ref Reader<TInput> reader, StringBuilder result)
@@ -198,7 +231,12 @@ namespace Hagar.Utilities
 
                 if (field.IsEndBaseFields)
                 {
-                    res.Append(" | ");
+                    res.Append($"\n{new string(' ', indentation)}- End of base type fields -");
+                    if (first)
+                    {
+                        first = false;
+                    }
+
                     id = 0U;
                     continue;
                 }
