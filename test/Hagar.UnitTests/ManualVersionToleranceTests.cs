@@ -17,28 +17,36 @@ namespace Hagar.UnitTests
     {
         private const string TestString = "hello, hagar";
         private readonly ITestOutputHelper _log;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IFieldCodec<SubType> _serializer;
+        private IServiceProvider _serviceProvider;
+        private IFieldCodec<SubType> _serializer;
+        private IFieldCodec<ObjectWithNewField> _objectWithNewFieldSerializer;
+        private IFieldCodec<ObjectWithoutNewField> _objectWithoutNewFieldSerializer;
+        private ServiceCollection _serviceCollection;
 
         public ManualVersionToleranceTests(ITestOutputHelper log)
         {
             _log = log;
             var serviceCollection = new ServiceCollection();
-            _ = serviceCollection.AddHagar(builder =>
+            _serviceCollection = serviceCollection;
+            _ = _serviceCollection.AddHagar(builder =>
               {
                   _ = builder.Configure(configuration =>
                     {
                         _ = configuration.Serializers.Add(typeof(SubTypeSerializer));
                         _ = configuration.Serializers.Add(typeof(BaseTypeSerializer));
+                        _ = configuration.Serializers.Add(typeof(ObjectWithNewFieldTypeSerializer));
+                        _ = configuration.Serializers.Add(typeof(ObjectWithoutNewFieldTypeSerializer));
                     });
               });
             //serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
             //serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
 
-            _serviceProvider = serviceCollection.BuildServiceProvider();
+            _serviceProvider = _serviceCollection.BuildServiceProvider();
 
             var codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
             _serializer = codecProvider.GetCodec<SubType>();
+            _objectWithNewFieldSerializer = codecProvider.GetCodec<ObjectWithNewField>();
+            _objectWithoutNewFieldSerializer = codecProvider.GetCodec<ObjectWithoutNewField>();
         }
 
         [Fact]
@@ -110,15 +118,15 @@ namespace Hagar.UnitTests
                 Int = 1
             };
             self.Ref = self;
-            RoundTripTest(self);
+            RoundTripTest(self, assertRef: false);
 
             self.Ref = Guid.NewGuid();
-            RoundTripTest(self);
+            RoundTripTest(self, assertRef: false);
         }
 
         private SerializerSession GetSession() => _serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();
 
-        private void RoundTripTest(SubType expected)
+        private void RoundTripTest(SubType expected, bool assertRef = true)
         {
             using var writerSession = GetSession();
             var pipe = new Pipe();
@@ -150,6 +158,10 @@ namespace Hagar.UnitTests
             Assert.Null(actual.AddedLaterString); // The deserializer isn't 'aware' of this field which was added later - version tolerance.
             Assert.Equal(expected.String, actual.String);
             Assert.Equal(expected.Int, actual.Int);
+            if (assertRef)
+            {
+                Assert.Equal(expected.Ref, actual.Ref);
+            }
             Assert.Equal(writer.Position, reader.Position);
             Assert.Equal(writer.Session.ReferencedObjects.CurrentReferenceId, reader.Session.ReferencedObjects.CurrentReferenceId);
 
@@ -200,6 +212,185 @@ namespace Hagar.UnitTests
                 _ = references.AppendLine($"\t[{entry.Value}] {entry.Key}");
             }
             return references;
+        }
+
+        [Fact]
+        public void ObjectWithNewFieldTest()
+        {
+            var expected = new ObjectWithNewField("blah", newField: "this field will not be manually serialized -- the binary will not have it!");
+
+            using var writerSession = GetSession();
+            var pipe = new Pipe();
+            var writer = Writer.Create(pipe.Writer, writerSession);
+
+            // Using manual serializer that ignores ObjectWithNewField.NewField
+            // not serializing NewField to simulate a binary that's created from a previous version of the object
+            _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(_objectWithNewFieldSerializer);
+            _objectWithNewFieldSerializer.WriteField(ref writer, 0, typeof(ObjectWithNewField), expected);
+            writer.Commit();
+
+            _log.WriteLine($"Size: {writer.Position} bytes.");
+            _log.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
+
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+
+            _ = pipe.Reader.TryRead(out var readResult);
+            using var readerSesssion = GetSession();
+            var reader = Reader.Create(readResult.Buffer, readerSesssion);
+            var initialHeader = reader.ReadFieldHeader();
+
+            _log.WriteLine("Header:");
+            _log.WriteLine(initialHeader.ToString());
+
+            SwitchToGeneratedSerializer(out _objectWithNewFieldSerializer);
+            Assert.IsNotType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(_objectWithNewFieldSerializer);
+
+            // using Generated Deserializer, which is capable of deserializing NewField 
+            var actual = _objectWithNewFieldSerializer.ReadValue(ref reader, initialHeader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
+
+            _log.WriteLine($"Expect: {expected}\nActual: {actual}");
+
+            Assert.Equal(expected.Blah, actual.Blah);
+            Assert.Null(actual.NewField); // Null, since it should not be in the binary
+            Assert.Equal(expected.Version, actual.Version);
+            Assert.Equal(writer.Position, reader.Position);
+            Assert.Equal(writer.Session.ReferencedObjects.CurrentReferenceId, reader.Session.ReferencedObjects.CurrentReferenceId);
+
+            var references = GetReadReferenceTable(reader.Session);
+            _log.WriteLine($"Read references:\n{references}");
+        }
+
+        [Fact]
+        public void ObjectWithoutNewFieldTest()
+        {
+            var expected = new ObjectWithoutNewField("blah");
+
+            using var writerSession = GetSession();
+            var pipe = new Pipe();
+            var writer = Writer.Create(pipe.Writer, writerSession);
+
+            // Using a manual serializer that writes a new field
+            // serializing a new field to simulate a binary that created from a newer version of the object
+            _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(_objectWithoutNewFieldSerializer);
+            _objectWithoutNewFieldSerializer.WriteField(ref writer, 0, typeof(ObjectWithoutNewField), expected);
+            writer.Commit();
+
+            _log.WriteLine($"Size: {writer.Position} bytes.");
+            _log.WriteLine($"Wrote References:\n{GetWriteReferenceTable(writerSession)}");
+
+            _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
+            pipe.Writer.Complete();
+
+            _ = pipe.Reader.TryRead(out var readResult);
+            using var readerSesssion = GetSession();
+            var reader = Reader.Create(readResult.Buffer, readerSesssion);
+            var initialHeader = reader.ReadFieldHeader();
+
+            _log.WriteLine("Header:");
+            _log.WriteLine(initialHeader.ToString());
+
+            SwitchToGeneratedSerializer(out _objectWithoutNewFieldSerializer);
+            Assert.IsNotType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(_objectWithoutNewFieldSerializer);
+
+            // using Generated Deserializer, which is not able to deserialize the new field that was serialized
+            var actual = _objectWithoutNewFieldSerializer.ReadValue(ref reader, initialHeader);
+            pipe.Reader.AdvanceTo(readResult.Buffer.End);
+            pipe.Reader.Complete();
+
+            _log.WriteLine($"Expect: {expected}\nActual: {actual}");
+
+            Assert.Equal(expected.Blah, actual.Blah);
+            Assert.Equal(expected.Version, actual.Version);
+            Assert.Equal(writer.Position, reader.Position);
+            Assert.Equal(writer.Session.ReferencedObjects.CurrentReferenceId, reader.Session.ReferencedObjects.CurrentReferenceId);
+
+            var references = GetReadReferenceTable(reader.Session);
+            _log.WriteLine($"Read references:\n{references}");
+        }
+
+        private void SwitchToGeneratedSerializer<T>(out IFieldCodec<T> serializer)
+        {
+            _ = _serviceCollection.AddHagar(builder =>
+            {
+                _ = builder.AddAssembly(typeof(T).Assembly);
+            });
+
+            _serviceProvider = _serviceCollection.BuildServiceProvider();
+
+            var codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
+            serializer = codecProvider.GetCodec<T>();
+        }
+
+        [GenerateSerializer]
+        public class ObjectWithNewField
+        {
+            [Id(0)]
+            public string Blah { get; set; }
+            [Id(1)]
+            public object NewField { get; set; }
+            [Id(2)]
+            public int Version { get; set; }
+
+            public ObjectWithNewField(string blah, object newField)
+            {
+                Blah = blah;
+                NewField = newField;
+                Version = 2;
+            }
+
+            public override string ToString() => $"{nameof(Blah)}: {Blah}; {nameof(NewField)}: {NewField}; {nameof(Version)}: {Version}";
+        }
+
+        public class ObjectWithNewFieldTypeSerializer : IPartialSerializer<ObjectWithNewField>
+        {
+            public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ObjectWithNewField obj) where TBufferWriter : IBufferWriter<byte>
+            {
+                // not serializing newField to simulate a binary that's created from a previous version of the object
+                StringCodec.WriteField(ref writer, 0, typeof(string), obj.Blah);
+                Int32Codec.WriteField(ref writer, 2, typeof(int), obj.Version);
+            }
+
+            // using a generated deserializer for deserialization
+            public void Deserialize<TInput>(ref Reader<TInput> reader, ObjectWithNewField obj)
+            {
+            }
+        }
+
+
+        [GenerateSerializer]
+        public class ObjectWithoutNewField
+        {
+            [Id(0)]
+            public string Blah { get; set; }
+            [Id(1)]
+            public int Version { get; set; }
+
+            public ObjectWithoutNewField(string blah)
+            {
+                Blah = blah;
+                Version = 1;
+            }
+
+            public override string ToString() => $"{nameof(Blah)}: {Blah}; {nameof(Version)}: {Version}";
+        }
+
+        public class ObjectWithoutNewFieldTypeSerializer : IPartialSerializer<ObjectWithoutNewField>
+        {
+            public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ObjectWithoutNewField obj) where TBufferWriter : IBufferWriter<byte>
+            {
+                StringCodec.WriteField(ref writer, 0, typeof(string), obj.Blah);
+                Int32Codec.WriteField(ref writer, 1, typeof(int), obj.Version);
+                // serializing a new field to simulate a binary that's created from a newer version of the object
+                ObjectCodec.WriteField(ref writer, 6, typeof(object), "I will be stuck in binary limbo! (I shouldn't be part of the deserialized object)");
+            }
+
+            // using a generated deserializer for deserialization
+            public void Deserialize<TInput>(ref Reader<TInput> reader, ObjectWithoutNewField obj)
+            {
+            }
         }
 
         /// <summary>
