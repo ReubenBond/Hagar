@@ -1,5 +1,4 @@
-﻿using Hagar.Configuration;
-using Hagar.Session;
+﻿using Hagar.Session;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -12,21 +11,7 @@ namespace Hagar.UnitTests
 
         public PolymorphismTests()
         {
-            _serviceProvider = new ServiceCollection().AddHagar(hagar =>
-                {
-                    hagar.AddAssembly(typeof(PolymorphismTests).Assembly);
-                })
-                .AddSingleton<IConfigurationProvider<TypeConfiguration>, TypeConfigurationProvider>()
-                .BuildServiceProvider();
-        }
-
-        private class TypeConfigurationProvider : IConfigurationProvider<TypeConfiguration>
-        {
-            public void Configure(TypeConfiguration configuration)
-            {
-                configuration.WellKnownTypes[1000] = typeof(SomeBaseClass);
-                configuration.WellKnownTypes[1001] = typeof(SomeSubClass);
-            }
+            _serviceProvider = new ServiceCollection().AddHagar(hagar => hagar.AddAssembly(typeof(PolymorphismTests).Assembly)).BuildServiceProvider();
         }
 
         [Fact]
@@ -35,7 +20,7 @@ namespace Hagar.UnitTests
             var original = new SomeSubClass
             { SbcString = "Shaggy", SbcInteger = 13, SscString = "Zoinks!", SscInteger = -1 };
 
-            var resultAsBase = RoundTripToExpectedType<SomeSubClass, SomeSubClass>(original);
+            var resultAsBase = RoundTripToExpectedType<SomeBaseClass, SomeSubClass>(original);
 
             var castAsSubclass = resultAsBase;
             Assert.NotNull(resultAsBase);
@@ -63,7 +48,6 @@ namespace Hagar.UnitTests
             return (TActual)serializer.Deserialize(array);
         }
 
-        [Id(1000)]
         [GenerateSerializer]
         public class SomeBaseClass
         {
@@ -74,7 +58,6 @@ namespace Hagar.UnitTests
             public int SbcInteger { get; set; }
         }
 
-        [Id(1001)]
         [GenerateSerializer]
         public class SomeSubClass : SomeBaseClass
         {
