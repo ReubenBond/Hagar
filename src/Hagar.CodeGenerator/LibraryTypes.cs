@@ -17,6 +17,7 @@ namespace Hagar.CodeGenerator
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
+                ExtensionDataAttribute = Type("Hagar.ExtensionDataAttribute"),
                 Field = Type("Hagar.WireProtocol.Field"),
                 FieldCodec = Type("Hagar.Codecs.IFieldCodec"),
                 FieldCodec_1 = Type("Hagar.Codecs.IFieldCodec`1"),
@@ -100,6 +101,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Action_2 { get; private set; }
         public INamedTypeSymbol Byte { get; private set; }
         public INamedTypeSymbol ConfigurationProvider { get; private set; }
+        public INamedTypeSymbol ExtensionDataAttribute { get; private set; }
         public INamedTypeSymbol Field { get; private set; }
         public INamedTypeSymbol FieldCodec_1 { get; private set; }
         public INamedTypeSymbol FieldCodec { get; private set; }
@@ -108,6 +110,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol GenerateSerializerAttribute { get; private set; }
         public INamedTypeSymbol IActivator_1 { get; private set; }
         public INamedTypeSymbol IBufferWriter { get; private set; }
+
         public INamedTypeSymbol IInvokable { get; private set; }
         public INamedTypeSymbol Int32 { get; private set; }
         public INamedTypeSymbol UInt32 { get; private set; }

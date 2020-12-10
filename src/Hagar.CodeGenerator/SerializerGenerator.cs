@@ -419,6 +419,109 @@ namespace Hagar.CodeGenerator
                 .AddBodyStatements(body.ToArray());
         }
 
+        private static MemberDeclarationSyntax GenerateExtensionDataSerializeMethod(
+            ISerializableTypeDescription type,
+            List<FieldDescription> serializerFields,
+            List<ISerializableMember> members,
+            LibraryTypes libraryTypes)
+        {
+            var returnType = PredefinedType(Token(SyntaxKind.VoidKeyword));
+
+            var writerParam = "writer".ToIdentifierName();
+            var instanceParam = "instance".ToIdentifierName();
+
+            var body = new List<StatementSyntax>();
+            if (type.HasComplexBaseType)
+            {
+                body.Add(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            ThisExpression().Member(BaseTypeSerializerFieldName.ToIdentifierName()).Member(SerializeMethodName),
+                            ArgumentList(SeparatedList(new[] { Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)), Argument(instanceParam) })))));
+                body.Add(ExpressionStatement(InvocationExpression(writerParam.Member("WriteEndBase"), ArgumentList())));
+            }
+
+            var idVar = "id".ToIdentifierName();
+
+            // C#: int id = 0;
+            body.Add(
+                LocalDeclarationStatement(
+                    VariableDeclaration(
+                        PredefinedType(Token(SyntaxKind.IntKeyword)),
+                        SingletonSeparatedList(VariableDeclarator(idVar.Identifier)
+                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))))));
+
+            /*
+             * INIT:
+                 * int id = 0;
+             * PER MEMBER:
+                 * Serialize extension data fields between id and <description.FieldId>
+                     * HagarGeneratedCodeHelper.WriteExtensionData<TBufferWriter>(ref Writer<TBufferWriter> writer, object extensionData, ref int fieldId, int maxFieldId)
+                 * Serialize field (delta = <description.FieldId> - id)
+                 * id = <description.FieldId>
+             * END:
+                 * Serialize fields between id and int.MaxValue
+                     * HagarGeneratedCodeHelper.WriteExtensionData<TBufferWriter>(ref Writer<TBufferWriter> writer, object extensionData, ref int fieldId, int maxFieldId)
+             */
+
+            // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
+            uint previousFieldId = 0;
+            foreach (var member in members.OrderBy(m => m.Description.FieldId))
+            {
+                var description = member.Description;
+                var fieldIdDelta = description.FieldId - previousFieldId;
+                previousFieldId = description.FieldId;
+
+                // Codecs can either be static classes or injected into the constructor.
+                // Either way, the member signatures are the same.
+                var memberType = GetExpectedType(description.Type);
+                var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, memberType));
+                ExpressionSyntax codecExpression;
+                if (staticCodec != null)
+                {
+                    codecExpression = staticCodec.CodecType.ToNameSyntax();
+                }
+                else
+                {
+                    var instanceCodec = serializerFields.OfType<CodecFieldDescription>().First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, memberType));
+                    codecExpression = ThisExpression().Member(instanceCodec.FieldName);
+                }
+
+                var expectedType = serializerFields.OfType<TypeFieldDescription>().First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, memberType));
+                body.Add(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            codecExpression.Member("WriteField"),
+                            ArgumentList(
+                                SeparatedList(
+                                    new[]
+                                    {
+                                        Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
+                                        Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(fieldIdDelta))),
+                                        Argument(expectedType.FieldName.ToIdentifierName()),
+                                        Argument(member.GetGetter(instanceParam))
+                                    })))));
+            }
+
+            var parameters = new[]
+            {
+                Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
+                Parameter("instance".ToIdentifier()).WithType(type.TypeSyntax)
+            };
+
+            if (type.IsValueType)
+            {
+                parameters[1] = parameters[1].WithModifiers(TokenList(Token(SyntaxKind.RefKeyword)));
+            }
+
+            return MethodDeclaration(returnType, SerializeMethodName)
+                .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                .AddParameterListParameters(parameters)
+                .AddTypeParameterListParameters(TypeParameter("TBufferWriter"))
+                .AddConstraintClauses(TypeParameterConstraintClause("TBufferWriter").AddConstraints(TypeConstraint(libraryTypes.IBufferWriter.Construct(libraryTypes.Byte).ToTypeSyntax())))
+                .AddBodyStatements(body.ToArray());
+        }
+
         private static MemberDeclarationSyntax GenerateDeserializeMethod(
             ISerializableTypeDescription type,
             List<FieldDescription> serializerFields,

@@ -3,6 +3,7 @@ using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.WireProtocol;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -127,6 +128,13 @@ namespace Hagar.GeneratedCodeHelpers
             }
 
             return (int)(id + header.FieldIdDelta);
+        }
+
+        public static int WriteExtensionData<TBufferWriter>(ref Writer<TBufferWriter> writer, object extensionData, int minFieldId, int maxFieldId) where TBufferWriter : IBufferWriter<byte>
+        {
+            var id = minFieldId;
+
+            return id;
         }
     }
 }
