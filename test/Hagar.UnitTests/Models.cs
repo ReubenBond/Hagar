@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Hagar.UnitTests
@@ -108,5 +109,27 @@ namespace Hagar.UnitTests
         public int GetIntField() => _intField;
 
         public override string ToString() => $"{nameof(_intField)}: {_intField}, {nameof(IntProperty)}: {IntProperty}";
+    }
+
+    [GenerateSerializer]
+    public class SystemCollectionsClass
+    {
+        [Id(0)]
+        public HashSet<string> hashSetField;
+        
+        [Id(1)]
+        public HashSet<string> HashSetProperty { get; set; }
+
+        [Id(2)]
+        public ConcurrentQueue<int> concurrentQueueField;
+
+        [Id(3)]
+        public ConcurrentQueue<int> ConcurrentQueueProperty { get; set; }
+
+        [Id(4)]
+        public ConcurrentDictionary<string, int> concurrentDictField;
+
+        [Id(5)]
+        public ConcurrentDictionary<string, int> ConcurrentDictProperty { get; set; }
     }
 }

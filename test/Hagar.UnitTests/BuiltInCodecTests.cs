@@ -5,7 +5,10 @@ using Hagar.TestKit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 // ReSharper disable UnusedMember.Global
@@ -627,6 +630,42 @@ namespace Hagar.UnitTests
         protected override List<int>[] TestValues => new[] { null, new List<int>(), CreateValue(), CreateValue(), CreateValue() };
     }
 
+    public class QueueCodecTests : FieldCodecTester<Queue<int>, QueueCodec<int>>
+    {
+        protected override Queue<int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new Queue<int>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result.Enqueue(rand.Next());
+            }
+
+            return result;
+        }
+
+        protected override bool Equals(Queue<int> left, Queue<int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+        protected override Queue<int>[] TestValues => new[] { null, new Queue<int>(), CreateValue(), CreateValue(), CreateValue() };
+    }
+
+    public class ConcurrentQueueCodecTests : FieldCodecTester<ConcurrentQueue<int>, ConcurrentQueueCodec<int>>
+    {
+        protected override ConcurrentQueue<int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new ConcurrentQueue<int>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result.Enqueue(rand.Next());
+            }
+
+            return result;
+        }
+
+        protected override bool Equals(ConcurrentQueue<int> left, ConcurrentQueue<int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+        protected override ConcurrentQueue<int>[] TestValues => new[] { null, new ConcurrentQueue<int>(), CreateValue(), CreateValue(), CreateValue() };
+    }
+
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
         protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
@@ -645,6 +684,139 @@ namespace Hagar.UnitTests
 
         protected override Dictionary<string, int>[] TestValues => new[] { null, new Dictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+    }
+
+    /***
+    TODO: CodecProvider.GetCodec() will throw:
+          Hagar.CodecNotFoundException : Could not find a codec for type Hagar.UnitTests.DictionaryWithComparerCodecTests+CaseInsensitiveEqualityComparer.
+
+    public class DictionaryWithComparerCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
+    {
+        protected override void Configure(IHagarBuilder builder) => builder.AddISerializableSupport();
+
+        protected override Dictionary<string, int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var eqComparer = new CaseInsensitiveEqualityComparer();
+            var result = new Dictionary<string, int>(eqComparer);
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result[rand.Next().ToString()] = rand.Next();
+            }
+
+            return result;
+        }
+
+        protected override Dictionary<string, int>[] TestValues => new[] { null, new Dictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
+        protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+
+        class CaseInsensitiveEqualityComparer : IEqualityComparer<string>
+        {
+            public bool Equals(string left, string right)
+            {
+                if (left == null && right == null)
+                {
+                    return true;
+                }
+                else if (left == null || right == null)
+                {
+                    return false;
+                }
+                else if (left.ToUpper() == right.ToUpper())
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            public int GetHashCode(string s) => s.ToUpper().GetHashCode();
+        }
+    }
+
+    public class ConcurrentDictionaryCodecTests : FieldCodecTester<ConcurrentDictionary<string, int>, ConcurrentDictionaryCodec<string, int>>
+    {
+        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
+
+        protected override ConcurrentDictionary<string, int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new ConcurrentDictionary<string, int>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result[rand.Next().ToString()] = rand.Next();
+            }
+
+            return result;
+        }
+
+        protected override ConcurrentDictionary<string, int>[] TestValues => new[] { null, new ConcurrentDictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
+
+        // Order of the key-value pairs in the return value may not match the order of the key-value pairs in the surrogate
+        protected override bool Equals(ConcurrentDictionary<string, int> left, ConcurrentDictionary<string, int> right)
+        {
+            if (object.ReferenceEquals(left, right))
+            {
+                return true;
+            }
+            else if (left.Keys.Count != right.Keys.Count)
+            {
+                return false;
+            }
+
+            foreach (string k in left.Keys)
+            {
+                if (!(right.ContainsKey(k) && left[k] == right[k]))
+                {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+    }
+    ***/
+
+    public class ReadOnlyDictionaryCodecTests : FieldCodecTester<ReadOnlyDictionary<string, int>, ReadOnlyDictionaryCodec<string, int>>
+    {
+        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
+
+        protected override ReadOnlyDictionary<string, int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var dict = new Dictionary<string, int>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                dict[rand.Next().ToString()] = rand.Next();
+            }
+
+            return new ReadOnlyDictionary<string, int>(dict);
+        }
+
+        protected override ReadOnlyDictionary<string, int>[] TestValues => new[] { null, new ReadOnlyDictionary<string, int>(new Dictionary<string, int>()), CreateValue(), CreateValue(), CreateValue() };
+        protected override bool Equals(ReadOnlyDictionary<string, int> left, ReadOnlyDictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+    }
+
+    public class SortedDictionaryCodecTests : FieldCodecTester<SortedDictionary<string, int>, SortedDictionaryCodec<string, int>>
+    {
+        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
+
+        protected override SortedDictionary<string, int> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new SortedDictionary<string, int>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                result[rand.Next().ToString()] = rand.Next();
+            }
+
+            return result;
+        }
+
+        protected override SortedDictionary<string, int>[] TestValues => new[] { null, new SortedDictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
+        protected override bool Equals(SortedDictionary<string, int> left, SortedDictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 
     public class IPAddressTests : FieldCodecTester<IPAddress, IPAddressCodec>
@@ -673,5 +845,47 @@ namespace Hagar.UnitTests
             rand.NextBytes(bytes);
             return new IPAddress(bytes);
         } 
+    }
+
+    public class HashSetTests : FieldCodecTester<HashSet<string>, HashSetCodec<string>>
+    {
+        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
+
+        protected override HashSet<string> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var result = new HashSet<string>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                _ = result.Add(rand.Next().ToString());
+            }
+
+            return result;
+        }
+
+        protected override HashSet<string>[] TestValues => new[] { null, new HashSet<string>(), CreateValue(), CreateValue(), CreateValue() };
+
+        protected override bool Equals(HashSet<string> left, HashSet<string> right) => object.ReferenceEquals(left, right) || left.SetEquals(right);
+    }
+
+    public class ImmutableHashSetTests : FieldCodecTester<ImmutableHashSet<string>, ImmutableHashSetCodec<string>>
+    {
+        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
+
+        protected override ImmutableHashSet<string> CreateValue()
+        {
+            var rand = new Random(Guid.NewGuid().GetHashCode());
+            var hashSet = new HashSet<string>();
+            for (var i = 0; i < rand.Next(17) + 5; i++)
+            {
+                _ = hashSet.Add(rand.Next().ToString());
+            }
+
+            return ImmutableHashSet.ToImmutableHashSet(hashSet);
+        }
+
+        protected override ImmutableHashSet<string>[] TestValues => new[] { null, ImmutableHashSet.Create<string>(), CreateValue(), CreateValue(), CreateValue() };
+
+        protected override bool Equals(ImmutableHashSet<string> left, ImmutableHashSet<string> right) => object.ReferenceEquals(left, right) || left.SetEquals(right);
     }
 }
