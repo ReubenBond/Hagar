@@ -37,17 +37,13 @@ namespace Hagar.UnitTests
             var original = new SomeSubClass
             { SbcString = "Shaggy", SbcInteger = 13, SscString = "Zoinks!", SscInteger = -1 };
 
-            var resultAsBase = RoundTripToExpectedType<SomeSubClass, SomeSubClass>(original);
+            var getSubClassSerializerResult = RoundTripToExpectedType<SomeSubClass, SomeSubClass>(original);
+            Assert.Equal(original.SscString, getSubClassSerializerResult.SscString);
+            Assert.Equal(original.SscInteger, getSubClassSerializerResult.SscInteger);
 
-            var castAsSubclass = resultAsBase;
-            Assert.NotNull(resultAsBase);
-            Assert.NotNull(castAsSubclass);
-            Assert.Equal(original.SscString, castAsSubclass.SscString);
-            Assert.Equal(original.SscInteger, castAsSubclass.SscInteger);
-
-            var resultAsSub = RoundTripToExpectedType<SomeBaseClass, SomeSubClass>(original);
-            Assert.Equal(original.SscString, resultAsSub.SscString);
-            Assert.Equal(original.SscInteger, resultAsSub.SscInteger);
+            var getBaseClassSerializerResult = RoundTripToExpectedType<SomeBaseClass, SomeSubClass>(original);
+            Assert.Equal(original.SscString, getBaseClassSerializerResult.SscString);
+            Assert.Equal(original.SscInteger, getBaseClassSerializerResult.SscInteger);
         }
 
         [Fact]
@@ -60,23 +56,25 @@ namespace Hagar.UnitTests
             { SbcString = "sbcs", SbcInteger = 2000, OtherSubClassString = "oscs", OtherSubClassInt = 1000 };
 
             var someSubClassChild = new SomeSubClassChild
-            { SbcString = "a", SbcInteger = 0, SomeSubClassChildString = "string!", SomeSubClassChildInt = 5858 };
+            { SbcString = "a", SbcInteger = 0, SscString = "Zoinks!", SscInteger = -1, SomeSubClassChildString = "string!", SomeSubClassChildInt = 5858 };
 
-            var someSubClassResult = RoundTripToExpectedType<SomeSubClass, SomeSubClass>(someSubClass);
+            var someSubClassResult = RoundTripToExpectedType<SomeBaseClass, SomeSubClass>(someSubClass);
             Assert.Equal(someSubClass.SscString, someSubClassResult.SscString);
             Assert.Equal(someSubClass.SscInteger, someSubClassResult.SscInteger);
             Assert.Equal(someSubClass.SbcString, someSubClassResult.SbcString);
             Assert.Equal(someSubClass.SbcInteger, someSubClassResult.SbcInteger);
 
-            var otherSubClassResult = RoundTripToExpectedType<OtherSubClass, OtherSubClass>(otherSubClass);
+            var otherSubClassResult = RoundTripToExpectedType<SomeBaseClass, OtherSubClass>(otherSubClass);
             Assert.Equal(otherSubClass.OtherSubClassString, otherSubClassResult.OtherSubClassString);
             Assert.Equal(otherSubClass.OtherSubClassInt, otherSubClassResult.OtherSubClassInt);
             Assert.Equal(otherSubClass.SbcString, otherSubClassResult.SbcString);
             Assert.Equal(otherSubClass.SbcInteger, otherSubClassResult.SbcInteger);
 
-            var someSubClassChildResult = RoundTripToExpectedType<SomeSubClassChild, SomeSubClassChild>(someSubClassChild);
+            var someSubClassChildResult = RoundTripToExpectedType<SomeBaseClass, SomeSubClassChild>(someSubClassChild);
             Assert.Equal(someSubClassChild.SomeSubClassChildString, someSubClassChildResult.SomeSubClassChildString);
             Assert.Equal(someSubClassChild.SomeSubClassChildInt, someSubClassChildResult.SomeSubClassChildInt);
+            Assert.Equal(someSubClassChild.SscString, someSubClassChildResult.SscString);
+            Assert.Equal(someSubClassChild.SscInteger, someSubClassChildResult.SscInteger);
             Assert.Equal(someSubClassChild.SbcString, someSubClassChildResult.SbcString);
             Assert.Equal(someSubClassChild.SbcInteger, someSubClassChildResult.SbcInteger);
         }
