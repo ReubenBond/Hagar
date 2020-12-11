@@ -26,6 +26,8 @@ namespace Hagar.UnitTests
             {
                 configuration.WellKnownTypes[1000] = typeof(SomeBaseClass);
                 configuration.WellKnownTypes[1001] = typeof(SomeSubClass);
+                configuration.WellKnownTypes[1002] = typeof(OtherSubClass);
+                configuration.WellKnownTypes[1003] = typeof(SomeSubClassChild);
             }
         }
 
@@ -46,6 +48,37 @@ namespace Hagar.UnitTests
             var resultAsSub = RoundTripToExpectedType<SomeBaseClass, SomeSubClass>(original);
             Assert.Equal(original.SscString, resultAsSub.SscString);
             Assert.Equal(original.SscInteger, resultAsSub.SscInteger);
+        }
+
+        [Fact]
+        public void GeneratedSerializersRoundTripThroughSerializer_PolymorphicMultiHierarchy()
+        {
+            var someSubClass = new SomeSubClass
+            { SbcString = "Shaggy", SbcInteger = 13, SscString = "Zoinks!", SscInteger = -1 };
+
+            var otherSubClass = new OtherSubClass
+            { SbcString = "sbcs", SbcInteger = 2000, OtherSubClassString = "oscs", OtherSubClassInt = 1000 };
+
+            var someSubClassChild = new SomeSubClassChild
+            { SbcString = "a", SbcInteger = 0, SomeSubClassChildString = "string!", SomeSubClassChildInt = 5858 };
+
+            var someSubClassResult = RoundTripToExpectedType<SomeSubClass, SomeSubClass>(someSubClass);
+            Assert.Equal(someSubClass.SscString, someSubClassResult.SscString);
+            Assert.Equal(someSubClass.SscInteger, someSubClassResult.SscInteger);
+            Assert.Equal(someSubClass.SbcString, someSubClassResult.SbcString);
+            Assert.Equal(someSubClass.SbcInteger, someSubClassResult.SbcInteger);
+
+            var otherSubClassResult = RoundTripToExpectedType<OtherSubClass, OtherSubClass>(otherSubClass);
+            Assert.Equal(otherSubClass.OtherSubClassString, otherSubClassResult.OtherSubClassString);
+            Assert.Equal(otherSubClass.OtherSubClassInt, otherSubClassResult.OtherSubClassInt);
+            Assert.Equal(otherSubClass.SbcString, otherSubClassResult.SbcString);
+            Assert.Equal(otherSubClass.SbcInteger, otherSubClassResult.SbcInteger);
+
+            var someSubClassChildResult = RoundTripToExpectedType<SomeSubClassChild, SomeSubClassChild>(someSubClassChild);
+            Assert.Equal(someSubClassChild.SomeSubClassChildString, someSubClassChildResult.SomeSubClassChildString);
+            Assert.Equal(someSubClassChild.SomeSubClassChildInt, someSubClassChildResult.SomeSubClassChildInt);
+            Assert.Equal(someSubClassChild.SbcString, someSubClassChildResult.SbcString);
+            Assert.Equal(someSubClassChild.SbcInteger, someSubClassChildResult.SbcInteger);
         }
 
         private TActual RoundTripToExpectedType<TBase, TActual>(TActual original)
@@ -83,6 +116,28 @@ namespace Hagar.UnitTests
 
             [Id(1)]
             public string SscString { get; set; }
+        }
+
+        [Id(1002)]
+        [GenerateSerializer]
+        public class OtherSubClass : SomeBaseClass
+        {
+            [Id(0)]
+            public int OtherSubClassInt { get; set; }
+
+            [Id(1)]
+            public string OtherSubClassString { get; set; }
+        }
+
+        [Id(1003)]
+        [GenerateSerializer]
+        public class SomeSubClassChild : SomeSubClass
+        {
+            [Id(0)]
+            public int SomeSubClassChildInt { get; set; }
+
+            [Id(1)]
+            public string SomeSubClassChildString { get; set; }
         }
     }
 }
