@@ -650,6 +650,7 @@ namespace Hagar.UnitTests
 
     public class ConcurrentQueueCodecTests : FieldCodecTester<ConcurrentQueue<int>, ConcurrentQueueCodec<int>>
     {
+
         protected override ConcurrentQueue<int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -668,8 +669,6 @@ namespace Hagar.UnitTests
 
     public class DictionaryCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
-
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -686,13 +685,13 @@ namespace Hagar.UnitTests
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
     }
 
-    /***
-    TODO: CodecProvider.GetCodec() will throw:
-          Hagar.CodecNotFoundException : Could not find a codec for type Hagar.UnitTests.DictionaryWithComparerCodecTests+CaseInsensitiveEqualityComparer.
-
     public class DictionaryWithComparerCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder) => builder.AddISerializableSupport();
+        protected override void Configure(IHagarBuilder builder)
+        {
+            base.Configure(builder);
+            builder.AddAssembly(typeof(CaseInsensitiveEqualityComparer).Assembly);
+        }
 
         protected override Dictionary<string, int> CreateValue()
         {
@@ -708,9 +707,11 @@ namespace Hagar.UnitTests
         }
 
         protected override Dictionary<string, int>[] TestValues => new[] { null, new Dictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
+
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
 
-        class CaseInsensitiveEqualityComparer : IEqualityComparer<string>
+        [GenerateSerializer]
+        public class CaseInsensitiveEqualityComparer : IEqualityComparer<string>
         {
             public bool Equals(string left, string right)
             {
@@ -738,8 +739,6 @@ namespace Hagar.UnitTests
 
     public class ConcurrentDictionaryCodecTests : FieldCodecTester<ConcurrentDictionary<string, int>, ConcurrentDictionaryCodec<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
-
         protected override ConcurrentDictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -754,9 +753,9 @@ namespace Hagar.UnitTests
 
         protected override ConcurrentDictionary<string, int>[] TestValues => new[] { null, new ConcurrentDictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
 
-        // Order of the key-value pairs in the return value may not match the order of the key-value pairs in the surrogate
         protected override bool Equals(ConcurrentDictionary<string, int> left, ConcurrentDictionary<string, int> right)
         {
+            // Order of the key-value pairs in the return value may not match the order of the key-value pairs in the surrogate
             if (object.ReferenceEquals(left, right))
             {
                 return true;
@@ -777,12 +776,9 @@ namespace Hagar.UnitTests
             return true;
         }
     }
-    ***/
 
     public class ReadOnlyDictionaryCodecTests : FieldCodecTester<ReadOnlyDictionary<string, int>, ReadOnlyDictionaryCodec<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
-
         protected override ReadOnlyDictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -801,8 +797,6 @@ namespace Hagar.UnitTests
 
     public class SortedDictionaryCodecTests : FieldCodecTester<SortedDictionary<string, int>, SortedDictionaryCodec<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
-
         protected override SortedDictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -849,8 +843,6 @@ namespace Hagar.UnitTests
 
     public class HashSetTests : FieldCodecTester<HashSet<string>, HashSetCodec<string>>
     {
-        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
-
         protected override HashSet<string> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -870,8 +862,6 @@ namespace Hagar.UnitTests
 
     public class ImmutableHashSetTests : FieldCodecTester<ImmutableHashSet<string>, ImmutableHashSetCodec<string>>
     {
-        protected override void Configure(IHagarBuilder builder) => _ = builder.AddISerializableSupport();
-
         protected override ImmutableHashSet<string> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
