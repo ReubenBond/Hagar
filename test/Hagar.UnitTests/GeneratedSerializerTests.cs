@@ -5,6 +5,8 @@ using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Pipelines;
 using Xunit;
 
@@ -135,6 +137,47 @@ namespace Hagar.UnitTests
 
             Assert.Equal(array3d, result3d);
         }
+
+        [Fact]
+        public void SystemCollectionsRoundTrip()
+        {
+            var concurrentQueueField = new ConcurrentQueue<int>();
+            concurrentQueueField.Enqueue(4);
+            
+            var concurrentQueueProperty = new ConcurrentQueue<int>();
+            concurrentQueueProperty.Enqueue(5);
+            concurrentQueueProperty.Enqueue(6);
+            
+            var concurrentDictField = new ConcurrentDictionary<string, int>();
+            _ = concurrentDictField.TryAdd("nine", 9);
+            
+            var concurrentDictProperty = new ConcurrentDictionary<string, int>();
+            _ = concurrentDictProperty.TryAdd("ten", 10);
+            _ = concurrentDictProperty.TryAdd("eleven", 11);
+
+            var original = new SystemCollectionsClass
+            {
+                hashSetField = new HashSet<string> { "one" },
+                HashSetProperty = new HashSet<string> { "two", "three" },
+                concurrentQueueField = concurrentQueueField,
+                ConcurrentQueueProperty = concurrentQueueProperty,
+                concurrentDictField = concurrentDictField,
+                ConcurrentDictProperty = concurrentDictProperty
+            };
+            var result = RoundTripThroughCodec(original);
+
+            Assert.Equal(original.hashSetField, result.hashSetField);
+            Assert.Equal(original.HashSetProperty, result.HashSetProperty);
+
+            Assert.Equal(original.concurrentQueueField, result.concurrentQueueField);
+            Assert.Equal(original.ConcurrentQueueProperty, result.ConcurrentQueueProperty);
+
+            // Order of the key-value pairs in the return value may not match the order of the key-value pairs in the surrogate
+            Assert.Equal(original.concurrentDictField["nine"], result.concurrentDictField["nine"]);
+            Assert.Equal(original.ConcurrentDictProperty["ten"], result.ConcurrentDictProperty["ten"]);
+            Assert.Equal(original.ConcurrentDictProperty["eleven"], result.ConcurrentDictProperty["eleven"]);
+        }
+
 
         public void Dispose() => _serviceProvider?.Dispose();
 
