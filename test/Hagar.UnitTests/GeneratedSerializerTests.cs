@@ -2,6 +2,7 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.Session;
+using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -229,6 +230,7 @@ namespace Hagar.UnitTests
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
+
                 var reader = Reader.Create(readResult.Buffer, readerSession);
 
                 result = serializer.Deserialize(ref reader);

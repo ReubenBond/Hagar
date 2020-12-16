@@ -16,18 +16,18 @@ namespace Hagar.UnitTests
                 {
                     hagar.AddAssembly(typeof(PolymorphismTests).Assembly);
                 })
-                .AddSingleton<IConfigurationProvider<TypeConfiguration>, TypeConfigurationProvider>()
+                .AddSingleton<IConfigurationProvider<SerializerConfiguration>, TypeConfigurationProvider>()
                 .BuildServiceProvider();
         }
 
-        private class TypeConfigurationProvider : IConfigurationProvider<TypeConfiguration>
+        private class TypeConfigurationProvider : IConfigurationProvider<SerializerConfiguration>
         {
-            public void Configure(TypeConfiguration configuration)
+            public void Configure(SerializerConfiguration configuration)
             {
-                configuration.WellKnownTypes[1000] = typeof(SomeBaseClass);
-                configuration.WellKnownTypes[1001] = typeof(SomeSubClass);
-                configuration.WellKnownTypes[1002] = typeof(OtherSubClass);
-                configuration.WellKnownTypes[1003] = typeof(SomeSubClassChild);
+                configuration.WellKnownTypeIds[1000] = typeof(SomeBaseClass);
+                configuration.WellKnownTypeIds[1001] = typeof(SomeSubClass);
+                configuration.WellKnownTypeIds[1002] = typeof(OtherSubClass);
+                configuration.WellKnownTypeIds[1003] = typeof(SomeSubClassChild);
             }
         }
 

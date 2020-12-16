@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Hagar.UnitTests
 {
     [GenerateSerializer]
+    [WellKnownId(3201)]
     public class SomeClassWithSerializers
     {
         [Id(0)]
@@ -19,6 +20,7 @@ namespace Hagar.UnitTests
     }
 
     [GenerateSerializer]
+    [WellKnownAlias("sercla1")]
     public class SerializableClassWithCompiledBase : List<int>
     {
         [Id(0)]

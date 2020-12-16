@@ -7,11 +7,12 @@ namespace Hagar.Session
     public sealed class WellKnownTypeCollection
     {
         private readonly Dictionary<uint, Type> _wellKnownTypes;
-        private readonly Dictionary<Type, uint> _wellKnownTypeToIdMap = new Dictionary<Type, uint>();
+        private readonly Dictionary<Type, uint> _wellKnownTypeToIdMap; 
 
-        public WellKnownTypeCollection(IConfiguration<TypeConfiguration> typeConfiguration)
+        public WellKnownTypeCollection(IConfiguration<SerializerConfiguration> config)
         {
-            _wellKnownTypes = typeConfiguration?.Value.WellKnownTypes ?? throw new ArgumentNullException(nameof(typeConfiguration));
+            _wellKnownTypes = config?.Value.WellKnownTypeIds ?? throw new ArgumentNullException(nameof(config));
+            _wellKnownTypeToIdMap = new Dictionary<Type, uint>();
             foreach (var item in _wellKnownTypes)
             {
                 _wellKnownTypeToIdMap[item.Value] = item.Key;
