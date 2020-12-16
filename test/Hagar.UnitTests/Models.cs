@@ -28,6 +28,7 @@ namespace Hagar.UnitTests
     }
 
     [GenerateSerializer]
+    [WellKnownAlias("gpoco`1")]
     public class GenericPoco<T>
     {
         [Id(0)]

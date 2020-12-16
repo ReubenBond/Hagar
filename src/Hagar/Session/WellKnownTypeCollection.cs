@@ -7,7 +7,7 @@ namespace Hagar.Session
     public sealed class WellKnownTypeCollection
     {
         private readonly Dictionary<uint, Type> _wellKnownTypes;
-        private readonly Dictionary<Type, uint> _wellKnownTypeToIdMap; 
+        private readonly Dictionary<Type, uint> _wellKnownTypeToIdMap;
 
         public WellKnownTypeCollection(IConfiguration<SerializerConfiguration> config)
         {
