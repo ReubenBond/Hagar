@@ -14,10 +14,10 @@ namespace Hagar.CodeGenerator
     public class CodeGeneratorOptions
     {
         public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
-
         public List<string> IdAttributeTypes { get; set; } = new List<string> { "Hagar.IdAttribute" };
+        public List<string> AliasAttributeTypes { get; set; } = new List<string> { "Hagar.AliasAttribute" };
 
-        public bool GenerateFieldIds { get; set; } = true;
+        public bool GenerateFieldIds { get; set; } = false;
     }
 
     public class CodeGenerator
@@ -137,6 +137,16 @@ namespace Hagar.CodeGenerator
                         }
 
                         return false;
+                    }
+
+                    if (GetWellKnownTypeId(symbol) is uint wellKnownTypeId)
+                    {
+                        metadataModel.WellKnownTypeIds.Add((symbol, wellKnownTypeId));
+                    }
+
+                    if (GetTypeAlias(symbol) is string typeAlias)
+                    {
+                        metadataModel.TypeAliases.Add((symbol, typeAlias));
                     }
 
                     if (ShouldGenerateSerializer(symbol))
@@ -270,7 +280,7 @@ namespace Hagar.CodeGenerator
                     var id = GetId(prop);
                     if (!id.HasValue)
                     {
-                        if (hasAttributes || !_options.GenerateFieldIds)
+                        if (hasAttributes)
                         {
                             continue;
                         }
@@ -314,6 +324,30 @@ namespace Hagar.CodeGenerator
                     yield return new FieldDescription(id.Value, field);
                 }
             }
+        }
+
+        private uint? GetWellKnownTypeId(INamedTypeSymbol typeSymbol)
+        {
+            var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(_libraryTypes.WellKnownIdAttribute, attr.AttributeClass));
+            if (attr is null)
+            {
+                return null;
+            }
+
+            var id = (uint)attr.ConstructorArguments.First().Value;
+            return id;
+        }
+
+        private string GetTypeAlias(INamedTypeSymbol typeSymbol)
+        {
+            var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(_libraryTypes.WellKnownAliasAttribute, attr.AttributeClass));
+            if (attr is null)
+            {
+                return null;
+            }
+
+            var value = (string)attr.ConstructorArguments.First().Value;
+            return value;
         }
 
         // Returns descriptions of all methods 

@@ -26,6 +26,8 @@ namespace Hagar.CodeGenerator
                 IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 IdAttributeTypes = options.IdAttributeTypes.Select(Type).ToList(),
+                WellKnownAliasAttribute = Type("Hagar.WellKnownAliasAttribute"), 
+                WellKnownIdAttribute = Type("Hagar.WellKnownIdAttribute"), 
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
@@ -139,6 +141,8 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Void { get; private set; }
         public INamedTypeSymbol Writer { get; private set; }
         public List<INamedTypeSymbol> IdAttributeTypes { get; private set; }
+        public INamedTypeSymbol WellKnownAliasAttribute { get; private set; }
+        public INamedTypeSymbol WellKnownIdAttribute { get; private set; }
         public List<StaticCodecDescription> StaticCodecs { get; private set; }
         public INamedTypeSymbol RegisterSerializerAttribute { get; private set; }
         public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }

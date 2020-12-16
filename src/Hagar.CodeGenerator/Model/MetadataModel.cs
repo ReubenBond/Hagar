@@ -16,5 +16,7 @@ namespace Hagar.CodeGenerator
             new List<ISerializableTypeDescription>(1024);
         public List<INamedTypeSymbol> DetectedSerializers { get; } = new List<INamedTypeSymbol>();
         public List<INamedTypeSymbol> DetectedActivators { get; } = new List<INamedTypeSymbol>();
+        public List<(INamedTypeSymbol Type, string Alias)> TypeAliases { get; } = new List<(INamedTypeSymbol, string)>(1024);
+        public List<(INamedTypeSymbol Type, uint Id)> WellKnownTypeIds { get; } = new List<(INamedTypeSymbol, uint)>(1024);
     }
 }

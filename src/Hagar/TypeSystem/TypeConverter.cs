@@ -1,3 +1,4 @@
+using Hagar.Configuration;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -14,12 +15,39 @@ namespace Hagar.TypeSystem
         private readonly CachedTypeResolver _resolver = new CachedTypeResolver();
         private readonly Func<QualifiedType, QualifiedType> _convertToDisplayName;
         private readonly Func<QualifiedType, QualifiedType> _convertFromDisplayName;
+        private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownAliasToType;
+        private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownTypeToAlias;
 
-        public TypeConverter(IEnumerable<ITypeConverter> formatters)
+        public TypeConverter(IEnumerable<ITypeConverter> formatters, IConfiguration<SerializerConfiguration> configuration)
         {
             _converters = formatters.ToArray();
             _convertToDisplayName = ConvertToDisplayName;
             _convertFromDisplayName = ConvertFromDisplayName;
+
+            _wellKnownAliasToType = new Dictionary<QualifiedType, QualifiedType>();
+            _wellKnownTypeToAlias = new Dictionary<QualifiedType, QualifiedType>();
+
+            var aliases = configuration.Value.WellKnownTypeAliases;
+            foreach (var item in aliases)
+            {
+                var alias = new QualifiedType(null, item.Key);
+                var spec = RuntimeTypeNameParser.Parse(RuntimeTypeNameFormatter.Format(item.Value));
+                string asmName = null;
+                if (spec is AssemblyQualifiedTypeSpec asm)
+                {
+                    asmName = asm.Assembly;
+                    spec = asm.Type;
+                }
+
+                var originalQualifiedType = new QualifiedType(asmName, spec.Format());
+                _wellKnownTypeToAlias[originalQualifiedType] = alias;
+                if (asmName is { Length: > 0 })
+                {
+                    _wellKnownTypeToAlias[new QualifiedType(null, spec.Format())] = alias;
+                }
+
+                _wellKnownAliasToType[alias] = originalQualifiedType;
+            }
         }
 
         /// <summary>
@@ -121,6 +149,7 @@ namespace Hagar.TypeSystem
             (_, "System.Single") => new QualifiedType(null, "float"),
             (_, "System.Double") => new QualifiedType(null, "double"),
             (_, "System.Decimal") => new QualifiedType(null, "decimal"),
+            _ when _wellKnownTypeToAlias.TryGetValue(input, out var alias) => alias,
             _ => input,
         };
 
@@ -141,7 +170,8 @@ namespace Hagar.TypeSystem
             (_, "float") => new QualifiedType(null, "System.Single"),
             (_, "double") => new QualifiedType(null, "System.Double"),
             (_, "decimal") => new QualifiedType(null, "System.Decimal"),
-            _ => input,
+            _ when _wellKnownAliasToType.TryGetValue(input, out var type) => type,
+            _ => input
         };
     }
 }

@@ -2,6 +2,7 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.Session;
+using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -42,7 +43,7 @@ namespace Hagar.UnitTests
         public void GeneratedSerializersRoundTripThroughSerializer()
         {
             var original = new SomeClassWithSerializers { IntField = 2, IntProperty = 30 };
-            var result = (SomeClassWithSerializers)RoundTripThroughUntypedSerializer(original);
+            var result = (SomeClassWithSerializers)RoundTripThroughUntypedSerializer(original, out _);
 
             Assert.Equal(original.IntField, result.IntField);
             Assert.Equal(original.IntProperty, result.IntProperty);
@@ -52,7 +53,7 @@ namespace Hagar.UnitTests
         public void GeneratedSerializersRoundTripThroughSerializer_ImmutableClass()
         {
             var original = new ImmutableClass(30, 2, 88, 99);
-            var result = (ImmutableClass)RoundTripThroughUntypedSerializer(original);
+            var result = (ImmutableClass)RoundTripThroughUntypedSerializer(original, out _);
 
             Assert.Equal(original.GetIntField(), result.GetIntField());
             Assert.Equal(original.IntProperty, result.IntProperty);
@@ -64,7 +65,7 @@ namespace Hagar.UnitTests
         public void GeneratedSerializersRoundTripThroughSerializer_ImmutableStruct()
         {
             var original = new ImmutableStruct(30, 2);
-            var result = (ImmutableStruct)RoundTripThroughUntypedSerializer(original);
+            var result = (ImmutableStruct)RoundTripThroughUntypedSerializer(original, out _);
 
             Assert.Equal(original.GetIntField(), result.GetIntField());
             Assert.Equal(original.IntProperty, result.IntProperty);
@@ -88,17 +89,33 @@ namespace Hagar.UnitTests
                 ArrayField = new[] { "a", "bb", "ccc" },
                 Field = Guid.NewGuid().ToString("N")
             };
-            var result = (GenericPoco<string>)RoundTripThroughUntypedSerializer(original);
+            var result = (GenericPoco<string>)RoundTripThroughUntypedSerializer(original, out var formattedBitStream);
 
             Assert.Equal(original.ArrayField, result.ArrayField);
             Assert.Equal(original.Field, result.Field);
+            Assert.Contains("gpoco`1", formattedBitStream);
+        }
+
+        [Fact]
+        public void NestedGenericPocoWithTypeAlias()
+        {
+            var original = new GenericPoco<GenericPoco<string>>
+            {
+                Field = new GenericPoco<string>
+                {
+                    Field = Guid.NewGuid().ToString("N")
+                }
+            };
+
+            RoundTripThroughUntypedSerializer(original, out var formattedBitStream);
+            Assert.Contains("gpoco`1[[gpoco`1[[string]]]]", formattedBitStream);
         }
 
         [Fact]
         public void ArraysAreSupported()
         {
             var original = new[] { "a", "bb", "ccc" };
-            var result = (string[])RoundTripThroughUntypedSerializer(original);
+            var result = (string[])RoundTripThroughUntypedSerializer(original, out _);
 
             Assert.Equal(original, result);
         }
@@ -115,7 +132,7 @@ namespace Hagar.UnitTests
                 Dim32 = new int[,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,] { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { { 809 } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } },
                 Jagged = new int[][] { new int[] { 909 } }
             };
-            var result = (ArrayPoco<int>)RoundTripThroughUntypedSerializer(original);
+            var result = (ArrayPoco<int>)RoundTripThroughUntypedSerializer(original, out _);
 
             Assert.Equal(JsonConvert.SerializeObject(original), JsonConvert.SerializeObject(result));
         }
@@ -124,7 +141,7 @@ namespace Hagar.UnitTests
         public void MultiDimensionalArraysAreSupported()
         {
             var array2d = new string[,] { { "1", "2", "3" }, { "4", "5", "6" }, { "7", "8", "9" } };
-            var result2d = (string[,])RoundTripThroughUntypedSerializer(array2d);
+            var result2d = (string[,])RoundTripThroughUntypedSerializer(array2d, out _);
 
             Assert.Equal(array2d, result2d);
             var array3d = new string[,,]
@@ -133,7 +150,7 @@ namespace Hagar.UnitTests
                 { { "g", "r", "g" }, { "1", "3", "a" }, { "l", "k", "a" } },
                 { { "z", "b", "g" }, { "5", "7", "a" }, { "5", "n", "0" } }
             };
-            var result3d = (string[,,])RoundTripThroughUntypedSerializer(array3d);
+            var result3d = (string[,,])RoundTripThroughUntypedSerializer(array3d, out _);
 
             Assert.Equal(array3d, result3d);
         }
@@ -214,7 +231,7 @@ namespace Hagar.UnitTests
             return result;
         }
 
-        private object RoundTripThroughUntypedSerializer(object original)
+        private object RoundTripThroughUntypedSerializer(object original, out string formattedBitStream)
         {
             var pipe = new Pipe();
             object result;
@@ -229,6 +246,10 @@ namespace Hagar.UnitTests
                 pipe.Writer.Complete();
 
                 _ = pipe.Reader.TryRead(out var readResult);
+
+                using var analyzerSession = _sessionPool.GetSession();
+                formattedBitStream = BitStreamFormatter.Format(readResult.Buffer, analyzerSession);
+
                 var reader = Reader.Create(readResult.Buffer, readerSession);
 
                 result = serializer.Deserialize(ref reader);

@@ -37,6 +37,36 @@ namespace Hagar
         public ushort Id { get; }
     }
 
+    [AttributeUsage(
+        AttributeTargets.Class
+        | AttributeTargets.Struct
+        | AttributeTargets.Enum
+        | AttributeTargets.Method)]
+    public sealed class WellKnownIdAttribute : Attribute
+    {
+        public WellKnownIdAttribute(uint id)
+        {
+            Id = id;
+        }
+
+        public uint Id { get; }
+    }
+
+    [AttributeUsage(
+        AttributeTargets.Class
+        | AttributeTargets.Struct
+        | AttributeTargets.Enum
+        | AttributeTargets.Method)]
+    public sealed class WellKnownAliasAttribute : Attribute
+    {
+        public WellKnownAliasAttribute(string alias)
+        {
+            Alias = alias;
+        }
+
+        public string Alias { get; }
+    }
+
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class RegisterSerializerAttribute : Attribute
     {

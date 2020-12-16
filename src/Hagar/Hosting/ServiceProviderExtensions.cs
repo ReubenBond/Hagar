@@ -24,7 +24,7 @@ namespace Hagar
                 context = new HagarConfigurationContext(services);
                 _ = context.Builder.AddAssembly(typeof(ServiceProviderExtensions).Assembly);
                 services.Add(context.CreateServiceDescriptor());
-                _ = services.AddSingleton<IConfigurationProvider<TypeConfiguration>, DefaultTypeConfiguration>();
+                _ = services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultTypeConfiguration>();
                 _ = services.AddSingleton<TypeConverter>();
                 services.TryAddSingleton(typeof(ListActivator<>));
                 services.TryAddSingleton(typeof(DictionaryActivator<,>));
