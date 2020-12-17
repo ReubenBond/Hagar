@@ -39,6 +39,11 @@ namespace Hagar.Buffers
 
     public ref struct Writer<TBufferWriter> where TBufferWriter : IBufferWriter<byte>
     {
+        private static readonly bool IsSpanOutput = typeof(TBufferWriter) == typeof(SpanBufferWriter);
+        private static readonly bool IsMemoryOutput = typeof(TBufferWriter) == typeof(MemoryBufferWriter);
+        private static readonly bool IsMemoryStreamOutput = typeof(TBufferWriter) == typeof(MemoryStreamBufferWriter);
+        private static readonly bool IsArrayStreamOutput = typeof(TBufferWriter) == typeof(ArrayStreamBufferWriter);
+
 #pragma warning disable IDE0044 // Add readonly modifier
         private TBufferWriter _output;
 #pragma warning restore IDE0044 // Add readonly modifier
@@ -49,7 +54,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Writer(TBufferWriter output, SerializerSession session)
         {
-            if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
+            if (IsSpanOutput)
             {
                 throw new NotSupportedException($"Type {typeof(TBufferWriter)} is not supported by this constructor");
             }
@@ -66,7 +71,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Writer(TBufferWriter output, Span<byte> span, SerializerSession session)
         {
-            if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
+            if (IsSpanOutput)
             {
                 _output = output;
                 Session = session;
@@ -82,10 +87,10 @@ namespace Hagar.Buffers
 
         public void Dispose()
         {
-            if (typeof(TBufferWriter) == typeof(SpanBufferWriter)
-                || typeof(TBufferWriter) == typeof(MemoryBufferWriter)
-                || typeof(TBufferWriter) == typeof(MemoryStreamBufferWriter)
-                || typeof(TBufferWriter) == typeof(ArrayStreamBufferWriter))
+            if (IsSpanOutput
+                || IsMemoryOutput
+                || IsMemoryStreamOutput
+                || IsArrayStreamOutput)
             {
                 // Do nothing
             }
@@ -127,7 +132,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Commit()
         {
-            if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
+            if (IsSpanOutput)
             {
                 _output.Advance(_bufferPos);
             }
