@@ -412,17 +412,9 @@ namespace Hagar.Buffers
                 if ((uint)pos >= (uint)span.Length)
                 {
                     return ReadByteSlow(ref this);
-
-                    [MethodImpl(MethodImplOptions.NoInlining)]
-                    static byte ReadByteSlow(ref Reader<TInput> reader)
-                    {
-                        reader.MoveNext();
-                        return reader._currentSpan[reader._bufferPos++];
-                    }
                 }
 
                 var result = span[pos];
-
                 _bufferPos = pos + 1;
                 return result;
             }
@@ -436,6 +428,13 @@ namespace Hagar.Buffers
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static byte ReadByteSlow(ref Reader<TInput> reader)
+        {
+            reader.MoveNext();
+            return reader._currentSpan[reader._bufferPos++];
+
+        }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadInt32() => (int)ReadUInt32();

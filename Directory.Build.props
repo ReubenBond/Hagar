@@ -39,7 +39,7 @@
 
   <!-- Common compile parameters -->
   <PropertyGroup>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <GenerateDocumentationFile Condition="'$(Configuration)'=='Release'">true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;FS2003</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

@@ -130,7 +130,6 @@ namespace Hagar.Buffers
             if (typeof(TBufferWriter) == typeof(SpanBufferWriter))
             {
                 _output.Advance(_bufferPos);
-                _previousBuffersSize += _bufferPos;
             }
             else
             {
