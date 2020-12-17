@@ -168,6 +168,10 @@ namespace Hagar.Buffers
 
     public ref struct Reader<TInput>
     {
+        private readonly static bool IsSpanInput = typeof(TInput) == typeof(SpanReaderInput);
+        private readonly static bool IsReadOnlySequenceInput = typeof(TInput) == typeof(ReadOnlySequence<byte>);
+        private readonly static bool IsReaderInput = typeof(ReaderInput).IsAssignableFrom(typeof(TInput));
+        
         private ReadOnlySpan<byte> _currentSpan;
         private SequencePosition _nextSequencePosition;
         private int _bufferPos;
@@ -179,7 +183,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Reader(TInput input, SerializerSession session, long globalOffset)
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+            if (IsReadOnlySequenceInput)
             {
                 ref var sequence = ref Unsafe.As<TInput, ReadOnlySequence<byte>>(ref input);
                 _input = input;
@@ -190,7 +194,7 @@ namespace Hagar.Buffers
                 _previousBuffersSize = 0;
                 _sequenceOffset = globalOffset;
             }
-            else if (input is ReaderInput)
+            else if (IsReaderInput)
             {
                 _input = input;
                 _nextSequencePosition = default;
@@ -211,7 +215,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Reader(ReadOnlySpan<byte> input, SerializerSession session, long globalOffset)
         {
-            if (typeof(TInput) == typeof(SpanReaderInput))
+            if (IsSpanInput)
             {
                 _input = default;
                 _nextSequencePosition = default;
@@ -236,11 +240,11 @@ namespace Hagar.Buffers
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+                if (IsReadOnlySequenceInput)
                 {
                     return _sequenceOffset + _previousBuffersSize + _bufferPos;
                 }
-                else if (typeof(TInput) == typeof(SpanReaderInput))
+                else if (IsSpanInput)
                 {
                     return _sequenceOffset + _bufferPos;
                 }
@@ -257,7 +261,7 @@ namespace Hagar.Buffers
 
         public void Skip(long count)
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+            if (IsReadOnlySequenceInput)
             {
                 var end = Position + count;
                 while (Position < end)
@@ -272,7 +276,7 @@ namespace Hagar.Buffers
                     }
                 }
             }
-            else if (typeof(TInput) == typeof(SpanReaderInput))
+            else if (IsSpanInput)
             {
                 _bufferPos += (int)count;
                 if (_bufferPos > _currentSpan.Length || count > int.MaxValue)
@@ -295,7 +299,7 @@ namespace Hagar.Buffers
         /// </summary>
         public void ForkFrom(long position, out Reader<TInput> forked)
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+            if (IsReadOnlySequenceInput)
             {
                 ref var sequence = ref Unsafe.As<TInput, ReadOnlySequence<byte>>(ref _input);
                 var slicedSequence = sequence.Slice(position - _sequenceOffset);
@@ -306,7 +310,7 @@ namespace Hagar.Buffers
                     ThrowInvalidPosition(position, forked.Position);
                 }
             }
-            else if (typeof(TInput) == typeof(SpanReaderInput))
+            else if (IsSpanInput)
             {
                 forked = new Reader<TInput>(_currentSpan.Slice((int)position), Session, position);
                 if (forked.Position != position || position > int.MaxValue)
@@ -338,11 +342,11 @@ namespace Hagar.Buffers
 
         public void ResumeFrom(long position)
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+            if (IsReadOnlySequenceInput)
             {
                 // Nothing is required.
             }
-            else if (typeof(TInput) == typeof(SpanReaderInput))
+            else if (IsSpanInput)
             {
                 // Nothing is required.
             }
@@ -371,7 +375,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void MoveNext()
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>))
+            if (IsReadOnlySequenceInput)
             {
                 ref var sequence = ref Unsafe.As<TInput, ReadOnlySequence<byte>>(ref _input);
                 _previousBuffersSize += _bufferSize;
@@ -392,7 +396,7 @@ namespace Hagar.Buffers
                 _bufferPos = 0;
                 _bufferSize = _currentSpan.Length;
             }
-            else if (typeof(TInput) == typeof(SpanReaderInput))
+            else if (IsSpanInput)
             {
                 ThrowInsufficientData();
             }
@@ -405,7 +409,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte()
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 var pos = _bufferPos;
                 var span = _currentSpan;
@@ -442,7 +446,7 @@ namespace Hagar.Buffers
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint ReadUInt32()
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 const int width = 4;
                 if (_bufferPos + width > _bufferSize)
@@ -480,7 +484,7 @@ namespace Hagar.Buffers
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadUInt64()
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 const int width = 8;
                 if (_bufferPos + width > _bufferSize)
@@ -548,7 +552,7 @@ namespace Hagar.Buffers
             }
 
             var bytes = new byte[count];
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 var destination = new Span<byte>(bytes);
                 ReadBytes(in destination);
@@ -563,7 +567,7 @@ namespace Hagar.Buffers
 
         public void ReadBytes(in Span<byte> destination)
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 if (_bufferPos + destination.Length <= _bufferSize)
                 {
@@ -606,7 +610,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(int length, out ReadOnlySpan<byte> bytes)
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 if (_bufferPos + length <= _bufferSize)
                 {
@@ -635,7 +639,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe uint ReadVarUInt32()
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 var pos = _bufferPos;
 
@@ -691,7 +695,7 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong ReadVarUInt64()
         {
-            if (typeof(TInput) == typeof(ReadOnlySequence<byte>) || typeof(TInput) == typeof(SpanReaderInput))
+            if (IsReadOnlySequenceInput || IsSpanInput)
             {
                 var pos = _bufferPos;
 
