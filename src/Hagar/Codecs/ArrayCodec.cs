@@ -3,6 +3,7 @@ using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -14,6 +15,7 @@ namespace Hagar.Codecs
     public sealed class ArrayCodec<T> : IFieldCodec<T[]>
     {
         private readonly IFieldCodec<T> _fieldCodec;
+        private static readonly Type CodecElementType = typeof(T);
 
         public ArrayCodec(IFieldCodec<T> fieldCodec)
         {
@@ -29,12 +31,12 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            Int32Codec.WriteField(ref writer, 0, typeof(int), value.Length);
-            var first = true;
+            Int32Codec.WriteField(ref writer, 0, Int32Codec.CodecFieldType, value.Length);
+            uint innerFieldIdDelta = 1;
             foreach (var element in value)
             {
-                _fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
-                first = false;
+                _fieldCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, element);
+                innerFieldIdDelta = 0;
             }
 
             writer.WriteEndObject();
@@ -96,12 +98,15 @@ namespace Hagar.Codecs
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T[])} with declared length {length}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
     }
 
@@ -112,6 +117,7 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class ReadOnlyMemoryCodec<T> : IFieldCodec<ReadOnlyMemory<T>>
     {
+        private static readonly Type CodecElementType = typeof(T);
         private readonly IFieldCodec<T> _fieldCodec;
 
         public ReadOnlyMemoryCodec(IFieldCodec<T> fieldCodec)
@@ -128,12 +134,12 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            Int32Codec.WriteField(ref writer, 0, typeof(int), value.Length);
-            var first = true;
+            Int32Codec.WriteField(ref writer, 0, Int32Codec.CodecFieldType, value.Length);
+            uint innerFieldIdDelta = 1;
             foreach (var element in value.Span)
             {
-                _fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
-                first = false;
+                _fieldCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, element);
+                innerFieldIdDelta = 0;
             }
 
             writer.WriteEndObject();
@@ -195,12 +201,15 @@ namespace Hagar.Codecs
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T[])} with declared length {length}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
     }
     
@@ -211,6 +220,7 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class MemoryCodec<T> : IFieldCodec<Memory<T>>
     {
+        private static readonly Type CodecElementType = typeof(T);
         private readonly IFieldCodec<T> _fieldCodec;
 
         public MemoryCodec(IFieldCodec<T> fieldCodec)
@@ -227,12 +237,12 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            Int32Codec.WriteField(ref writer, 0, typeof(int), value.Length);
-            var first = true;
+            Int32Codec.WriteField(ref writer, 0, Int32Codec.CodecFieldType, value.Length);
+            uint innerFieldIdDelta = 1;
             foreach (var element in value.Span)
             {
-                _fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
-                first = false;
+                _fieldCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, element);
+                innerFieldIdDelta = 0;
             }
 
             writer.WriteEndObject();
@@ -294,12 +304,15 @@ namespace Hagar.Codecs
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T[])} with declared length {length}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
     }
 }

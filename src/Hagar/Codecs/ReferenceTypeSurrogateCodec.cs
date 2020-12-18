@@ -92,6 +92,7 @@ namespace Hagar.Codecs
 
         public abstract void ConvertToSurrogate(TField value, ref TSurrogate surrogate); 
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerNotFoundException(Type type) => throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
     }
 }

@@ -2,18 +2,21 @@ using Hagar.Buffers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
     public sealed class DateTimeCodec : IFieldCodec<DateTime>
     {
+        public static readonly Type CodecFieldType = typeof(DateTime);
+
         void IFieldCodec<DateTime>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, DateTime value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, DateTime value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(DateTime), WireType.Fixed64);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed64);
             writer.Write(value.ToBinary());
         }
 
@@ -30,6 +33,7 @@ namespace Hagar.Codecs
             return DateTime.FromBinary(reader.ReadInt64());
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.Fixed64} is supported for {nameof(DateTime)} fields. {field}");
     }

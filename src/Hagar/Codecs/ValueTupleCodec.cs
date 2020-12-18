@@ -2,6 +2,7 @@ using Hagar.Buffers;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -19,7 +20,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.VarInt)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -28,13 +29,16 @@ namespace Hagar.Codecs
             return default;
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.VarInt} is supported for string fields. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T> : IFieldCodec<ValueTuple<T>>
     {
+        private static readonly Type ElementType1 = typeof(T);
+
         private readonly IFieldCodec<T> _valueCodec;
 
         public ValueTupleCodec(IFieldCodec<T> valueCodec)
@@ -51,7 +55,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _valueCodec.WriteField(ref writer, 1, typeof(T), value.Item1);
+            _valueCodec.WriteField(ref writer, 1, ElementType1, value.Item1);
 
             writer.WriteEndObject();
         }
@@ -60,7 +64,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -89,13 +93,17 @@ namespace Hagar.Codecs
             return new ValueTuple<T>(item1);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2> : IFieldCodec<ValueTuple<T1, T2>>
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
 
@@ -114,8 +122,8 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
 
             writer.WriteEndObject();
         }
@@ -124,7 +132,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -157,13 +165,18 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2>(item1, item2);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3> : IFieldCodec<ValueTuple<T1, T2, T3>>
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+        private static readonly Type ElementType3 = typeof(T3);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
         private readonly IFieldCodec<T3> _item3Codec;
@@ -187,9 +200,9 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
-            _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
+            _item3Codec.WriteField(ref writer, 1, ElementType3, value.Item3);
 
             writer.WriteEndObject();
         }
@@ -198,7 +211,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -235,13 +248,19 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2, T3>(item1, item2, item3);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4> : IFieldCodec<ValueTuple<T1, T2, T3, T4>>
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+        private static readonly Type ElementType3 = typeof(T3);
+        private static readonly Type ElementType4 = typeof(T4);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
         private readonly IFieldCodec<T3> _item3Codec;
@@ -268,10 +287,10 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
-            _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
-            _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
+            _item3Codec.WriteField(ref writer, 1, ElementType3, value.Item3);
+            _item4Codec.WriteField(ref writer, 1, ElementType4, value.Item4);
 
             writer.WriteEndObject();
         }
@@ -280,7 +299,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -321,13 +340,20 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2, T3, T4>(item1, item2, item3, item4);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5>>
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+        private static readonly Type ElementType3 = typeof(T3);
+        private static readonly Type ElementType4 = typeof(T4);
+        private static readonly Type ElementType5 = typeof(T5);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
         private readonly IFieldCodec<T3> _item3Codec;
@@ -356,11 +382,11 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
-            _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
-            _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
-            _item5Codec.WriteField(ref writer, 1, typeof(T5), value.Item5);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
+            _item3Codec.WriteField(ref writer, 1, ElementType3, value.Item3);
+            _item4Codec.WriteField(ref writer, 1, ElementType4, value.Item4);
+            _item5Codec.WriteField(ref writer, 1, ElementType5, value.Item5);
 
             writer.WriteEndObject();
         }
@@ -369,7 +395,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -414,13 +440,21 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2, T3, T4, T5>(item1, item2, item3, item4, item5);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6>>
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+        private static readonly Type ElementType3 = typeof(T3);
+        private static readonly Type ElementType4 = typeof(T4);
+        private static readonly Type ElementType5 = typeof(T5);
+        private static readonly Type ElementType6 = typeof(T6);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
         private readonly IFieldCodec<T3> _item3Codec;
@@ -452,12 +486,12 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
-            _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
-            _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
-            _item5Codec.WriteField(ref writer, 1, typeof(T5), value.Item5);
-            _item6Codec.WriteField(ref writer, 1, typeof(T6), value.Item6);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
+            _item3Codec.WriteField(ref writer, 1, ElementType3, value.Item3);
+            _item4Codec.WriteField(ref writer, 1, ElementType4, value.Item4);
+            _item5Codec.WriteField(ref writer, 1, ElementType5, value.Item5);
+            _item6Codec.WriteField(ref writer, 1, ElementType6, value.Item6);
 
 
             writer.WriteEndObject();
@@ -467,7 +501,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -516,13 +550,22 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2, T3, T4, T5, T6>(item1, item2, item3, item4, item5, item6);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6, T7> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7>>
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+        private static readonly Type ElementType3 = typeof(T3);
+        private static readonly Type ElementType4 = typeof(T4);
+        private static readonly Type ElementType5 = typeof(T5);
+        private static readonly Type ElementType6 = typeof(T6);
+        private static readonly Type ElementType7 = typeof(T7);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
         private readonly IFieldCodec<T3> _item3Codec;
@@ -557,13 +600,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
-            _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
-            _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
-            _item5Codec.WriteField(ref writer, 1, typeof(T5), value.Item5);
-            _item6Codec.WriteField(ref writer, 1, typeof(T6), value.Item6);
-            _item7Codec.WriteField(ref writer, 1, typeof(T7), value.Item7);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
+            _item3Codec.WriteField(ref writer, 1, ElementType3, value.Item3);
+            _item4Codec.WriteField(ref writer, 1, ElementType4, value.Item4);
+            _item5Codec.WriteField(ref writer, 1, ElementType5, value.Item5);
+            _item6Codec.WriteField(ref writer, 1, ElementType6, value.Item6);
+            _item7Codec.WriteField(ref writer, 1, ElementType7, value.Item7);
 
 
             writer.WriteEndObject();
@@ -575,7 +618,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -628,13 +671,23 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(item1, item2, item3, item4, item5, item6, item7);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 
     [RegisterSerializer]
     public sealed class ValueTupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>> where T8 : struct
     {
+        private static readonly Type ElementType1 = typeof(T1);
+        private static readonly Type ElementType2 = typeof(T2);
+        private static readonly Type ElementType3 = typeof(T3);
+        private static readonly Type ElementType4 = typeof(T4);
+        private static readonly Type ElementType5 = typeof(T5);
+        private static readonly Type ElementType6 = typeof(T6);
+        private static readonly Type ElementType7 = typeof(T7);
+        private static readonly Type ElementType8 = typeof(T8);
+
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
         private readonly IFieldCodec<T3> _item3Codec;
@@ -673,14 +726,14 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _item1Codec.WriteField(ref writer, 1, typeof(T1), value.Item1);
-            _item2Codec.WriteField(ref writer, 1, typeof(T2), value.Item2);
-            _item3Codec.WriteField(ref writer, 1, typeof(T3), value.Item3);
-            _item4Codec.WriteField(ref writer, 1, typeof(T4), value.Item4);
-            _item5Codec.WriteField(ref writer, 1, typeof(T5), value.Item5);
-            _item6Codec.WriteField(ref writer, 1, typeof(T6), value.Item6);
-            _item7Codec.WriteField(ref writer, 1, typeof(T7), value.Item7);
-            _item8Codec.WriteField(ref writer, 1, typeof(T8), value.Rest);
+            _item1Codec.WriteField(ref writer, 1, ElementType1, value.Item1);
+            _item2Codec.WriteField(ref writer, 1, ElementType2, value.Item2);
+            _item3Codec.WriteField(ref writer, 1, ElementType3, value.Item3);
+            _item4Codec.WriteField(ref writer, 1, ElementType4, value.Item4);
+            _item5Codec.WriteField(ref writer, 1, ElementType5, value.Item5);
+            _item6Codec.WriteField(ref writer, 1, ElementType6, value.Item6);
+            _item7Codec.WriteField(ref writer, 1, ElementType7, value.Item7);
+            _item8Codec.WriteField(ref writer, 1, ElementType8, value.Rest);
 
             writer.WriteEndObject();
         }
@@ -690,7 +743,7 @@ namespace Hagar.Codecs
         {
             if (field.WireType != WireType.TagDelimited)
             {
-                ThrowUnsupportedWireTypeException(field);
+                ThrowUnsupportedWireTypeException();
             }
 
             ReferenceCodec.MarkValueField(reader.Session);
@@ -747,7 +800,8 @@ namespace Hagar.Codecs
             return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>(item1, item2, item3, item4, item5, item6, item7, item8);
         }
 
-        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
-            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
 }

@@ -4,6 +4,7 @@ using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -14,6 +15,8 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class ListCodec<T> : IFieldCodec<List<T>>
     {
+        private static readonly Type CodecElementType = typeof(T);
+
         private readonly IFieldCodec<T> _fieldCodec;
         private readonly ListActivator<T> _activator;
 
@@ -32,14 +35,13 @@ namespace Hagar.Codecs
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            Int32Codec.WriteField(ref writer, 0, typeof(int), value.Count);
-            var first = true;
+            Int32Codec.WriteField(ref writer, 0, Int32Codec.CodecFieldType, value.Count);
+            uint innerFieldIdDelta = 1;
             foreach (var element in value)
             {
-                _fieldCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), element);
-                first = false;
+                _fieldCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, element);
+                innerFieldIdDelta = 0;
             }
-
 
             writer.WriteEndObject();
         }
@@ -101,12 +103,15 @@ namespace Hagar.Codecs
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(List<T>)} with declared length {length}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
     }
 }

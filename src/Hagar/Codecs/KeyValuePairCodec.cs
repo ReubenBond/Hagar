@@ -3,6 +3,7 @@ using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -11,6 +12,8 @@ namespace Hagar.Codecs
     {
         private readonly IFieldCodec<TKey> _keyCodec;
         private readonly IFieldCodec<TValue> _valueCodec;
+        private static readonly Type CodecKeyType = typeof(TKey);
+        private static readonly Type CodecValueType = typeof(TValue);
 
         public KeyValuePairCodec(IFieldCodec<TKey> keyCodec, IFieldCodec<TValue> valueCodec)
         {
@@ -26,8 +29,8 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
 
-            _keyCodec.WriteField(ref writer, 0, typeof(TKey), value.Key);
-            _valueCodec.WriteField(ref writer, 1, typeof(TValue), value.Value);
+            _keyCodec.WriteField(ref writer, 0, CodecKeyType, value.Key);
+            _valueCodec.WriteField(ref writer, 1, CodecValueType, value.Value);
 
             writer.WriteEndObject();
         }
@@ -69,6 +72,7 @@ namespace Hagar.Codecs
             return new KeyValuePair<TKey, TValue>(key, value);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }

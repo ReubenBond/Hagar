@@ -3,6 +3,7 @@ using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.WireProtocol;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -12,6 +13,9 @@ namespace Hagar.Codecs
     /// <typeparam name="T">The array element type.</typeparam>
     internal sealed class MultiDimensionalArrayCodec<T> : IGeneralizedCodec
     {
+        private static readonly Type DimensionFieldType = typeof(int[]);
+        private static readonly Type CodecElementType = typeof(T);
+
         private readonly IFieldCodec<int[]> _intArrayCodec;
         private readonly IFieldCodec<T> _elementCodec;
 
@@ -42,15 +46,15 @@ namespace Hagar.Codecs
                 lengths[i] = array.GetLength(i);
             }
 
-            _intArrayCodec.WriteField(ref writer, 0, typeof(int[]), lengths);
+            _intArrayCodec.WriteField(ref writer, 0, DimensionFieldType, lengths);
 
             var remaining = array.Length;
-            var first = true;
+            uint innerFieldIdDelta = 1;
             while (remaining-- > 0)
             {
                 var element = array.GetValue(indices);
-                _elementCodec.WriteField(ref writer, first ? 1U : 0, typeof(T), (T)element);
-                first = false;
+                _elementCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, (T)element);
+                innerFieldIdDelta = 0;
 
                 // Increment the indices array by 1.
                 if (remaining > 0)
@@ -108,7 +112,7 @@ namespace Hagar.Codecs
 
                             // Multi-dimensional arrays must be indexed using indexing arrays, so create one now.
                             indices = new int[rank];
-                            result = Array.CreateInstance(typeof(T), lengths);
+                            result = Array.CreateInstance(CodecElementType, lengths);
                             ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                             break;
                         }
@@ -143,12 +147,15 @@ namespace Hagar.Codecs
 
         public bool IsSupportedType(Type type) => type.IsArray && type.GetArrayRank() > 1;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static object ThrowIndexOutOfRangeException(int[] lengths) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T)} with declared lengths {string.Join(", ", lengths)}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static T ThrowLengthsFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its lengths field.");
     }
 }

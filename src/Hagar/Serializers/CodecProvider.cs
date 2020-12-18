@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+
 namespace Hagar.Serializers
 {
     public sealed class CodecProvider : ICodecProvider
@@ -432,18 +434,25 @@ namespace Hagar.Serializers
             return codecType != null ? (IFieldCodec)GetServiceOrCreateInstance(codecType, constructorArguments) : null;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowPointerType(Type fieldType) => throw new NotSupportedException($"Type {fieldType} is a pointer type and is therefore not supported.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowByRefType(Type fieldType) => throw new NotSupportedException($"Type {fieldType} is a by-ref type and is therefore not supported.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowGenericTypeDefinition(Type fieldType) => throw new InvalidOperationException($"Type {fieldType} is a non-constructed generic type and is therefore unsupported.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IFieldCodec<TField> ThrowCodecNotFound<TField>(Type fieldType) => throw new CodecNotFoundException($"Could not find a codec for type {fieldType}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IPartialSerializer<TField> ThrowPartialSerializerNotFound<TField>(Type fieldType) where TField : class => throw new KeyNotFoundException($"Could not find a partial serializer for type {fieldType}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IValueSerializer<TField> ThrowValueSerializerNotFound<TField>(Type fieldType) where TField : struct => throw new KeyNotFoundException($"Could not find a value serializer for type {fieldType}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IActivator<T> ThrowActivatorNotFound<T>(Type type) => throw new KeyNotFoundException($"Could not find an activator for type {type}.");
     }
 }

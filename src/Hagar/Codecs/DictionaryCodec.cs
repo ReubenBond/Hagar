@@ -4,6 +4,7 @@ using Hagar.Session;
 using Hagar.WireProtocol;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -15,6 +16,8 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class DictionaryCodec<TKey, TValue> : IFieldCodec<Dictionary<TKey, TValue>>
     {
+        private static readonly Type CodecFieldType = typeof(KeyValuePair<TKey, TValue>);
+
         private readonly IFieldCodec<KeyValuePair<TKey, TValue>> _pairCodec;
         private readonly IFieldCodec<IEqualityComparer<TKey>> _comparerCodec;
         private readonly DictionaryActivator<TKey, TValue> _activator;
@@ -43,11 +46,11 @@ namespace Hagar.Codecs
                 _comparerCodec.WriteField(ref writer, 0, typeof(IEqualityComparer<TKey>), value.Comparer);
             }
 
-            var first = true;
+            uint innerFieldIdDelta = 1;
             foreach (var element in value)
             {
-                _pairCodec.WriteField(ref writer, first ? 1U : 0, typeof(KeyValuePair<TKey, TValue>), element);
-                first = false;
+                _pairCodec.WriteField(ref writer, innerFieldIdDelta, CodecFieldType, element);
+                innerFieldIdDelta = 0;
             }
 
             writer.WriteEndObject();
@@ -114,6 +117,7 @@ namespace Hagar.Codecs
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }

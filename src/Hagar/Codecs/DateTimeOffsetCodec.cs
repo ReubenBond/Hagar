@@ -2,6 +2,7 @@ using Hagar.Buffers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -58,6 +59,7 @@ namespace Hagar.Codecs
             return new DateTimeOffset(dateTime, offset);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for {nameof(DateTimeOffset)} fields. {field}");
     }

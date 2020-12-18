@@ -8,6 +8,7 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class GuidCodec : IFieldCodec<Guid>
     {
+        public static readonly Type CodecFieldType = typeof(Guid);
         private const int Width = 16;
 
         void IFieldCodec<Guid>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value) => WriteField(ref writer, fieldIdDelta, expectedType, value);

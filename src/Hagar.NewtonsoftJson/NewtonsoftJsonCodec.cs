@@ -4,6 +4,7 @@ using Hagar.Serializers;
 using Hagar.WireProtocol;
 using Newtonsoft.Json;
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Hagar.Json
@@ -71,6 +72,7 @@ namespace Hagar.Json
 
         public bool IsSupportedType(Type type) => type == SelfType || _isSupportedFunc(type);
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for JSON fields. {field}");
     }

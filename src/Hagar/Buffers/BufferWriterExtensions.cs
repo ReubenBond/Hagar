@@ -17,6 +17,7 @@ namespace Hagar.Buffers
 
             return Writer.Create(buffer, session);
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             void ThrowSessionNull() => throw new ArgumentNullException(nameof(session));
         }
     }
