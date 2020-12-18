@@ -449,6 +449,7 @@ namespace Hagar.CodeGenerator
             public INamedTypeSymbol BaseType => throw new NotImplementedException();
             public string Name { get; }
             public bool IsValueType => false;
+            public bool IsSealedType => true;
             public bool IsEnumType => false;
             public bool IsGenericType => _methodDescription.Method.IsGenericMethod;
             public ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
@@ -457,6 +458,8 @@ namespace Hagar.CodeGenerator
             public SemanticModel SemanticModel => InterfaceDescription.SemanticModel;
 
             public bool IsEmptyConstructable => true;
+
+            public bool UseActivator => true; 
 
             public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));

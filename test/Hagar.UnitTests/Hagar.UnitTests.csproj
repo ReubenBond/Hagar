@@ -5,7 +5,8 @@
     <TargetFrameworks Condition=" '$(TestTargetFrameworks)' != '' ">$(TestTargetFrameworks)</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;netcoreapp3.1;net5.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' and '$(TargetFrameworks)' == '' ">netcoreapp2.1;netcoreapp3.1;net5.0;net48</TargetFrameworks>
-	<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>

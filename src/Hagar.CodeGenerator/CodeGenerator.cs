@@ -151,7 +151,7 @@ namespace Hagar.CodeGenerator
 
                     if (ShouldGenerateSerializer(symbol))
                     {
-                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, GetDataMembers(symbol));
+                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, GetDataMembers(symbol), _libraryTypes);
                         metadataModel.SerializableTypes.Add(typeDescription);
                     }
 

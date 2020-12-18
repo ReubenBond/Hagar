@@ -3,6 +3,7 @@ using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.WireProtocol;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -127,6 +128,20 @@ namespace Hagar.GeneratedCodeHelpers
             }
 
             return (int)(id + header.FieldIdDelta);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void SerializeUnexpectedType<TBufferWriter, TField>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value) where TBufferWriter : IBufferWriter<byte>
+        {
+            var specificSerializer = writer.Session.CodecProvider.GetCodec(value.GetType());
+            specificSerializer.WriteField(ref writer, fieldIdDelta, expectedType, value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static TField DeserializeUnexpectedType<TInput, TField>(ref Reader<TInput> reader, Field field)
+        {
+            var specificSerializer = reader.Session.CodecProvider.GetCodec(field.FieldType);
+            return (TField)specificSerializer.ReadValue(ref reader, field);
         }
     }
 }
