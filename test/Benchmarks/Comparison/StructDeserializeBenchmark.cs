@@ -38,7 +38,6 @@ namespace Benchmarks.Comparison
         private static readonly Hyperion.DeserializerSession HyperionSession;
 
         private static readonly ValueSerializer<IntStruct> HagarSerializer;
-        private static readonly HagarGen_Serializer_IntStruct_1843466 HagarHandCraftedSerializer;
         private static readonly byte[] HagarInput;
         private static readonly SerializerSession Session;
 
@@ -64,7 +63,6 @@ namespace Benchmarks.Comparison
             var writer = new SingleSegmentBuffer(bytes).CreateWriter(Session);
             IntStruct intStruct = IntStruct.Create();
             HagarSerializer.Serialize(ref intStruct, ref writer);
-            HagarHandCraftedSerializer = new HagarGen_Serializer_IntStruct_1843466();
             HagarInput = bytes;
 
             HyperionSession = HyperionSerializer.GetDeserializerSession();
@@ -102,18 +100,6 @@ namespace Benchmarks.Comparison
         }
 
         [Benchmark]
-        public int HagarHandCrafted()
-        {
-            Session.FullReset();
-            IntStruct result = default;
-            var reader = Reader.Create(HagarInput, Session);
-            Field ignored = default;
-            reader.ReadFieldHeader(ref ignored);
-            HagarHandCraftedSerializer.Deserialize(ref reader, ref result);
-            return SumResult(in result);
-        }
-
-        [Benchmark]
         public int Utf8Json() => SumResult(Utf8JsonNS.JsonSerializer.Deserialize<IntStruct>(Utf8JsonInput, Utf8JsonResolver));
 
         [Benchmark]
@@ -144,98 +130,5 @@ namespace Benchmarks.Comparison
 
         [Benchmark(Description = "SpanJson")]
         public int SpanJsonUtf8() => SumResult(SpanJson.JsonSerializer.Generic.Utf8.Deserialize<IntStruct>(SpanJsonInput));
-
-        internal sealed class HagarGen_Serializer_IntStruct_1843466 : global::Hagar.Serializers.IValueSerializer<global::Benchmarks.Models.IntStruct>
-        {
-            private static readonly global::System.Type Int32Type = typeof(int);
-            public HagarGen_Serializer_IntStruct_1843466()
-            {
-            }
-
-            public void Serialize<TBufferWriter>(ref global::Hagar.Buffers.Writer<TBufferWriter> writer, ref global::Benchmarks.Models.IntStruct instance)
-                where TBufferWriter : global::System.Buffers.IBufferWriter<byte>
-            {
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 0U, Int32Type, instance.MyProperty1);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty2);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty3);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty4);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty5);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty6);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty7);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty8);
-                global::Hagar.Codecs.Int32Codec.WriteField(ref writer, 1U, Int32Type, instance.MyProperty9);
-            }
-
-            public void Deserialize<TInput>(ref global::Hagar.Buffers.Reader<TInput> reader, ref global::Benchmarks.Models.IntStruct instance)
-            {
-                int id = 0;
-                Field header = default;
-                while (true)
-                {
-                    id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-
-                    if (id == 0)
-                    {
-                        instance.MyProperty1 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 1)
-                    {
-                        instance.MyProperty2 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 2)
-                    {
-                        instance.MyProperty3 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 3)
-                    {
-                        instance.MyProperty4 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 4)
-                    {
-                        instance.MyProperty5 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 5)
-                    {
-                        instance.MyProperty6 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 6)
-                    {
-                        instance.MyProperty7 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 7)
-                    {
-                        instance.MyProperty8 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
-                    }
-
-                    if (id == 8)
-                    {
-                        instance.MyProperty9 = Int32Codec.ReadValue(ref reader, header);
-                        id = HagarGeneratedCodeHelper.ReadHeaderExpectingEndBaseOrEndObject(ref reader, ref header, id);
-                    }
-
-                    if (id == -1)
-                    {
-                        break;
-                    }
-
-                    reader.ConsumeUnknownField(header);
-                }
-            }
-        }
     } 
 }
