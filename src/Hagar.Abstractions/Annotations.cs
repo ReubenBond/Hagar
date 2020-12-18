@@ -76,4 +76,9 @@ namespace Hagar
     public sealed class RegisterActivatorAttribute : Attribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class UseActivatorAttribute : Attribute
+    {
+    }
 }

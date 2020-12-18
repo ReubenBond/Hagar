@@ -1,11 +1,10 @@
 using Hagar.Activators;
 using Hagar.Buffers;
 using Hagar.Codecs;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Hagar.Serializers
 {
@@ -42,21 +41,7 @@ namespace Hagar.Serializers
             }
             else
             {
-                SerializeUnexpectedType(ref writer, fieldIdDelta, expectedType, value, fieldType);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void SerializeUnexpectedType<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value, Type fieldType) where TBufferWriter : IBufferWriter<byte>
-        {
-            var specificSerializer = writer.Session.CodecProvider.GetCodec(fieldType);
-            if (specificSerializer != null)
-            {
-                specificSerializer.WriteField(ref writer, fieldIdDelta, expectedType, value);
-            }
-            else
-            {
-                ThrowSerializerNotFoundException(fieldType);
+                HagarGeneratedCodeHelper.SerializeUnexpectedType(ref writer, fieldIdDelta, expectedType, value);
             }
         }
 
@@ -76,17 +61,62 @@ namespace Hagar.Serializers
                 return result;
             }
 
-            // The type is a descendant, not an exact match, so get the specific serializer for it.
-            var specificSerializer = reader.Session.CodecProvider.GetCodec(fieldType);
-            if (specificSerializer != null)
-            {
-                return (TField)specificSerializer.ReadValue(ref reader, field);
-            }
-
-            ThrowSerializerNotFoundException(fieldType);
-            return null;
+            return HagarGeneratedCodeHelper.DeserializeUnexpectedType<TInput, TField>(ref reader, field);
         }
 
-        private static void ThrowSerializerNotFoundException(Type type) => throw new KeyNotFoundException($"Could not find a serializer of type {type}.");
+        public TField ReadValueSealed<TInput>(ref Reader<TInput> reader, Field field)
+        {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<TField, TInput>(ref reader, field);
+            }
+
+            var result = _activator.Create();
+            ReferenceCodec.RecordObject(reader.Session, result);
+            _serializer.Deserialize(ref reader, result);
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Serializer for reference types which can be instantiated.
+    /// </summary>
+    /// <typeparam name="TField">The field type.</typeparam>
+    /// <typeparam name="TPartialSerializer">The partial serializer implementation type.</typeparam>
+    public sealed class SealedTypeSerializer<TField, TPartialSerializer> : IFieldCodec<TField> where TField : class where TPartialSerializer : IPartialSerializer<TField>
+    {
+        private readonly IActivator<TField> _activator;
+        private readonly TPartialSerializer _serializer;
+
+        public SealedTypeSerializer(IActivator<TField> activator, TPartialSerializer serializer)
+        {
+            _activator = activator;
+            _serializer = serializer;
+        }
+
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value) where TBufferWriter : IBufferWriter<byte>
+        {
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
+            writer.WriteStartObject(fieldIdDelta, expectedType, expectedType); 
+            _serializer.Serialize(ref writer, value);
+            writer.WriteEndObject();
+        }
+
+        public TField ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<TField, TInput>(ref reader, field);
+            }
+
+            var result = _activator.Create();
+            ReferenceCodec.RecordObject(reader.Session, result);
+            _serializer.Deserialize(ref reader, result);
+            return result;
+        }
     }
 }
