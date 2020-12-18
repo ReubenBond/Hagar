@@ -43,6 +43,24 @@ namespace Benchmarks
                 }
             }
 
+            if (args.Length > 0 && args[0] == "mloop")
+            {
+                var benchmarks = new MessageBenchmark();
+                while (true)
+                {
+                    _ = benchmarks.Serialize();
+                }
+            }
+
+            if (args.Length > 0 && args[0] == "mdloop")
+            {
+                var benchmarks = new MessageBenchmark();
+                while (true)
+                {
+                    _ = benchmarks.Deserialize();
+                }
+            }
+
             var switcher = new BenchmarkSwitcher(new[]
             {
                 typeof(ClassDeserializeBenchmark),
@@ -50,7 +68,8 @@ namespace Benchmarks
                 typeof(StructSerializeBenchmark),
                 typeof(StructDeserializeBenchmark),
                 typeof(ComplexTypeBenchmarks),
-                typeof(FieldHeaderBenchmarks)
+                typeof(FieldHeaderBenchmarks),
+                typeof(MessageBenchmark)
             });
 
             _ = switcher.Run(args);
