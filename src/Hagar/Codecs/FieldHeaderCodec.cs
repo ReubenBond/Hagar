@@ -98,7 +98,7 @@ namespace Hagar.Codecs
             if (tag != (byte)WireType.Extended && ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask || (tag & Tag.SchemaTypeMask) != (byte)SchemaType.Expected))
             {
                 field.Tag = tag;
-                ReadFieldHeaderSlow(ref reader, ref field);
+                ReadExtendedFieldHeader(ref reader, ref field);
             }
             else
             {
@@ -116,7 +116,7 @@ namespace Hagar.Codecs
             if (tag != (byte)WireType.Extended && ((tag & Tag.FieldIdCompleteMask) == Tag.FieldIdCompleteMask || (tag & Tag.SchemaTypeMask) != (byte)SchemaType.Expected))
             {
                 field.Tag = tag;
-                ReadFieldHeaderSlow(ref reader, ref field);
+                ReadExtendedFieldHeader(ref reader, ref field);
             }
             else
             {
@@ -129,7 +129,7 @@ namespace Hagar.Codecs
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ReadFieldHeaderSlow<TInput>(ref this Reader<TInput> reader, ref Field field)
+        public static void ReadExtendedFieldHeader<TInput>(ref this Reader<TInput> reader, ref Field field)
         {
             // If all of the field id delta bits are set and the field isn't an extended wiretype field, read the extended field id delta
             var notExtended = (field.Tag & (byte)WireType.Extended) != (byte)WireType.Extended;
