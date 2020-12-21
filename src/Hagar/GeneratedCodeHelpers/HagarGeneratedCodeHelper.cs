@@ -2,6 +2,7 @@ using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.WireProtocol;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace Hagar.GeneratedCodeHelpers
             public void Enter(object caller)
             {
                 ++_depth;
-                if (caller != null)
+                if (caller is object)
                 {
                     Callers.Add(caller);
                 }
@@ -38,6 +39,48 @@ namespace Hagar.GeneratedCodeHelpers
                 {
                     Callers.Clear();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Unwraps the provided service if it was wrapped.
+        /// </summary>
+        /// <typeparam name="TService">The service type.</typeparam>
+        /// <param name="caller">The caller.</param>
+        /// <param name="codecProvider">The codec provider.</param>
+        /// <returns>The unwrapped service.</returns>
+        public static TService GetService<TService>(object caller, ICodecProvider codecProvider)
+        {
+            var state = ResolutionState.Value;
+
+            try
+            {
+                state.Enter(caller);
+
+
+                foreach (var c in state.Callers)
+                {
+                    if (c is TService s && !(c is IServiceHolder<TService>))
+                    {
+                        return s;
+                    }
+                }
+
+                return Unwrap(ActivatorUtilities.GetServiceOrCreateInstance<TService>(codecProvider.Services));
+            }
+            finally
+            {
+                state.Exit();
+            }
+
+            static TService Unwrap(TService val)
+            {
+                while (val is IServiceHolder<TService> wrapping)
+                {
+                    val = wrapping.Value;
+                }
+
+                return val;
             }
         }
 

@@ -83,7 +83,7 @@ namespace Hagar.CodeGenerator
                 .ToList();
             if (typeParameters.Count > 0)
             {
-                classDeclaration = AddGenericTypeConstraints(classDeclaration, typeParameters);
+                classDeclaration = AddGenericTypeParameters(classDeclaration, typeParameters);
             }
 
             return (classDeclaration,
@@ -475,7 +475,7 @@ namespace Hagar.CodeGenerator
                 $"{CodeGenerator.CodeGeneratorName}_Invokable_{method.ContainingType.Name}_{method.Name}{typeArgs}{args}";
         }
 
-        private static ClassDeclarationSyntax AddGenericTypeConstraints(
+        private static ClassDeclarationSyntax AddGenericTypeParameters(
             ClassDeclarationSyntax classDeclaration,
             List<(ITypeParameterSymbol, string)> typeParameters)
         {
