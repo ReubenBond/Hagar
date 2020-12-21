@@ -87,6 +87,8 @@ namespace Hagar.CodeGenerator
                     new StaticCodecDescription(Type("System.Type"), Type("Hagar.Codecs.TypeSerializerCodec")),
                     new StaticCodecDescription(Type("System.ReadOnlyMemory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.ReadOnlyMemoryOfByteCodec")),
                     new StaticCodecDescription(Type("System.Memory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.MemoryOfByteCodec")),
+                    new StaticCodecDescription(Type("System.Net.IPAddress"), Type("Hagar.Codecs.IPAddressCodec")),
+                    new StaticCodecDescription(Type("System.Net.IPEndPoint"), Type("Hagar.Codecs.IPEndPointCodec")),
                 }
             };
 
