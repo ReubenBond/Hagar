@@ -33,6 +33,7 @@ namespace Hagar.CodeGenerator
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
                 UseActivatorAttribute = Type("Hagar.UseActivatorAttribute"),
+                SuppressReferenceTrackingAttribute = Type("Hagar.SuppressReferenceTrackingAttribute"),
                 Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
                 UInt32 = compilation.GetSpecialType(SpecialType.System_UInt32),
                 InvalidOperationException = Type("System.InvalidOperationException"),
@@ -160,5 +161,6 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol RegisterSerializerAttribute { get; private set; }
         public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }
         public INamedTypeSymbol UseActivatorAttribute { get; private set; }
+        public INamedTypeSymbol SuppressReferenceTrackingAttribute { get; private set; }
     }
 }

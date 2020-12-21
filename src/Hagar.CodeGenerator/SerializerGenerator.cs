@@ -690,20 +690,40 @@ namespace Hagar.CodeGenerator
 
             if (!type.IsValueType)
             {
-                // C#: if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) { return; }
-                innerBody.Add(
-                    IfStatement(
-                        InvocationExpression(
-                            IdentifierName("ReferenceCodec").Member("TryWriteReferenceField"),
-                            ArgumentList(SeparatedList(new[]
-                            {
+                if (type.TrackReferences)
+                {
+                    // C#: if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value)) { return; }
+                    innerBody.Add(
+                        IfStatement(
+                            InvocationExpression(
+                                IdentifierName("ReferenceCodec").Member("TryWriteReferenceField"),
+                                ArgumentList(SeparatedList(new[]
+                                {
                             Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
                             Argument(fieldIdDeltaParam),
                             Argument(expectedTypeParam),
                             Argument(valueParam)
-                            }))),
-                        Block(ReturnStatement()))
+                                }))),
+                            Block(ReturnStatement()))
                     );
+                }
+                else
+                {
+                    // C#: if (value is null) { ReferenceCodec.WriteNullReference(ref writer, fieldIdDelta, expectedType); return; }
+                    innerBody.Add(
+                        IfStatement(
+                            IsPatternExpression(valueParam, ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression))),
+                            Block(
+                                ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("WriteNullReference"),
+                                    ArgumentList(SeparatedList(new[]
+                                    {
+                                        Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
+                                        Argument(fieldIdDeltaParam),
+                                        Argument(expectedTypeParam)
+                                    })))),
+                                ReturnStatement()))
+                    );
+                }
             }
             else
             {
@@ -855,15 +875,15 @@ namespace Hagar.CodeGenerator
                     SingletonSeparatedList(VariableDeclarator(resultVar.Identifier)
                     .WithInitializer(EqualsValueClause(createValueExpression))))));
 
-            if (type.IsValueType)
-            {
-                // C#: ReferenceCodec.MarkValueField(reader.Session);
-                innerBody.Add(ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("MarkValueField"), ArgumentList(SingletonSeparatedList(Argument(readerParam.Member("Session")))))));
-            }
-            else
+            if (type.TrackReferences)
             {
                 // C#: ReferenceCodec.RecordObject(reader.Session, result);
                 innerBody.Add(ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("RecordObject"), ArgumentList(SeparatedList(new[] { Argument(readerParam.Member("Session")), Argument(resultVar) })))));
+            }
+            else
+            {
+                // C#: ReferenceCodec.MarkValueField(reader.Session);
+                innerBody.Add(ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("MarkValueField"), ArgumentList(SingletonSeparatedList(Argument(readerParam.Member("Session")))))));
             }
 
             // C#: this.Deserializer(ref reader, [ref] result);

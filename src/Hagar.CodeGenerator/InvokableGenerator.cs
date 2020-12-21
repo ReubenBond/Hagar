@@ -467,6 +467,8 @@ namespace Hagar.CodeGenerator
             public bool IsPartial => true;
             public bool UseActivator => true; 
 
+            public bool TrackReferences => false; 
+
             public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
         }

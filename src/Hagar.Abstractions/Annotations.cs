@@ -81,4 +81,9 @@ namespace Hagar
     public sealed class UseActivatorAttribute : Attribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class SuppressReferenceTrackingAttribute : Attribute
+    {
+    }
 }
