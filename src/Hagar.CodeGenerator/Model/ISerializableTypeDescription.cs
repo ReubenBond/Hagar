@@ -24,6 +24,7 @@ namespace Hagar.CodeGenerator
         bool IsEmptyConstructable { get; }
         bool IsPartial { get; }
         bool TrackReferences { get; }
+        bool OmitDefaultMemberValues { get; }
         ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes);
     }
 }

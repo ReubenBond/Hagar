@@ -469,6 +469,8 @@ namespace Hagar.CodeGenerator
 
             public bool TrackReferences => false; 
 
+            public bool OmitDefaultMemberValues => false; 
+
             public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
         }

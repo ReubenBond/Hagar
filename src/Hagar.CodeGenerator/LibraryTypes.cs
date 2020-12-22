@@ -34,6 +34,7 @@ namespace Hagar.CodeGenerator
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
                 UseActivatorAttribute = Type("Hagar.UseActivatorAttribute"),
                 SuppressReferenceTrackingAttribute = Type("Hagar.SuppressReferenceTrackingAttribute"),
+                OmitDefaultMemberValuesAttribute = Type("Hagar.OmitDefaultMemberValuesAttribute"),
                 Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
                 UInt32 = compilation.GetSpecialType(SpecialType.System_UInt32),
                 InvalidOperationException = Type("System.InvalidOperationException"),
@@ -162,5 +163,6 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }
         public INamedTypeSymbol UseActivatorAttribute { get; private set; }
         public INamedTypeSymbol SuppressReferenceTrackingAttribute { get; private set; }
+        public INamedTypeSymbol OmitDefaultMemberValuesAttribute { get; private set; }
     }
 }

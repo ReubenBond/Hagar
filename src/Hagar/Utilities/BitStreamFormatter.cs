@@ -65,10 +65,10 @@ namespace Hagar.Utilities
             {
                 ReferenceCodec.MarkValueField(reader.Session);
                 var refId = reader.ReadVarUInt32();
-                var exists = reader.Session.ReferencedObjects.TryGetReferencedObject(refId, out _);
+                var exists = reader.Session.ReferencedObjects.TryGetReferencedObject(refId, out var refd);
                 res.Append('[');
                 FormatFieldHeader(res, reader.Session, field, id, typeName);
-                res.Append($" Reference: {refId} ({(exists ? "exists" : "unknown")})");
+                res.Append($" Reference: {refId} ({(exists ? $"{refd}" : "unknown")})");
                 res.Append(']');
                 return;
             }
