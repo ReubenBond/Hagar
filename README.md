@@ -114,4 +114,6 @@ Version Tolerance is supported provided the developer follows a set of rules whe
 
 ## Packages
 
-Hagar is still in development and pakages have not been published yet. Running `build.ps1` will build and locally publish packages for testing purposes.
+Packages are published to nuget.org: https://www.nuget.org/packages?q=hagar
+
+Running `build.ps1` will build and locally publish packages for testing purposes
