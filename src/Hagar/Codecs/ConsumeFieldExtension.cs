@@ -39,9 +39,9 @@ namespace Hagar.Codecs
                 case WireType.Fixed64:
                     reader.Skip(8);
                     break;
-                case WireType.Fixed128:
-                    reader.Skip(16);
-                    break;
+                //case WireType.Fixed128:
+                //    reader.Skip(16);
+                //    break;
                 case WireType.Extended:
                     SkipFieldExtension.ThrowUnexpectedExtendedWireType(field);
                     break;

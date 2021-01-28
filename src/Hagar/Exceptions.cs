@@ -221,6 +221,7 @@ namespace Hagar
         {
         }
     }
+    
     [Serializable]
     public class CodecNotFoundException : HagarException
     {
@@ -232,4 +233,22 @@ namespace Hagar
         {
         }
     }
+
+    [Serializable]
+    public class UnexpectedLengthPrefixValueException : HagarException
+    {
+        public UnexpectedLengthPrefixValueException(string message) : base(message)
+        {
+        }
+
+        public UnexpectedLengthPrefixValueException(string typeName, uint expectedLength, uint actualLength, string additionaInfo) 
+            : base($"VarInt length specified in header for {typeName} should be {expectedLength} but is instead {actualLength}. {additionaInfo}")
+        {
+        }
+
+        protected UnexpectedLengthPrefixValueException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+    }
+
 }

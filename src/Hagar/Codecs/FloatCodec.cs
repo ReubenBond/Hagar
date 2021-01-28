@@ -2,12 +2,15 @@ using Hagar.Buffers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Globalization;
 
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
     public sealed class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
+        private const int DecimalWidth = 16;
+
         void IFieldCodec<float>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
@@ -42,8 +45,13 @@ namespace Hagar.Codecs
                         return (float)value;
                     }
 
-                case WireType.Fixed128:
+                case WireType.LengthPrefixed:
                     // Decimal has a smaller range, but higher precision than float.
+                    var length = reader.ReadVarUInt32();
+                    if (length != DecimalWidth)
+                    {
+                        throw new UnexpectedLengthPrefixValueException("float", DecimalWidth, length, field.ToString());
+                    }
                     return (float)reader.ReadDecimal();
 
                 default:
@@ -62,6 +70,8 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
+        private const int DecimalWidth = 16;
+
         void IFieldCodec<double>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
             uint fieldIdDelta,
             Type expectedType,
@@ -87,7 +97,12 @@ namespace Hagar.Codecs
                     return reader.ReadFloat();
                 case WireType.Fixed64:
                     return reader.ReadDouble();
-                case WireType.Fixed128:
+                case WireType.LengthPrefixed:
+                    var length = reader.ReadVarUInt32();
+                    if (length != DecimalWidth)
+                    {
+                        throw new UnexpectedLengthPrefixValueException("double", DecimalWidth, length, field.ToString());
+                    }
                     return (double)reader.ReadDecimal();
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
@@ -102,12 +117,15 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class DecimalCodec : TypedCodecBase<decimal, DecimalCodec>, IFieldCodec<decimal>
     {
+        private const int Width = 16;
+
         void IFieldCodec<decimal>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, decimal value) => WriteField(ref writer, fieldIdDelta, expectedType, value);
 
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, decimal value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(decimal), WireType.Fixed128);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(decimal), WireType.LengthPrefixed);
+            writer.WriteVarInt(Width);
             var ints = decimal.GetBits(value);
             foreach (var part in ints)
             {
@@ -142,7 +160,12 @@ namespace Hagar.Codecs
 
                         return (decimal)value;
                     }
-                case WireType.Fixed128:
+                case WireType.LengthPrefixed:
+                    var length = reader.ReadVarUInt32();
+                    if (length != Width)
+                    {
+                        throw new UnexpectedLengthPrefixValueException("decimal", Width, length, field.ToString());
+                    }
                     return reader.ReadDecimal();
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
