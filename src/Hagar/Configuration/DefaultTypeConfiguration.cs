@@ -2,11 +2,11 @@ using System;
 
 namespace Hagar.Configuration
 {
-    internal class DefaultTypeConfiguration : IConfigurationProvider<TypeConfiguration>
+    internal class DefaultTypeConfiguration : IConfigurationProvider<SerializerConfiguration>
     {
-        public void Configure(TypeConfiguration options)
+        public void Configure(SerializerConfiguration options)
         {
-            var wellKnownTypes = options.WellKnownTypes;
+            var wellKnownTypes = options.WellKnownTypeIds;
             wellKnownTypes[0] = typeof(void); // Represents the type of null
             wellKnownTypes[1] = typeof(int);
             wellKnownTypes[2] = typeof(string);

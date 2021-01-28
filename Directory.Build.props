@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
     <Product>Hagar</Product>
-    <VersionPrefix>0.4.3</VersionPrefix>
+    <VersionPrefix>0.5.0</VersionPrefix>
     <Copyright>Copyright © Reuben Bond 2020</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
@@ -39,7 +39,7 @@
 
   <!-- Common compile parameters -->
   <PropertyGroup>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <GenerateDocumentationFile Condition="'$(Configuration)'=='Release'">true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;FS2003</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

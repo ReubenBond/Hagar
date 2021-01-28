@@ -44,7 +44,7 @@ namespace Hagar.Codecs
                     Values = new List<T>(value)
                 };
 
-                if (!ReferenceEquals(value.KeyComparer, Comparer<T>.Default))
+                if (!ReferenceEquals(value.KeyComparer, EqualityComparer<T>.Default))
                 {
                     surrogate.KeyComparer = value.KeyComparer;
                 }

@@ -18,6 +18,7 @@ namespace Hagar.CodeGenerator
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
                 Field = Type("Hagar.WireProtocol.Field"),
+                WireType = Type("Hagar.WireProtocol.WireType"),
                 FieldCodec = Type("Hagar.Codecs.IFieldCodec"),
                 FieldCodec_1 = Type("Hagar.Codecs.IFieldCodec`1"),
                 Func_2 = Type("System.Func`2"),
@@ -26,9 +27,12 @@ namespace Hagar.CodeGenerator
                 IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 IdAttributeTypes = options.IdAttributeTypes.Select(Type).ToList(),
+                WellKnownAliasAttribute = Type("Hagar.WellKnownAliasAttribute"), 
+                WellKnownIdAttribute = Type("Hagar.WellKnownIdAttribute"), 
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
+                UseActivatorAttribute = Type("Hagar.UseActivatorAttribute"),
                 Int32 = compilation.GetSpecialType(SpecialType.System_Int32),
                 UInt32 = compilation.GetSpecialType(SpecialType.System_UInt32),
                 InvalidOperationException = Type("System.InvalidOperationException"),
@@ -101,6 +105,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Byte { get; private set; }
         public INamedTypeSymbol ConfigurationProvider { get; private set; }
         public INamedTypeSymbol Field { get; private set; }
+        public INamedTypeSymbol WireType { get; private set; }
         public INamedTypeSymbol FieldCodec_1 { get; private set; }
         public INamedTypeSymbol FieldCodec { get; private set; }
         public INamedTypeSymbol Func_2 { get; private set; }
@@ -139,8 +144,11 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Void { get; private set; }
         public INamedTypeSymbol Writer { get; private set; }
         public List<INamedTypeSymbol> IdAttributeTypes { get; private set; }
+        public INamedTypeSymbol WellKnownAliasAttribute { get; private set; }
+        public INamedTypeSymbol WellKnownIdAttribute { get; private set; }
         public List<StaticCodecDescription> StaticCodecs { get; private set; }
         public INamedTypeSymbol RegisterSerializerAttribute { get; private set; }
         public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }
+        public INamedTypeSymbol UseActivatorAttribute { get; private set; }
     }
 }

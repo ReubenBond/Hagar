@@ -9,7 +9,7 @@ namespace Benchmarks.Models
     [GenerateSerializer]
     [ProtoContract]
     [MessagePackObject]
-    public class IntClass
+    public sealed class IntClass
     {
         public static IntClass Create()
         {

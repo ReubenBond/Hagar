@@ -69,6 +69,36 @@ namespace Hagar.CodeGenerator
                                         Argument(TypeOfExpression(type.ToOpenTypeSyntax()))))))
                 ));
 
+            var addWellKnownTypeIdMethod = configParam.Member("WellKnownTypeIds").Member("Add");
+            body.AddRange(
+                metadataModel.WellKnownTypeIds.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addWellKnownTypeIdMethod,
+                                ArgumentList(SeparatedList(
+                                    new[]
+                                    {
+                                        Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(type.Id))),
+                                        Argument(TypeOfExpression(type.Type.ToOpenTypeSyntax()))
+                                    }))))
+                ));
+            
+            var addTypeAliasMethod = configParam.Member("WellKnownTypeAliases").Member("Add");
+            body.AddRange(
+                metadataModel.TypeAliases.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addTypeAliasMethod,
+                                ArgumentList(SeparatedList(
+                                    new[]
+                                    {
+                                        Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(type.Alias))),
+                                        Argument(TypeOfExpression(type.Type.ToOpenTypeSyntax()))
+                                    }))))
+                ));
+
             var configType = libraryTypes.SerializerConfiguration;
             var configureMethod = MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Configure")
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
