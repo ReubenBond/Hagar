@@ -46,10 +46,6 @@ namespace Hagar.Codecs
                     reader.Session.ReferencedObjects.MarkValueField();
                     reader.Skip(8);
                     break;
-                case WireType.Fixed128:
-                    reader.Session.ReferencedObjects.MarkValueField();
-                    reader.Skip(16);
-                    break;
                 case WireType.Extended:
                     if (!field.IsEndBaseOrEndObject)
                     {

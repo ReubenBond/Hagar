@@ -139,13 +139,6 @@ namespace Hagar.Utilities
                         }
                     }
                     break;
-                case WireType.Fixed128:
-                    {
-                        var a = reader.ReadUInt64();
-                        var b = reader.ReadUInt64();
-                        res.Append($"{a:X16}{b:X16}");
-                    }
-                    break;
                 case WireType.Extended:
                     SkipFieldExtension.ThrowUnexpectedExtendedWireType(field);
                     break;

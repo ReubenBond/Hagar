@@ -15,7 +15,8 @@ namespace Hagar.Codecs
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Guid value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(Guid), WireType.Fixed128);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(Guid), WireType.LengthPrefixed);
+            writer.WriteVarInt(Width);
 #if NETCOREAPP
             writer.EnsureContiguous(Width);
             if (value.TryWriteBytes(writer.WritableSpan))
@@ -32,6 +33,18 @@ namespace Hagar.Codecs
         public static Guid ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
+
+            if (field.WireType != WireType.LengthPrefixed)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
+            uint length = reader.ReadVarUInt32();
+            if (length != Width)
+            {
+                throw new UnexpectedLengthPrefixValueException(nameof(Guid), Width, length, field.ToString());
+            }
+
 #if NETCOREAPP
             if (reader.TryReadBytes(Width, out var readOnly))
             {
@@ -49,5 +62,8 @@ namespace Hagar.Codecs
             return new Guid(reader.ReadBytes(Width));
 #endif
         }
+
+        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for {nameof(Guid)} fields. {field}");
     }
 }
