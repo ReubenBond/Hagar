@@ -74,6 +74,24 @@ namespace Hagar.UnitTests
         };
     }
 
+    public class VersionTests : FieldCodecTester<Version, VersionCodec>
+    {
+        protected override Version CreateValue() => new Version();
+
+        protected override Version[] TestValues => new[]
+        {
+            new Version(),
+            new Version(1, 2),
+            new Version(1, 2, 3),
+            new Version(1, 2, 3, 4),
+            new Version("1.2"),
+            new Version("1.2.3"),
+            new Version("1.2.3.4")
+        };
+
+        protected override bool Equals(Version left, Version right) => left == right && (left is null || left.GetHashCode() == right.GetHashCode());
+    }
+
     public class Tuple1Tests : FieldCodecTester<Tuple<string>, TupleCodec<string>>
     {
         protected override Tuple<string> CreateValue() => Tuple.Create(Guid.NewGuid().ToString());
