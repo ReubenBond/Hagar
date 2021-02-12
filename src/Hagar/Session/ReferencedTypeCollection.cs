@@ -14,8 +14,15 @@ namespace Hagar.Session
 
         public void Reset()
         {
-            _referencedTypes.Clear();
-            _referencedTypeToIdMap.Clear();
+            if (_referencedTypes.Count > 0)
+            {
+                _referencedTypes.Clear();
+            }
+
+            if (_referencedTypeToIdMap.Count > 0)
+            {
+                _referencedTypeToIdMap.Clear();
+            }
         }
     }
 }
