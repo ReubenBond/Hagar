@@ -76,7 +76,6 @@ namespace Benchmarks.Comparison
             }
 
             SystemTextJsonInput = stream.ToArray();
-
         }
 
         private static int SumResult(in IntStruct result) => result.MyProperty1 +
