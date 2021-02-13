@@ -44,6 +44,8 @@ namespace Hagar.Serializers
             ConsumeMetadata(codecConfiguration);
         }
 
+        public IServiceProvider Services => _serviceProvider;
+
         private void Initialize()
         {
             if (_initialized)

@@ -55,40 +55,46 @@ namespace Hagar.CodeGenerator
                 TaskRequest = Type("Hagar.Invocation.TaskRequest"),
                 TaskRequest_1 = Type("Hagar.Invocation.TaskRequest`1"),
                 Type = Type("System.Type"),
-                TypedCodecProvider = Type("Hagar.Serializers.ITypedCodecProvider"),
+                ICodecProvider = Type("Hagar.Serializers.ICodecProvider"),
                 ValueSerializer = Type("Hagar.Serializers.IValueSerializer`1"),
                 ValueTask = Type("System.Threading.Tasks.ValueTask"),
                 ValueTask_1 = Type("System.Threading.Tasks.ValueTask`1"),
                 ValueTypeSetter_2 = Type("Hagar.Utilities.ValueTypeSetter`2"),
                 Void = compilation.GetSpecialType(SpecialType.System_Void),
                 Writer = Type("Hagar.Buffers.Writer`1"),
-                StaticCodecs = new List<StaticCodecDescription>
+                StaticCodecs = new List<WellKnownCodecDescription>
                 {
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Boolean), Type("Hagar.Codecs.BoolCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Char), Type("Hagar.Codecs.CharCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Byte), Type("Hagar.Codecs.ByteCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_SByte), Type("Hagar.Codecs.SByteCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Int16), Type("Hagar.Codecs.Int16Codec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Int32), Type("Hagar.Codecs.Int32Codec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Int64), Type("Hagar.Codecs.Int64Codec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_UInt16), Type("Hagar.Codecs.UInt16Codec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_UInt32), Type("Hagar.Codecs.UInt32Codec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_UInt64), Type("Hagar.Codecs.UInt64Codec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_String), Type("Hagar.Codecs.StringCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Object), Type("Hagar.Codecs.ObjectCodec")),
-                    new StaticCodecDescription(compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte), 1), Type("Hagar.Codecs.ByteArrayCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Single), Type("Hagar.Codecs.FloatCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Double), Type("Hagar.Codecs.DoubleCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_Decimal), Type("Hagar.Codecs.DecimalCodec")),
-                    new StaticCodecDescription(compilation.GetSpecialType(SpecialType.System_DateTime), Type("Hagar.Codecs.DateTimeCodec")),
-                    new StaticCodecDescription(Type("System.TimeSpan"), Type("Hagar.Codecs.TimeSpanCodec")),
-                    new StaticCodecDescription(Type("System.DateTimeOffset"), Type("Hagar.Codecs.DateTimeOffsetCodec")),
-                    new StaticCodecDescription(Type("System.Guid"), Type("Hagar.Codecs.GuidCodec")),
-                    new StaticCodecDescription(Type("System.Type"), Type("Hagar.Codecs.TypeSerializerCodec")),
-                    new StaticCodecDescription(Type("System.ReadOnlyMemory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.ReadOnlyMemoryOfByteCodec")),
-                    new StaticCodecDescription(Type("System.Memory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.MemoryOfByteCodec")),
-                    new StaticCodecDescription(Type("System.Net.IPAddress"), Type("Hagar.Codecs.IPAddressCodec")),
-                    new StaticCodecDescription(Type("System.Net.IPEndPoint"), Type("Hagar.Codecs.IPEndPointCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Object), Type("Hagar.Codecs.ObjectCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Boolean), Type("Hagar.Codecs.BoolCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Char), Type("Hagar.Codecs.CharCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Byte), Type("Hagar.Codecs.ByteCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_SByte), Type("Hagar.Codecs.SByteCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Int16), Type("Hagar.Codecs.Int16Codec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Int32), Type("Hagar.Codecs.Int32Codec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Int64), Type("Hagar.Codecs.Int64Codec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_UInt16), Type("Hagar.Codecs.UInt16Codec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_UInt32), Type("Hagar.Codecs.UInt32Codec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_UInt64), Type("Hagar.Codecs.UInt64Codec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_String), Type("Hagar.Codecs.StringCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Object), Type("Hagar.Codecs.ObjectCodec")),
+                    new WellKnownCodecDescription(compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte), 1), Type("Hagar.Codecs.ByteArrayCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Single), Type("Hagar.Codecs.FloatCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Double), Type("Hagar.Codecs.DoubleCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_Decimal), Type("Hagar.Codecs.DecimalCodec")),
+                    new WellKnownCodecDescription(compilation.GetSpecialType(SpecialType.System_DateTime), Type("Hagar.Codecs.DateTimeCodec")),
+                    new WellKnownCodecDescription(Type("System.TimeSpan"), Type("Hagar.Codecs.TimeSpanCodec")),
+                    new WellKnownCodecDescription(Type("System.DateTimeOffset"), Type("Hagar.Codecs.DateTimeOffsetCodec")),
+                    new WellKnownCodecDescription(Type("System.Guid"), Type("Hagar.Codecs.GuidCodec")),
+                    new WellKnownCodecDescription(Type("System.Type"), Type("Hagar.Codecs.TypeSerializerCodec")),
+                    new WellKnownCodecDescription(Type("System.ReadOnlyMemory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.ReadOnlyMemoryOfByteCodec")),
+                    new WellKnownCodecDescription(Type("System.Memory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.MemoryOfByteCodec")),
+                    new WellKnownCodecDescription(Type("System.Net.IPAddress"), Type("Hagar.Codecs.IPAddressCodec")),
+                    new WellKnownCodecDescription(Type("System.Net.IPEndPoint"), Type("Hagar.Codecs.IPEndPointCodec")),
+                },
+                WellKnownCodecs = new List<WellKnownCodecDescription>
+                {
+                    new WellKnownCodecDescription(Type("System.Collections.Generic.Dictionary`2"), Type("Hagar.Codecs.DictionaryCodec`2")),
+                    new WellKnownCodecDescription(Type("System.Collections.Generic.List`1"), Type("Hagar.Codecs.ListCodec`1")),
                 }
             };
 
@@ -103,6 +109,7 @@ namespace Hagar.CodeGenerator
                 return result;
             }
         }
+
         public INamedTypeSymbol Action_2 { get; private set; }
         public INamedTypeSymbol Byte { get; private set; }
         public INamedTypeSymbol ConfigurationProvider { get; private set; }
@@ -138,7 +145,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol TaskRequest { get; private set; }
         public INamedTypeSymbol TaskRequest_1 { get; private set; }
         public INamedTypeSymbol Type { get; private set; }
-        public INamedTypeSymbol TypedCodecProvider { get; private set; }
+        public INamedTypeSymbol ICodecProvider { get; private set; }
         public INamedTypeSymbol ValueSerializer { get; private set; }
         public INamedTypeSymbol ValueTask { get; private set; }
         public INamedTypeSymbol ValueTask_1 { get; private set; }
@@ -148,7 +155,8 @@ namespace Hagar.CodeGenerator
         public List<INamedTypeSymbol> IdAttributeTypes { get; private set; }
         public INamedTypeSymbol WellKnownAliasAttribute { get; private set; }
         public INamedTypeSymbol WellKnownIdAttribute { get; private set; }
-        public List<StaticCodecDescription> StaticCodecs { get; private set; }
+        public List<WellKnownCodecDescription> StaticCodecs { get; private set; }
+        public List<WellKnownCodecDescription> WellKnownCodecs { get; private set; }
         public INamedTypeSymbol RegisterSerializerAttribute { get; private set; }
         public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }
         public INamedTypeSymbol UseActivatorAttribute { get; private set; }

@@ -2,9 +2,9 @@ using Microsoft.CodeAnalysis;
 
 namespace Hagar.CodeGenerator
 {
-    internal class StaticCodecDescription : ICodecDescription
+    internal class WellKnownCodecDescription : ICodecDescription
     {
-        public StaticCodecDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
+        public WellKnownCodecDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
         {
             UnderlyingType = underlyingType;
             CodecType = codecType;

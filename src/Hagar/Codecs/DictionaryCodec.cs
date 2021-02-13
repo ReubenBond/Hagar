@@ -3,6 +3,7 @@ using Hagar.Buffers;
 using Hagar.Session;
 using Hagar.WireProtocol;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -32,7 +33,7 @@ namespace Hagar.Codecs
             _activator = activator;
         }
 
-        void IFieldCodec<Dictionary<TKey, TValue>>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Dictionary<TKey, TValue> value)
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Dictionary<TKey, TValue> value) where TBufferWriter : IBufferWriter<byte>
         {
             if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
             {
@@ -56,7 +57,7 @@ namespace Hagar.Codecs
             writer.WriteEndObject();
         }
 
-        Dictionary<TKey, TValue> IFieldCodec<Dictionary<TKey, TValue>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        public Dictionary<TKey, TValue> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             if (field.WireType == WireType.Reference)
             {
