@@ -413,5 +413,11 @@ namespace Hagar.CodeGenerator
                         AttributeArgument(CodeGeneratorName.GetLiteralExpression()),
                         AttributeArgument(version.GetLiteralExpression()));
         }
+
+        internal static AttributeSyntax GetMethodImplAttributeSyntax()
+        {
+            return Attribute(ParseName("System.Runtime.CompilerServices.MethodImplAttribute"))
+                .AddArgumentListArguments(AttributeArgument(ParseName("System.Runtime.CompilerServices.MethodImplOptions").Member("AggressiveInlining")));
+        }
     }
 }
