@@ -86,4 +86,9 @@ namespace Hagar
     public sealed class SuppressReferenceTrackingAttribute : Attribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class OmitDefaultMemberValuesAttribute : Attribute
+    {
+    }
 }

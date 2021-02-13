@@ -449,12 +449,33 @@ namespace Hagar.CodeGenerator
             }
 
             // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
+            var previousFieldIdVar = "previousFieldId".ToIdentifierName();
+            if (type.OmitDefaultMemberValues)
+            {
+                // C#: uint previousFieldId = 0;
+                body.Add(LocalDeclarationStatement(
+                    VariableDeclaration(
+                        PredefinedType(Token(SyntaxKind.UIntKeyword)),
+                        SingletonSeparatedList(VariableDeclarator(previousFieldIdVar.Identifier)
+                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))))));
+            }
+
             uint previousFieldId = 0;
             foreach (var member in members.OrderBy(m => m.Description.FieldId))
             {
                 var description = member.Description;
-                var fieldIdDelta = description.FieldId - previousFieldId;
-                previousFieldId = description.FieldId;
+                ExpressionSyntax fieldIdDeltaExpr;
+                if (type.OmitDefaultMemberValues)
+                {
+                    // C#: <fieldId> - previousFieldId
+                    fieldIdDeltaExpr = BinaryExpression(SyntaxKind.SubtractExpression, LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(description.FieldId)), previousFieldIdVar);
+                }
+                else
+                {
+                    var fieldIdDelta = description.FieldId - previousFieldId;
+                    previousFieldId = description.FieldId;
+                    fieldIdDeltaExpr = LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(fieldIdDelta));
+                }
 
                 // Codecs can either be static classes or injected into the constructor.
                 // Either way, the member signatures are the same.
@@ -472,8 +493,7 @@ namespace Hagar.CodeGenerator
                 }
 
                 var expectedType = serializerFields.OfType<TypeFieldDescription>().First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, memberType));
-                body.Add(
-                    ExpressionStatement(
+                var writeFieldExpr = ExpressionStatement(
                         InvocationExpression(
                             codecExpression.Member("WriteField"),
                             ArgumentList(
@@ -481,10 +501,28 @@ namespace Hagar.CodeGenerator
                                     new[]
                                     {
                                         Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
-                                        Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(fieldIdDelta))),
+                                        Argument(fieldIdDeltaExpr),
                                         Argument(expectedType.FieldName.ToIdentifierName()),
                                         Argument(member.GetGetter(instanceParam))
-                                    })))));
+                                    }))));
+                if (!type.OmitDefaultMemberValues)
+                {
+                    body.Add(writeFieldExpr);
+                }
+                else
+                {
+                    ExpressionSyntax condition = member.Field.Type.IsValueType switch
+                    {
+                        true => BinaryExpression(SyntaxKind.NotEqualsExpression, member.GetGetter(instanceParam), LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
+                        false => IsPatternExpression(member.GetGetter(instanceParam), TypePattern(libraryTypes.Object.ToTypeSyntax()))
+                    };
+
+                    body.Add(IfStatement(
+                        condition,
+                        Block(
+                            writeFieldExpr,
+                            ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, previousFieldIdVar, LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(description.FieldId)))))));
+                }
             }
 
             var parameters = new[]
@@ -688,7 +726,12 @@ namespace Hagar.CodeGenerator
 
             var innerBody = new List<StatementSyntax>();
 
-            if (!type.IsValueType)
+            if (type.IsValueType)
+            {
+                // C#: ReferenceCodec.MarkValueField(reader.Session);
+                innerBody.Add(ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("MarkValueField"), ArgumentList(SingletonSeparatedList(Argument(writerParam.Member("Session")))))));
+            }
+            else
             {
                 if (type.TrackReferences)
                 {
@@ -723,12 +766,10 @@ namespace Hagar.CodeGenerator
                                     })))),
                                 ReturnStatement()))
                     );
+                    
+                    // C#: ReferenceCodec.MarkValueField(reader.Session);
+                    innerBody.Add(ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("MarkValueField"), ArgumentList(SingletonSeparatedList(Argument(writerParam.Member("Session")))))));
                 }
-            }
-            else
-            {
-                // C#: ReferenceCodec.MarkValueField(reader.Session);
-                innerBody.Add(ExpressionStatement(InvocationExpression(IdentifierName("ReferenceCodec").Member("MarkValueField"), ArgumentList(SingletonSeparatedList(Argument(writerParam.Member("Session")))))));
             }
 
             // Generate the most appropriate expression to get the field type.
