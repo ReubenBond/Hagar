@@ -31,6 +31,8 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol BaseType => Type.EnumUnderlyingType ?? Type.BaseType;
 
+        public string Namespace => Type.ContainingNamespace.Name;
+
         public string Name => Type.Name;
 
         public bool IsValueType => Type.IsValueType;
@@ -64,6 +66,23 @@ namespace Hagar.CodeGenerator
                     {
                         case Accessibility.Public:
                             return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public bool IsPartial
+        {
+            get
+            {
+                foreach (var reference in Type.DeclaringSyntaxReferences)
+                {
+                    var syntax = reference.GetSyntax();
+                    if (syntax is TypeDeclarationSyntax typeDeclaration && typeDeclaration.Modifiers.Any(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword))
+                    {
+                        return true;
                     }
                 }
 

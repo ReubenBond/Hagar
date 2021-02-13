@@ -16,6 +16,7 @@ namespace Hagar.CodeGenerator
     internal static class InvokableGenerator
     {
         public static (ClassDeclarationSyntax, IGeneratedInvokerDescription) Generate(
+            CodeGenerator codeGenerator,
             LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription,
             MethodDescription methodDescription)
@@ -64,7 +65,7 @@ namespace Hagar.CodeGenerator
 
             var classDeclaration = ClassDeclaration(generatedClassName)
                 .AddBaseListTypes(SimpleBaseType(baseClassType.ToTypeSyntax()))
-                .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
+                .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword), Token(SyntaxKind.PartialKeyword))
                 .AddAttributeLists(
                     AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fields)
@@ -90,6 +91,7 @@ namespace Hagar.CodeGenerator
                 new GeneratedInvokerDescription(
                     interfaceDescription,
                     methodDescription,
+                    codeGenerator.GeneratedNamespaceName,
                     generatedClassName,
                     fieldDescriptions.OfType<IMemberDescription>().ToList()));
         }
@@ -413,11 +415,13 @@ namespace Hagar.CodeGenerator
             public GeneratedInvokerDescription(
                 IInvokableInterfaceDescription interfaceDescription,
                 MethodDescription methodDescription,
+                string generatedNamespaceName,
                 string generatedClassName,
                 List<IMemberDescription> members)
             {
                 InterfaceDescription = interfaceDescription;
                 _methodDescription = methodDescription;
+                Namespace = generatedNamespaceName;
                 Name = generatedClassName;
                 Members = members;
 
@@ -447,6 +451,7 @@ namespace Hagar.CodeGenerator
             public TypeSyntax UnboundTypeSyntax => _methodDescription.GetInvokableTypeName();
             public bool HasComplexBaseType => false;
             public INamedTypeSymbol BaseType => throw new NotImplementedException();
+            public string Namespace { get; }
             public string Name { get; }
             public bool IsValueType => false;
             public bool IsSealedType => true;
@@ -459,6 +464,7 @@ namespace Hagar.CodeGenerator
 
             public bool IsEmptyConstructable => true;
 
+            public bool IsPartial => true;
             public bool UseActivator => true; 
 
             public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))

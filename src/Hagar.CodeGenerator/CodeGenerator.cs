@@ -33,15 +33,18 @@ namespace Hagar.CodeGenerator
             _compilation = compilation;
             _options = options;
             _libraryTypes = LibraryTypes.FromCompilation(compilation, options);
+            GeneratedNamespaceName = "HagarGeneratedCode." + compilation.AssemblyName;
             if (options.GenerateSerializerAttributes != null)
             {
                 _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
             }
         }
 
+        public string GeneratedNamespaceName { get; }
+
         public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
         {
-            var namespaceName = "HagarGeneratedCode." + _compilation.AssemblyName;
+            var partialTypeSerializers = new Dictionary<string, List<MemberDeclarationSyntax>>();
 
             // Collect metadata from the compilation.
             var metadataModel = GenerateMetadataModel(cancellationToken);
@@ -51,7 +54,7 @@ namespace Hagar.CodeGenerator
             {
                 foreach (var method in type.Methods)
                 {
-                    var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(_libraryTypes, type, method);
+                    var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(this, _libraryTypes, type, method);
                     metadataModel.SerializableTypes.Add(generatedInvokerDescription);
                     metadataModel.GeneratedInvokables[method] = generatedInvokerDescription;
                     members.Add(invokable);
@@ -66,7 +69,7 @@ namespace Hagar.CodeGenerator
             foreach (var type in metadataModel.SerializableTypes)
             {
                 // Generate a partial serializer class for each serializable type.
-                members.Add(SerializerGenerator.GenerateSerializer(_libraryTypes, type));
+                members.Add(SerializerGenerator.GenerateSerializer(_libraryTypes, type, partialTypeSerializers));
 
                 if (type.IsEmptyConstructable)
                 {
@@ -86,13 +89,13 @@ namespace Hagar.CodeGenerator
                 .WithAttributes(
                     SingletonSeparatedList(
                         Attribute(_libraryTypes.MetadataProviderAttribute.ToNameSyntax())
-                            .AddArgumentListArguments(AttributeArgument(TypeOfExpression(ParseTypeName($"{namespaceName}.{metadataClass.Identifier.Text}"))))));
+                            .AddArgumentListArguments(AttributeArgument(TypeOfExpression(ParseTypeName($"{GeneratedNamespaceName}.{metadataClass.Identifier.Text}"))))));
 
             return CompilationUnit()
                 .WithAttributeLists(List(new[] { metadataAttribute }))
                 .WithMembers(
                     SingletonList<MemberDeclarationSyntax>(
-                        NamespaceDeclaration(ParseName(namespaceName))
+                        NamespaceDeclaration(ParseName(GeneratedNamespaceName))
                         .WithMembers(List(members))
                         .WithUsings(List(new[] { UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) }))));
         }

@@ -22,7 +22,7 @@ namespace Hagar.CodeGenerator
         private const string ReadValueMethodName = "ReadValue";
         private const string CodecFieldTypeFieldName = "_codecFieldType";
 
-        public static ClassDeclarationSyntax GenerateSerializer(LibraryTypes libraryTypes, ISerializableTypeDescription type)
+        public static ClassDeclarationSyntax GenerateSerializer(LibraryTypes libraryTypes, ISerializableTypeDescription type, Dictionary<string, List<MemberDeclarationSyntax>> partialTypeSerializers)
         {
             var simpleClassName = GetSimpleClassName(type);
 
@@ -71,6 +71,18 @@ namespace Hagar.CodeGenerator
             if (type.IsGenericType)
             {
                 classDeclaration = AddGenericTypeConstraints(classDeclaration, type);
+            }
+
+            if (type.IsPartial)
+            {
+                if (!partialTypeSerializers.TryGetValue(type.Namespace, out var nsMembers))
+                {
+                    nsMembers = partialTypeSerializers[type.Namespace] = new List<MemberDeclarationSyntax>();
+                }
+
+                // Generate deserialization constructor
+                // Generate serialization method <TBufferWriter>
+                // Generate partial type declaration (class, struct, record)
             }
 
             return classDeclaration;
