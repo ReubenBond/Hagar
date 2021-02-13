@@ -19,5 +19,4 @@ namespace Hagar.CodeGenerator
     internal interface IFieldDescription : IMemberDescription
     {
     }
-
 }
