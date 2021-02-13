@@ -33,6 +33,17 @@ namespace Hagar.Codecs
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void WriteNullReference<TBufferWriter>(
+            ref Writer<TBufferWriter> writer,
+            uint fieldId,
+            Type expectedType) where TBufferWriter : IBufferWriter<byte>
+        {
+            writer.Session.ReferencedObjects.MarkValueField();
+            writer.WriteFieldHeader(fieldId, expectedType, expectedType, WireType.Reference);
+            writer.WriteVarInt(0U);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadReference<T, TInput>(ref Reader<TInput> reader, Field field) => (T)ReadReference(ref reader, field, typeof(T));
 
