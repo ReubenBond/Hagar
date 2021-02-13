@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 // ReSharper disable UnusedMember.Global
@@ -90,6 +91,23 @@ namespace Hagar.UnitTests
         };
 
         protected override bool Equals(Version left, Version right) => left == right && (left is null || left.GetHashCode() == right.GetHashCode());
+    }
+
+    public class BitVector32Tests: FieldCodecTester<BitVector32, BitVector32Codec>
+    {
+        protected override BitVector32 CreateValue() => new BitVector32(new Random(Guid.NewGuid().GetHashCode()).Next());
+
+        protected override BitVector32[] TestValues => new[]
+        {
+            new BitVector32(0),
+            new BitVector32(100),
+            new BitVector32(-100),
+            CreateValue(),
+            CreateValue(),
+            CreateValue()
+        };
+
+        protected override bool Equals(BitVector32 left, BitVector32 right) => left.Equals(right) && left.GetHashCode() == right.GetHashCode();
     }
 
     public class Tuple1Tests : FieldCodecTester<Tuple<string>, TupleCodec<string>>
