@@ -1,5 +1,4 @@
 using Hagar.Codecs;
-using Hagar.Codecs.SystemNet;
 using Hagar.Serializers;
 using Hagar.TestKit;
 using Microsoft.Extensions.DependencyInjection;
