@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.CodeGenerator
 {
@@ -67,6 +68,7 @@ namespace Hagar.CodeGenerator
                     $"Proxy base class {baseClass} does not contain a definition for void SendRequest(IResponseCompletionSource, IInvokable)");
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             static void Throw(ISymbol m, string x) => throw new InvalidOperationException("Complaint: " + x + " for symbol: " + m.ToDisplayString());
         }
 

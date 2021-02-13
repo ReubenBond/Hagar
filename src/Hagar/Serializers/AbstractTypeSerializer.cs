@@ -3,6 +3,7 @@ using Hagar.Codecs;
 using Hagar.WireProtocol;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Serializers
 {
@@ -56,8 +57,10 @@ namespace Hagar.Serializers
             return ThrowSerializerNotFound(fieldType);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static TField ThrowSerializerNotFound(Type type) => throw new KeyNotFoundException($"Could not find a serializer for type {type}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowMissingFieldType() => throw new FieldTypeMissingException(typeof(TField));
     }
 }

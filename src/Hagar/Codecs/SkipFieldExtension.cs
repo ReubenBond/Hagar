@@ -2,6 +2,7 @@ using Hagar.Buffers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
@@ -59,9 +60,11 @@ namespace Hagar.Codecs
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ThrowUnexpectedExtendedWireType(Field field) => throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(ExtendedWireType)} value [{field.ExtendedWireType}] in field {field} while skipping field.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ThrowUnexpectedWireType(Field field) => throw new ArgumentOutOfRangeException(
                 $"Unexpected {nameof(WireType)} value [{field.WireType}] in field {field} while skipping field.");
 

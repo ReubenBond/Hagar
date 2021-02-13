@@ -105,6 +105,7 @@ namespace Hagar.Codecs
             return ++referencedObject.CurrentReferenceId;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowReferenceNotFound(Type expectedType, uint reference) => throw new ReferenceNotFoundException(expectedType, reference);
     }
 }

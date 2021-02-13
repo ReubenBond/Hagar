@@ -2,12 +2,14 @@
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
     public sealed class NullableCodec<T> : IFieldCodec<T?> where T : struct
     {
+        public static readonly Type CodecFieldType = typeof(T);
         private readonly IFieldCodec<T> _fieldCodec;
 
         public NullableCodec(IFieldCodec<T> fieldCodec)
@@ -24,7 +26,7 @@ namespace Hagar.Codecs
             }
 
             // The value is not null.
-            _fieldCodec.WriteField(ref writer, fieldIdDelta, typeof(T), value.Value);
+            _fieldCodec.WriteField(ref writer, fieldIdDelta, CodecFieldType, value.Value);
         }
 
         T? IFieldCodec<T?>.ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -39,12 +41,15 @@ namespace Hagar.Codecs
             return _fieldCodec.ReadValue(ref reader, field);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T?)} with declared length {length}.");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
     }
 }

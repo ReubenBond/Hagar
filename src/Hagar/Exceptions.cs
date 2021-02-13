@@ -1,11 +1,15 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
 namespace Hagar
 {
     internal static class ExceptionHelper
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static T ThrowArgumentOutOfRange<T>(string argument) => throw new ArgumentOutOfRangeException(argument);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowArgumentOutOfRange(string argument) => throw new ArgumentOutOfRangeException(argument);
     }
 

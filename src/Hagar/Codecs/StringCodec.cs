@@ -10,6 +10,8 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class StringCodec : TypedCodecBase<string, StringCodec>, IFieldCodec<string>
     {
+        public static readonly Type CodecFieldType = typeof(string);
+
         string IFieldCodec<string>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -54,7 +56,7 @@ namespace Hagar.Codecs
                 return;
             }
 
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(string), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
 #if NETCOREAPP
             var numBytes = Encoding.UTF8.GetByteCount(value);
             writer.WriteVarInt((uint)numBytes);
@@ -86,6 +88,7 @@ namespace Hagar.Codecs
 
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
     }

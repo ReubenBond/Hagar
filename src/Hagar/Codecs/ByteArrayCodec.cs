@@ -2,12 +2,15 @@ using Hagar.Buffers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
     public sealed class ByteArrayCodec : TypedCodecBase<byte[], ByteArrayCodec>, IFieldCodec<byte[]>
     {
+        private static readonly Type CodecFieldType = typeof(byte[]);
+
         byte[] IFieldCodec<byte[]>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         public static byte[] ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -37,11 +40,12 @@ namespace Hagar.Codecs
                 return;
             }
 
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(byte[]), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
             writer.WriteVarInt((uint)value.Length);
             writer.Write(value);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for byte[] fields. {field}");
     }
@@ -49,6 +53,8 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class ReadOnlyMemoryOfByteCodec : TypedCodecBase<ReadOnlyMemory<byte>, ReadOnlyMemoryOfByteCodec>, IFieldCodec<ReadOnlyMemory<byte>>
     {
+        private static readonly Type CodecFieldType = typeof(ReadOnlyMemory<byte>);
+
         ReadOnlyMemory<byte> IFieldCodec<ReadOnlyMemory<byte>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         public static byte[] ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -78,11 +84,12 @@ namespace Hagar.Codecs
                 return;
             }
 
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(byte[]), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
             writer.WriteVarInt((uint)value.Length);
             writer.Write(value.Span);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for ReadOnlyMemory<byte> fields. {field}");
     }
@@ -90,6 +97,8 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class MemoryOfByteCodec : TypedCodecBase<Memory<byte>, MemoryOfByteCodec>, IFieldCodec<Memory<byte>>
     {
+        private static readonly Type CodecFieldType = typeof(Memory<byte>);
+
         Memory<byte> IFieldCodec<Memory<byte>>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         public static byte[] ReadValue<TInput>(ref Reader<TInput> reader, Field field)
@@ -119,11 +128,12 @@ namespace Hagar.Codecs
                 return;
             }
 
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(byte[]), WireType.LengthPrefixed);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
             writer.WriteVarInt((uint)value.Length);
             writer.Write(value.Span);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for ReadOnlyMemory<byte> fields. {field}");
     }

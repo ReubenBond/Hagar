@@ -163,6 +163,7 @@ namespace Hagar.Buffers
                 ThrowTooLarge(length);
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             static void ThrowTooLarge(int l) => throw new InvalidOperationException($"Requested buffer length {l} cannot be satisfied by the writer.");
 #endif
         }
