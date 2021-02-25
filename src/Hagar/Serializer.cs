@@ -497,7 +497,6 @@ namespace Hagar
                 var written = writer.Output.WrittenSpan;
                 var result = new byte[written.Length];
                 written.CopyTo(result);
-            writer.Output.Dispose();
                 return result;
             }
             finally
