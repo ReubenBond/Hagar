@@ -29,7 +29,7 @@ namespace Hagar.Codecs
             // Write the encoding type.
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(0, SchemaTypeType, SchemaTypeType, WireType.VarInt);
-            writer.WriteVarInt((uint)schemaType);
+            writer.WriteVarUInt32((uint)schemaType);
 
             if (schemaType == SchemaType.Encoded)
             {
@@ -43,7 +43,7 @@ namespace Hagar.Codecs
                 // If the type is referenced or well-known, write it as a varint.
                 ReferenceCodec.MarkValueField(writer.Session);
                 writer.WriteFieldHeader(2, UIntType, UIntType, WireType.VarInt);
-                writer.WriteVarInt((uint)id);
+                writer.WriteVarUInt32((uint)id);
             }
 
             writer.WriteEndObject();

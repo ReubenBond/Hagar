@@ -1,3 +1,5 @@
+using CsCheck;
+using Hagar.Buffers;
 using Hagar.Codecs;
 using Hagar.Serializers;
 using Hagar.TestKit;
@@ -11,10 +13,15 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
-// ReSharper disable UnusedMember.Global
+using Xunit;
 
 namespace Hagar.UnitTests
 {
+    internal static class CsCheckAdaptor
+    {
+        public static Action<Action<TValue>> ToValueProvider<TValue>(this Gen<TValue> gen) => value => gen.Sample(value);
+    }
+
     [GenerateSerializer]
     public enum MyEnum : short
     {
@@ -33,6 +40,8 @@ namespace Hagar.UnitTests
             ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.RemoveAll(typeof(IFieldCodec<MyEnum>)));
             builder.AddAssembly(typeof(EnumTests).Assembly);
         }
+
+        protected override Action<Action<MyEnum>> ValueProvider => Gen.Int.Select(v => (MyEnum)v).ToValueProvider();
     }
 
     public class DayOfWeekTests : FieldCodecTester<DayOfWeek, IFieldCodec<DayOfWeek>>
@@ -40,6 +49,8 @@ namespace Hagar.UnitTests
         protected override IFieldCodec<DayOfWeek> CreateCodec() => ServiceProvider.GetRequiredService<ICodecProvider>().GetCodec<DayOfWeek>();
         protected override DayOfWeek CreateValue() => (DayOfWeek)(new Random(Guid.NewGuid().GetHashCode()).Next((int)DayOfWeek.Sunday, (int)DayOfWeek.Saturday));
         protected override DayOfWeek[] TestValues => new[] { DayOfWeek.Monday, DayOfWeek.Sunday, (DayOfWeek)(-1), (DayOfWeek)10_000};
+
+        protected override Action<Action<DayOfWeek>> ValueProvider => Gen.Int.Select(v => (DayOfWeek)v).ToValueProvider();
     }
 
     public class NullableIntTests : FieldCodecTester<int?, IFieldCodec<int?>>
@@ -53,12 +64,16 @@ namespace Hagar.UnitTests
     {
         protected override DateTime CreateValue() => DateTime.UtcNow;
         protected override DateTime[] TestValues => new[] { DateTime.MinValue, DateTime.MaxValue, new DateTime(1970, 1, 1, 0, 0, 0) };
+
+        protected override Action<Action<DateTime>> ValueProvider => Gen.DateTime.ToValueProvider();
     }
 
     public class TimeSpanTests : FieldCodecTester<TimeSpan, TimeSpanCodec>
     {
         protected override TimeSpan CreateValue() => TimeSpan.FromMilliseconds(Guid.NewGuid().GetHashCode());
         protected override TimeSpan[] TestValues => new[] { TimeSpan.MinValue, TimeSpan.MaxValue, TimeSpan.Zero, TimeSpan.FromSeconds(12345) };
+
+        protected override Action<Action<TimeSpan>> ValueProvider => Gen.TimeSpan.ToValueProvider();
     }
 
     public class DateTimeOffsetTests : FieldCodecTester<DateTimeOffset, DateTimeOffsetCodec>
@@ -72,6 +87,8 @@ namespace Hagar.UnitTests
             new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(11.5)),
             new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0), TimeSpan.FromHours(-11.5)),
         };
+
+        protected override Action<Action<DateTimeOffset>> ValueProvider => Gen.DateTimeOffset.ToValueProvider();
     }
 
     public class VersionTests : FieldCodecTester<Version, VersionCodec>
@@ -396,6 +413,13 @@ namespace Hagar.UnitTests
         };
     }
 
+    public class BoolCodecTests : FieldCodecTester<bool, BoolCodec>
+    {
+        protected override bool CreateValue() => true;
+        protected override bool Equals(bool left, bool right) => left == right;
+        protected override bool[] TestValues => new[] { false, true };
+    }
+
     public class StringCodecTests : FieldCodecTester<string, StringCodec>
     {
         protected override string CreateValue() => Guid.NewGuid().ToString();
@@ -455,6 +479,8 @@ namespace Hagar.UnitTests
             (ulong)uint.MaxValue + 1,
             ulong.MaxValue,
         };
+
+        protected override Action<Action<ulong>> ValueProvider => Gen.ULong.ToValueProvider();
     }
 
     public class UInt32CodecTests : FieldCodecTester<uint, UInt32Codec>
@@ -473,6 +499,8 @@ namespace Hagar.UnitTests
             (uint)ushort.MaxValue + 1,
             uint.MaxValue,
         };
+
+        protected override Action<Action<uint>> ValueProvider => Gen.UInt.ToValueProvider();
     }
 
     public class UInt16CodecTests : FieldCodecTester<ushort, UInt16Codec>
@@ -488,12 +516,16 @@ namespace Hagar.UnitTests
             ushort.MaxValue - 1,
             ushort.MaxValue,
         };
+
+        protected override Action<Action<ushort>> ValueProvider => Gen.UShort.ToValueProvider();
     }
 
     public class ByteCodecTests : FieldCodecTester<byte, ByteCodec>
     {
         protected override byte CreateValue() => (byte)Guid.NewGuid().GetHashCode();
         protected override byte[] TestValues => new byte[] { 0, 1, byte.MaxValue - 1, byte.MaxValue };
+
+        protected override Action<Action<byte>> ValueProvider => Gen.Byte.ToValueProvider();
     }
 
     public class Int64CodecTests : FieldCodecTester<long, Int64Codec>
@@ -522,6 +554,8 @@ namespace Hagar.UnitTests
             (long)int.MaxValue + 1,
             long.MaxValue,
         };
+
+        protected override Action<Action<long>> ValueProvider => Gen.Long.ToValueProvider();
     }
 
     public class Int32CodecTests : FieldCodecTester<int, Int32Codec>
@@ -543,6 +577,36 @@ namespace Hagar.UnitTests
             int.MaxValue - 1,
             int.MaxValue,
         };
+
+        protected override Action<Action<int>> ValueProvider => Gen.Int.ToValueProvider();
+
+        [Fact]
+        public void CanRoundTripViaSerializer_WriteReadByteByByte()
+        {
+            var serializer = ServiceProvider.GetRequiredService<Serializer<int>>();
+
+            foreach (var original in TestValues)
+            {
+                var buffer = new TestMultiSegmentBufferWriter(maxAllocationSize: 8);
+
+                using var writerSession = SessionPool.GetSession();
+                var writer = Writer.Create(buffer, writerSession);
+                for (var i = 0; i < 5; i++)
+                {
+                    serializer.Serialize(original, ref writer);
+                }
+
+                writer.Commit();
+                using var readerSession = SessionPool.GetSession();
+                var reader = Reader.Create(buffer.GetReadOnlySequence(maxSegmentSize: 1), readerSession);
+                for (var i = 0; i < 5; i++)
+                {
+                    var deserialized = serializer.Deserialize(ref reader);
+
+                    Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                }
+            }
+        }
     }
 
     public class Int16CodecTests : FieldCodecTester<short, Int16Codec>
@@ -561,6 +625,8 @@ namespace Hagar.UnitTests
             short.MaxValue - 1,
             short.MaxValue
         };
+
+        protected override Action<Action<short>> ValueProvider => Gen.Short.ToValueProvider();
     }
 
     public class SByteCodecTests : FieldCodecTester<sbyte, SByteCodec>
@@ -576,6 +642,8 @@ namespace Hagar.UnitTests
             sbyte.MaxValue - 1,
             sbyte.MaxValue
         };
+
+        protected override Action<Action<sbyte>> ValueProvider => Gen.SByte.ToValueProvider();
     }
 
     public class CharCodecTests : FieldCodecTester<char, CharCodec>
@@ -592,6 +660,8 @@ namespace Hagar.UnitTests
             (char)(ushort.MaxValue - 1),
             (char)ushort.MaxValue,
         };
+
+        protected override Action<Action<char>> ValueProvider => Gen.Char.ToValueProvider();
     }
 
     public class GuidCodecTests : FieldCodecTester<Guid, GuidCodec>
@@ -603,6 +673,8 @@ namespace Hagar.UnitTests
             Guid.Parse("4DEBD074-5DBB-45F6-ACB7-ED97D2AEE02F"),
             Guid.Parse("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")
         };
+
+        protected override Action<Action<Guid>> ValueProvider => Gen.Guid.ToValueProvider();
     }
 
     public class TypeCodecTests : FieldCodecTester<Type, TypeSerializerCodec>
@@ -633,18 +705,24 @@ namespace Hagar.UnitTests
     {
         protected override float CreateValue() => float.MaxValue * (float)new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
         protected override float[] TestValues => new[] { float.MinValue, 0, 1.0f, float.MaxValue };
+
+        protected override Action<Action<float>> ValueProvider => Gen.Float.ToValueProvider();
     }
 
     public class DoubleCodecTests : FieldCodecTester<double, DoubleCodec>
     {
         protected override double CreateValue() => double.MaxValue * new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
         protected override double[] TestValues => new[] { double.MinValue, 0, 1.0, double.MaxValue };
+
+        protected override Action<Action<double>> ValueProvider => Gen.Double.ToValueProvider();
     }
 
     public class DecimalCodecTests : FieldCodecTester<decimal, DecimalCodec>
     {
         protected override decimal CreateValue() => decimal.MaxValue * (decimal)new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
         protected override decimal[] TestValues => new[] { decimal.MinValue, 0, 1.0M, decimal.MaxValue };
+
+        protected override Action<Action<decimal>> ValueProvider => Gen.Decimal.ToValueProvider();
     }
 
     public class ListCodecTests : FieldCodecTester<List<int>, ListCodec<int>>

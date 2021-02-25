@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Buffers.Adaptors;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -14,7 +15,6 @@ namespace Hagar.TestKit
             {
                 ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = 17 }),
                 ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = 128 }),
-                ActivatorUtilities.CreateInstance<SingleSegmentBufferWriterTester>(serviceProvider),
                 ActivatorUtilities.CreateInstance<StructBufferWriterTester>(serviceProvider),
             };
 
@@ -54,7 +54,6 @@ namespace Hagar.TestKit
             }
         }
 
-        // ReSharper disable once ClassNeverInstantiated.Local
         [ExcludeFromCodeCoverage]
         private class MultiSegmentBufferWriterTester : BufferTester<TestMultiSegmentBufferWriter>
         {
@@ -75,20 +74,6 @@ namespace Hagar.TestKit
             public override string ToString() => $"{nameof(TestMultiSegmentBufferWriter)} {nameof(_options.MaxAllocationSize)}: {_options.MaxAllocationSize}";
         }
 
-        // ReSharper disable once ClassNeverInstantiated.Local
-        [ExcludeFromCodeCoverage]
-        private class SingleSegmentBufferWriterTester : BufferTester<TestSingleSegmentBufferWriter>
-        {
-            protected override TestSingleSegmentBufferWriter CreateBufferWriter() => new TestSingleSegmentBufferWriter(new byte[102400]);
-
-            public SingleSegmentBufferWriterTester(IServiceProvider serviceProvider) : base(serviceProvider)
-            {
-            }
-
-            public override string ToString() => $"{nameof(TestSingleSegmentBufferWriter)}";
-        }
-
-        // ReSharper disable once ClassNeverInstantiated.Local
         [ExcludeFromCodeCoverage]
         private class StructBufferWriterTester : BufferTester<TestBufferWriterStruct>
         {

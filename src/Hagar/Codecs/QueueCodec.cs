@@ -86,7 +86,6 @@ namespace Hagar.Codecs
                         {
                             ThrowIndexOutOfRangeException(length);
                         }
-                        // ReSharper disable once PossibleNullReferenceException
                         result.Enqueue(_fieldCodec.ReadValue(ref reader, header));
                         ++index;
                         break;

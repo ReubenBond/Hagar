@@ -28,9 +28,9 @@ namespace Hagar.Codecs
             Type actualType) where TBufferWriter : IBufferWriter<byte> => writer.WriteFieldHeader(fieldId, expectedType, actualType, WireType.TagDelimited);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEndObject<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte> => writer.Write((byte)EndObjectTag);
+        public static void WriteEndObject<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte> => writer.WriteByte((byte)EndObjectTag);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteEndBase<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte> => writer.Write((byte)EndBaseFieldsTag);
+        public static void WriteEndBase<TBufferWriter>(this ref Writer<TBufferWriter> writer) where TBufferWriter : IBufferWriter<byte> => writer.WriteByte((byte)EndBaseFieldsTag);
     }
 }

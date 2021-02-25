@@ -44,7 +44,7 @@ namespace Hagar.Json
 
             // TODO: NoAlloc
             var bytes = Encoding.UTF8.GetBytes(result);
-            writer.WriteVarInt((uint)bytes.Length);
+            writer.WriteVarUInt32((uint)bytes.Length);
             writer.Write(bytes);
         }
 

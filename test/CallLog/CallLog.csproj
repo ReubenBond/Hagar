@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.8" />
-    <PackageReference Include="Microsoft.FASTER.Core" Version="1.7.0" />
+    <PackageReference Include="Microsoft.FASTER.Core" Version="1.8.1" />
   </ItemGroup>
 
   <ItemGroup>

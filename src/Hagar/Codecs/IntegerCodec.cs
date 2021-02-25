@@ -21,7 +21,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-            writer.WriteVarInt(value ? 1 : 0);
+            writer.WriteVarUInt32(value ? 1U : 0U);
         }
 
         bool IFieldCodec<bool>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -48,7 +48,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-            writer.WriteVarInt(value);
+            writer.WriteVarUInt32(value);
         }
 
         char IFieldCodec<char>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -75,7 +75,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-            writer.WriteVarInt(value);
+            writer.WriteVarUInt32(value);
         }
 
         byte IFieldCodec<byte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -102,7 +102,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-            writer.WriteVarInt(value);
+            writer.WriteVarInt8(value);
         }
 
         sbyte IFieldCodec<sbyte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -138,7 +138,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-            writer.WriteVarInt(value);
+            writer.WriteVarUInt32(value);
         }
     }
 
@@ -156,7 +156,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-            writer.WriteVarInt(value);
+            writer.WriteVarInt16(value);
         }
 
         short IFieldCodec<short>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -185,12 +185,12 @@ namespace Hagar.Codecs
             if (value > 1 << 20)
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed32);
-                writer.Write(value);
+                writer.WriteUInt32(value);
             }
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteVarUInt32(value);
             }
         }
 
@@ -218,12 +218,12 @@ namespace Hagar.Codecs
             if (value > 1 << 20 || -value > 1 << 20)
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed32);
-                writer.Write(value);
+                writer.WriteInt32(value);
             }
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteVarInt32(value);
             }
         }
 
@@ -237,12 +237,12 @@ namespace Hagar.Codecs
             if (value > 1 << 20 || -value > 1 << 20)
             {
                 writer.WriteFieldHeaderExpected(fieldIdDelta, WireType.Fixed32);
-                writer.Write(value);
+                writer.WriteInt32(value);
             }
             else
             {
                 writer.WriteFieldHeaderExpected(fieldIdDelta, WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteVarInt32(value);
             }
         }
 
@@ -271,23 +271,23 @@ namespace Hagar.Codecs
                 if (value > 1 << 20 || -value > 1 << 20)
                 {
                     writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed32);
-                    writer.Write((int)value);
+                    writer.WriteInt32((int)value);
                 }
                 else
                 {
                     writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-                    writer.WriteVarInt(value);
+                    writer.WriteVarInt64(value);
                 }
             }
             else if (value > 1 << 41 || -value > 1 << 41)
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed64);
-                writer.Write(value);
+                writer.WriteInt64(value);
             }
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteVarInt64(value);
             }
         }
 
@@ -319,23 +319,23 @@ namespace Hagar.Codecs
                 if (value > 1 << 20)
                 {
                     writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed32);
-                    writer.Write((uint)value);
+                    writer.WriteUInt32((uint)value);
                 }
                 else
                 {
                     writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-                    writer.WriteVarInt(value);
+                    writer.WriteVarUInt64(value);
                 }
             }
             else if (value > 1 << 41)
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed64);
-                writer.Write(value);
+                writer.WriteUInt64(value);
             }
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
-                writer.WriteVarInt(value);
+                writer.WriteVarUInt64(value);
             }
         }
 

@@ -44,7 +44,7 @@ namespace Hagar.Codecs
                 }
 
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, ObjectType, WireType.LengthPrefixed);
-                writer.WriteVarInt(0U);
+                writer.WriteVarUInt32(0U);
                 return;
             }
 

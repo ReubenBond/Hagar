@@ -4,12 +4,13 @@ using System.Buffers.Binary;
 using System.IO;
 #if NETCOREAPP
 using System.Numerics;
+#else
+using Hagar.Utilities;
 #endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Hagar.Buffers.Adaptors;
 using Hagar.Session;
-using Hagar.Utilities;
 
 namespace Hagar.Buffers
 {
@@ -221,30 +222,14 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(byte value)
+        public void WriteByte(byte value)
         {
             EnsureContiguous(1);
             _currentSpan[_bufferPos++] = value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(sbyte value)
-        {
-            EnsureContiguous(1);
-            _currentSpan[_bufferPos++] = (byte)value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(short value)
-        {
-            const int width = 2;
-            EnsureContiguous(width);
-            BinaryPrimitives.WriteInt16LittleEndian(WritableSpan, value);
-            _bufferPos += width;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(int value)
+        public void WriteInt32(int value)
         {
             const int width = 4;
             EnsureContiguous(width);
@@ -253,7 +238,7 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(long value)
+        public void WriteInt64(long value)
         {
             const int width = 8;
             EnsureContiguous(width);
@@ -262,7 +247,7 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(uint value)
+        public void WriteUInt32(uint value)
         {
             const int width = 4;
             EnsureContiguous(width);
@@ -271,16 +256,7 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ushort value)
-        {
-            const int width = 2;
-            EnsureContiguous(width);
-            BinaryPrimitives.WriteUInt16LittleEndian(WritableSpan, value);
-            _bufferPos += width;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ulong value)
+        public void WriteUInt64(ulong value)
         {
             const int width = 8;
             EnsureContiguous(width);
@@ -289,7 +265,7 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteVarInt(uint value)
+        public void WriteVarUInt32(uint value)
         {
             // Since this method writes a ulong worth of bytes unconditionally, ensure that there is sufficient space.
             EnsureContiguous(sizeof(ulong));
@@ -307,7 +283,7 @@ namespace Hagar.Buffers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteVarInt(ulong value)
+        public void WriteVarUInt64(ulong value)
         {
             // Since this method writes a ulong plus a ushort worth of bytes unconditionally, ensure that there is sufficient space.
             EnsureContiguous(sizeof(ulong) + sizeof(ushort));

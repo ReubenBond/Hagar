@@ -32,7 +32,6 @@ namespace Hagar.TestKit
                 _ = services.AddSingleton<TCodec>();
             }
 
-            // ReSharper disable once VirtualMemberCallInConstructor
             _ = services.AddHagar(Configure);
 
             _serviceProvider = services.BuildServiceProvider();
@@ -41,7 +40,9 @@ namespace Hagar.TestKit
 
         protected IServiceProvider ServiceProvider => _serviceProvider;
 
-        private static int[] MaxSegmentSizes => new[] { /*0, 1, 4,*/ 16 };
+        protected SerializerSessionPool SessionPool => _sessionPool;
+
+        protected virtual int[] MaxSegmentSizes => new[] { 16 };
 
         protected virtual void Configure(IHagarBuilder builder)
         {
@@ -51,6 +52,8 @@ namespace Hagar.TestKit
         protected abstract TValue CreateValue();
         protected abstract TValue[] TestValues { get; }
         protected virtual bool Equals(TValue left, TValue right) => EqualityComparer<TValue>.Default.Equals(left, right);
+
+        protected virtual Action<Action<TValue>> ValueProvider { get; }
 
         [Fact]
         public void CorrectlyAdvancesReferenceCounterStream()
@@ -107,6 +110,7 @@ namespace Hagar.TestKit
 
         [Fact]
         public void CorrectlyAdvancesReferenceCounter()
+
         {
             var pipe = new Pipe();
             using var writerSession = _sessionPool.GetSession(); 
@@ -156,6 +160,16 @@ namespace Hagar.TestKit
 
             foreach (var original in TestValues)
             {
+                Test(original);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
                 var buffer = new MemoryStream();
 
                 var writer = Writer.CreatePooled(buffer, _sessionPool.GetSession());
@@ -178,6 +192,16 @@ namespace Hagar.TestKit
 
             foreach (var original in TestValues)
             {
+                Test(original);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
                 var buffer = new byte[8096].AsSpan();
 
                 var writer = Writer.Create(buffer, _sessionPool.GetSession());
@@ -196,6 +220,16 @@ namespace Hagar.TestKit
             var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
 
             foreach (var original in TestValues)
+            {
+                Test(original);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
             {
                 var buffer = new byte[8096];
 
@@ -216,6 +250,16 @@ namespace Hagar.TestKit
 
             foreach (var original in TestValues)
             {
+                Test(original);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
                 var buffer = (new byte[8096]).AsMemory();
 
                 var writer = Writer.Create(buffer, _sessionPool.GetSession());
@@ -235,12 +279,22 @@ namespace Hagar.TestKit
 
             foreach (var original in TestValues)
             {
-                var buffer = new MemoryStream();
+                Test(original);
+            }
 
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
+                var buffer = new MemoryStream();
                 using var writerSession = _sessionPool.GetSession();
                 var writer = Writer.Create(buffer, writerSession);
                 serializer.Serialize(original, ref writer);
-                buffer.Flush();_sessionPool.GetSession();
+                writer.Commit();
+                buffer.Flush();
                 buffer.SetLength(buffer.Position);
 
                 buffer.Position = 0;
@@ -255,13 +309,55 @@ namespace Hagar.TestKit
         }
 
         [Fact]
+        public void CanRoundTripViaSerializer_ReadByteByByte()
+        {
+            var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
+
+            foreach (var original in TestValues)
+            {
+                Test(original);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
+                var buffer = new TestMultiSegmentBufferWriter(maxAllocationSize: 1024);
+                using var writerSession = _sessionPool.GetSession();
+                var writer = Writer.Create(buffer, writerSession);
+                serializer.Serialize(original, ref writer);
+                writer.Commit();
+                using var readerSession = _sessionPool.GetSession();
+                var reader = Reader.Create(buffer.GetReadOnlySequence(maxSegmentSize: 1), readerSession);
+                var deserialized = serializer.Deserialize(ref reader);
+
+                Assert.True(Equals(original, deserialized), $"Deserialized value \"{deserialized}\" must equal original value \"{original}\"");
+                Assert.Equal(writer.Position, reader.Position);
+                Assert.Equal(writerSession.ReferencedObjects.CurrentReferenceId, readerSession.ReferencedObjects.CurrentReferenceId);
+            }
+        }
+
+        [Fact]
         public void ProducesValidBitStream()
         {
             var serializer = _serviceProvider.GetRequiredService<Serializer<TValue>>();
             foreach (var value in TestValues)
             {
+                Test(value);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue value)
+            {
                 var array = serializer.SerializeToArray(value);
-                using var session = _sessionPool.GetSession();
+                var session = _sessionPool.GetSession();
                 var reader = Reader.Create(array, session);
                 var formatted = new StringBuilder();
                 try
@@ -283,6 +379,16 @@ namespace Hagar.TestKit
 
             foreach (var original in TestValues)
             {
+                Test(original);
+            }
+
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
                 byte[] expected;
 
                 {
@@ -303,32 +409,40 @@ namespace Hagar.TestKit
                     Assert.Equal(expected, result);
                 }
 
+                var bytes = new byte[10240];
+
                 {
-                    var buffer = (new byte[8096]).AsMemory();
+                    var buffer = bytes.AsMemory();
                     var writer = Writer.Create(buffer, _sessionPool.GetSession());
                     serializer.Serialize(original, ref writer);
                     var result = buffer.Slice(0, writer.Output.BytesWritten).ToArray();
                     Assert.Equal(expected, result);
                 }
 
+                bytes.AsSpan().Clear();
+
                 {
-                    var buffer = (new byte[8096]).AsSpan();
+                    var buffer = bytes.AsSpan();
                     var writer = Writer.Create(buffer, _sessionPool.GetSession());
                     serializer.Serialize(original, ref writer);
                     var result = buffer.Slice(0, writer.Output.BytesWritten).ToArray();
                     Assert.Equal(expected, result);
                 }
 
+                bytes.AsSpan().Clear();
+
                 {
-                    var buffer = new byte[8096];
+                    var buffer = bytes;
                     var writer = Writer.Create(buffer, _sessionPool.GetSession());
                     serializer.Serialize(original, ref writer);
                     var result = buffer.AsSpan(0, writer.Output.BytesWritten).ToArray();
                     Assert.Equal(expected, result);
                 }
 
+                bytes.AsSpan().Clear();
+
                 {
-                    var buffer = new MemoryStream();
+                    var buffer = new MemoryStream(bytes);
                     var writer = Writer.CreatePooled(buffer, _sessionPool.GetSession());
                     serializer.Serialize(original, ref writer);
                     buffer.Flush();
@@ -339,8 +453,10 @@ namespace Hagar.TestKit
                     Assert.Equal(expected, result);
                 }
 
+                bytes.AsSpan().Clear();
+
                 {
-                    var buffer = new MemoryStream();
+                    var buffer = new MemoryStream(bytes);
                     var writer = Writer.Create((Stream)buffer, _sessionPool.GetSession());
                     serializer.Serialize(original, ref writer);
                     buffer.Flush();
@@ -359,12 +475,20 @@ namespace Hagar.TestKit
 
             foreach (var original in TestValues)
             {
-                var buffer = new TestMultiSegmentBufferWriter(1024);
+                Test(original);
+            }
 
+            if (ValueProvider is { } valueProvider)
+            {
+                valueProvider(Test);
+            }
+
+            void Test(TValue original)
+            {
+                var buffer = new TestMultiSegmentBufferWriter(1024);
                 using var writerSession = _sessionPool.GetSession();
                 var writer = Writer.Create(buffer, writerSession);
                 serializer.Serialize(original, ref writer);
-
                 using var readerSession = _sessionPool.GetSession();
                 var reader = Reader.Create(buffer.GetReadOnlySequence(0), readerSession);
                 var deserialized = serializer.Deserialize(ref reader);
@@ -380,16 +504,17 @@ namespace Hagar.TestKit
         {
             var serializer = _serviceProvider.GetRequiredService<Serializer<object>>();
 
+            var buffer = new byte[10240];
+
             foreach (var original in TestValues)
             {
-                var buffer = new TestSingleSegmentBufferWriter(new byte[10240]);
-
+                buffer.AsSpan().Clear();
                 using var writerSession = _sessionPool.GetSession();
                 var writer = Writer.Create(buffer, writerSession);
                 serializer.Serialize(original, ref writer);
 
                 using var readerSession = _sessionPool.GetSession();
-                var reader = Reader.Create(buffer.GetReadOnlySequence(0), readerSession);
+                var reader = Reader.Create(buffer, readerSession);
                 var deserializedObject = serializer.Deserialize(ref reader);
                 if (original != null && !typeof(TValue).IsEnum)
                 {

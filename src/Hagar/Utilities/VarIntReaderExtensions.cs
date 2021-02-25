@@ -7,9 +7,27 @@ namespace Hagar.Utilities
     public static class VarIntReaderExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static sbyte ReadVarInt8<TInput>(this ref Reader<TInput> reader) => ZigZagDecode((byte)reader.ReadVarUInt32());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static short ReadVarInt16<TInput>(this ref Reader<TInput> reader) => ZigZagDecode((ushort)reader.ReadVarUInt32());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte ReadVarUInt8<TInput>(this ref Reader<TInput> reader) => (byte)reader.ReadVarUInt32();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort ReadVarUInt16<TInput>(this ref Reader<TInput> reader) => (ushort)reader.ReadVarUInt32();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadVarInt32<TInput>(this ref Reader<TInput> reader) => ZigZagDecode(reader.ReadVarUInt32());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long ReadVarInt64<TInput>(this ref Reader<TInput> reader) => ZigZagDecode(reader.ReadVarUInt64());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ReadUInt8<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
-            WireType.VarInt => (byte)reader.ReadVarUInt32(),
+            WireType.VarInt => reader.ReadVarUInt8(),
             WireType.Fixed32 => (byte)reader.ReadUInt32(),
             WireType.Fixed64 => (byte)reader.ReadUInt64(),
             _ => ExceptionHelper.ThrowArgumentOutOfRange<byte>(nameof(wireType)),
@@ -18,7 +36,7 @@ namespace Hagar.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUInt16<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
-            WireType.VarInt => (ushort)reader.ReadVarUInt32(),
+            WireType.VarInt => reader.ReadVarUInt16(),
             WireType.Fixed32 => (ushort)reader.ReadUInt32(),
             WireType.Fixed64 => (ushort)reader.ReadUInt64(),
             _ => ExceptionHelper.ThrowArgumentOutOfRange<ushort>(nameof(wireType)),
@@ -45,7 +63,7 @@ namespace Hagar.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static sbyte ReadInt8<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
-            WireType.VarInt => ZigZagDecode((byte)reader.ReadVarUInt32()),
+            WireType.VarInt => reader.ReadVarInt8(),
             WireType.Fixed32 => (sbyte)reader.ReadInt32(),
             WireType.Fixed64 => (sbyte)reader.ReadInt64(),
             _ => ExceptionHelper.ThrowArgumentOutOfRange<sbyte>(nameof(wireType)),
@@ -54,19 +72,18 @@ namespace Hagar.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static short ReadInt16<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
-            WireType.VarInt => ZigZagDecode((ushort)reader.ReadVarUInt32()),
+            WireType.VarInt => reader.ReadVarInt16(),
             WireType.Fixed32 => (short)reader.ReadInt32(),
             WireType.Fixed64 => (short)reader.ReadInt64(),
             _ => ExceptionHelper.ThrowArgumentOutOfRange<short>(nameof(wireType)),
         };
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt32<TInput>(this ref Reader<TInput> reader, WireType wireType)
         {
             if (wireType == WireType.VarInt)
             {
-                return ZigZagDecode(reader.ReadVarUInt32());
+                return reader.ReadVarInt32(); 
             }
 
             return ReadInt32Slower(ref reader, wireType);
@@ -83,7 +100,7 @@ namespace Hagar.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long ReadInt64<TInput>(this ref Reader<TInput> reader, WireType wireType) => wireType switch
         {
-            WireType.VarInt => ZigZagDecode(reader.ReadVarUInt64()),
+            WireType.VarInt => reader.ReadVarInt64(),
             WireType.Fixed32 => reader.ReadInt32(),
             WireType.Fixed64 => reader.ReadInt64(),
             _ => ExceptionHelper.ThrowArgumentOutOfRange<long>(nameof(wireType)),

@@ -245,8 +245,8 @@ namespace Hagar
         {
         }
 
-        public UnexpectedLengthPrefixValueException(string typeName, uint expectedLength, uint actualLength, string additionaInfo)
-            : base($"VarInt length specified in header for {typeName} should be {expectedLength} but is instead {actualLength}. {additionaInfo}")
+        public UnexpectedLengthPrefixValueException(string typeName, uint expectedLength, uint actualLength)
+            : base($"VarInt length specified in header for {typeName} should be {expectedLength} but is instead {actualLength}")
         {
         }
 

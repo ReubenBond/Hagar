@@ -59,7 +59,7 @@ namespace Hagar.Codecs
                 var writable = writer.WritableSpan;
                 if (writable.Length > length)
                 {
-                    writer.WriteVarInt((uint)length);
+                    writer.WriteVarUInt32((uint)length);
                     buffer.Slice(0, length).CopyTo(writable.Slice(1));
                     writer.AdvanceSpan(length);
                     return;
@@ -67,7 +67,7 @@ namespace Hagar.Codecs
             }
 #endif
             var bytes = value.GetAddressBytes();
-            writer.WriteVarInt((uint)bytes.Length);
+            writer.WriteVarUInt32((uint)bytes.Length);
             writer.Write(bytes);
         }
     }

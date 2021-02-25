@@ -17,7 +17,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(Guid), WireType.LengthPrefixed);
-            writer.WriteVarInt(Width);
+            writer.WriteVarUInt32(Width);
 #if NETCOREAPP
             writer.EnsureContiguous(Width);
             if (value.TryWriteBytes(writer.WritableSpan))
@@ -43,7 +43,7 @@ namespace Hagar.Codecs
             uint length = reader.ReadVarUInt32();
             if (length != Width)
             {
-                throw new UnexpectedLengthPrefixValueException(nameof(Guid), Width, length, field.ToString());
+                throw new UnexpectedLengthPrefixValueException(nameof(Guid), Width, length);
             }
 
 #if NETCOREAPP

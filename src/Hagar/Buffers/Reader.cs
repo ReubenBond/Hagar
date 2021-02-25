@@ -524,26 +524,6 @@ namespace Hagar.Buffers
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowInsufficientData() => throw new InvalidOperationException("Insufficient data present in buffer.");
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#if NETCOREAPP
-        public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
-#else
-        public float ReadFloat() => BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32()), 0);
-#endif
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#if NETCOREAPP
-        public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
-#else
-        public double ReadDouble() => BitConverter.ToDouble(BitConverter.GetBytes(ReadInt64()), 0);
-#endif
-
-        public decimal ReadDecimal()
-        {
-            var parts = new[] { ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32() };
-            return new decimal(parts);
-        }
-
         public byte[] ReadBytes(uint count)
         {
             if (count == 0)
@@ -658,7 +638,7 @@ namespace Hagar.Buffers
                 _bufferPos += bytesNeeded;
 
                 // Mask off invalid data
-                var fullWidthReadMask = ~((ulong)bytesNeeded - 5 + 1);
+                var fullWidthReadMask = ~((ulong)bytesNeeded - 6 + 1);
                 var mask = ((1UL << (bytesNeeded * 7)) - 1) | fullWidthReadMask;
                 result &= mask;
 

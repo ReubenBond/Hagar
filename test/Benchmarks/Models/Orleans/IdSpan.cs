@@ -30,8 +30,8 @@ namespace FakeFx.Runtime
             writer.WriteFieldHeaderExpected(fieldIdDelta, WireType.LengthPrefixed);
             var hashCode = value.GetHashCode();
             var bytes = IdSpan.UnsafeGetArray(value);
-            writer.WriteVarInt((uint)(sizeof(int) + bytes.Length));
-            writer.Write(hashCode);
+            writer.WriteVarUInt32((uint)(sizeof(int) + bytes.Length));
+            writer.WriteInt32(hashCode);
             writer.Write(bytes);
         }
 
