@@ -59,7 +59,7 @@ namespace Hagar.Codecs
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
 #if NETCOREAPP
             var numBytes = Encoding.UTF8.GetByteCount(value);
-            writer.WriteVarInt((uint)numBytes);
+            writer.WriteVarUInt32((uint)numBytes);
             if (numBytes < 512)
             {
                 writer.EnsureContiguous(numBytes);
@@ -82,7 +82,7 @@ namespace Hagar.Codecs
             }
 #else
             var bytes = Encoding.UTF8.GetBytes(value);
-            writer.WriteVarInt((uint)bytes.Length);
+            writer.WriteVarUInt32((uint)bytes.Length);
             writer.Write(bytes);
 #endif
 

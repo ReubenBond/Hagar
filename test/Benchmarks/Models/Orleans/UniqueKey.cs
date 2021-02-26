@@ -242,8 +242,6 @@ namespace FakeFx.Runtime
 
         internal uint GetUniformHashCode()
         {
-            // Disabling this ReSharper warning; hashCache is a logically read-only variable, so accessing them in GetHashCode is safe.
-            // ReSharper disable NonReadonlyFieldInGetHashCode
             if (uniformHashCache == 0)
             {
                 uint n;
@@ -260,7 +258,6 @@ namespace FakeFx.Runtime
                 uniformHashCache = n;
             }
             return uniformHashCache;
-            // ReSharper restore NonReadonlyFieldInGetHashCode
         }
 
         /// <summary>

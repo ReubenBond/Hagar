@@ -70,7 +70,7 @@ namespace Benchmarks
         public void WriteByte()
         {
             var writer = new SingleSegmentBuffer(HagarBuffer).CreateWriter(Session);
-            writer.Write((byte)4);
+            writer.WriteByte((byte)4);
         }
     }
 }

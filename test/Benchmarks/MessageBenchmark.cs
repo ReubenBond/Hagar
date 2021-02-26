@@ -21,6 +21,7 @@ namespace Benchmarks
         private static readonly byte[] HagarInput;
         private static readonly SerializerSession Session;
         private static readonly Message.HeadersContainer Value;
+
         static MessageBenchmark()
         {
             var body = new Response("yess!");

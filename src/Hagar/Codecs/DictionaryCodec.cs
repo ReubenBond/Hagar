@@ -94,7 +94,6 @@ namespace Hagar.Codecs
                         }
 
                         var pair = _pairCodec.ReadValue(ref reader, header);
-                        // ReSharper disable once PossibleNullReferenceException
                         result.Add(pair.Key, pair.Value);
                         break;
                     default:

@@ -41,7 +41,7 @@ namespace Hagar.Codecs
             }
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
-            writer.WriteVarInt((uint)value.Length);
+            writer.WriteVarUInt32((uint)value.Length);
             writer.Write(value);
         }
 
@@ -85,7 +85,7 @@ namespace Hagar.Codecs
             }
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
-            writer.WriteVarInt((uint)value.Length);
+            writer.WriteVarUInt32((uint)value.Length);
             writer.Write(value.Span);
         }
 
@@ -129,7 +129,7 @@ namespace Hagar.Codecs
             }
 
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
-            writer.WriteVarInt((uint)value.Length);
+            writer.WriteVarUInt32((uint)value.Length);
             writer.Write(value.Span);
         }
 

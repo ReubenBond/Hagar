@@ -29,7 +29,7 @@ namespace Hagar.Codecs
             }
 
             writer.WriteFieldHeader(fieldId, expectedType, value?.GetType(), WireType.Reference);
-            writer.WriteVarInt(reference);
+            writer.WriteVarUInt32(reference);
             return true;
         }
 
@@ -41,7 +41,7 @@ namespace Hagar.Codecs
         {
             writer.Session.ReferencedObjects.MarkValueField();
             writer.WriteFieldHeader(fieldId, expectedType, expectedType, WireType.Reference);
-            writer.WriteVarInt(0U);
+            writer.WriteVarUInt32(0U);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

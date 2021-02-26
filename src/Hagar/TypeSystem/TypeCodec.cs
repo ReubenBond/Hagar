@@ -23,15 +23,15 @@ namespace Hagar.TypeSystem
         public void WriteLengthPrefixed<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = _typeCache.GetOrAdd(type, _getTypeKey);
-            writer.WriteVarInt((uint)key.TypeName.Length);
+            writer.WriteVarUInt32((uint)key.TypeName.Length);
             writer.Write(key.TypeName);
         }
 
         public void WriteEncodedType<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = _typeCache.GetOrAdd(type, _getTypeKey);
-            writer.Write(key.HashCode);
-            writer.WriteVarInt((uint)key.TypeName.Length);
+            writer.WriteInt32(key.HashCode);
+            writer.WriteVarUInt32((uint)key.TypeName.Length);
             writer.Write(key.TypeName);
         }
 

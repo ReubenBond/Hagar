@@ -3,13 +3,13 @@ using Hagar.WireProtocol;
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
     public sealed class FloatCodec : TypedCodecBase<float, FloatCodec>, IFieldCodec<float>
     {
-        private const int DecimalWidth = 16;
         private static readonly Type CodecFieldType = typeof(float);
 
         void IFieldCodec<float>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -23,7 +23,7 @@ namespace Hagar.Codecs
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed32);
 
             // TODO: Optimize
-            writer.Write((uint)BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
+            writer.WriteUInt32((uint)BitConverter.ToInt32(BitConverter.GetBytes(value), 0));
         }
 
         float IFieldCodec<float>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -34,10 +34,10 @@ namespace Hagar.Codecs
             switch (field.WireType)
             {
                 case WireType.Fixed32:
-                    return reader.ReadFloat();
+                    return ReadFloatRaw(ref reader);
                 case WireType.Fixed64:
                     {
-                        var value = reader.ReadDouble();
+                        var value = DoubleCodec.ReadDoubleRaw(ref reader);
                         if ((value > float.MaxValue || value < float.MinValue) && !double.IsInfinity(value) && !double.IsNaN(value))
                         {
                             ThrowValueOutOfRange(value);
@@ -47,19 +47,20 @@ namespace Hagar.Codecs
                     }
 
                 case WireType.LengthPrefixed:
-                    // Decimal has a smaller range, but higher precision than float.
-                    var length = reader.ReadVarUInt32();
-                    if (length != DecimalWidth)
-                    {
-                        throw new UnexpectedLengthPrefixValueException("float", DecimalWidth, length, field.ToString());
-                    }
-                    return (float)reader.ReadDecimal();
+                    return (float)DecimalCodec.ReadDecimalRaw(ref reader);
 
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
                     return 0;
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP
+        public static float ReadFloatRaw<TInput>(ref Reader<TInput> reader) => BitConverter.Int32BitsToSingle(reader.ReadInt32());
+#else
+        public static float ReadFloatRaw<TInput>(ref Reader<TInput> reader) => BitConverter.ToSingle(BitConverter.GetBytes(reader.ReadInt32()), 0);
+#endif
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowWireTypeOutOfRange(WireType wireType) => throw new ArgumentOutOfRangeException(
@@ -73,7 +74,6 @@ namespace Hagar.Codecs
     [RegisterSerializer]
     public sealed class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
-        private const int DecimalWidth = 16;
         private static readonly Type CodecFieldType = typeof(double);
 
         void IFieldCodec<double>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
@@ -87,7 +87,7 @@ namespace Hagar.Codecs
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.Fixed64);
 
             // TODO: Optimize
-            writer.Write((ulong)BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
+            writer.WriteUInt64((ulong)BitConverter.ToInt64(BitConverter.GetBytes(value), 0));
         }
 
         double IFieldCodec<double>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -98,21 +98,23 @@ namespace Hagar.Codecs
             switch (field.WireType)
             {
                 case WireType.Fixed32:
-                    return reader.ReadFloat();
+                    return FloatCodec.ReadFloatRaw(ref reader);
                 case WireType.Fixed64:
-                    return reader.ReadDouble();
+                    return ReadDoubleRaw(ref reader);
                 case WireType.LengthPrefixed:
-                    var length = reader.ReadVarUInt32();
-                    if (length != DecimalWidth)
-                    {
-                        throw new UnexpectedLengthPrefixValueException("double", DecimalWidth, length, field.ToString());
-                    }
-                    return (double)reader.ReadDecimal();
+                    return (double)DecimalCodec.ReadDecimalRaw(ref reader);
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
                     return 0;
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NETCOREAPP
+        public static double ReadDoubleRaw<TInput>(ref Reader<TInput> reader) => BitConverter.Int64BitsToDouble(reader.ReadInt64());
+#else
+        public static double ReadDoubleRaw<TInput>(ref Reader<TInput> reader) => BitConverter.ToDouble(BitConverter.GetBytes(reader.ReadInt64()), 0);
+#endif
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowWireTypeOutOfRange(WireType wireType) => throw new ArgumentOutOfRangeException(
@@ -130,13 +132,14 @@ namespace Hagar.Codecs
         public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, decimal value) where TBufferWriter : IBufferWriter<byte>
         {
             ReferenceCodec.MarkValueField(writer.Session);
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(decimal), WireType.LengthPrefixed);
-            writer.WriteVarInt(Width);
-            var ints = decimal.GetBits(value);
-            foreach (var part in ints)
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.LengthPrefixed);
+            writer.WriteVarUInt32(Width);
+            var holder = new DecimalConverter
             {
-                writer.Write(part);
-            }
+                Value = value
+            };
+            writer.WriteUInt64(holder.Low);
+            writer.WriteUInt64(holder.High);
         }
 
         decimal IFieldCodec<decimal>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -148,7 +151,7 @@ namespace Hagar.Codecs
             {
                 case WireType.Fixed32:
                     {
-                        var value = reader.ReadFloat();
+                        var value = FloatCodec.ReadFloatRaw(ref reader);
                         if (value > (float)decimal.MaxValue || value < (float)decimal.MinValue)
                         {
                             ThrowValueOutOfRange(value);
@@ -158,7 +161,7 @@ namespace Hagar.Codecs
                     }
                 case WireType.Fixed64:
                     {
-                        var value = reader.ReadDouble();
+                        var value = DoubleCodec.ReadDoubleRaw(ref reader);
                         if (value > (double)decimal.MaxValue || value < (double)decimal.MinValue)
                         {
                             ThrowValueOutOfRange(value);
@@ -167,16 +170,37 @@ namespace Hagar.Codecs
                         return (decimal)value;
                     }
                 case WireType.LengthPrefixed:
-                    var length = reader.ReadVarUInt32();
-                    if (length != Width)
-                    {
-                        throw new UnexpectedLengthPrefixValueException("decimal", Width, length, field.ToString());
-                    }
-                    return reader.ReadDecimal();
+                    return ReadDecimalRaw(ref reader);
                 default:
                     ThrowWireTypeOutOfRange(field.WireType);
                     return 0;
             }
+        }
+
+        public static decimal ReadDecimalRaw<TInput>(ref Reader<TInput> reader)
+        {
+            var length = reader.ReadVarUInt32();
+            if (length != Width)
+            {
+                throw new UnexpectedLengthPrefixValueException("decimal", Width, length);
+            }
+
+            var low = reader.ReadUInt64();
+            var high = reader.ReadUInt64();
+            var holder = new DecimalConverter
+            {
+                Low = low,
+                High = high,
+            };
+            return holder.Value;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct DecimalConverter
+        {
+            [FieldOffset(0)] public ulong Low;
+            [FieldOffset(8)] public ulong High;
+            [FieldOffset(0)] public decimal Value;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

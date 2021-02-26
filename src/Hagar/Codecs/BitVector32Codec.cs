@@ -15,7 +15,7 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(BitVector32), WireType.Fixed32);
-            writer.Write(value.Data);  // BitVector32.Data gets the value of the BitVector32 as an Int32
+            writer.WriteInt32(value.Data);  // BitVector32.Data gets the value of the BitVector32 as an Int32
         }
 
         BitVector32 IFieldCodec<BitVector32>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);

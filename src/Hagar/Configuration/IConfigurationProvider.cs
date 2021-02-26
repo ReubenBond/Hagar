@@ -4,7 +4,6 @@ namespace Hagar.Configuration
     /// Provides configuration of the specified type.
     /// </summary>
     /// <typeparam name="TConfiguration">The configuration type.</typeparam>
-    // ReSharper disable once TypeParameterCanBeVariant
     public interface IConfigurationProvider<TConfiguration>
     {
         /// <summary>
