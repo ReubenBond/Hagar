@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Hagar.UnitTests
@@ -722,7 +723,33 @@ namespace Hagar.UnitTests
         protected override decimal CreateValue() => decimal.MaxValue * (decimal)new Random(Guid.NewGuid().GetHashCode()).NextDouble() * Math.Sign(Guid.NewGuid().GetHashCode());
         protected override decimal[] TestValues => new[] { decimal.MinValue, 0, 1.0M, decimal.MaxValue };
 
-        protected override Action<Action<decimal>> ValueProvider => Gen.Decimal.ToValueProvider();
+        protected override Action<Action<decimal>> ValueProvider => Gen.Decimal.Select(value =>
+        {
+            var d = new DecimalInternals { value = value };
+
+            // Check if the decimal is valid.
+            // Invalid values can crash .NET Framework CLR
+            if (!((d.flags & ~(DecimalInternals.SignMask | DecimalInternals.ScaleMask)) == 0 
+                && (d.flags & DecimalInternals.ScaleMask) <= (28 << 16)))
+            {
+                // If it is not, return some valid value instead.
+                return decimal.MinusOne;
+            }
+
+            return value;
+        }).ToValueProvider();
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct DecimalInternals
+        {
+            public const int ScaleMask = 0x00FF0000;
+            public const int SignMask = unchecked((int)0x80000000);
+            [FieldOffset(0)] public int flags;
+            [FieldOffset(4)] public int hi;
+            [FieldOffset(8)] public int lo;
+            [FieldOffset(12)] public int mid;
+            [FieldOffset(0)] public decimal value;
+        }
     }
 
     public class ListCodecTests : FieldCodecTester<List<int>, ListCodec<int>>
