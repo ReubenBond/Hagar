@@ -6,13 +6,13 @@ using System.Reflection;
 
 namespace Hagar.TypeSystem
 {
-    internal sealed class CachedTypeResolver : ITypeResolver
+    public sealed class CachedTypeResolver : TypeResolver
     {
         private readonly ConcurrentDictionary<string, Type> _typeCache = new ConcurrentDictionary<string, Type>();
         private readonly CachedReadConcurrentDictionary<string, Assembly> _assemblyCache = new CachedReadConcurrentDictionary<string, Assembly>();
 
         /// <inheritdoc />
-        public Type ResolveType(string name)
+        public override Type ResolveType(string name)
         {
             if (TryResolveType(name, out var result))
             {
@@ -23,7 +23,7 @@ namespace Hagar.TypeSystem
         }
 
         /// <inheritdoc />
-        public bool TryResolveType(string name, out Type type)
+        public override bool TryResolveType(string name, out Type type)
         {
             if (string.IsNullOrWhiteSpace(name))
             {

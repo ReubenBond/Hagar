@@ -46,7 +46,7 @@ namespace Hagar.ISerializable
         [SecurityCritical]
         private static TConstructor GetSerializationConstructorInvoker<TOwner, TConstructor>(Type type)
         {
-            var constructor = GetSerializationConstructor(type);
+            var constructor = GetSerializationConstructor(type) ?? (typeof(Exception).IsAssignableFrom(type) ? GetSerializationConstructor(typeof(Exception)) : null);
             if (constructor is null)
             {
                 throw new SerializationException($"{nameof(ISerializable)} constructor not found on type {type}.");

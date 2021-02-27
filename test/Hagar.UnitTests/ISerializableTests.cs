@@ -1,7 +1,10 @@
 using Hagar.Buffers;
+using Hagar.ISerializable;
 using Hagar.Session;
+using Hagar.TypeSystem;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +28,8 @@ namespace Hagar.UnitTests
         {
             var services = new ServiceCollection();
             _ = services.AddHagar(hagar => hagar.AddISerializableSupport());
+            services.RemoveAll(typeof(TypeResolver));
+            services.AddSingleton<TypeResolver>(sp => new BanningTypeResolver(typeof(UnserializableConformingException), typeof(UnserializableNonConformingException)));
 
             _serviceProvider = services.BuildServiceProvider();
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>();
@@ -109,7 +114,6 @@ namespace Hagar.UnitTests
                 },
                 input.History);
             Assert.Equal(3, input.Contexts.Count);
-            //Assert.All(input.Contexts, ctx => Assert.True(ctx.Context is ICopyContext || ctx.Context is ISerializationContext));
 
             Assert.Equal(
                 new[]
@@ -122,7 +126,6 @@ namespace Hagar.UnitTests
                 result.History);
             Assert.Equal(input.Payload, result.Payload, StringComparer.Ordinal);
             Assert.Equal(3, result.Contexts.Count);
-            //Assert.All(result.Contexts, ctx => Assert.True(ctx.Context is IDeserializationContext));
 
             // Verify that our behavior conforms to the behavior of BinaryFormatter.
             var input2 = new SimpleISerializableObject
@@ -171,6 +174,154 @@ namespace Hagar.UnitTests
 
             Assert.Equal(input2.History, input.History);
             Assert.Equal(result2.History, result.History);
+        }
+        
+        private class BaseException : Exception
+        {
+            public BaseException() { }
+
+            public BaseException(string message, Exception innerException) : base(message, innerException) { }
+
+            protected BaseException(SerializationInfo info, StreamingContext context) : base(info, context)
+            {
+                BaseField = (SimpleISerializableObject)info.GetValue("BaseField", typeof(SimpleISerializableObject));
+            }
+
+            public SimpleISerializableObject BaseField { get; set; }
+
+            public override void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                base.GetObjectData(info, context);
+                info.AddValue("BaseField", BaseField, typeof(SimpleISerializableObject));
+            }
+        }
+
+        [Serializable]
+        private class UnserializableConformingException : BaseException
+        {
+            public string SubClassField { get; set; }
+            public object SomeObject { get; set; }
+
+            public UnserializableConformingException(string message, Exception innerException) : base(message, innerException) { }
+
+            protected UnserializableConformingException(SerializationInfo info, StreamingContext context) : base(info, context)
+            {
+                SubClassField = info.GetString("SubClassField");
+                SomeObject = info.GetValue("SomeObject", typeof(object));
+            }
+
+            public override void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                base.GetObjectData(info, context);
+                info.AddValue("SubClassField", SubClassField);
+                info.AddValue("SomeObject", SomeObject, typeof(object));
+            }
+        }
+
+        public class UnserializableNonConformingException : Exception
+        {
+            public UnserializableNonConformingException(string message) : base(message)
+            { }
+        }
+
+        private class BanningTypeResolver : TypeResolver
+        {
+            private readonly TypeResolver _resolver = new CachedTypeResolver();
+            private readonly HashSet<Type> _blockedTypes;
+
+            public BanningTypeResolver(params Type[] blockedTypes)
+            {
+                _blockedTypes = new HashSet<Type>();
+                foreach (var type in blockedTypes ?? Array.Empty<Type>())
+                {
+                    _blockedTypes.Add(type);
+                }
+            }
+
+            public override Type ResolveType(string name)
+            {
+                var result = _resolver.ResolveType(name);
+                if (_blockedTypes.Contains(result))
+                {
+                    result = null;
+                }
+
+                return result;
+            }
+
+            public override bool TryResolveType(string name, out Type type)
+            {
+                if (_resolver.TryResolveType(name, out type))
+                {
+                    if (_blockedTypes.Contains(type))
+                    {
+                        type = null;
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        [Fact]
+        public void Serialize_UnserializableException()
+        {
+            const string message = "This is a test message";
+
+            var serializer = _serviceProvider.GetRequiredService<Serializer>();
+
+            // Throw the exception so that stack trace is populated
+            Exception source = Assert.Throws<UnserializableNonConformingException>((Action)(() =>
+            {
+                throw new UnserializableNonConformingException(message);
+            }));
+            object deserialized = serializer.Deserialize<Exception>(serializer.SerializeToArray(source));
+
+            // Type is wrong after round trip of unserializable exception
+            var result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);
+
+            // Exception message is correct after round trip of unserializable exception
+            Assert.Contains(message, result.Message);
+            Assert.Equal(RuntimeTypeNameFormatter.Format(source.GetType()), result.ExceptionType);
+
+            // Throw the exception so that stack trace is populated
+            source = Assert.Throws<UnserializableConformingException>((Action)(() =>
+            {
+                Exception inner;
+                try
+                {
+                    throw new InvalidOperationException("invalid");
+                }
+                catch (Exception exception)
+                {
+                    inner = exception;
+                }
+
+                throw new UnserializableConformingException(message, inner)
+                {
+                    SomeObject = new object(),
+                    SubClassField = "hoppo",
+                    BaseField = new SimpleISerializableObject() { Payload = "payload" }
+                };
+            }));
+            deserialized = serializer.Deserialize<Exception>(serializer.SerializeToArray(source));
+
+            // Type is wrong after round trip of unserializable exception
+            result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);
+
+            // Exception message is correct after round trip of unserializable exception
+            Assert.Contains(message, result.Message);
+            Assert.Equal(RuntimeTypeNameFormatter.Format(source.GetType()), result.ExceptionType);
+
+            var inner = Assert.IsType<InvalidOperationException>(result.InnerException);
+            Assert.Equal("invalid", inner.Message);
+
+            Assert.True(result.Properties.ContainsKey("SomeObject"));
+            var baseField = Assert.IsType<SimpleISerializableObject>(result.Properties["BaseField"]);
+            Assert.Equal("payload", baseField.Payload);
         }
 
         [Serializable]

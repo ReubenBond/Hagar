@@ -12,14 +12,15 @@ namespace Hagar.TypeSystem
     public class TypeConverter
     {
         private readonly ITypeConverter[] _converters;
-        private readonly CachedTypeResolver _resolver = new CachedTypeResolver();
+        private readonly TypeResolver _resolver;
         private readonly Func<QualifiedType, QualifiedType> _convertToDisplayName;
         private readonly Func<QualifiedType, QualifiedType> _convertFromDisplayName;
         private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownAliasToType;
         private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownTypeToAlias;
 
-        public TypeConverter(IEnumerable<ITypeConverter> formatters, IConfiguration<SerializerConfiguration> configuration)
+        public TypeConverter(IEnumerable<ITypeConverter> formatters, IConfiguration<SerializerConfiguration> configuration, TypeResolver typeResolver)
         {
+            _resolver = typeResolver;
             _converters = formatters.ToArray();
             _convertToDisplayName = ConvertToDisplayName;
             _convertFromDisplayName = ConvertFromDisplayName;
