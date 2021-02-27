@@ -4,5 +4,11 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(HagarBuildTimeCodeGen)' == 'true' ">
+    <ProjectReference Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+  </ItemGroup>
+ 
+  <Import Condition=" '$(HagarBuildTimeCodeGen)' == 'true' " Project="$(MSBuildThisFileDirectory)src/Hagar.CodeGenerator/build/Hagar.CodeGenerator.props" />
+
 </Project>
 

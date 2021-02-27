@@ -4,6 +4,7 @@
     <TargetFrameworks>netstandard2.0;netcoreapp3.1;net48;net5.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>Fast, flexible, and version-tolerant serializer for .NET</PackageDescription>
+    <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hagar.Abstractions\Hagar.Abstractions.csproj" />
-    <ProjectReference Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="$(SourceRoot)src/Hagar.Analyzers/Hagar.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 

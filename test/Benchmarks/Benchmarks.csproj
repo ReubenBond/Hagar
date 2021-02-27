@@ -10,6 +10,7 @@
     <DebugSymbols>true</DebugSymbols>
     <LangVersion>9.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,7 +50,6 @@
     <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.NewtonsoftJson\Hagar.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
-    <ProjectReference Include="$(SourceRoot)src/Hagar.CodeGenerator/Hagar.CodeGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>
