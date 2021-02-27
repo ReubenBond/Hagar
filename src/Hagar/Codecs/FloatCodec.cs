@@ -138,8 +138,8 @@ namespace Hagar.Codecs
             {
                 Value = value
             };
-            writer.WriteUInt64(holder.Low);
-            writer.WriteUInt64(holder.High);
+            writer.WriteUInt64(holder.First);
+            writer.WriteUInt64(holder.Second);
         }
 
         decimal IFieldCodec<decimal>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
@@ -185,22 +185,34 @@ namespace Hagar.Codecs
                 throw new UnexpectedLengthPrefixValueException("decimal", Width, length);
             }
 
-            var low = reader.ReadUInt64();
-            var high = reader.ReadUInt64();
+            var first = reader.ReadUInt64();
+            var second = reader.ReadUInt64();
             var holder = new DecimalConverter
             {
-                Low = low,
-                High = high,
+                First = first,
+                Second = second,
             };
-            return holder.Value;
+
+            // This could be retrieved from the Value property of the holder, but it is safer to go through the constructor to ensure that validation occurs early.
+            return new decimal(holder.Lo, holder.Mid, holder.Hi, holder.IsNegative, holder.Scale);
         }
 
         [StructLayout(LayoutKind.Explicit)]
         private struct DecimalConverter
         {
-            [FieldOffset(0)] public ulong Low;
-            [FieldOffset(8)] public ulong High;
             [FieldOffset(0)] public decimal Value;
+
+            [FieldOffset(0)] public ulong First;
+            [FieldOffset(8)] public ulong Second;
+
+            [FieldOffset(0)] private int Flags;
+            [FieldOffset(4)] public int Hi;
+            [FieldOffset(8)] public int Lo;
+            [FieldOffset(12)] public int Mid;
+
+            public byte Scale => (byte)(Flags >> 16);
+
+            public bool IsNegative => (Flags & unchecked((int)0x80000000)) != 0;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
