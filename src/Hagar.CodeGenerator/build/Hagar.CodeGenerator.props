@@ -1,0 +1,15 @@
+<Project>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="Hagar_DesignTimeBuild" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="Hagar_AttachDebugger" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Hagar_DesignTimeBuild>$(DesignTimeBuild)</Hagar_DesignTimeBuild>
+  </PropertyGroup>
+
+</Project>

@@ -13,7 +13,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Hagar.UnitTests

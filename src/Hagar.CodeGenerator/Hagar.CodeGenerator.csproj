@@ -3,7 +3,28 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageDescription>Code generation library for Hagar</PackageDescription>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
+
+	<ItemGroup> 
+		<None Remove="buildMultiTargeting\Hagar.CodeGenerator.props" />
+		<None Remove="build\Hagar.CodeGenerator.props" />
+		<Content Include="buildMultiTargeting\Hagar.CodeGenerator.props">
+		  <PackagePath>%(Identity)</PackagePath>
+		  <Visible>true</Visible>
+		  <Pack>true</Pack>
+		</Content>
+		<Content Include="build\Hagar.CodeGenerator.props">
+		  <PackagePath>%(Identity)</PackagePath>
+		  <Visible>true</Visible>
+		  <Pack>true</Pack>
+		</Content>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="$(OutputPath)\$(AssemblyName).xml" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
