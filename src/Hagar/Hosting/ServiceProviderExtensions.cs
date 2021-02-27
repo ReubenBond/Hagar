@@ -22,10 +22,11 @@ namespace Hagar
             if (context is null)
             {
                 context = new HagarConfigurationContext(services);
-                _ = context.Builder.AddAssembly(typeof(ServiceProviderExtensions).Assembly);
+                context.Builder.AddAssembly(typeof(ServiceProviderExtensions).Assembly);
                 services.Add(context.CreateServiceDescriptor());
-                _ = services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultTypeConfiguration>();
-                _ = services.AddSingleton<TypeConverter>();
+                services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultTypeConfiguration>();
+                services.AddSingleton<TypeResolver, CachedTypeResolver>();
+                services.AddSingleton<TypeConverter>();
                 services.TryAddSingleton(typeof(ListActivator<>));
                 services.TryAddSingleton(typeof(DictionaryActivator<,>));
                 services.TryAddSingleton(typeof(IConfiguration<>), typeof(ConfigurationHolder<>));
@@ -48,6 +49,7 @@ namespace Hagar
                 services.TryAddSingleton<SerializerSessionPool>();
 
                 // Serializer
+                services.TryAddSingleton(typeof(Serializer));
                 services.TryAddSingleton(typeof(Serializer<>));
                 services.TryAddSingleton(typeof(ValueSerializer<>));
             }
