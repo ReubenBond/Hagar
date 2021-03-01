@@ -4,8 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -168,11 +170,13 @@ namespace Hagar.CodeGenerator
                         {
                             var baseClass = (INamedTypeSymbol)attribute.ConstructorArguments[0].Value;
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
+                            var methods = GetMethods(symbol).ToList();
                             var description = new InvokableInterfaceDescription(
                                 _libraryTypes,
                                 semanticModel,
                                 symbol,
-                                GetMethods(symbol),
+                                GetTypeAlias(symbol) ?? symbol.Name,
+                                methods,
                                 baseClass,
                                 isExtension);
                             metadataModel.InvokableInterfaces.Add(description);
@@ -266,18 +270,6 @@ namespace Hagar.CodeGenerator
                     continue;
                 }
 
-                ushort? GetId(ISymbol memberSymbol)
-                {
-                    var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => _libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
-                    if (idAttr is null)
-                    {
-                        return null;
-                    }
-
-                    var id = (ushort)idAttr.ConstructorArguments.First().Value;
-                    return id;
-                }
-
                 if (member is IPropertySymbol prop)
                 {
                     var id = GetId(prop);
@@ -329,6 +321,18 @@ namespace Hagar.CodeGenerator
             }
         }
 
+        public ushort? GetId(ISymbol memberSymbol)
+        {
+            var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => _libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
+            if (idAttr is null)
+            {
+                return null;
+            }
+
+            var id = (ushort)idAttr.ConstructorArguments.First().Value;
+            return id;
+        }
+
         private uint? GetWellKnownTypeId(INamedTypeSymbol typeSymbol)
         {
             var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(_libraryTypes.WellKnownIdAttribute, attr.AttributeClass));
@@ -354,14 +358,157 @@ namespace Hagar.CodeGenerator
         }
 
         // Returns descriptions of all methods 
-        private static IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
+        private IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
         {
-            foreach (var member in symbol.GetMembers())
+            IEnumerable<INamedTypeSymbol> GetAllInterfaces(INamedTypeSymbol s)
             {
-                if (member is IMethodSymbol method)
+                if (s.TypeKind == TypeKind.Interface)
                 {
-                    yield return new MethodDescription(method);
+                    yield return s;
                 }
+
+                foreach (var i in s.AllInterfaces)
+                {
+                    yield return i;
+                }
+            }
+
+#pragma warning disable RS1024 // Compare symbols correctly
+            var methods = new Dictionary<IMethodSymbol, bool>(MethodSignatureComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+            foreach (var iface in GetAllInterfaces(symbol))
+            {
+                foreach (var method in iface.GetDeclaredInstanceMembers<IMethodSymbol>())
+                {
+                    if (methods.TryGetValue(method, out var description))
+                    {
+                        methods[method] = true;
+                        continue;
+                    }
+
+                    methods.Add(method, false);
+                }
+            }
+
+            var idCounter = 1;
+            foreach (var pair in methods.OrderBy(kv => kv.Key, MethodSignatureComparer.Default))
+            {
+                var method = pair.Key;
+                var id = GetId(method) ?? idCounter;
+                if (id >= idCounter)
+                {
+                    idCounter = id + 1;
+                }
+
+                yield return new MethodDescription(method, id.ToString(CultureInfo.InvariantCulture), hasCollision: pair.Value);
+            }
+        }
+
+        private sealed class MethodSignatureComparer : IEqualityComparer<IMethodSymbol>, IComparer<IMethodSymbol>
+        {
+            public static MethodSignatureComparer Default { get; } = new MethodSignatureComparer();
+
+            private MethodSignatureComparer()
+            {
+            }
+
+            public bool Equals(IMethodSymbol x, IMethodSymbol y)
+            {
+                if (!string.Equals(x.Name, y.Name, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                if (x.TypeArguments.Length != y.TypeArguments.Length)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < x.TypeArguments.Length; i++)
+                {
+                    if (!SymbolEqualityComparer.Default.Equals(x.TypeArguments[i], y.TypeArguments[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                if (x.Parameters.Length != y.Parameters.Length)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < x.Parameters.Length; i++)
+                {
+                    if (!SymbolEqualityComparer.Default.Equals(x.Parameters[i].Type, y.Parameters[i].Type))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(IMethodSymbol obj)
+            {
+                int hashCode = -499943048;
+                hashCode = hashCode * -1521134295 + StringComparer.Ordinal.GetHashCode(obj.Name);
+
+                foreach (var arg in obj.TypeArguments)
+                {
+                    hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(arg);
+                }
+
+                foreach (var parameter in obj.Parameters)
+                {
+                    hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(parameter.Type);
+                }
+
+                return hashCode;
+            }
+
+            public int Compare(IMethodSymbol x, IMethodSymbol y)
+            {
+                var result = StringComparer.Ordinal.Compare(x.Name, y.Name);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                result = x.TypeArguments.Length.CompareTo(y.TypeArguments.Length);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                for (var i = 0; i < x.TypeArguments.Length; i++)
+                {
+                    var xh = SymbolEqualityComparer.Default.GetHashCode(x.TypeArguments[i]);
+                    var yh = SymbolEqualityComparer.Default.GetHashCode(y.TypeArguments[i]);
+                    result = xh.CompareTo(yh);
+                    if (result != 0)
+                    {
+                        return result;
+                    }
+                }
+
+                result = x.Parameters.Length.CompareTo(y.Parameters.Length);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                for (var i = 0; i < x.Parameters.Length; i++)
+                {
+                    var xh = SymbolEqualityComparer.Default.GetHashCode(x.Parameters[i].Type);
+                    var yh = SymbolEqualityComparer.Default.GetHashCode(y.Parameters[i].Type);
+                    result = xh.CompareTo(yh);
+                    if (result != 0)
+                    {
+                        return result;
+                    }
+                }
+
+                return 0;
             }
         }
 

@@ -19,7 +19,7 @@ namespace Hagar.CodeGenerator
             IInvokableInterfaceDescription interfaceDescription,
             MetadataModel metadataModel)
         {
-            var generatedClassName = GetSimpleClassName(interfaceDescription.InterfaceType);
+            var generatedClassName = GetSimpleClassName(interfaceDescription);
 
             var ctors = GenerateConstructors(generatedClassName, interfaceDescription).ToArray();
             var proxyMethods = CreateProxyMethods(libraryTypes, interfaceDescription, metadataModel).ToArray();
@@ -53,7 +53,7 @@ namespace Hagar.CodeGenerator
             public IInvokableInterfaceDescription InterfaceDescription { get; }
         }
 
-        public static string GetSimpleClassName(INamedTypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}_Proxy_{type.Name}";
+        public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription) => $"{CodeGenerator.CodeGeneratorName}_Proxy_{interfaceDescription.Name}";
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(
             ClassDeclarationSyntax classDeclaration,
@@ -201,10 +201,18 @@ namespace Hagar.CodeGenerator
             {
                 var method = methodDescription.Method;
                 var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(), method.Name)
-                    .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddParameterListParameters(method.Parameters.Select(GetParameterSyntax).ToArray())
                     .WithBody(
                         CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
+                if (methodDescription.HasCollision)
+                {
+                    declaration = declaration.WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)));
+                }
+                else
+                {
+                    var explicitInterfaceSpecifier = ExplicitInterfaceSpecifier(methodDescription.Method.ContainingType.ToNameSyntax());
+                    declaration = declaration.WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
+                }
 
                 var typeParameters = GetTypeParametersWithConstraints(method.TypeParameters);
                 foreach (var (name, constraints) in typeParameters)

@@ -6,6 +6,8 @@
     <LangVersion>9.0</LangVersion>
     <IsPackable>false</IsPackable>
     <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
+	<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <Hagar_AttachDebugger>false</Hagar_AttachDebugger>
   </PropertyGroup>
 
   <ItemGroup>

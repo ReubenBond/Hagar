@@ -7,6 +7,7 @@ namespace Hagar.CodeGenerator
 {
     internal interface ISerializableTypeDescription
     {
+        Accessibility Accessibility { get; }
         TypeSyntax TypeSyntax { get; }
         TypeSyntax UnboundTypeSyntax { get; }
         bool HasComplexBaseType { get; }
