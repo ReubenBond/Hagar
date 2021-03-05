@@ -3,12 +3,14 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Hagar.TypeSystem
 {
     public sealed class TypeCodec
     {
+        private const byte Version1 = 1;
         private readonly ConcurrentDictionary<Type, TypeKey> _typeCache = new ConcurrentDictionary<Type, TypeKey>();
         private readonly ConcurrentDictionary<int, (TypeKey Key, Type Type)> _typeKeyCache = new ConcurrentDictionary<int, (TypeKey, Type)>();
         private readonly TypeConverter _typeConverter;
@@ -30,6 +32,7 @@ namespace Hagar.TypeSystem
         public void WriteEncodedType<TBufferWriter>(ref Writer<TBufferWriter> writer, Type type) where TBufferWriter : IBufferWriter<byte>
         {
             var key = _typeCache.GetOrAdd(type, _getTypeKey);
+            writer.WriteByte(Version1);
             writer.WriteInt32(key.HashCode);
             writer.WriteVarUInt32((uint)key.TypeName.Length);
             writer.Write(key.TypeName);
@@ -37,6 +40,12 @@ namespace Hagar.TypeSystem
 
         public unsafe bool TryRead<TInput>(ref Reader<TInput> reader, out Type type)
         {
+            var version = reader.ReadByte();
+            if (version != Version1)
+            {
+                ThrowUnsupportedVersion(version);
+            }
+
             var hashCode = reader.ReadInt32();
             var count = (int)reader.ReadVarUInt32();
 
@@ -108,17 +117,9 @@ namespace Hagar.TypeSystem
             return type;
         }
 
-        private static TypeKey ReadTypeKey<TInput>(ref Reader<TInput> reader)
-        {
-            var hashCode = reader.ReadInt32();
-            var count = reader.ReadVarUInt32();
-            var typeName = reader.ReadBytes(count);
-            var key = new TypeKey(hashCode, typeName);
-            return key;
-        }
-
         public unsafe bool TryReadForAnalysis<TInput>(ref Reader<TInput> reader, out Type type, out string typeString)
         {
+            var version = reader.ReadByte();
             var hashCode = reader.ReadInt32();
             var count = (int)reader.ReadVarUInt32();
 
@@ -138,6 +139,12 @@ namespace Hagar.TypeSystem
             var key = new TypeKey(hashCode, typeName.ToArray());
             typeString = key.ToString();
             return type is object; 
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedVersion(byte version)
+        {
+            throw new NotSupportedException($"Type encoding version {version} is not supported");
         }
 
         /// <summary>

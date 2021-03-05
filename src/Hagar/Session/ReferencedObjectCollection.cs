@@ -37,7 +37,6 @@ namespace Hagar.Session
                 return true;
             }
 
-            // TODO: Binary search
             for (int i = 0; i < ReferenceToObjectCount; ++i)
             {
                 if (_referenceToObject[i].Id == reference)
@@ -67,7 +66,6 @@ namespace Hagar.Session
                 return true;
             }
 
-            // TODO: Binary search
             for (int i = 0; i < _objectToReferenceCount; ++i)
             {
                 if (ReferenceEquals(_objectToReference[i].Object, value))
@@ -91,7 +89,6 @@ namespace Hagar.Session
                 return -1;
             }
 
-            // TODO: Binary search
             for (var i = 0; i < ReferenceToObjectCount; ++i)
             {
                 if (ReferenceEquals(_referenceToObject[i].Object, value))
