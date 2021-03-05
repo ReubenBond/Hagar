@@ -4,15 +4,18 @@ namespace Hagar.CodeGenerator
 {
     internal class MethodDescription
     {
-        public MethodDescription(IMethodSymbol method)
+        public MethodDescription(IMethodSymbol method, string name, bool hasCollision)
         {
             Method = method;
+            Name = name;
+            HasCollision = hasCollision;
         }
 
-        public IMethodSymbol Method { get; }
+        public string Name { get; }
 
-#pragma warning disable RS1024 // Compare symbols correctly
-        public override int GetHashCode() => Method.GetHashCode();
-#pragma warning restore RS1024 // Compare symbols correctly
+        public IMethodSymbol Method { get; }
+        public bool HasCollision { get; }
+
+        public override int GetHashCode() => SymbolEqualityComparer.Default.GetHashCode(Method);
     }
 }

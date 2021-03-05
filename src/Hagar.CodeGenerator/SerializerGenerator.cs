@@ -42,9 +42,14 @@ namespace Hagar.CodeGenerator
             var fieldDeclarations = GetFieldDeclarations(fieldDescriptions);
             var ctor = GenerateConstructor(libraryTypes, simpleClassName, fieldDescriptions);
 
+            var accessibility = type.Accessibility switch
+            {
+                Accessibility.Public => SyntaxKind.PublicKeyword,
+                _ => SyntaxKind.InternalKeyword,
+            };
             var classDeclaration = ClassDeclaration(simpleClassName)
                 .AddBaseListTypes(SimpleBaseType(libraryTypes.FieldCodec_1.ToTypeSyntax(type.TypeSyntax)))
-                .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
+                .AddModifiers(Token(accessibility), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fieldDeclarations)
                 .AddMembers(ctor);
@@ -337,8 +342,9 @@ namespace Hagar.CodeGenerator
 
             CodecFieldDescription GetCodecDescription(ITypeSymbol t)
             {
-                TypeSyntax codecType;
-                if (t.HasAttribute(libraryTypes.GenerateSerializerAttribute))
+                TypeSyntax codecType = null;
+                if (t.HasAttribute(libraryTypes.GenerateSerializerAttribute)
+                    && (!SymbolEqualityComparer.Default.Equals(t.ContainingAssembly, libraryTypes.Compilation.Assembly) || t.ContainingAssembly.HasAttribute(libraryTypes.MetadataProviderAttribute)))
                 {
                     // Use the concrete generated type and avoid expensive interface dispatch
                     if (t is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
@@ -482,7 +488,7 @@ namespace Hagar.CodeGenerator
                 var memberType = GetExpectedType(description.Type);
                 var staticCodec = libraryTypes.StaticCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, memberType));
                 ExpressionSyntax codecExpression;
-                if (staticCodec != null)
+                if (staticCodec != null && libraryTypes.Compilation.IsSymbolAccessibleWithin(staticCodec.CodecType, libraryTypes.Compilation.Assembly))
                 {
                     codecExpression = staticCodec.CodecType.ToNameSyntax();
                 }

@@ -18,9 +18,25 @@ namespace Hagar.CodeGenerator
             Members = members.ToList();
             SemanticModel = semanticModel;
             _libraryTypes = libraryTypes;
+
+            var t = type;
+            Accessibility accessibility = t.DeclaredAccessibility;
+            while (t is not null)
+            {
+                if ((int)t.DeclaredAccessibility < (int)accessibility)
+                {
+                    accessibility = t.DeclaredAccessibility;
+                }
+
+                t = t.ContainingType;
+            }
+
+            Accessibility = accessibility;
         }
 
         private INamedTypeSymbol Type { get; }
+
+        public Accessibility Accessibility { get; }
 
         public TypeSyntax TypeSyntax => Type.ToTypeSyntax();
         public TypeSyntax UnboundTypeSyntax => Type.ToTypeSyntax();

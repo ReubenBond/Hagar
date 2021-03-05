@@ -12,7 +12,8 @@ namespace Hagar.CodeGenerator
             LibraryTypes libraryTypes,
             SemanticModel semanticModel,
             INamedTypeSymbol interfaceType,
-            IEnumerable<MethodDescription> methods,
+            string name,
+            List<MethodDescription> methods,
             INamedTypeSymbol proxyBaseType,
             bool isExtension)
         {
@@ -21,7 +22,8 @@ namespace Hagar.CodeGenerator
             InterfaceType = interfaceType;
             ProxyBaseType = proxyBaseType;
             IsExtension = isExtension;
-            Methods = methods.ToList();
+            Methods = methods;
+            Name = name;
         }
 
         private static void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
@@ -72,6 +74,7 @@ namespace Hagar.CodeGenerator
             static void Throw(ISymbol m, string x) => throw new InvalidOperationException("Complaint: " + x + " for symbol: " + m.ToDisplayString());
         }
 
+        public string Name { get; }
         public INamedTypeSymbol InterfaceType { get; }
         public List<MethodDescription> Methods { get; }
         public INamedTypeSymbol ProxyBaseType { get; }

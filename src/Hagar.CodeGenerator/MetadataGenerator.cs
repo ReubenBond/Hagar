@@ -126,23 +126,11 @@ namespace Hagar.CodeGenerator
             return ParseTypeName(name);
         }
 
-        public static TypeSyntax GetInvokableTypeName(this MethodDescription method)
-        {
-            var genericArity = method.Method.TypeParameters.Length + method.Method.ContainingType.TypeParameters.Length;
-            var name = InvokableGenerator.GetSimpleClassName(method.Method);
-            if (genericArity > 0)
-            {
-                name += $"<{new string(',', genericArity - 1)}>";
-            }
-
-            return ParseTypeName(name);
-        }
-
         public static TypeSyntax GetProxyTypeName(this IGeneratedProxyDescription proxy)
         {
             var interfaceType = proxy.InterfaceDescription.InterfaceType;
             var genericArity = interfaceType.TypeParameters.Length;
-            var name = ProxyGenerator.GetSimpleClassName(interfaceType);
+            var name = ProxyGenerator.GetSimpleClassName(proxy.InterfaceDescription);
             if (genericArity > 0)
             {
                 name += $"<{new string(',', genericArity - 1)}>";

@@ -32,10 +32,7 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(ISerializableTypeDescription serializableType)
         {
-#pragma warning disable RS1024 // Compare symbols correctly
-            var uniquifier = RuntimeHelpers.GetHashCode(serializableType).ToString("X");
-#pragma warning restore RS1024 // Compare symbols correctly
-            return $"{CodeGenerator.CodeGeneratorName}_Activator_{serializableType.Name}_{uniquifier}";
+            return $"{CodeGenerator.CodeGeneratorName}_Activator_{serializableType.Name}";
         }
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(ClassDeclarationSyntax classDeclaration, ISerializableTypeDescription type)

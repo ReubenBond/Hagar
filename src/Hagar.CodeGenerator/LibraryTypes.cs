@@ -13,6 +13,7 @@ namespace Hagar.CodeGenerator
         {
             return new LibraryTypes
             {
+                Compilation = compilation,
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
@@ -163,5 +164,6 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol UseActivatorAttribute { get; private set; }
         public INamedTypeSymbol SuppressReferenceTrackingAttribute { get; private set; }
         public INamedTypeSymbol OmitDefaultMemberValuesAttribute { get; private set; }
+        public Compilation Compilation { get; private set; }
     }
 }

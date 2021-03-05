@@ -5,6 +5,7 @@ namespace Hagar.CodeGenerator
 {
     internal interface IInvokableInterfaceDescription
     {
+        string Name { get; }
         INamedTypeSymbol InterfaceType { get; }
         List<MethodDescription> Methods { get; }
         INamedTypeSymbol ProxyBaseType { get; }
