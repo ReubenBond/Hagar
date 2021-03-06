@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -36,5 +37,11 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.Fixed64} is supported for {nameof(TimeSpan)} fields. {field}");
+    }
+
+    [RegisterCopier]
+    public sealed class TimeSpanCopier : IDeepCopier<TimeSpan>
+    {
+        public TimeSpan DeepCopy(TimeSpan input, CopyContext _) => input;
     }
 }

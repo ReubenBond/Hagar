@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System;
 
 namespace Hagar.Codecs
@@ -49,5 +50,11 @@ namespace Hagar.Codecs
 
         [Id(3)]
         public int Revision { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class VersionCopier : IDeepCopier<Version>
+    {
+        public Version DeepCopy(Version input, CopyContext context) => input;
     }
 }

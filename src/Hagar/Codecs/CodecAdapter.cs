@@ -18,7 +18,7 @@ namespace Hagar.Codecs
         /// <summary>
         /// Converts an untyped codec into a strongly-typed codec.
         /// </summary>
-        public static IFieldCodec<TField> CreatedTypedFromUntyped<TField>(IFieldCodec<object> untypedCodec) => new UntypedCodecWrapper<TField>(untypedCodec);
+        public static IFieldCodec<TField> CreateTypedFromUntyped<TField>(IFieldCodec<object> untypedCodec) => new UntypedCodecWrapper<TField>(untypedCodec);
 
         private sealed class TypedCodecWrapper<TField, TCodec> : IFieldCodec<object>, IWrappedCodec where TCodec : IFieldCodec<TField>
         {
@@ -33,7 +33,7 @@ namespace Hagar.Codecs
 
             object IFieldCodec<object>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => _codec.ReadValue(ref reader, field);
 
-            public object InnerCodec => _codec;
+            public object Inner => _codec;
         }
 
         private sealed class UntypedCodecWrapper<TField> : IWrappedCodec, IFieldCodec<TField>
@@ -45,7 +45,7 @@ namespace Hagar.Codecs
                 _codec = codec;
             }
 
-            public object InnerCodec => _codec;
+            public object Inner => _codec;
 
             void IFieldCodec<TField>.WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, TField value) => _codec.WriteField(ref writer, fieldIdDelta, expectedType, value);
 

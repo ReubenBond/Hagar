@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.Utilities;
 using Hagar.WireProtocol;
 using System;
@@ -8,7 +9,8 @@ using System.Runtime.CompilerServices;
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
-    public sealed class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>
+    [RegisterCopier]
+    public sealed class BoolCodec : TypedCodecBase<bool, BoolCodec>, IFieldCodec<bool>, IDeepCopier<bool>
     {
         private static readonly Type CodecFieldType = typeof(bool);
 
@@ -32,10 +34,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType) == 1;
         }
+
+        public bool DeepCopy(bool input, CopyContext _) => input; 
     }
 
     [RegisterSerializer]
-    public sealed class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>
+    [RegisterCopier]
+    public sealed class CharCodec : TypedCodecBase<char, CharCodec>, IFieldCodec<char>, IDeepCopier<char>
     {
         private static readonly Type CodecFieldType = typeof(char);
 
@@ -59,10 +64,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return (char)reader.ReadUInt16(field.WireType);
         }
+
+        public char DeepCopy(char input, CopyContext _) => input; 
     }
 
     [RegisterSerializer]
-    public sealed class ByteCodec : TypedCodecBase<byte, ByteCodec>, IFieldCodec<byte>
+    [RegisterCopier]
+    public sealed class ByteCodec : TypedCodecBase<byte, ByteCodec>, IFieldCodec<byte>, IDeepCopier<byte>
     {
         private static readonly Type CodecFieldType = typeof(byte);
 
@@ -86,10 +94,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt8(field.WireType);
         }
+
+        public byte DeepCopy(byte input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class SByteCodec : TypedCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>
+    [RegisterCopier]
+    public sealed class SByteCodec : TypedCodecBase<sbyte, SByteCodec>, IFieldCodec<sbyte>, IDeepCopier<sbyte>
     {
         private static readonly Type CodecFieldType = typeof(sbyte);
 
@@ -113,10 +124,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt8(field.WireType);
         }
+
+        public sbyte DeepCopy(sbyte input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>
+    [RegisterCopier]
+    public sealed class UInt16Codec : TypedCodecBase<ushort, UInt16Codec>, IFieldCodec<ushort>, IDeepCopier<ushort>
     {
         public static readonly Type CodecFieldType = typeof(ushort);
 
@@ -140,10 +154,13 @@ namespace Hagar.Codecs
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
             writer.WriteVarUInt32(value);
         }
+
+        public ushort DeepCopy(ushort input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class Int16Codec : TypedCodecBase<short, Int16Codec>, IFieldCodec<short>
+    [RegisterCopier]
+    public sealed class Int16Codec : TypedCodecBase<short, Int16Codec>, IFieldCodec<short>, IDeepCopier<short>
     {
         private static readonly Type CodecFieldType = typeof(short);
 
@@ -167,10 +184,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt16(field.WireType);
         }
+
+        public short DeepCopy(short input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class UInt32Codec : TypedCodecBase<uint, UInt32Codec>, IFieldCodec<uint>
+    [RegisterCopier]
+    public sealed class UInt32Codec : TypedCodecBase<uint, UInt32Codec>, IFieldCodec<uint>, IDeepCopier<uint>
     {
         private static readonly Type CodecFieldType = typeof(uint);
 
@@ -202,10 +222,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt32(field.WireType);
         }
+
+        public uint DeepCopy(uint input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class Int32Codec : TypedCodecBase<int, Int32Codec>, IFieldCodec<int>
+    [RegisterCopier]
+    public sealed class Int32Codec : TypedCodecBase<int, Int32Codec>, IFieldCodec<int>, IDeepCopier<int>
     {
         public static readonly Type CodecFieldType = typeof(int);
 
@@ -254,10 +277,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt32(field.WireType);
         }
+
+        public int DeepCopy(int input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>
+    [RegisterCopier]
+    public sealed class Int64Codec : TypedCodecBase<long, Int64Codec>, IFieldCodec<long>, IDeepCopier<long>
     {
         private static readonly Type CodecFieldType = typeof(long);
 
@@ -299,10 +325,13 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadInt64(field.WireType);
         }
+
+        public long DeepCopy(long input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
-    public sealed class UInt64Codec : TypedCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>
+    [RegisterCopier]
+    public sealed class UInt64Codec : TypedCodecBase<ulong, UInt64Codec>, IFieldCodec<ulong>, IDeepCopier<ulong>
     {
         private static readonly Type CodecFieldType = typeof(ulong);
 
@@ -347,5 +376,7 @@ namespace Hagar.Codecs
             ReferenceCodec.MarkValueField(reader.Session);
             return reader.ReadUInt64(field.WireType);
         }
+
+        public ulong DeepCopy(ulong input, CopyContext _) => input;
     }
 }

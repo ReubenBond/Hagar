@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Globalization;
 
 namespace Hagar.Codecs
@@ -28,5 +29,11 @@ namespace Hagar.Codecs
     {
         [Id(0)]
         public string Name { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class CultureInfoCopier : IDeepCopier<CultureInfo>
+    {
+        public CultureInfo DeepCopy(CultureInfo input, CopyContext _) => input;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -72,5 +73,11 @@ namespace Hagar.Codecs
 
         [Id(3)]
         public IEqualityComparer<TValue> ValueComparer { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ImmutableSortedDictionaryCopier<TKey, TValue> : IDeepCopier<ImmutableSortedDictionary<TKey, TValue>>
+    {
+        public ImmutableSortedDictionary<TKey, TValue> DeepCopy(ImmutableSortedDictionary<TKey, TValue> input, CopyContext _) => input;
     }
 }

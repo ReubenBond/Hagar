@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.WireProtocol;
 using System;
 using System.Runtime.CompilerServices;
@@ -31,5 +32,22 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowNotNullException(object value) => throw new InvalidOperationException(
             $"Expected a value of null, but encountered a value of '{value}'.");
+    }
+
+    public sealed class VoidCopier : IDeepCopier<object>
+    {
+        public object DeepCopy(object input, CopyContext context)
+        {
+            if (context.TryGetCopy<object>(input, out var result))
+            {
+                return result;
+            }
+
+            ThrowNotNullException(input);
+            return null;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowNotNullException(object value) => throw new InvalidOperationException($"Expected a value of null, but encountered a value of type '{value.GetType()}'.");
     }
 }

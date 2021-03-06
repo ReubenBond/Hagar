@@ -11,12 +11,12 @@ namespace Hagar.Configuration
 
         public HashSet<Type> Serializers { get; } = new HashSet<Type>();
 
+        public HashSet<Type> Copiers { get; } = new HashSet<Type>();
+
         public HashSet<Type> InterfaceProxies { get; } = new HashSet<Type>();
 
         public Dictionary<uint, Type> WellKnownTypeIds { get; } = new Dictionary<uint, Type>();
 
         public Dictionary<string, Type> WellKnownTypeAliases { get; } = new Dictionary<string, Type>();
-
-        public Dictionary<string, Type> TypeAliases = new Dictionary<string, Type>();
     }
 }

@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 
 namespace Hagar.Codecs
@@ -59,5 +60,41 @@ namespace Hagar.Codecs
 
         [Id(2)]
         public IEqualityComparer<T> Comparer { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class HashSetCopier<T> : IDeepCopier<HashSet<T>>, IPartialCopier<HashSet<T>>
+    {
+        private readonly IDeepCopier<T> _copier;
+
+        public HashSetCopier(IDeepCopier<T> valueCopier)
+        {
+            _copier = valueCopier;
+        }
+
+        public HashSet<T> DeepCopy(HashSet<T> input, CopyContext context)
+        {
+            if (context.TryGetCopy<HashSet<T>>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new HashSet<T>(input.Comparer);
+            context.RecordCopy(input, result);
+            foreach (var item in input)
+            {
+                result.Add(_copier.DeepCopy(item, context));
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(HashSet<T> input, HashSet<T> output, CopyContext context)
+        {
+            foreach (var item in input)
+            {
+                output.Add(_copier.DeepCopy(item, context));
+            }
+        }
     }
 }

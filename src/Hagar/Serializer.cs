@@ -427,7 +427,7 @@ namespace Hagar
         private readonly SerializerSessionPool _sessionPool;
         private readonly Type _expectedType;
 
-        public Serializer(ITypedCodecProvider codecProvider, SerializerSessionPool sessionPool)
+        public Serializer(IFieldCodecProvider codecProvider, SerializerSessionPool sessionPool)
         {
             _expectedType = typeof(T);
             _codec = HagarGeneratedCodeHelper.UnwrapService(null, codecProvider.GetCodec<T>());

@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -71,6 +72,12 @@ namespace Hagar.Codecs
             $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(float)}.");
     }
 
+    [RegisterCopier]
+    public sealed class FloatCopier : IDeepCopier<float>
+    {
+        public float DeepCopy(float input, CopyContext _) => input;
+    }
+
     [RegisterSerializer]
     public sealed class DoubleCodec : TypedCodecBase<double, DoubleCodec>, IFieldCodec<double>
     {
@@ -119,6 +126,12 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowWireTypeOutOfRange(WireType wireType) => throw new ArgumentOutOfRangeException(
             $"{nameof(wireType)} {wireType} is not supported by this codec.");
+    }
+
+    [RegisterCopier]
+    public sealed class DoubleCopier : IDeepCopier<double>
+    {
+        public double DeepCopy(double input, CopyContext _) => input;
     }
 
     [RegisterSerializer]
@@ -222,6 +235,11 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowValueOutOfRange<T>(T value) => throw new ArgumentOutOfRangeException(
             $"The {typeof(T)} value has a magnitude too high {value} to be converted to {typeof(decimal)}.");
+    }
 
+    [RegisterCopier]
+    public sealed class DecimalCopier : IDeepCopier<decimal>
+    {
+        public decimal DeepCopy(decimal input, CopyContext _) => input;
     }
 }

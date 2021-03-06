@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -66,5 +67,11 @@ namespace Hagar.Codecs
 
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for {nameof(Guid)} fields. {field}");
+    }
+
+    [RegisterCopier]
+    public sealed class GuidCopier : IDeepCopier<Guid>
+    {
+        public Guid DeepCopy(Guid input, CopyContext _) => input;
     }
 }

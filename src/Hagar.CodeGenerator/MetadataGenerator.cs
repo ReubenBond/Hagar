@@ -14,6 +14,7 @@ namespace Hagar.CodeGenerator
         {
             var configParam = "config".ToIdentifierName();
             var addSerializerMethod = configParam.Member("Serializers").Member("Add");
+            var addCopierMethod = configParam.Member("Copiers").Member("Add");
             var body = new List<StatementSyntax>();
             body.AddRange(
                 metadataModel.SerializableTypes.Select(
@@ -23,7 +24,27 @@ namespace Hagar.CodeGenerator
                                 addSerializerMethod,
                                 ArgumentList(
                                     SingletonSeparatedList(
-                                        Argument(TypeOfExpression(GetPartialSerializerTypeName(type)))))))
+                                        Argument(TypeOfExpression(GetCodecTypeName(type)))))))
+                ));
+            body.AddRange(
+                metadataModel.SerializableTypes.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addCopierMethod,
+                                ArgumentList(
+                                    SingletonSeparatedList(
+                                        Argument(TypeOfExpression(GetCopierTypeName(type)))))))
+                ));
+            body.AddRange(
+                metadataModel.DetectedCopiers.Select(
+                    type =>
+                        (StatementSyntax)ExpressionStatement(
+                            InvocationExpression(
+                                addCopierMethod,
+                                ArgumentList(
+                                    SingletonSeparatedList(
+                                        Argument(TypeOfExpression(type.ToOpenTypeSyntax()))))))
                 ));
             body.AddRange(
                 metadataModel.DetectedSerializers.Select(
@@ -114,7 +135,7 @@ namespace Hagar.CodeGenerator
                 .AddMembers(configureMethod);
         }
 
-        public static TypeSyntax GetPartialSerializerTypeName(this ISerializableTypeDescription type)
+        public static TypeSyntax GetCodecTypeName(this ISerializableTypeDescription type)
         {
             var genericArity = type.TypeParameters.Length;
             var name = SerializerGenerator.GetSimpleClassName(type);
@@ -125,6 +146,19 @@ namespace Hagar.CodeGenerator
 
             return ParseTypeName(name);
         }
+
+        public static TypeSyntax GetCopierTypeName(this ISerializableTypeDescription type)
+        {
+            var genericArity = type.TypeParameters.Length;
+            var name = DeepCopierGenerator.GetSimpleClassName(type);
+            if (genericArity > 0)
+            {
+                name += $"<{new string(',', genericArity - 1)}>";
+            }
+
+            return ParseTypeName(name);
+        }
+
 
         public static TypeSyntax GetProxyTypeName(this IGeneratedProxyDescription proxy)
         {

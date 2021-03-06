@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 
 namespace Hagar.Codecs
@@ -67,5 +68,43 @@ namespace Hagar.Codecs
 
         [Id(2)]
         public IComparer<TKey> Comparer { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class SortedListCopier<TKey, TValue> : IDeepCopier<SortedList<TKey, TValue>>, IPartialCopier<SortedList<TKey, TValue>>
+    {
+        private readonly IDeepCopier<TKey> _keyCopier;
+        private readonly IDeepCopier<TValue> _valueCopier;
+
+        public SortedListCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
+        {
+            _keyCopier = keyCopier;
+            _valueCopier = valueCopier;
+        }
+
+        public SortedList<TKey, TValue> DeepCopy(SortedList<TKey, TValue> input, CopyContext context)
+        {
+            if (context.TryGetCopy<SortedList<TKey, TValue>>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new SortedList<TKey, TValue>(input.Comparer);
+            context.RecordCopy(input, result);
+            foreach (var pair in input)
+            {
+                result[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(SortedList<TKey, TValue> input, SortedList<TKey, TValue> output, CopyContext context)
+        {
+            foreach (var pair in input)
+            {
+                output[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+        }
     }
 }

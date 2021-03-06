@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.Session;
 using Hagar.WireProtocol;
 using System;
@@ -136,5 +137,13 @@ namespace Hagar.Codecs
         private static Type ThrowUnknownReferencedType(uint id) => throw new UnknownReferencedTypeException(id);
         private static Type ThrowUnknownWellKnownType(uint id) => throw new UnknownWellKnownTypeException(id);
         private static Type ThrowMissingType() => throw new TypeMissingException();
+    }
+
+    [RegisterCopier]
+    public sealed class TypeCopier : IDeepCopier<Type>, IGeneralizedCopier
+    {
+        public object DeepCopy(object input, CopyContext context) => input;
+        public Type DeepCopy(Type input, CopyContext context) => input;
+        public bool IsSupportedType(Type type) => typeof(Type).IsAssignableFrom(type);
     }
 }

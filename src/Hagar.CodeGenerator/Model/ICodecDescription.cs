@@ -6,4 +6,9 @@ namespace Hagar.CodeGenerator
     {
         ITypeSymbol UnderlyingType { get; }
     }
+
+    internal interface ICopierDescription
+    {
+        ITypeSymbol UnderlyingType { get; }
+    }
 }

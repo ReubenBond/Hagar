@@ -1,5 +1,5 @@
-﻿using Hagar.Serializers;
-using System;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -39,6 +39,35 @@ namespace Hagar.Codecs
                     surrogate = default;
                     break;
             }
+        }
+    }
+
+    [RegisterCopier]
+    public sealed class ReadOnlyCollectionCopier<T> : IDeepCopier<ReadOnlyCollection<T>>
+    {
+        private readonly IDeepCopier<T> _elementCopier;
+
+        public ReadOnlyCollectionCopier(IDeepCopier<T> elementCopier)
+        {
+            _elementCopier = elementCopier;
+        }
+
+        public ReadOnlyCollection<T> DeepCopy(ReadOnlyCollection<T> input, CopyContext context)
+        {
+            if (context.TryGetCopy<ReadOnlyCollection<T>>(input, out var result))
+            {
+                return result;
+            }
+
+            var tempResult = new T[input.Count];
+            for (var i = 0; i < tempResult.Length; i++)
+            {
+                tempResult[i] = _elementCopier.DeepCopy(input[i], context);
+            }
+
+            result = new ReadOnlyCollection<T>(tempResult);
+            context.RecordCopy(input, result);
+            return result;
         }
     }
 }

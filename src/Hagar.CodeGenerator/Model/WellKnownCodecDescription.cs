@@ -14,4 +14,17 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol CodecType { get; }
     }
+
+    internal class WellKnownCopierDescription : ICopierDescription
+    {
+        public WellKnownCopierDescription(ITypeSymbol underlyingType, INamedTypeSymbol codecType)
+        {
+            UnderlyingType = underlyingType;
+            CopierType = codecType;
+        }
+
+        public ITypeSymbol UnderlyingType { get; }
+
+        public INamedTypeSymbol CopierType { get; }
+    }
 }

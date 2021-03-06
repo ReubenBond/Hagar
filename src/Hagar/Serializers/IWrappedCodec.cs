@@ -2,7 +2,7 @@ namespace Hagar.Serializers
 {
     internal interface IWrappedCodec
     {
-        object InnerCodec { get; }
+        object Inner { get; }
     }
 
     internal interface IServiceHolder<T>

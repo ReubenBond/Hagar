@@ -73,6 +73,9 @@ namespace Hagar.CodeGenerator
                 // Generate a partial serializer class for each serializable type.
                 members.Add(SerializerGenerator.GenerateSerializer(_libraryTypes, type, partialTypeSerializers));
 
+                // Generate a copier for each serializable type.
+                members.Add(DeepCopierGenerator.GenerateCopier(_libraryTypes, type));
+
                 if (type.IsEmptyConstructable)
                 {
                     metadataModel.ActivatableTypes.Add(type);
@@ -193,6 +196,11 @@ namespace Hagar.CodeGenerator
                         if (symbol.HasAttribute(_libraryTypes.RegisterActivatorAttribute))
                         {
                             metadataModel.DetectedActivators.Add(symbol);
+                        }
+
+                        if (symbol.HasAttribute(_libraryTypes.RegisterCopierAttribute))
+                        {
+                            metadataModel.DetectedCopiers.Add(symbol);
                         }
                     }
                 }

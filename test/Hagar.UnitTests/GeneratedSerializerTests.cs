@@ -17,7 +17,7 @@ namespace Hagar.UnitTests
     public class GeneratedSerializerTests : IDisposable
     {
         private readonly ServiceProvider _serviceProvider;
-        private readonly ITypedCodecProvider _codecProvider;
+        private readonly IFieldCodecProvider _codecProvider;
         private readonly SerializerSessionPool _sessionPool;
 
         public GeneratedSerializerTests()
@@ -25,7 +25,7 @@ namespace Hagar.UnitTests
             _serviceProvider = new ServiceCollection()
                 .AddHagar(hagar => hagar.AddAssembly(typeof(GeneratedSerializerTests).Assembly))
                 .BuildServiceProvider();
-            _codecProvider = _serviceProvider.GetRequiredService<ITypedCodecProvider>();
+            _codecProvider = _serviceProvider.GetRequiredService<IFieldCodecProvider>();
             _sessionPool = _serviceProvider.GetRequiredService<SerializerSessionPool>();
         }
 

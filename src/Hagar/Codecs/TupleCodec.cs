@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
@@ -75,6 +76,28 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
+    }
+
+    [RegisterCopier]
+    public class TupleCopier<T> : IDeepCopier<Tuple<T>>
+    {
+        private readonly IDeepCopier<T> _copier;
+        public TupleCopier(IDeepCopier<T> copier)
+        {
+            _copier = copier;
+        }
+
+        public Tuple<T> DeepCopy(Tuple<T> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T> result))
+            {
+                return result;
+            }
+
+            result = new Tuple<T>(_copier.DeepCopy(input.Item1, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
     }
 
     [RegisterSerializer]
@@ -154,6 +177,33 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
+    }
+    
+    [RegisterCopier]
+    public class TupleCopier<T1, T2> : IDeepCopier<Tuple<T1, T2>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+
+        public TupleCopier(IDeepCopier<T1> copier1, IDeepCopier<T2> copier2)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+        }
+
+        public Tuple<T1, T2> DeepCopy(Tuple<T1, T2> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2> result))
+            {
+                return result;
+            }
+
+            result = Tuple.Create(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
     }
 
     [RegisterSerializer]
@@ -244,6 +294,39 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
+    }
+    
+    [RegisterCopier]
+    public class TupleCopier<T1, T2, T3> : IDeepCopier<Tuple<T1, T2, T3>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+        private readonly IDeepCopier<T3> _copier3;
+
+        public TupleCopier(
+            IDeepCopier<T1> copier1,
+            IDeepCopier<T2> copier2,
+            IDeepCopier<T3> copier3)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+            _copier3 = copier3;
+        }
+
+        public Tuple<T1, T2, T3> DeepCopy(Tuple<T1, T2, T3> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2, T3> result))
+            {
+                return result;
+            }
+
+            result = Tuple.Create(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context),
+                _copier3.DeepCopy(input.Item3, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
     }
 
     [RegisterSerializer]
@@ -344,6 +427,43 @@ namespace Hagar.Codecs
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
+    
+    [RegisterCopier]
+    public class TupleCopier<T1, T2, T3, T4> : IDeepCopier<Tuple<T1, T2, T3, T4>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+        private readonly IDeepCopier<T3> _copier3;
+        private readonly IDeepCopier<T4> _copier4;
+
+        public TupleCopier(
+            IDeepCopier<T1> copier1,
+            IDeepCopier<T2> copier2,
+            IDeepCopier<T3> copier3,
+            IDeepCopier<T4> copier4)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+            _copier3 = copier3;
+            _copier4 = copier4;
+        }
+
+        public Tuple<T1, T2, T3, T4> DeepCopy(Tuple<T1, T2, T3, T4> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4> result))
+            {
+                return result;
+            }
+
+            result = Tuple.Create(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context),
+                _copier3.DeepCopy(input.Item3, context),
+                _copier4.DeepCopy(input.Item4, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
+    } 
 
     [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5> : IFieldCodec<Tuple<T1, T2, T3, T4, T5>>
@@ -455,6 +575,47 @@ namespace Hagar.Codecs
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
+
+    [RegisterCopier]
+    public class TupleCopier<T1, T2, T3, T4, T5> : IDeepCopier<Tuple<T1, T2, T3, T4, T5>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+        private readonly IDeepCopier<T3> _copier3;
+        private readonly IDeepCopier<T4> _copier4;
+        private readonly IDeepCopier<T5> _copier5;
+
+        public TupleCopier(
+            IDeepCopier<T1> copier1,
+            IDeepCopier<T2> copier2,
+            IDeepCopier<T3> copier3,
+            IDeepCopier<T4> copier4,
+            IDeepCopier<T5> copier5)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+            _copier3 = copier3;
+            _copier4 = copier4;
+            _copier5 = copier5;
+        }
+
+        public Tuple<T1, T2, T3, T4, T5> DeepCopy(Tuple<T1, T2, T3, T4, T5> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5> result))
+            {
+                return result;
+            }
+
+            result = Tuple.Create(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context),
+                _copier3.DeepCopy(input.Item3, context),
+                _copier4.DeepCopy(input.Item4, context),
+                _copier5.DeepCopy(input.Item5, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
+    } 
 
     [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5, T6> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6>>
@@ -575,6 +736,51 @@ namespace Hagar.Codecs
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
+    
+    [RegisterCopier]
+    public class TupleCopier<T1, T2, T3, T4, T5, T6> : IDeepCopier<Tuple<T1, T2, T3, T4, T5, T6>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+        private readonly IDeepCopier<T3> _copier3;
+        private readonly IDeepCopier<T4> _copier4;
+        private readonly IDeepCopier<T5> _copier5;
+        private readonly IDeepCopier<T6> _copier6;
+
+        public TupleCopier(
+            IDeepCopier<T1> copier1,
+            IDeepCopier<T2> copier2,
+            IDeepCopier<T3> copier3,
+            IDeepCopier<T4> copier4,
+            IDeepCopier<T5> copier5,
+            IDeepCopier<T6> copier6)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+            _copier3 = copier3;
+            _copier4 = copier4;
+            _copier5 = copier5;
+            _copier6 = copier6;
+        }
+
+        public Tuple<T1, T2, T3, T4, T5, T6> DeepCopy(Tuple<T1, T2, T3, T4, T5, T6> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5, T6> result))
+            {
+                return result;
+            }
+
+            result = Tuple.Create(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context),
+                _copier3.DeepCopy(input.Item3, context),
+                _copier4.DeepCopy(input.Item4, context),
+                _copier5.DeepCopy(input.Item5, context),
+                _copier6.DeepCopy(input.Item6, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
+    } 
 
     [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5, T6, T7> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7>>
@@ -705,6 +911,55 @@ namespace Hagar.Codecs
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
     }
+    
+    [RegisterCopier]
+    public class TupleCopier<T1, T2, T3, T4, T5, T6, T7> : IDeepCopier<Tuple<T1, T2, T3, T4, T5, T6, T7>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+        private readonly IDeepCopier<T3> _copier3;
+        private readonly IDeepCopier<T4> _copier4;
+        private readonly IDeepCopier<T5> _copier5;
+        private readonly IDeepCopier<T6> _copier6;
+        private readonly IDeepCopier<T7> _copier7;
+
+        public TupleCopier(
+            IDeepCopier<T1> copier1,
+            IDeepCopier<T2> copier2,
+            IDeepCopier<T3> copier3,
+            IDeepCopier<T4> copier4,
+            IDeepCopier<T5> copier5,
+            IDeepCopier<T6> copier6,
+            IDeepCopier<T7> copier7)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+            _copier3 = copier3;
+            _copier4 = copier4;
+            _copier5 = copier5;
+            _copier6 = copier6;
+            _copier7 = copier7;
+        }
+
+        public Tuple<T1, T2, T3, T4, T5, T6, T7> DeepCopy(Tuple<T1, T2, T3, T4, T5, T6, T7> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5, T6, T7> result))
+            {
+                return result;
+            }
+
+            result = Tuple.Create(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context),
+                _copier3.DeepCopy(input.Item3, context),
+                _copier4.DeepCopy(input.Item4, context),
+                _copier5.DeepCopy(input.Item5, context),
+                _copier6.DeepCopy(input.Item6, context),
+                _copier7.DeepCopy(input.Item7, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
+    } 
 
     [RegisterSerializer]
     public class TupleCodec<T1, T2, T3, T4, T5, T6, T7, T8> : IFieldCodec<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>
@@ -717,7 +972,6 @@ namespace Hagar.Codecs
         private static readonly Type ElementType6 = typeof(T6);
         private static readonly Type ElementType7 = typeof(T7);
         private static readonly Type ElementType8 = typeof(T8);
-
 
         private readonly IFieldCodec<T1> _item1Codec;
         private readonly IFieldCodec<T2> _item2Codec;
@@ -843,4 +1097,58 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException() => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for tuple fields.");
-    }}
+    }
+    
+    [RegisterCopier]
+    public class TupleCopier<T1, T2, T3, T4, T5, T6, T7, T8> : IDeepCopier<Tuple<T1, T2, T3, T4, T5, T6, T7, T8>>
+    {
+        private readonly IDeepCopier<T1> _copier1;
+        private readonly IDeepCopier<T2> _copier2;
+        private readonly IDeepCopier<T3> _copier3;
+        private readonly IDeepCopier<T4> _copier4;
+        private readonly IDeepCopier<T5> _copier5;
+        private readonly IDeepCopier<T6> _copier6;
+        private readonly IDeepCopier<T7> _copier7;
+        private readonly IDeepCopier<T8> _copier8;
+
+        public TupleCopier(
+            IDeepCopier<T1> copier1,
+            IDeepCopier<T2> copier2,
+            IDeepCopier<T3> copier3,
+            IDeepCopier<T4> copier4,
+            IDeepCopier<T5> copier5,
+            IDeepCopier<T6> copier6,
+            IDeepCopier<T7> copier7,
+            IDeepCopier<T8> copier8)
+        {
+            _copier1 = copier1;
+            _copier2 = copier2;
+            _copier3 = copier3;
+            _copier4 = copier4;
+            _copier5 = copier5;
+            _copier6 = copier6;
+            _copier7 = copier7;
+            _copier8 = copier8;
+        }
+
+        public Tuple<T1, T2, T3, T4, T5, T6, T7, T8> DeepCopy(Tuple<T1, T2, T3, T4, T5, T6, T7, T8> input, CopyContext context)
+        {
+            if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5, T6, T7, T8> result))
+            {
+                return result;
+            }
+
+            result = new Tuple<T1, T2, T3, T4, T5, T6, T7, T8>(
+                _copier1.DeepCopy(input.Item1, context),
+                _copier2.DeepCopy(input.Item2, context),
+                _copier3.DeepCopy(input.Item3, context),
+                _copier4.DeepCopy(input.Item4, context),
+                _copier5.DeepCopy(input.Item5, context),
+                _copier6.DeepCopy(input.Item6, context),
+                _copier7.DeepCopy(input.Item7, context),
+                _copier8.DeepCopy(input.Rest, context));
+            context.RecordCopy(input, result);
+            return result;
+        }
+    } 
+}

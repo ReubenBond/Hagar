@@ -1,4 +1,5 @@
-﻿using Hagar.WireProtocol;
+﻿using Hagar.Cloning;
+using Hagar.WireProtocol;
 using System;
 using System.Buffers;
 using System.Net;
@@ -6,7 +7,7 @@ using System.Net;
 namespace Hagar.Codecs
 {
     [RegisterSerializer]
-    public sealed class IPAddressCodec : IFieldCodec<IPAddress>, IDerivedTypeCodec 
+    public sealed class IPAddressCodec : IFieldCodec<IPAddress>, IDerivedTypeCodec
     {
         public static readonly Type CodecFieldType = typeof(IPAddress);
 
@@ -70,5 +71,11 @@ namespace Hagar.Codecs
             writer.WriteVarUInt32((uint)bytes.Length);
             writer.Write(bytes);
         }
+    }
+
+    [RegisterCopier]
+    public sealed class IPAddressCopier : IDeepCopier<IPAddress>
+    {
+        public IPAddress DeepCopy(IPAddress input, CopyContext _) => input;
     }
 }
