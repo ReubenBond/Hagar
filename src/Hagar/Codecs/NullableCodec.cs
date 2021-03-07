@@ -1,4 +1,5 @@
 ﻿using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
@@ -51,5 +52,25 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+    }
+
+    [RegisterCopier]
+    public sealed class NullableCopier<T> : IDeepCopier<T?> where T : struct
+    {
+        private readonly IDeepCopier<T> _copier;
+        public NullableCopier(IDeepCopier<T> copier)
+        {
+            _copier = copier;
+        }
+
+        public T? DeepCopy(T? input, CopyContext context)
+        {
+            if (!input.HasValue)
+            {
+                return input;
+            }
+
+            return new T?(_copier.DeepCopy(input.Value, context));
+        }
     }
 }

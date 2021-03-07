@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -50,6 +51,25 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for byte[] fields. {field}");
     }
 
+    [RegisterCopier]
+    public sealed class ByteArrayCopier : IDeepCopier<byte[]>
+    {
+        byte[] IDeepCopier<byte[]>.DeepCopy(byte[] input, CopyContext context) => DeepCopy(input, context);
+
+        public static byte[] DeepCopy(byte[] input, CopyContext context)
+        {
+            if (context.TryGetCopy<byte[]>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new byte[input.Length];
+            context.RecordCopy(input, result);
+            input.CopyTo(result.AsSpan());
+            return result;
+        }
+    }
+
     [RegisterSerializer]
     public sealed class ReadOnlyMemoryOfByteCodec : TypedCodecBase<ReadOnlyMemory<byte>, ReadOnlyMemoryOfByteCodec>, IFieldCodec<ReadOnlyMemory<byte>>
     {
@@ -94,6 +114,22 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for ReadOnlyMemory<byte> fields. {field}");
     }
 
+    [RegisterCopier]
+    public sealed class ReadOnlyMemoryOfByteCopier : IDeepCopier<ReadOnlyMemory<byte>>
+    {
+        public ReadOnlyMemory<byte> DeepCopy(ReadOnlyMemory<byte> input, CopyContext _)
+        {
+            if (input.IsEmpty)
+            {
+                return default;
+            }
+
+            var result = new byte[input.Length];
+            input.CopyTo(result.AsMemory());
+            return result;
+        }
+    }
+
     [RegisterSerializer]
     public sealed class MemoryOfByteCodec : TypedCodecBase<Memory<byte>, MemoryOfByteCodec>, IFieldCodec<Memory<byte>>
     {
@@ -136,5 +172,21 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for ReadOnlyMemory<byte> fields. {field}");
+    }
+
+    [RegisterCopier]
+    public sealed class MemoryOfByteCopier : IDeepCopier<Memory<byte>>
+    {
+        public Memory<byte> DeepCopy(Memory<byte> input, CopyContext _)
+        {
+            if (input.IsEmpty)
+            {
+                return default;
+            }
+
+            var result = new byte[input.Length];
+            input.CopyTo(result.AsMemory());
+            return result;
+        }
     }
 }

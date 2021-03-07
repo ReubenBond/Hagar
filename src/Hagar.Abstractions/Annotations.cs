@@ -78,6 +78,11 @@ namespace Hagar
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class RegisterCopierAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class UseActivatorAttribute : Attribute
     {
     }
@@ -90,5 +95,16 @@ namespace Hagar
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class OmitDefaultMemberValuesAttribute : Attribute
     {
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class ImmutableAttribute : Attribute
+    {
+    }
+
+    [Immutable]
+    public readonly struct Immutable<T>
+    {
+        public T Value { get; init; }
     }
 }

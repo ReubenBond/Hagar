@@ -1,5 +1,6 @@
 using Hagar.Activators;
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
@@ -108,5 +109,41 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+    }
+
+    [RegisterCopier]
+    public sealed class QueueCopier<T> : IDeepCopier<Queue<T>>, IPartialCopier<Queue<T>>
+    {
+        private readonly IDeepCopier<T> _copier;
+
+        public QueueCopier(IDeepCopier<T> valueCopier)
+        {
+            _copier = valueCopier;
+        }
+
+        public Queue<T> DeepCopy(Queue<T> input, CopyContext context)
+        {
+            if (context.TryGetCopy<Queue<T>>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new Queue<T>(input.Count);
+            context.RecordCopy(input, result);
+            foreach (var item in input)
+            {
+                result.Enqueue(_copier.DeepCopy(item, context));
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(Queue<T> input, Queue<T> output, CopyContext context)
+        {
+            foreach (var item in input)
+            {
+                output.Enqueue(_copier.DeepCopy(item, context));
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
@@ -38,9 +39,15 @@ namespace Hagar.Codecs
             }
             else
             {
+                var result = new Dictionary<string, string>(value.Count);
+                for (var i = 0; i < value.Count; i++)
+                {
+                    result.Add(value.GetKey(i), value.Get(i));
+                }
+
                 surrogate = new NameValueCollectionSurrogate
                 {
-                    Values = new Dictionary<string, string>(),
+                    Values = result 
                 };
             }
         }
@@ -51,5 +58,26 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public Dictionary<string, string> Values { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class NameValueCollectionCopier : IDeepCopier<NameValueCollection>
+    {
+        public NameValueCollection DeepCopy(NameValueCollection input, CopyContext context)
+        {
+            if (context.TryGetCopy<NameValueCollection>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new NameValueCollection(input.Count);
+            context.RecordCopy(input, result);
+            for (var i = 0; i < input.Count; i++)
+            {
+                result.Add(input.GetKey(i), input.Get(i));
+            }
+
+            return result;
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -60,5 +61,11 @@ namespace Hagar.Codecs
 
         [Id(2)]
         public IEqualityComparer<T> KeyComparer { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ImmutableHashSetCopier<T> : IDeepCopier<ImmutableHashSet<T>>
+    {
+        public ImmutableHashSet<T> DeepCopy(ImmutableHashSet<T> input, CopyContext context) => input;
     }
 }

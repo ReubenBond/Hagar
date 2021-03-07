@@ -87,6 +87,18 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             _ => throw new NotSupportedException($"Unable to format type of kind {type.GetType()} with name \"{type.Name}\""),
         };
 
+        public static bool HasBaseType(this ITypeSymbol typeSymbol, INamedTypeSymbol baseType)
+        {
+            for (; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
+            {
+                if (SymbolEqualityComparer.Default.Equals(baseType, typeSymbol))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attributeType)
         {
             var attributes = symbol.GetAttributes();

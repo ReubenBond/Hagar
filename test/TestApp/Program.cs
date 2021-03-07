@@ -106,7 +106,7 @@ namespace TestApp
                 .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
                 .BuildServiceProvider();
 
-            var codecs = serviceProvider.GetRequiredService<ITypedCodecProvider>();
+            var codecs = serviceProvider.GetRequiredService<ICodecProvider>();
 
             var codec = codecs.GetCodec<SomeClassWithSerialzers>();
             var sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();

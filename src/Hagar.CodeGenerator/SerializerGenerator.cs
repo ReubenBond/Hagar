@@ -77,30 +77,6 @@ namespace Hagar.CodeGenerator
                 classDeclaration = AddGenericTypeParameters(classDeclaration, type);
             }
 
-            if (type.IsPartial)
-            {
-                if (!partialTypeSerializers.TryGetValue(type.Namespace, out var nsMembers))
-                {
-                    nsMembers = partialTypeSerializers[type.Namespace] = new List<MemberDeclarationSyntax>();
-                }
-
-                // Generate deserialization constructor
-                // Generate serialization method <TBufferWriter>
-                // Generate partial type declaration (class, struct, record)
-            }
-
-            if (type.IsPartial)
-            {
-                if (!partialTypeSerializers.TryGetValue(type.Namespace, out var nsMembers))
-                {
-                    nsMembers = partialTypeSerializers[type.Namespace] = new List<MemberDeclarationSyntax>();
-                }
-
-                // Generate deserialization constructor
-                // Generate serialization method <TBufferWriter>
-                // Generate partial type declaration (class, struct, record)
-            }
-
             return classDeclaration;
         }
 

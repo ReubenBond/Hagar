@@ -1,5 +1,7 @@
+using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,6 +23,8 @@ namespace Hagar.CodeGenerator
                 WireType = Type("Hagar.WireProtocol.WireType"),
                 FieldCodec = Type("Hagar.Codecs.IFieldCodec"),
                 FieldCodec_1 = Type("Hagar.Codecs.IFieldCodec`1"),
+                DeepCopier_1 = Type("Hagar.Cloning.IDeepCopier`1"),
+                CopyContext = Type("Hagar.Cloning.CopyContext"),
                 Func_2 = Type("System.Func`2"),
                 GenerateMethodSerializersAttribute = Type("Hagar.GenerateMethodSerializersAttribute"),
                 GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
@@ -32,6 +36,7 @@ namespace Hagar.CodeGenerator
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
+                RegisterCopierAttribute = Type("Hagar.RegisterCopierAttribute"),
                 UseActivatorAttribute = Type("Hagar.UseActivatorAttribute"),
                 SuppressReferenceTrackingAttribute = Type("Hagar.SuppressReferenceTrackingAttribute"),
                 OmitDefaultMemberValuesAttribute = Type("Hagar.OmitDefaultMemberValuesAttribute"),
@@ -46,6 +51,7 @@ namespace Hagar.CodeGenerator
                 Object = compilation.GetSpecialType(SpecialType.System_Object),
                 ObsoleteAttribute = Type("System.ObsoleteAttribute"),
                 PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
+                PartialCopier = Type("Hagar.Cloning.IPartialCopier`1"),
                 Reader = Type("Hagar.Buffers.Reader`1"),
                 Request = Type("Hagar.Invocation.Request"),
                 Request_1 = Type("Hagar.Invocation.Request`1"),
@@ -97,7 +103,87 @@ namespace Hagar.CodeGenerator
                 {
                     new WellKnownCodecDescription(Type("System.Collections.Generic.Dictionary`2"), Type("Hagar.Codecs.DictionaryCodec`2")),
                     new WellKnownCodecDescription(Type("System.Collections.Generic.List`1"), Type("Hagar.Codecs.ListCodec`1")),
-                }
+                },
+                StaticCopiers = new List<WellKnownCopierDescription>
+                {
+                    //new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Object), Type("Hagar.Codecs.ObjectCopier")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Boolean), Type("Hagar.Codecs.BoolCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Char), Type("Hagar.Codecs.CharCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Byte), Type("Hagar.Codecs.ByteCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_SByte), Type("Hagar.Codecs.SByteCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Int16), Type("Hagar.Codecs.Int16Codec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Int32), Type("Hagar.Codecs.Int32Codec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Int64), Type("Hagar.Codecs.Int64Codec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_UInt16), Type("Hagar.Codecs.UInt16Codec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_UInt32), Type("Hagar.Codecs.UInt32Codec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_UInt64), Type("Hagar.Codecs.UInt64Codec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_String), Type("Hagar.Codecs.StringCopier")),
+                    new WellKnownCopierDescription(compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte), 1), Type("Hagar.Codecs.ByteArrayCopier")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Single), Type("Hagar.Codecs.FloatCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Double), Type("Hagar.Codecs.DoubleCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_Decimal), Type("Hagar.Codecs.DecimalCodec")),
+                    new WellKnownCopierDescription(compilation.GetSpecialType(SpecialType.System_DateTime), Type("Hagar.Codecs.DateTimeCodec")),
+                    new WellKnownCopierDescription(Type("System.TimeSpan"), Type("Hagar.Codecs.TimeSpanCopier")),
+                    new WellKnownCopierDescription(Type("System.DateTimeOffset"), Type("Hagar.Codecs.DateTimeOffsetCopier")),
+                    new WellKnownCopierDescription(Type("System.Guid"), Type("Hagar.Codecs.GuidCopier")),
+                    new WellKnownCopierDescription(Type("System.Type"), Type("Hagar.Codecs.TypeCopier")),
+                    new WellKnownCopierDescription(Type("System.ReadOnlyMemory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.ReadOnlyMemoryOfByteCopier")),
+                    new WellKnownCopierDescription(Type("System.Memory`1").Construct(compilation.GetSpecialType(SpecialType.System_Byte)), Type("Hagar.Codecs.MemoryOfByteCopier")),
+                    new WellKnownCopierDescription(Type("System.Net.IPAddress"), Type("Hagar.Codecs.IPAddressCopier")),
+                    new WellKnownCopierDescription(Type("System.Net.IPEndPoint"), Type("Hagar.Codecs.IPEndPointCopier")),
+                },
+                WellKnownCopiers = new List<WellKnownCopierDescription>
+                {
+                    new WellKnownCopierDescription(Type("System.Collections.Generic.Dictionary`2"), Type("Hagar.Codecs.DictionaryCopier`2")),
+                    new WellKnownCopierDescription(Type("System.Collections.Generic.List`1"), Type("Hagar.Codecs.ListCopier`1")),
+                },
+                ImmutableTypes = new List<ITypeSymbol>
+                {
+                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    compilation.GetSpecialType(SpecialType.System_Char),
+                    compilation.GetSpecialType(SpecialType.System_Byte),
+                    compilation.GetSpecialType(SpecialType.System_SByte),
+                    compilation.GetSpecialType(SpecialType.System_Int16),
+                    compilation.GetSpecialType(SpecialType.System_Int32),
+                    compilation.GetSpecialType(SpecialType.System_Int64),
+                    compilation.GetSpecialType(SpecialType.System_UInt16),
+                    compilation.GetSpecialType(SpecialType.System_UInt32),
+                    compilation.GetSpecialType(SpecialType.System_UInt64),
+                    compilation.GetSpecialType(SpecialType.System_String),
+                    compilation.GetSpecialType(SpecialType.System_Single),
+                    compilation.GetSpecialType(SpecialType.System_Double),
+                    compilation.GetSpecialType(SpecialType.System_Decimal),
+                    compilation.GetSpecialType(SpecialType.System_DateTime),
+                },
+                    Exception = Type("System.Exception"),
+                    Immutable = Type("Hagar.ImmutableAttribute"),
+                    Immutable_1 = Type("Hagar.Immutable`1"),
+                    ValueTuple = Type("System.ValueTuple"),
+                    TimeSpan = Type("System.TimeSpan"),
+                    DateTimeOffset = Type("System.DateTimeOffset"),
+                    Guid = Type("System.Guid"),
+                    IPAddress = Type("System.Net.IPAddress"),
+                    IPEndPoint = Type("System.Net.IPEndPoint"),
+                    CancellationToken = Type("System.Threading.CancellationToken"),
+            TupleTypes = new[]
+            {
+                Type("System.Tuple`1"),
+                Type("System.Tuple`2"),
+                Type("System.Tuple`3"),
+                Type("System.Tuple`4"),
+                Type("System.Tuple`5"),
+                Type("System.Tuple`6"),
+                Type("System.Tuple`7"),
+                Type("System.Tuple`8"),
+                Type("System.ValueTuple`1"),
+                Type("System.ValueTuple`2"),
+                Type("System.ValueTuple`3"),
+                Type("System.ValueTuple`4"),
+                Type("System.ValueTuple`5"),
+                Type("System.ValueTuple`6"),
+                Type("System.ValueTuple`7"),
+                Type("System.ValueTuple`8"),
+            },
             };
 
             INamedTypeSymbol Type(string metadataName)
@@ -117,6 +203,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol ConfigurationProvider { get; private set; }
         public INamedTypeSymbol Field { get; private set; }
         public INamedTypeSymbol WireType { get; private set; }
+        public INamedTypeSymbol DeepCopier_1 { get; private set; }
         public INamedTypeSymbol FieldCodec_1 { get; private set; }
         public INamedTypeSymbol FieldCodec { get; private set; }
         public INamedTypeSymbol Func_2 { get; private set; }
@@ -136,6 +223,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Object { get; private set; }
         public INamedTypeSymbol ObsoleteAttribute { get; private set; }
         public INamedTypeSymbol PartialSerializer { get; private set; }
+        public INamedTypeSymbol PartialCopier { get; private set; }
         public INamedTypeSymbol Reader { get; private set; }
         public INamedTypeSymbol Request { get; private set; }
         public INamedTypeSymbol Request_1 { get; private set; }
@@ -159,11 +247,143 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol WellKnownIdAttribute { get; private set; }
         public List<WellKnownCodecDescription> StaticCodecs { get; private set; }
         public List<WellKnownCodecDescription> WellKnownCodecs { get; private set; }
+        public List<WellKnownCopierDescription> StaticCopiers { get; private set; }
+        public List<WellKnownCopierDescription> WellKnownCopiers { get; private set; }
+        public INamedTypeSymbol RegisterCopierAttribute { get; private set; }
         public INamedTypeSymbol RegisterSerializerAttribute { get; private set; }
         public INamedTypeSymbol RegisterActivatorAttribute { get; private set; }
         public INamedTypeSymbol UseActivatorAttribute { get; private set; }
         public INamedTypeSymbol SuppressReferenceTrackingAttribute { get; private set; }
         public INamedTypeSymbol OmitDefaultMemberValuesAttribute { get; private set; }
+        public INamedTypeSymbol CopyContext { get; private set; }
         public Compilation Compilation { get; private set; }
+        public List<ITypeSymbol> ImmutableTypes { get; private set; }
+        public INamedTypeSymbol TimeSpan { get; private set; }
+        public INamedTypeSymbol DateTimeOffset { get; private set; }
+        public INamedTypeSymbol Guid { get; private set; }
+        public INamedTypeSymbol IPAddress { get; private set; }
+        public INamedTypeSymbol IPEndPoint { get; private set; }
+        public INamedTypeSymbol CancellationToken { get; private set; }
+        public INamedTypeSymbol[] TupleTypes { get; private set; }
+        public INamedTypeSymbol ValueTuple { get; private set; }
+        public INamedTypeSymbol Immutable_1 { get; private set; }
+        public INamedTypeSymbol Immutable { get; private set; }
+        public INamedTypeSymbol Exception { get; private set; }
+
+#pragma warning disable RS1024 // Compare symbols correctly
+        private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
+        public bool IsShallowCopyable(ITypeSymbol type)
+        {
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                case SpecialType.System_String:
+                case SpecialType.System_DateTime:
+                    return true;
+            }
+
+            if (SymbolEqualityComparer.Default.Equals(TimeSpan, type)
+                || SymbolEqualityComparer.Default.Equals(IPAddress, type)
+                || SymbolEqualityComparer.Default.Equals(IPEndPoint, type)
+                || SymbolEqualityComparer.Default.Equals(CancellationToken, type)
+                || SymbolEqualityComparer.Default.Equals(Type, type))
+            {
+                return true;
+            }
+
+            if (_shallowCopyableTypes.TryGetValue(type, out var result))
+            {
+                return result;
+            }
+
+            if (type.HasAttribute(Immutable))
+            {
+                return _shallowCopyableTypes[type] = true;
+            }
+
+            if (type.HasBaseType(Exception))
+            {
+                return _shallowCopyableTypes[type] = true;
+            }
+
+            if (!(type is INamedTypeSymbol namedType))
+            {
+                return _shallowCopyableTypes[type] = false;
+            }
+
+            if (namedType.IsTupleType)
+            {
+                return _shallowCopyableTypes[type] = namedType.TupleElements.All(f => IsShallowCopyable(f.Type));
+            }
+            else if (namedType.IsGenericType)
+            {
+                var def = namedType.ConstructedFrom;
+                if (def.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    return _shallowCopyableTypes[type] = IsShallowCopyable(namedType.TypeArguments.Single());
+                }
+
+                if (SymbolEqualityComparer.Default.Equals(Immutable_1, def))
+                {
+                    return _shallowCopyableTypes[type] = true;
+                }
+
+                if (TupleTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, def)))
+                {
+                    return _shallowCopyableTypes[type] = namedType.TypeArguments.All(IsShallowCopyable);
+                }
+            }
+            else
+            {
+                if (type.TypeKind == TypeKind.Enum)
+                {
+                    return _shallowCopyableTypes[type] = true;
+                }
+
+                if (type.TypeKind == TypeKind.Struct && !namedType.IsUnboundGenericType)
+                {
+                    return _shallowCopyableTypes[type] = IsValueTypeFieldsShallowCopyable(type);
+                }
+            }
+
+            return _shallowCopyableTypes[type] = false;
+        }
+
+        private bool IsValueTypeFieldsShallowCopyable(ITypeSymbol type)
+        {
+            foreach (var field in type.GetDeclaredInstanceMembers<IFieldSymbol>())
+            {
+                if (field.Type is not INamedTypeSymbol fieldType)
+                {
+                    return false;
+                }
+
+                if (SymbolEqualityComparer.Default.Equals(type, fieldType))
+                {
+                    return false;
+                }
+
+                if (!IsShallowCopyable(fieldType))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

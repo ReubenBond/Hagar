@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -38,5 +39,11 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public List<T> Values { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ImmutableListCopier<T> : IDeepCopier<ImmutableList<T>>
+    {
+        public ImmutableList<T> DeepCopy(ImmutableList<T> input, CopyContext _) => input;
     }
 }

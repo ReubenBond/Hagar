@@ -1,4 +1,6 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
+using Hagar.Serializers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -50,6 +52,36 @@ namespace Hagar.Codecs
 
             var specificSerializer = writer.Session.CodecProvider.GetCodec(fieldType);
             specificSerializer.WriteField(ref writer, fieldIdDelta, expectedType, value);
+        }
+    }
+
+    [RegisterCopier]
+    public sealed class ObjectCopier : IDeepCopier<object>
+    {
+        private readonly CodecProvider _copierProvider;
+
+        public ObjectCopier(CodecProvider copierProvider)
+        {
+            _copierProvider = copierProvider;
+        }
+
+        public object DeepCopy(object input, CopyContext context)
+        {
+            if (context.TryGetCopy<object>(input, out var result))
+            {
+                return result;
+            }
+
+            var type = input.GetType();
+            if (type == typeof(object))
+            {
+                result = new object();
+                context.RecordCopy(input, result);
+                return result;
+            }
+
+            var copier = _copierProvider.GetDeepCopier(type);
+            return copier.DeepCopy(input, context);
         }
     }
 }

@@ -1,5 +1,6 @@
 using Hagar.Activators;
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.Session;
 using Hagar.WireProtocol;
 using System;
@@ -120,5 +121,43 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+    }
+
+    [RegisterCopier]
+    public sealed class DictionaryCopier<TKey, TValue> : IDeepCopier<Dictionary<TKey, TValue>>, IPartialCopier<Dictionary<TKey, TValue>>
+    {
+        private readonly IDeepCopier<TKey> _keyCopier;
+        private readonly IDeepCopier<TValue> _valueCopier;
+
+        public DictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
+        {
+            _keyCopier = keyCopier;
+            _valueCopier = valueCopier;
+        }
+
+        public Dictionary<TKey, TValue> DeepCopy(Dictionary<TKey, TValue> input, CopyContext context)
+        {
+            if (context.TryGetCopy<Dictionary<TKey, TValue>>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new Dictionary<TKey, TValue>(input.Count, input.Comparer);
+            context.RecordCopy(input, result);
+            foreach (var pair in input)
+            {
+                result[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(Dictionary<TKey, TValue> input, Dictionary<TKey, TValue> output, CopyContext context)
+        {
+            foreach (var pair in input)
+            {
+                output[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+        }
     }
 }

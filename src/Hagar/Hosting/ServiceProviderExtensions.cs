@@ -1,5 +1,6 @@
 using Hagar.Activators;
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.Codecs;
 using Hagar.Configuration;
 using Hagar.Serializers;
@@ -32,8 +33,8 @@ namespace Hagar
                 services.TryAddSingleton(typeof(IConfiguration<>), typeof(ConfigurationHolder<>));
                 services.TryAddSingleton<CodecProvider>();
                 services.TryAddSingleton<ICodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
-                services.TryAddSingleton<IUntypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
-                services.TryAddSingleton<ITypedCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
+                services.TryAddSingleton<IDeepCopierProvider>(sp => sp.GetRequiredService<CodecProvider>());
+                services.TryAddSingleton<IFieldCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IPartialSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IValueSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IActivatorProvider>(sp => sp.GetRequiredService<CodecProvider>());
@@ -44,6 +45,8 @@ namespace Hagar
                 services.TryAddSingleton(typeof(IActivator<>), typeof(ActivatorHolder<>));
                 services.TryAddSingleton<WellKnownTypeCollection>();
                 services.TryAddSingleton<TypeCodec>();
+                services.TryAddScoped(typeof(IDeepCopier<>), typeof(CopierHolder<>));
+                services.TryAddScoped(typeof(IPartialCopier<>), typeof(PartialCopierHolder<>));
 
                 // Session
                 services.TryAddSingleton<SerializerSessionPool>();
@@ -111,10 +114,10 @@ namespace Hagar
 
         private sealed class FieldCodecHolder<TField> : IFieldCodec<TField>, IServiceHolder<IFieldCodec<TField>>
         {
-            private readonly ITypedCodecProvider _codecProvider;
+            private readonly IFieldCodecProvider _codecProvider;
             private IFieldCodec<TField> _codec;
 
-            public FieldCodecHolder(ITypedCodecProvider codecProvider)
+            public FieldCodecHolder(IFieldCodecProvider codecProvider)
             {
                 _codecProvider = codecProvider;
             }
@@ -158,6 +161,36 @@ namespace Hagar
             public void Deserialize<TInput>(ref Reader<TInput> reader, ref TField value) => Value.Deserialize(ref reader, ref value);
 
             public IValueSerializer<TField> Value => _serializer ??= _provider.GetValueSerializer<TField>();
+        }
+
+        private sealed class CopierHolder<T> : IDeepCopier<T>, IServiceHolder<IDeepCopier<T>>
+        {
+            private readonly IDeepCopierProvider _codecProvider;
+            private IDeepCopier<T> _copier;
+
+            public CopierHolder(IDeepCopierProvider codecProvider)
+            {
+                _codecProvider = codecProvider;
+            }
+
+            public T DeepCopy(T original, CopyContext context) => Value.DeepCopy(original, context);
+
+            public IDeepCopier<T> Value => _copier ??= _codecProvider.GetDeepCopier<T>();
+        }
+
+        private sealed class PartialCopierHolder<T> : IPartialCopier<T>, IServiceHolder<IPartialCopier<T>> where T : class
+        {
+            private readonly IDeepCopierProvider _codecProvider;
+            private IPartialCopier<T> _copier;
+
+            public PartialCopierHolder(IDeepCopierProvider codecProvider)
+            {
+                _codecProvider = codecProvider;
+            }
+
+            public void DeepCopy(T original, T copy, CopyContext context) => Value.DeepCopy(original, copy, context);
+
+            public IPartialCopier<T> Value => _copier ??= _codecProvider.GetPartialCopier<T>();
         }
     }
 }

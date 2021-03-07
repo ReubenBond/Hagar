@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -91,5 +92,12 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.LengthPrefixed} is supported for string fields. {field}");
+    }
+
+    [RegisterCopier]
+    public sealed class StringCopier : IDeepCopier<string>
+    {
+        public static string DeepCopy(string input, CopyContext _) => input;
+        string IDeepCopier<string>.DeepCopy(string input, CopyContext _) => input;
     }
 }

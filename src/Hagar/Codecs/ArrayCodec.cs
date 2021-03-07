@@ -1,4 +1,5 @@
 using Hagar.Buffers;
+using Hagar.Cloning;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
@@ -110,6 +111,34 @@ namespace Hagar.Codecs
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
     }
 
+    [RegisterCopier]
+    public sealed class ArrayCopier<T> : IDeepCopier<T[]>
+    {
+        private readonly IDeepCopier<T> _elementCopier;
+
+        public ArrayCopier(IDeepCopier<T> elementCopier)
+        {
+            _elementCopier = HagarGeneratedCodeHelper.UnwrapService(this, elementCopier);
+        }
+
+        public T[] DeepCopy(T[] input, CopyContext context)
+        {
+            if (context.TryGetCopy<T[]>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new T[input.Length];
+            context.RecordCopy(input, result);
+            for (var i = 0; i < input.Length; i++)
+            {
+                result[i] = _elementCopier.DeepCopy(input[i], context);
+            }
+
+            return result;
+        }
+    }
+
     /// <summary>
     /// Codec for <see cref="ReadOnlyMemory{T}"/>.
     /// </summary>
@@ -211,6 +240,36 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+    }
+
+    [RegisterCopier]
+    public sealed class ReadOnlyMemoryCopier<T> : IDeepCopier<ReadOnlyMemory<T>>
+    {
+        private readonly IDeepCopier<T> _elementCopier;
+
+        public ReadOnlyMemoryCopier(IDeepCopier<T> elementCopier)
+        {
+            _elementCopier = HagarGeneratedCodeHelper.UnwrapService(this, elementCopier);
+        }
+
+        public ReadOnlyMemory<T> DeepCopy(ReadOnlyMemory<T> input, CopyContext context)
+        {
+            if (input.IsEmpty)
+            {
+                return input;
+            }
+
+            // Note that there is a possibility for infinite recursion here if the underlying object in the input is
+            // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
+            var inputSpan = input.Span;
+            var result = new T[inputSpan.Length];
+            for (var i = 0; i < inputSpan.Length; i++)
+            {
+                result[i] = _elementCopier.DeepCopy(inputSpan[i], context);
+            }
+
+            return result;
+        }
     }
     
     /// <summary>
@@ -314,5 +373,35 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+    }
+
+    [RegisterCopier]
+    public sealed class MemoryCopier<T> : IDeepCopier<Memory<T>>
+    {
+        private readonly IDeepCopier<T> _elementCopier;
+
+        public MemoryCopier(IDeepCopier<T> elementCopier)
+        {
+            _elementCopier = HagarGeneratedCodeHelper.UnwrapService(this, elementCopier);
+        }
+
+        public Memory<T> DeepCopy(Memory<T> input, CopyContext context)
+        {
+            if (input.IsEmpty)
+            {
+                return input;
+            }
+
+            // Note that there is a possibility for infinite recursion here if the underlying object in the input is
+            // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
+            var inputSpan = input.Span;
+            var result = new T[inputSpan.Length];
+            for (var i = 0; i < inputSpan.Length; i++)
+            {
+                result[i] = _elementCopier.DeepCopy(inputSpan[i], context);
+            }
+
+            return result;
+        }
     }
 }

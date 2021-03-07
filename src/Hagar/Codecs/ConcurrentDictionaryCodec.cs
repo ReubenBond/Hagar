@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -46,5 +47,44 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public Dictionary<TKey, TValue> Values { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ConcurrentDictionaryCopier<TKey, TValue> : IDeepCopier<ConcurrentDictionary<TKey, TValue>>, IPartialCopier<ConcurrentDictionary<TKey, TValue>>
+    {
+        private readonly IDeepCopier<TKey> _keyCopier;
+        private readonly IDeepCopier<TValue> _valueCopier;
+
+        public ConcurrentDictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
+        {
+            _keyCopier = keyCopier;
+            _valueCopier = valueCopier;
+        }
+
+        public ConcurrentDictionary<TKey, TValue> DeepCopy(ConcurrentDictionary<TKey, TValue> input, CopyContext context)
+        {
+            if (context.TryGetCopy<ConcurrentDictionary<TKey, TValue>>(input, out var result))
+            {
+                return result;
+            }
+
+            // Note that this cannot propagate the input's key comparer, since it is not exposed from ConcurrentDictionary.
+            result = new ConcurrentDictionary<TKey, TValue>();
+            context.RecordCopy(input, result);
+            foreach (var pair in input)
+            {
+                result[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(ConcurrentDictionary<TKey, TValue> input, ConcurrentDictionary<TKey, TValue> output, CopyContext context)
+        {
+            foreach (var pair in input)
+            {
+                output[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+        }
     }
 }

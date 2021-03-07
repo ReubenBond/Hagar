@@ -1,4 +1,5 @@
-﻿using Hagar.GeneratedCodeHelpers;
+﻿using Hagar.Cloning;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
@@ -69,5 +70,11 @@ namespace Hagar.Codecs
             UInt16Codec.WriteField(ref writer, 1, UInt16Codec.CodecFieldType, (ushort)value.Port);
             writer.WriteEndObject();
         }
+    }
+
+    [RegisterCopier]
+    public sealed class IPEndPointCopier : IDeepCopier<IPEndPoint>
+    {
+        public IPEndPoint DeepCopy(IPEndPoint input, CopyContext _) => input;
     }
 }

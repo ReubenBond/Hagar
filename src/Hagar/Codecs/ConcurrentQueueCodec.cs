@@ -1,3 +1,4 @@
+using Hagar.Cloning;
 using Hagar.Serializers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -49,5 +50,42 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public Queue<T> Values { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ConcurrentQueueCopier<T> : IDeepCopier<ConcurrentQueue<T>>, IPartialCopier<ConcurrentQueue<T>>
+    {
+        private readonly IDeepCopier<T> _copier;
+
+        public ConcurrentQueueCopier(IDeepCopier<T> valueCopier)
+        {
+            _copier = valueCopier;
+        }
+
+        public ConcurrentQueue<T> DeepCopy(ConcurrentQueue<T> input, CopyContext context)
+        {
+            if (context.TryGetCopy<ConcurrentQueue<T>>(input, out var result))
+            {
+                return result;
+            }
+
+            // Note that this cannot propagate the input's key comparer, since it is not exposed from ConcurrentDictionary.
+            result = new ConcurrentQueue<T>();
+            context.RecordCopy(input, result);
+            foreach (var item in input)
+            {
+                result.Enqueue(_copier.DeepCopy(item, context));
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(ConcurrentQueue<T> input, ConcurrentQueue<T> output, CopyContext context)
+        {
+            foreach (var item in input)
+            {
+                output.Enqueue(_copier.DeepCopy(item, context));
+            }
+        }
     }
 }

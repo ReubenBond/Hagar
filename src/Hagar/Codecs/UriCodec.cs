@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System;
 using System.ComponentModel;
 
@@ -34,5 +35,13 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public string Value { get; set; }
+    }
+
+    [RegisterSerializer]
+    public sealed class UriCopier : IDeepCopier<Uri>, IGeneralizedCopier
+    {
+        public Uri DeepCopy(Uri input, CopyContext context) => input;
+        public object DeepCopy(object input, CopyContext context) => input;
+        public bool IsSupportedType(Type type) => typeof(Uri).IsAssignableFrom(type);
     }
 }

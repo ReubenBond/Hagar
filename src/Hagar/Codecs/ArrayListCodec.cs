@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -44,5 +45,40 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public List<object> Values { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ArrayListCopier : IDeepCopier<ArrayList>, IPartialCopier<ArrayList>
+    {
+        private readonly IDeepCopier<object> _copier;
+        public ArrayListCopier(IDeepCopier<object> copier)
+        {
+            _copier = copier;
+        }
+
+        public ArrayList DeepCopy(ArrayList input, CopyContext context)
+        {
+            if (context.TryGetCopy<ArrayList>(input, out var result))
+            {
+                return result;
+            }
+
+            result = new ArrayList(input.Count);
+            context.RecordCopy(input, result);
+            foreach (var item in input)
+            {
+                result.Add(_copier.DeepCopy(item, context));
+            }
+
+            return result;
+        }
+
+        public void DeepCopy(ArrayList input, ArrayList output, CopyContext context)
+        {
+            foreach (var item in input)
+            {
+                output.Add(_copier.DeepCopy(item, context));
+            }
+        }
     }
 }

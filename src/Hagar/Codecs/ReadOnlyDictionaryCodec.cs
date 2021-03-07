@@ -1,4 +1,5 @@
-﻿using Hagar.Serializers;
+﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -45,5 +46,36 @@ namespace Hagar.Codecs
     {
         [Id(1)]
         public Dictionary<TKey, TValue> Values { get; set; }
+    }
+
+    [RegisterCopier]
+    public sealed class ReadOnlyDictionaryCopier<TKey, TValue> : IDeepCopier<ReadOnlyDictionary<TKey, TValue>>
+    {
+        private readonly IDeepCopier<TKey> _keyCopier;
+        private readonly IDeepCopier<TValue> _valueCopier;
+
+        public ReadOnlyDictionaryCopier(IDeepCopier<TKey> keyCopier, IDeepCopier<TValue> valueCopier)
+        {
+            _keyCopier = keyCopier;
+            _valueCopier = valueCopier;
+        }
+
+        public ReadOnlyDictionary<TKey, TValue> DeepCopy(ReadOnlyDictionary<TKey, TValue> input, CopyContext context)
+        {
+            if (context.TryGetCopy<ReadOnlyDictionary<TKey, TValue>>(input, out var result))
+            {
+                return result;
+            }
+
+            var temp = new Dictionary<TKey, TValue>(input.Count);
+            foreach (var pair in input)
+            {
+                temp[_keyCopier.DeepCopy(pair.Key, context)] = _valueCopier.DeepCopy(pair.Value, context);
+            }
+
+            result = new ReadOnlyDictionary<TKey, TValue>(temp);
+            context.RecordCopy(input, result);
+            return result;
+        }
     }
 }
