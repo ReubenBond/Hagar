@@ -83,7 +83,7 @@ namespace FakeFx.Runtime
             CacheInvalidation
         }
 
-        internal HeadersContainer Headers { get; set; } = new HeadersContainer();
+        internal HeadersContainer Headers { get; set; } = new();
 
         public Categories Category
         {
@@ -448,7 +448,7 @@ namespace FakeFx.Runtime
 
         public static Message CreatePromptExceptionResponse(Message request, Exception exception)
         {
-            return new Message
+            return new()
             {
                 Category = request.Category,
                 Direction = Message.Directions.Response,

@@ -22,8 +22,8 @@ namespace CallLog
 
     internal class WorkflowContext : IWorkflowContext, IWorkflowControl
     {
-        private readonly object _lock = new object();
-        private readonly Dictionary<long, RequestState> _outboundRequests = new Dictionary<long, RequestState>();
+        private readonly object _lock = new();
+        private readonly Dictionary<long, RequestState> _outboundRequests = new();
         private readonly Guid _invocationId;
         private readonly Channel<object> _logStage;
         private readonly ILogger<WorkflowContext> _log;
@@ -32,7 +32,7 @@ namespace CallLog
         private readonly MessageRouter _router;
         private readonly ActivationTaskScheduler _taskScheduler;
         private readonly IdSpan _id;
-        private readonly Queue<Message> _messageQueue = new Queue<Message>();
+        private readonly Queue<Message> _messageQueue = new();
         private readonly TargetHolder _targetHolder;
         private long _sequenceNumber;
         private Message _currentMessage;

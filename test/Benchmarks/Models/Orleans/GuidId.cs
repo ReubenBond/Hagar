@@ -11,11 +11,11 @@ namespace FakeFx.Runtime
     [Hagar.GenerateSerializer]
     public sealed class GuidId : IEquatable<GuidId>, IComparable<GuidId>, ISerializable
     {
-        private static readonly Interner<Guid, GuidId> guidIdInternCache = new Interner<Guid, GuidId>(InternerConstants.SIZE_LARGE);
+        private static readonly Interner<Guid, GuidId> guidIdInternCache = new(InternerConstants.SIZE_LARGE);
         [Hagar.Id(1)]
         public readonly Guid Guid;
 
-        public static GuidId Default { get; } = new GuidId(Guid.Empty);
+        public static GuidId Default { get; } = new(Guid.Empty);
 
         // TODO: Need to integrate with Orleans serializer to really use Interner.
         private GuidId(Guid guid)

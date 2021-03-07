@@ -38,7 +38,7 @@ namespace FakeFx.Runtime
 
         static public Response ExceptionResponse(Exception exc)
         {
-            return new Response
+            return new()
             {
                 ExceptionFlag = true,
                 Exception = exc

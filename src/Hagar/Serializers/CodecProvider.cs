@@ -697,9 +697,6 @@ namespace Hagar.Serializers
         private static IActivator<T> ThrowActivatorNotFound<T>(Type type) => throw new KeyNotFoundException($"Could not find an activator for type {type}.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IDeepCopier<T> ThrowDeepCopierNotFound<T>() => throw new KeyNotFoundException($"Could not find a copier for type {typeof(T)}.");
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IPartialCopier<T> ThrowPartialCopierNotFound<T>(Type type) where T : class => throw new KeyNotFoundException($"Could not find a partial copier for type {type}.");
     }
 }

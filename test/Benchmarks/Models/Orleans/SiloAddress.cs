@@ -44,7 +44,7 @@ namespace FakeFx.Runtime
 
         private static readonly long epoch = new DateTime(2010, 1, 1).Ticks;
 
-        private static readonly Interner<Key, SiloAddress> siloAddressInterningCache = new Interner<Key, SiloAddress>(InternerConstants.SIZE_MEDIUM);
+        private static readonly Interner<Key, SiloAddress> siloAddressInterningCache = new(InternerConstants.SIZE_MEDIUM);
 
         /// <summary>Special constant value to indicate an empty SiloAddress.</summary>
         public static SiloAddress Zero { get; } = New(new IPEndPoint(0, 0), 0);

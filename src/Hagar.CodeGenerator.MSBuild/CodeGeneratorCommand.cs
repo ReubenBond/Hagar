@@ -54,12 +54,12 @@ namespace Hagar.CodeGenerator.MSBuild
         /// <summary>
         /// The source files.
         /// </summary>
-        public List<string> Compile { get; } = new List<string>();
+        public List<string> Compile { get; } = new();
 
         /// <summary>
         /// The libraries referenced by the project.
         /// </summary>
-        public List<string> Reference { get; } = new List<string>();
+        public List<string> Reference { get; } = new();
 
         /// <summary>
         /// The file which holds the generated code.

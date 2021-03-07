@@ -33,7 +33,7 @@ namespace TestRpc.Runtime
 
     public sealed class GrainIdEqualityComparer : EqualityComparer<GrainId>
     {
-        public static GrainIdEqualityComparer Instance { get; } = new GrainIdEqualityComparer();
+        public static GrainIdEqualityComparer Instance { get; } = new();
         public override bool Equals([AllowNull] GrainId x, [AllowNull] GrainId y) => x.Id == y.Id;
 
         public override int GetHashCode([DisallowNull] GrainId obj) => obj.Id;

@@ -17,7 +17,7 @@ namespace Hagar.ISerializable
         private readonly Func<Type, Action<object, SerializationInfo, StreamingContext>> _createConstructorDelegate;
 
         private readonly ConcurrentDictionary<Type, Action<object, SerializationInfo, StreamingContext>> _constructors =
-            new ConcurrentDictionary<Type, Action<object, SerializationInfo, StreamingContext>>();
+            new();
 
         private readonly IFormatterConverter _formatterConverter;
         private readonly StreamingContext _streamingContext;

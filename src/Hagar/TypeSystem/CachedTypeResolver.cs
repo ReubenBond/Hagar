@@ -9,7 +9,7 @@ namespace Hagar.TypeSystem
     public sealed class CachedTypeResolver : TypeResolver
     {
         private readonly ConcurrentDictionary<string, Type> _typeCache = new ConcurrentDictionary<string, Type>();
-        private readonly CachedReadConcurrentDictionary<string, Assembly> _assemblyCache = new CachedReadConcurrentDictionary<string, Assembly>();
+        private readonly ConcurrentDictionary<string, Assembly> _assemblyCache = new ConcurrentDictionary<string, Assembly>();
 
         /// <inheritdoc />
         public override Type ResolveType(string name)

@@ -33,7 +33,7 @@ namespace Benchmarks.Comparison
         private static readonly byte[] MsgPackInput = MessagePack.MessagePackSerializer.Serialize(IntStruct.Create());
         private static readonly byte[] ZeroFormatterInput = ZeroFormatterSerializer.Serialize(IntStruct.Create());
 
-        private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
+        private static readonly Hyperion.Serializer HyperionSerializer = new(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
         private static readonly MemoryStream HyperionInput;
         private static readonly Hyperion.DeserializerSession HyperionSession;
 

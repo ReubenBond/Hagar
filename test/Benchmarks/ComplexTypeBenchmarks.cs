@@ -22,7 +22,7 @@ namespace Benchmarks
     [MemoryDiagnoser]
     public class ComplexTypeBenchmarks
     {
-        private static SingleSegmentBuffer HagarBuffer = new SingleSegmentBuffer(new byte[1000]);
+        private static SingleSegmentBuffer HagarBuffer = new(new byte[1000]);
         private readonly Serializer<SimpleStruct> _structSerializer;
         private readonly Serializer<ComplexClass> _hagarSerializer;
         private readonly SerializerSessionPool _sessionPool;

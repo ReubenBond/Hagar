@@ -15,7 +15,7 @@ namespace TestRpc.Runtime
         private readonly ConnectionHandler _connection;
         private readonly Catalog _catalog;
         private readonly ChannelReader<Message> _incomingMessages;
-        private readonly ConcurrentDictionary<int, IResponseCompletionSource> _pendingRequests = new ConcurrentDictionary<int, IResponseCompletionSource>();
+        private readonly ConcurrentDictionary<int, IResponseCompletionSource> _pendingRequests = new();
 
         private int _messageId;
 

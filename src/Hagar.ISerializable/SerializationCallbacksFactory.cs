@@ -12,7 +12,7 @@ namespace Hagar.ISerializable
     /// </summary>
     internal class SerializationCallbacksFactory
     {
-        private readonly ConcurrentDictionary<Type, object> _cache = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Type, object> _cache = new();
         private readonly Func<Type, object> _factory;
 
         [SecurityCritical]

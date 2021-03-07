@@ -16,7 +16,7 @@ namespace MyPocos
 
     public abstract class MyProxyBaseClass
     {
-        public List<IInvokable> Invocations { get; } = new List<IInvokable>();
+        public List<IInvokable> Invocations { get; } = new();
 
         // The only required method is Invoke and it must have this signature.
         protected void SendRequest(IResponseCompletionSource completion, IInvokable request) => Invocations.Add(request);

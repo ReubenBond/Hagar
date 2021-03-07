@@ -104,7 +104,7 @@ namespace Hagar.UnitTests
         {
         }
 
-        protected override MemoryStream CreateBuffer() => new MemoryStream();
+        protected override MemoryStream CreateBuffer() => new();
         protected override Reader<ReaderInput> CreateReader(MemoryStream buffer, SerializerSession session)
         {
             buffer.Position = 0;
@@ -181,7 +181,7 @@ namespace Hagar.UnitTests
         {
         }
 
-        protected override TestMultiSegmentBufferWriter CreateBuffer() => new TestMultiSegmentBufferWriter(maxAllocationSize: 10);
+        protected override TestMultiSegmentBufferWriter CreateBuffer() => new(maxAllocationSize: 10);
         protected override Reader<ReadOnlySequence<byte>> CreateReader(TestMultiSegmentBufferWriter buffer, SerializerSession session) => Reader.Create(buffer.GetReadOnlySequence(maxSegmentSize: 8), session);
         protected override Writer<TestMultiSegmentBufferWriter> CreateWriter(TestMultiSegmentBufferWriter buffer, SerializerSession session) => Writer.Create(buffer, session);
         protected override TestMultiSegmentBufferWriter GetBuffer(TestMultiSegmentBufferWriter originalBuffer, TestMultiSegmentBufferWriter output) => output;

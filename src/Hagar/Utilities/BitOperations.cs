@@ -91,41 +91,6 @@ namespace Hagar.Utilities
         }
 
         /// <summary>
-        /// Count the number of leading zero bits in a mask.
-        /// Similar in behavior to the x86 instruction LZCNT.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int LeadingZeroCount(uint value) => 31 ^ Log2SoftwareFallback(value);
-
-        /// <summary>
-        /// Count the number of leading zero bits in a mask.
-        /// Similar in behavior to the x86 instruction LZCNT.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int LeadingZeroCount(ulong value)
-        {
-            uint hi = (uint)(value >> 32);
-
-            if (hi == 0)
-            {
-                return 32 + LeadingZeroCount((uint)value);
-            }
-
-            return LeadingZeroCount(hi);
-        }
-
-        /// <summary>
-        /// Count the number of trailing zero bits in an integer value.
-        /// Similar in behavior to the x86 instruction TZCNT.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int TrailingZeroCount(int value)
-            => TrailingZeroCount((uint)value);
-
-        /// <summary>
         /// Count the number of trailing zero bits in an integer value.
         /// Similar in behavior to the x86 instruction TZCNT.
         /// </summary>
@@ -146,15 +111,6 @@ namespace Hagar.Utilities
                 // uint|long -> IntPtr cast on 32-bit platforms does expensive overflow checks not needed here
                 (IntPtr)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27)); // Multi-cast mitigates redundant conv.u8
         }
-
-        /// <summary>
-        /// Count the number of trailing zero bits in a mask.
-        /// Similar in behavior to the x86 instruction TZCNT.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int TrailingZeroCount(long value)
-            => TrailingZeroCount((ulong)value);
 
         /// <summary>
         /// Count the number of trailing zero bits in a mask.

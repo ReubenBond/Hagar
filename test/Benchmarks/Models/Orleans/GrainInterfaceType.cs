@@ -35,7 +35,7 @@ namespace FakeFx.Runtime
         /// <summary>
         /// Creates a <see cref="GrainInterfaceType"/> instance.
         /// </summary>
-        public static GrainInterfaceType Create(string value) => new GrainInterfaceType(value);
+        public static GrainInterfaceType Create(string value) => new(value);
 
         /// <inheritdoc />
         public override bool Equals(object obj) => obj is GrainInterfaceType id && this.Equals(id);

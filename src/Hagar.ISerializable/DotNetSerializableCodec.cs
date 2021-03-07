@@ -171,7 +171,7 @@ namespace Hagar.ISerializable
         /// <summary>
         /// Gets the serialized properties of the exception.
         /// </summary>
-        public Dictionary<string, object> Properties { get; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Properties { get; } = new();
 
         /// <summary>
         /// Gets the exception type name.

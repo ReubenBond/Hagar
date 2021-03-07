@@ -58,7 +58,7 @@ namespace CallLog
         }
 
         // Queries do not need special handling.
-        public ValueTask<int> GetCounter() => new ValueTask<int>(_counter);
+        public ValueTask<int> GetCounter() => new(_counter);
 
         public async ValueTask<int> Increment()
         {
