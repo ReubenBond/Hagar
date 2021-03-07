@@ -4,7 +4,7 @@ namespace TestRpc.Runtime
 {
     internal static class MessagePool
     {
-        private static readonly DefaultObjectPool<Message> Pool = new DefaultObjectPool<Message>(new DefaultPooledObjectPolicy<Message>());
+        private static readonly DefaultObjectPool<Message> Pool = new(new DefaultPooledObjectPolicy<Message>());
 
         public static Message Get() => Pool.Get();
 

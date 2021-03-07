@@ -56,7 +56,7 @@ namespace FakeFx.Runtime
         private static bool IsKeyExt(Category category)
             => category == Category.KeyExtGrain || category == Category.KeyExtSystemTarget;
 
-        internal static readonly UniqueKey Empty = new UniqueKey();
+        internal static readonly UniqueKey Empty = new();
 
         internal static UniqueKey Parse(ReadOnlySpan<char> input)
         {
@@ -98,9 +98,9 @@ namespace FakeFx.Runtime
             return key;
         }
 
-        public static UniqueKey NewKey() => new UniqueKey { Guid = Guid.NewGuid() };
+        public static UniqueKey NewKey() => new() { Guid = Guid.NewGuid() };
 
-        internal static UniqueKey NewKey(Guid guid) => new UniqueKey { Guid = guid };
+        internal static UniqueKey NewKey(Guid guid) => new() { Guid = guid };
 
         internal static UniqueKey NewKey(Guid guid, Category category = Category.None, long typeData = 0, string keyExt = null)
         {
@@ -112,16 +112,16 @@ namespace FakeFx.Runtime
         }
 
         internal static UniqueKey NewEmptySystemTargetKey(long typeData)
-            => new UniqueKey { TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
+            => new() { TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         public static UniqueKey NewSystemTargetKey(Guid guid, long typeData)
-            => new UniqueKey { Guid = guid, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
+            => new() { Guid = guid, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         public static UniqueKey NewSystemTargetKey(short systemId)
-            => new UniqueKey { N1 = (ulong)systemId, TypeCodeData = GetTypeCodeData(Category.SystemTarget) };
+            => new() { N1 = (ulong)systemId, TypeCodeData = GetTypeCodeData(Category.SystemTarget) };
 
         public static UniqueKey NewGrainServiceKey(short key, long typeData)
-            => new UniqueKey { N1 = (ulong)key, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
+            => new() { N1 = (ulong)key, TypeCodeData = GetTypeCodeData(Category.SystemTarget, typeData) };
 
         public static UniqueKey NewGrainServiceKey(string key, long typeData)
             => NewKey(GetTypeCodeData(Category.KeyExtSystemTarget, typeData), key);

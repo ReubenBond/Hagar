@@ -14,7 +14,7 @@ namespace Hagar.ISerializable
     {
         private static readonly Type[] SerializationConstructorParameterTypes = { typeof(SerializationInfo), typeof(StreamingContext) };
         private readonly Func<Type, object> _createConstructorDelegate;
-        private readonly ConcurrentDictionary<Type, object> _constructors = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Type, object> _constructors = new();
 
         [SecurityCritical]
         public SerializationConstructorFactory()

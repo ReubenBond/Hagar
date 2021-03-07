@@ -8,9 +8,6 @@ namespace Hagar
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T ThrowArgumentOutOfRange<T>(string argument) => throw new ArgumentOutOfRangeException(argument);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void ThrowArgumentOutOfRange(string argument) => throw new ArgumentOutOfRangeException(argument);
     }
 
     [Serializable]

@@ -16,8 +16,8 @@ namespace Hagar.CodeGenerator
     public class CodeGeneratorOptions
     {
         public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
-        public List<string> IdAttributeTypes { get; set; } = new List<string> { "Hagar.IdAttribute" };
-        public List<string> AliasAttributeTypes { get; set; } = new List<string> { "Hagar.AliasAttribute" };
+        public List<string> IdAttributeTypes { get; set; } = new() { "Hagar.IdAttribute" };
+        public List<string> AliasAttributeTypes { get; set; } = new() { "Hagar.AliasAttribute" };
 
         public bool GenerateFieldIds { get; set; } = false;
     }
@@ -414,7 +414,7 @@ namespace Hagar.CodeGenerator
 
         private sealed class MethodSignatureComparer : IEqualityComparer<IMethodSymbol>, IComparer<IMethodSymbol>
         {
-            public static MethodSignatureComparer Default { get; } = new MethodSignatureComparer();
+            public static MethodSignatureComparer Default { get; } = new();
 
             private MethodSignatureComparer()
             {

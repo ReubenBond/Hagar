@@ -46,13 +46,13 @@ namespace FakeFx.Runtime
         /// <summary>
         /// Creates a new <see cref="GrainType"/> instance.
         /// </summary>
-        public static GrainType Create(string value) => new GrainType(Encoding.UTF8.GetBytes(value));
+        public static GrainType Create(string value) => new(Encoding.UTF8.GetBytes(value));
 
         /// <inheritdoc/>
         public static explicit operator IdSpan(GrainType kind) => kind.Value;
 
         /// <inheritdoc/>
-        public static explicit operator GrainType(IdSpan id) => new GrainType(id);
+        public static explicit operator GrainType(IdSpan id) => new(id);
 
         /// <summary>
         /// <see langword="true"/> if this instance is the default value, <see langword="false"/> if it is not.
@@ -113,7 +113,7 @@ namespace FakeFx.Runtime
             /// <summary>
             /// A singleton <see cref="Comparer"/> instance.
             /// </summary>
-            public static Comparer Instance { get; } = new Comparer();
+            public static Comparer Instance { get; } = new();
 
             /// <inheritdoc/>
             public int Compare(GrainType x, GrainType y) => x.CompareTo(y);

@@ -10,7 +10,7 @@ namespace Hagar.TestKit
     [ExcludeFromCodeCoverage]
     public class TestMultiSegmentBufferWriter : IBufferWriter<byte>, IOutputBuffer
     {
-        private readonly List<byte[]> _committed = new List<byte[]>();
+        private readonly List<byte[]> _committed = new();
         private readonly int _maxAllocationSize;
         private byte[] _current = Array.Empty<byte>();
 

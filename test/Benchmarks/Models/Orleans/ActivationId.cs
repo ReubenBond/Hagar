@@ -15,8 +15,8 @@ namespace FakeFx.Runtime
 
         public bool IsSystem { get { return Key.IsSystemTargetKey; } }
 
-        private static readonly Interner<UniqueKey, ActivationId> legacyKeyInterner = new Interner<UniqueKey, ActivationId>(InternerConstants.SIZE_LARGE);
-        private static readonly Interner<GrainId, ActivationId> interner = new Interner<GrainId, ActivationId>(InternerConstants.SIZE_LARGE);
+        private static readonly Interner<UniqueKey, ActivationId> legacyKeyInterner = new(InternerConstants.SIZE_LARGE);
+        private static readonly Interner<GrainId, ActivationId> interner = new(InternerConstants.SIZE_LARGE);
 
         public static readonly ActivationId Zero = GetActivationId(UniqueKey.Empty);
 

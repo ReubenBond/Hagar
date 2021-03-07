@@ -16,7 +16,7 @@ namespace FakeFx.Runtime
     [RegisterSerializer]
     public sealed class IdSpanCodec : IFieldCodec<IdSpan>
     {
-        private readonly ConcurrentDictionary<int, IdSpan> _cache = new ConcurrentDictionary<int, IdSpan>();
+        private readonly ConcurrentDictionary<int, IdSpan> _cache = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteField<TBufferWriter>(
@@ -181,7 +181,7 @@ namespace FakeFx.Runtime
         /// <remarks>
         /// This method is intended for use by serializers and other low-level libraries.
         /// </remarks>
-        public static IdSpan UnsafeCreate(byte[] value, int hashCode) => new IdSpan(value, hashCode);
+        public static IdSpan UnsafeCreate(byte[] value, int hashCode) => new(value, hashCode);
 
         /// <inheritdoc/>
         public static byte[] UnsafeGetArray(IdSpan id) => id._value;
@@ -227,7 +227,7 @@ namespace FakeFx.Runtime
             /// <summary>
             /// A singleton <see cref="Comparer"/> instance.
             /// </summary>
-            public static Comparer Instance { get; } = new Comparer();
+            public static Comparer Instance { get; } = new();
 
             /// <inheritdoc/>
             public int Compare(IdSpan x, IdSpan y) => x.CompareTo(y);

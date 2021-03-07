@@ -227,7 +227,7 @@ namespace FakeFx.Runtime.Messaging
         {
             private const int DefaultBufferSize = 4 * 1024;
 
-            private readonly Stack<SequenceSegment> segmentPool = new Stack<SequenceSegment>();
+            private readonly Stack<SequenceSegment> segmentPool = new();
 
             private readonly MemoryPool<T> memoryPool;
 

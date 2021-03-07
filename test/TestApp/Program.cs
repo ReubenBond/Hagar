@@ -92,7 +92,7 @@ namespace TestApp
 
         internal class MyImplementation : IMyInvokable
         {
-            public ValueTask<int> Multiply(int a, int b, object c) => new ValueTask<int>(a * b);
+            public ValueTask<int> Multiply(int a, int b, object c) => new(a * b);
         }
         internal class MyImplementation<T> : IMyInvokable<T>
         {

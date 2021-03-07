@@ -16,7 +16,7 @@ namespace Hagar.ISerializable
         private readonly Func<Type, ISerializableSerializer> _createSerializerDelegate;
 
         private readonly ConcurrentDictionary<Type, ISerializableSerializer> _serializers =
-            new ConcurrentDictionary<Type, ISerializableSerializer>();
+            new();
 
         private readonly MethodInfo _createTypedSerializerMethodInfo = typeof(ValueTypeSerializerFactory).GetMethod(
             nameof(CreateTypedSerializer),

@@ -109,7 +109,7 @@ namespace CallLog
 
     public static class RuntimeContext
     {
-        private static readonly AsyncLocal<IWorkflowContext> _runtimeContext = new AsyncLocal<IWorkflowContext>();
+        private static readonly AsyncLocal<IWorkflowContext> _runtimeContext = new();
 
         public static IWorkflowContext Current { get => _runtimeContext.Value; set => _runtimeContext.Value = value; }
     }
@@ -141,7 +141,7 @@ namespace CallLog
 
     internal class Catalog 
     {
-        private readonly ConcurrentDictionary<IdSpan, IWorkflowContext> _grains = new ConcurrentDictionary<IdSpan, IWorkflowContext>(IdSpan.Comparer.Instance);
+        private readonly ConcurrentDictionary<IdSpan, IWorkflowContext> _grains = new(IdSpan.Comparer.Instance);
         private readonly IWorkflowContext _defaultContext = new DefaultContext();
 
         public void RegisterGrain(IdSpan grainId, IWorkflowContext grain)
@@ -263,10 +263,10 @@ namespace CallLog
         private readonly Channel<LogEntryHolder> _entryChannel;
         private readonly ChannelReader<LogEntryHolder> _entryChannelReader;
         private readonly ChannelWriter<LogEntryHolder> _entryChannelWriter;
-        private readonly ConcurrentDictionary<IdSpan, RecoveryState> _recoveryChannels = new ConcurrentDictionary<IdSpan, RecoveryState>();
+        private readonly ConcurrentDictionary<IdSpan, RecoveryState> _recoveryChannels = new();
         private readonly Serializer<LogEntry> _entrySerializer;
         private readonly FasterLog _dbLog;
-        private readonly CancellationTokenSource _shutdownCancellation = new CancellationTokenSource();
+        private readonly CancellationTokenSource _shutdownCancellation = new();
         private Task _runTask;
 
         public LogEnumerator(LogManager logManager, Serializer<LogEntry> entrySerializer, ILogger<LogEnumerator> log)
@@ -375,7 +375,7 @@ namespace CallLog
     {
         private long _nextRequestId = 0;
         private ILogger<ApplicationContext> _log;
-        private readonly ConcurrentDictionary<long, IResponseCompletionSource> _pendingRequests = new ConcurrentDictionary<long, IResponseCompletionSource>();
+        private readonly ConcurrentDictionary<long, IResponseCompletionSource> _pendingRequests = new();
 
         public ApplicationContext(ILogger<ApplicationContext> logger)
         {
@@ -459,7 +459,7 @@ namespace CallLog
     {
         private readonly IServiceProvider _services;
         private readonly HashSet<Type> _knownProxies;
-        private readonly ConcurrentDictionary<(Type, Type), Type> _proxyMap = new ConcurrentDictionary<(Type, Type), Type>();
+        private readonly ConcurrentDictionary<(Type, Type), Type> _proxyMap = new();
 
         public ProxyFactory(IConfiguration<SerializerConfiguration> configuration, IServiceProvider services)
         {

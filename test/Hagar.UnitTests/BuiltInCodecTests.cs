@@ -149,7 +149,7 @@ namespace Hagar.UnitTests
 
     public class VersionTests : FieldCodecTester<Version, VersionCodec>
     {
-        protected override Version CreateValue() => new Version();
+        protected override Version CreateValue() => new();
         protected override Version[] TestValues => new[]
         {
             new Version(),
@@ -166,7 +166,7 @@ namespace Hagar.UnitTests
 
     public class VersionCopierTests : CopierTester<Version, VersionCopier>
     {
-        protected override Version CreateValue() => new Version();
+        protected override Version CreateValue() => new();
         protected override Version[] TestValues => new[]
         {
             new Version(),
@@ -183,7 +183,7 @@ namespace Hagar.UnitTests
 
     public class BitVector32Tests: FieldCodecTester<BitVector32, BitVector32Codec>
     {
-        protected override BitVector32 CreateValue() => new BitVector32(new Random(Guid.NewGuid().GetHashCode()).Next());
+        protected override BitVector32 CreateValue() => new(new Random(Guid.NewGuid().GetHashCode()).Next());
 
         protected override BitVector32[] TestValues => new[]
         {
@@ -200,7 +200,7 @@ namespace Hagar.UnitTests
 
     public class BitVector32CopierTests: CopierTester<BitVector32, BitVector32Copier>
     {
-        protected override BitVector32 CreateValue() => new BitVector32(new Random(Guid.NewGuid().GetHashCode()).Next());
+        protected override BitVector32 CreateValue() => new(new Random(Guid.NewGuid().GetHashCode()).Next());
 
         protected override BitVector32[] TestValues => new[]
         {
@@ -461,7 +461,7 @@ namespace Hagar.UnitTests
 
     public class Tuple8Tests : FieldCodecTester<Tuple<string, string, string, string, string, string, string, Tuple<string>>, TupleCodec<string, string, string, string, string, string, string, Tuple<string>>>
     {
-        protected override Tuple<string, string, string, string, string, string, string, Tuple<string>> CreateValue() => new Tuple<string, string, string, string, string, string, string, Tuple<string>>(
+        protected override Tuple<string, string, string, string, string, string, string, Tuple<string>> CreateValue() => new(
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
@@ -483,7 +483,7 @@ namespace Hagar.UnitTests
 
     public class Tuple8CopierTests : CopierTester<Tuple<string, string, string, string, string, string, string, Tuple<string>>, TupleCopier<string, string, string, string, string, string, string, Tuple<string>>>
     {
-        protected override Tuple<string, string, string, string, string, string, string, Tuple<string>> CreateValue() => new Tuple<string, string, string, string, string, string, string, Tuple<string>>(
+        protected override Tuple<string, string, string, string, string, string, string, Tuple<string>> CreateValue() => new(
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
@@ -749,7 +749,7 @@ namespace Hagar.UnitTests
 
     public class ValueTuple8Tests : FieldCodecTester<ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>, ValueTupleCodec<string, string, string, string, string, string, string, ValueTuple<string>>>
     {
-        protected override ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>> CreateValue() => new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>(
+        protected override ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>> CreateValue() => new(
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
@@ -771,7 +771,7 @@ namespace Hagar.UnitTests
 
     public class ValueTuple8CopierTests : CopierTester<ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>, ValueTupleCopier<string, string, string, string, string, string, string, ValueTuple<string>>>
     {
-        protected override ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>> CreateValue() => new ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>>(
+        protected override ValueTuple<string, string, string, string, string, string, string, ValueTuple<string>> CreateValue() => new(
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
@@ -821,14 +821,14 @@ namespace Hagar.UnitTests
 
     public class ObjectCodecTests : FieldCodecTester<object, ObjectCodec>
     {
-        protected override object CreateValue() => new object();
+        protected override object CreateValue() => new();
         protected override bool Equals(object left, object right) => ReferenceEquals(left, right) || typeof(object) == left?.GetType() && typeof(object) == right?.GetType();
         protected override object[] TestValues => new[] { null, new object() };
     }
 
     public class ObjectCopierTests : CopierTester<object, ObjectCopier>
     {
-        protected override object CreateValue() => new object();
+        protected override object CreateValue() => new();
         protected override bool Equals(object left, object right) => ReferenceEquals(left, right) || typeof(object) == left?.GetType() && typeof(object) == right?.GetType();
         protected override object[] TestValues => new[] { null, new object() };
     }

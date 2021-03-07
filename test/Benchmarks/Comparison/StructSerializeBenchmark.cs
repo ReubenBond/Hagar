@@ -30,19 +30,19 @@ namespace Benchmarks.Comparison
     {
         private static readonly IntStruct Input = IntStruct.Create();
 
-        private static readonly Hyperion.Serializer HyperionSerializer = new Hyperion.Serializer(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
+        private static readonly Hyperion.Serializer HyperionSerializer = new(new SerializerOptions(knownTypes: new[] { typeof(IntStruct) }));
         private static readonly Hyperion.SerializerSession HyperionSession;
 
         private static readonly Serializer<IntStruct> HagarSerializer;
         private static readonly byte[] HagarData;
         private static readonly SerializerSession Session;
-        private static readonly MemoryStream ProtoBuffer = new MemoryStream();
-        private static readonly MemoryStream HyperionBuffer = new MemoryStream();
+        private static readonly MemoryStream ProtoBuffer = new();
+        private static readonly MemoryStream HyperionBuffer = new();
 
-        private static readonly MemoryStream Utf8JsonOutput = new MemoryStream();
+        private static readonly MemoryStream Utf8JsonOutput = new();
         private static readonly Utf8JsonNS.IJsonFormatterResolver Utf8JsonResolver = Utf8JsonNS.Resolvers.StandardResolver.Default;
 
-        private static readonly MemoryStream SystemTextJsonOutput = new MemoryStream();
+        private static readonly MemoryStream SystemTextJsonOutput = new();
         private static readonly Utf8JsonWriter SystemTextJsonWriter;
 
         static StructSerializeBenchmark()

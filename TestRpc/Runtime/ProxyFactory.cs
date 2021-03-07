@@ -11,7 +11,7 @@ namespace TestRpc.Runtime
     {
         private readonly IServiceProvider _services;
         private readonly HashSet<Type> _knownProxies;
-        private readonly ConcurrentDictionary<Type, Type> _proxyMap = new ConcurrentDictionary<Type, Type>();
+        private readonly ConcurrentDictionary<Type, Type> _proxyMap = new();
 
         public ProxyFactory(IConfiguration<SerializerConfiguration> configuration, IServiceProvider services)
         {

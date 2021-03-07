@@ -69,7 +69,7 @@ namespace Hagar.TestKit
                 public int MaxAllocationSize { get; set; }
             }
 
-            protected override TestMultiSegmentBufferWriter CreateBufferWriter() => new TestMultiSegmentBufferWriter(_options.MaxAllocationSize);
+            protected override TestMultiSegmentBufferWriter CreateBufferWriter() => new(_options.MaxAllocationSize);
 
             public override string ToString() => $"{nameof(TestMultiSegmentBufferWriter)} {nameof(_options.MaxAllocationSize)}: {_options.MaxAllocationSize}";
         }
@@ -77,7 +77,7 @@ namespace Hagar.TestKit
         [ExcludeFromCodeCoverage]
         private class StructBufferWriterTester : BufferTester<TestBufferWriterStruct>
         {
-            protected override TestBufferWriterStruct CreateBufferWriter() => new TestBufferWriterStruct(new byte[102400]);
+            protected override TestBufferWriterStruct CreateBufferWriter() => new(new byte[102400]);
 
             public StructBufferWriterTester(IServiceProvider serviceProvider) : base(serviceProvider)
             {

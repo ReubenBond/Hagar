@@ -190,13 +190,6 @@ namespace Hagar.TypeSystem
             public override int GetHashCode() => HashCode;
 
             public override string ToString() => $"TypeName \"{Encoding.UTF8.GetString(TypeName)}\" (hash {HashCode:X8})";
-
-            internal class Comparer : IEqualityComparer<TypeKey>
-            {
-                public bool Equals(TypeKey x, TypeKey y) => x.Equals(y);
-
-                public int GetHashCode(TypeKey obj) => obj.HashCode;
-            }
         }
     }
 }

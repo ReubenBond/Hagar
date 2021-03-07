@@ -101,7 +101,7 @@ namespace CallLog
         /// <remarks>
         /// This method is intended for use by serializers and other low-level libraries.
         /// </remarks>
-        public static IdSpan UnsafeCreate(byte[] value, int hashCode) => new IdSpan(value, hashCode);
+        public static IdSpan UnsafeCreate(byte[] value, int hashCode) => new(value, hashCode);
 
         /// <inheritdoc/>
         public static byte[] UnsafeGetArray(IdSpan id) => id._value;
@@ -147,7 +147,7 @@ namespace CallLog
             /// <summary>
             /// A singleton <see cref="Comparer"/> instance.
             /// </summary>
-            public static Comparer Instance { get; } = new Comparer();
+            public static Comparer Instance { get; } = new();
 
             /// <inheritdoc/>
             public int Compare(IdSpan x, IdSpan y) => x.CompareTo(y);

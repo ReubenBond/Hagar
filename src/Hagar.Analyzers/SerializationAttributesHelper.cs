@@ -21,7 +21,7 @@ namespace Hagar.Analyzers
                     continue;
                 }
 
-                // Skip members with existing [Id(x)] atttributes, but record the highest value of x so that newly added attributes can begin from that value.
+                // Skip members with existing [Id(x)] attributes, but record the highest value of x so that newly added attributes can begin from that value.
                 if (member.TryGetAttribute(Constants.IdAttributeName, out var attribute))
                 {
                     var args = attribute.ArgumentList?.Arguments;

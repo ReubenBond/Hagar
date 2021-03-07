@@ -55,12 +55,12 @@ namespace FakeFx.Runtime
         /// <summary>
         /// Creates a new <see cref="GrainType"/> instance.
         /// </summary>
-        public static GrainId Create(GrainType type, string key) => new GrainId(type, IdSpan.Create(key));
+        public static GrainId Create(GrainType type, string key) => new(type, IdSpan.Create(key));
 
         /// <summary>
         /// Creates a new <see cref="GrainType"/> instance.
         /// </summary>
-        public static GrainId Create(GrainType type, IdSpan key) => new GrainId(type, key);
+        public static GrainId Create(GrainType type, IdSpan key) => new(type, key);
 
         /// <summary>
         /// Creates a new <see cref="GrainType"/> instance.
@@ -174,7 +174,7 @@ namespace FakeFx.Runtime
             /// <summary>
             /// A singleton <see cref="Comparer"/> instance.
             /// </summary>
-            public static Comparer Instance { get; } = new Comparer();
+            public static Comparer Instance { get; } = new();
 
             /// <inheritdoc/>
             public int Compare(GrainId x, GrainId y) => x.CompareTo(y);

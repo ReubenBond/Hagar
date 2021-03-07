@@ -1455,7 +1455,7 @@ namespace Hagar.CodeGenerator
                 /// <summary>
                 /// Gets the singleton instance of this class.
                 /// </summary>
-                public static Comparer Instance { get; } = new Comparer();
+                public static Comparer Instance { get; } = new();
 
                 public int Compare(SerializableMember x, SerializableMember y) => string.Compare(x?.Field.Name, y?.Field.Name, StringComparison.Ordinal);
             }

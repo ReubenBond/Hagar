@@ -19,10 +19,10 @@ namespace TestRpc.Runtime
     {
         private readonly object _activation;
         private readonly IRuntimeClient _runtimeClient;
-        private readonly Dictionary<Type, object> _extensions = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> _extensions = new();
         private readonly ChannelReader<Message> _pending;
         private readonly ChannelWriter<Message> _incoming;
-        private readonly Dictionary<int, IResponseCompletionSource> _callbacks = new Dictionary<int, IResponseCompletionSource>();
+        private readonly Dictionary<int, IResponseCompletionSource> _callbacks = new();
         private int _nextMessageId;
 
         public Activation(GrainId id, object activation, IRuntimeClient runtimeClient)
