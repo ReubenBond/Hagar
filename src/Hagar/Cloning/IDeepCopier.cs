@@ -80,6 +80,8 @@ namespace Hagar.Cloning
             public override bool Equals(object x, object y) => ReferenceEquals(x, y);
             public override int GetHashCode(object obj) => obj is null ? 0 : RuntimeHelpers.GetHashCode(obj);
         }
+
+        public void Reset() => _copies.Clear();
     }
 
     internal static class ShallowCopyableTypes

@@ -52,9 +52,11 @@ namespace Hagar
                 services.TryAddSingleton<SerializerSessionPool>();
 
                 // Serializer
-                services.TryAddSingleton(typeof(Serializer));
+                services.TryAddSingleton<Serializer>();
                 services.TryAddSingleton(typeof(Serializer<>));
                 services.TryAddSingleton(typeof(ValueSerializer<>));
+                services.TryAddSingleton<DeepCopier>();
+                services.TryAddSingleton(typeof(DeepCopier<>));
             }
 
             configure?.Invoke(context.Builder);

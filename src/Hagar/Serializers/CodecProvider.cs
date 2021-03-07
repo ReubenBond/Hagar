@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -93,10 +94,7 @@ namespace Hagar.Serializers
 
             static void AddFromMetadata(IDictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
             {
-                if (genericType.GetGenericArguments().Length != 1)
-                {
-                    throw new ArgumentException($"Type {genericType} must have an arity of 1.");
-                }
+                Debug.Assert(genericType.GetGenericArguments().Length == 1);
 
                 foreach (var type in metadataCollection)
                 {

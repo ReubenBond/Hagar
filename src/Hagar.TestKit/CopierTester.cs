@@ -31,6 +31,8 @@ namespace Hagar.TestKit
 
         protected IServiceProvider ServiceProvider => _serviceProvider;
 
+        protected virtual bool IsImmutable => false;
+
         protected virtual void Configure(IHagarBuilder builder)
         {
         }
@@ -60,6 +62,26 @@ namespace Hagar.TestKit
             {
                 var output = copier.DeepCopy(original, new CopyContext());
                 Assert.True(Equals(original, output), $"Copy value \"{output}\" must equal original value \"{original}\"");
+            }
+        }
+
+        [Fact]
+        public void ReferencesAreAddedToCopyContext()
+        {
+            if (typeof(TValue).IsValueType)
+            {
+                return;
+            }
+
+            var value = CreateValue();
+            var array = new TValue[] { value, value };
+            var arrayCopier = _serviceProvider.GetRequiredService<DeepCopier<TValue[]>>();
+            var arrayCopy = arrayCopier.Copy(array);
+            Assert.Same(arrayCopy[0], arrayCopy[1]);
+
+            if (!IsImmutable)
+            {
+                Assert.NotSame(value, arrayCopy[0]);
             }
         }
     }

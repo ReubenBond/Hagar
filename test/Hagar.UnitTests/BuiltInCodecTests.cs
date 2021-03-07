@@ -179,6 +179,8 @@ namespace Hagar.UnitTests
         };
 
         protected override bool Equals(Version left, Version right) => left == right && (left is null || left.GetHashCode() == right.GetHashCode());
+
+        protected override bool IsImmutable => true;
     }
 
     public class BitVector32Tests: FieldCodecTester<BitVector32, BitVector32Codec>
@@ -817,6 +819,8 @@ namespace Hagar.UnitTests
         protected override string CreateValue() => Guid.NewGuid().ToString();
         protected override bool Equals(string left, string right) => StringComparer.Ordinal.Equals(left, right);
         protected override string[] TestValues => new[] { null, string.Empty, new string('*', 6), new string('x', 4097), "Hello, World!" };
+
+        protected override bool IsImmutable => true;
     }
 
     public class ObjectCodecTests : FieldCodecTester<object, ObjectCodec>
@@ -1337,6 +1341,8 @@ namespace Hagar.UnitTests
 
         protected override Type CreateValue() => _values[_valueIndex++ % _values.Length];
         protected override Type[] TestValues => _values;
+
+        protected override bool IsImmutable => true;
     }
 
     public class FloatCodecTests : FieldCodecTester<float, FloatCodec>
@@ -1800,7 +1806,9 @@ namespace Hagar.UnitTests
 
             rand.NextBytes(bytes);
             return new IPAddress(bytes);
-        } 
+        }
+
+        protected override bool IsImmutable => true;
     }
 
     public class HashSetTests : FieldCodecTester<HashSet<string>, HashSetCodec<string>>
@@ -1877,5 +1885,7 @@ namespace Hagar.UnitTests
         protected override ImmutableHashSet<string>[] TestValues => new[] { null, ImmutableHashSet.Create<string>(), CreateValue(), CreateValue(), CreateValue() };
 
         protected override bool Equals(ImmutableHashSet<string> left, ImmutableHashSet<string> right) => object.ReferenceEquals(left, right) || left.SetEquals(right);
+
+        protected override bool IsImmutable => true;
     }
 }
