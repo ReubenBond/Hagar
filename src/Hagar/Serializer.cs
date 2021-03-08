@@ -1,5 +1,6 @@
 using Hagar.Buffers;
 using Hagar.Buffers.Adaptors;
+using Hagar.Cloning;
 using Hagar.Codecs;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
@@ -1164,5 +1165,51 @@ namespace Hagar
         /// <param name="session">The serializer session.</param>
         /// <returns>The deserialized value.</returns>
         public void Deserialize(ReadOnlyMemory<byte> source, ref T result, SerializerSession session) => Deserialize(source.Span, ref result, session);
+    }
+
+    public sealed class DeepCopier
+    {
+        private readonly CodecProvider _codecProvider;
+
+        [ThreadStatic]
+        private static CopyContext Context;
+
+        public DeepCopier(CodecProvider codecProvider) => _codecProvider = codecProvider;
+
+        public T Copy<T>(T value)
+        {
+            var context = GetContext();
+            try
+            {
+                var copier = _codecProvider.GetDeepCopier<T>();
+                return copier.DeepCopy(value, context);
+            }
+            finally
+            {
+                context.Reset();
+            }
+        }
+
+        internal static CopyContext GetContext() => Context ??= new CopyContext();
+    }
+
+    public sealed class DeepCopier<T>
+    {
+        private readonly IDeepCopier<T> _copier;
+
+        public DeepCopier(IDeepCopier<T> copier) => _copier = copier;
+
+        public T Copy(T value)
+        {
+            var context = DeepCopier.GetContext();
+            try
+            {
+                return _copier.DeepCopy(value, context);
+            }
+            finally
+            {
+                context.Reset();
+            }
+        }
     }
 }
