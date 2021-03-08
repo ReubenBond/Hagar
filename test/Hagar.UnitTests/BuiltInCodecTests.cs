@@ -7,6 +7,7 @@ using Hagar.TestKit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Hagar.UnitTests
@@ -1915,5 +1917,75 @@ namespace Hagar.UnitTests
         protected override bool Equals(ImmutableHashSet<string> left, ImmutableHashSet<string> right) => object.ReferenceEquals(left, right) || left.SetEquals(right);
 
         protected override bool IsImmutable => true;
+    }
+
+    public class ArrayListCodecTests : FieldCodecTester<ArrayList, ArrayListCodec>
+    {
+        protected override ArrayList[] TestValues => new[]
+        {
+            null,
+            new ArrayList(new object[]{null, "hi", 3, Guid.NewGuid() }),
+            CreateCycle()
+        };
+
+        private static ArrayList CreateCycle()
+        {
+            var result = new ArrayList();
+            result.Add(result);
+            result.Add("hello");
+            result.Add(result);
+            result.Add(5);
+            result.Add(result);
+            return result;
+        }
+
+        protected override ArrayList CreateValue() => CreateCycle();
+
+        protected override Action<Action<ArrayList>> ValueProvider => Gen.Int.Array[0, 50].Select(c => new ArrayList(c)).ToValueProvider();
+
+        protected override bool Equals(ArrayList left, ArrayList right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+            {
+                return false;
+            }
+
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < left.Count; i++)
+            {
+                var leftVal = left[i];
+                var rightVal = right[i];
+                if (leftVal is null && rightVal is null)
+                {
+                    continue;
+                }
+                else if (leftVal.GetType() != rightVal.GetType())
+                {
+                    return false;
+                }
+                else if (leftVal is ArrayList && rightVal is not ArrayList)
+                {
+                    return false;
+                }
+                else
+                {
+                    if (!leftVal.Equals(rightVal))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }
