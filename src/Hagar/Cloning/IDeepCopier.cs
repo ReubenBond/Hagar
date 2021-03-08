@@ -1,4 +1,5 @@
 ﻿using Hagar.Serializers;
+using Hagar.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,9 +49,7 @@ namespace Hagar.Cloning
 
     public sealed class CopyContext
     {
-        private static ReferenceEqualsComparer Comparer { get; } = new ReferenceEqualsComparer();
-
-        private readonly Dictionary<object, object> _copies = new(Comparer);
+        private readonly Dictionary<object, object> _copies = new(ReferenceEqualsComparer.Default);
 
         public bool TryGetCopy<T>(object original, out T result) where T : class
         {
@@ -73,12 +72,6 @@ namespace Hagar.Cloning
         public void RecordCopy(object original, object copy)
         {
             _copies[original] = copy;
-        }
-
-        private class ReferenceEqualsComparer : EqualityComparer<object>
-        {
-            public override bool Equals(object x, object y) => ReferenceEquals(x, y);
-            public override int GetHashCode(object obj) => obj is null ? 0 : RuntimeHelpers.GetHashCode(obj);
         }
 
         public void Reset() => _copies.Clear();

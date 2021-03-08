@@ -69,7 +69,8 @@ namespace Benchmarks
                 typeof(StructDeserializeBenchmark),
                 typeof(ComplexTypeBenchmarks),
                 typeof(FieldHeaderBenchmarks),
-                typeof(MessageBenchmark)
+                typeof(MessageBenchmark),
+                typeof(MegaGraphBenchmark)
             });
 
             _ = switcher.Run(args);
