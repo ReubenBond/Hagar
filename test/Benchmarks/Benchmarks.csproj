@@ -11,6 +11,7 @@
     <LangVersion>9.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
+    <ServerGC>true</ServerGC>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 using Hagar.Codecs;
+using Hagar.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +23,13 @@ namespace Hagar.Session
         }
 
         public int ReferenceToObjectCount { get; set; }
-        private ReferencePair[] _referenceToObject = new ReferencePair[64];
+        private readonly ReferencePair[] _referenceToObject = new ReferencePair[64];
 
         private int _objectToReferenceCount;
-        private ReferencePair[] _objectToReference = new ReferencePair[64];
+        private readonly ReferencePair[] _objectToReference = new ReferencePair[64];
+
+        private Dictionary<uint, object> _referenceToObjectOverflow;
+        private Dictionary<object, uint> _objectToReferenceOverflow;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetReferencedObject(uint reference, out object value)
@@ -44,6 +48,11 @@ namespace Hagar.Session
                     value = _referenceToObject[i].Object;
                     return true;
                 }
+            }
+
+            if (_referenceToObjectOverflow is { } overflow)
+            {
+                return overflow.TryGetValue(reference, out value);
             }
 
             value = default;
@@ -75,6 +84,20 @@ namespace Hagar.Session
                 }
             }
 
+            if (_objectToReferenceOverflow is { } overflow)
+            {
+                if (overflow.TryGetValue(value, out var existing))
+                {
+                    reference = existing;
+                    return true;
+                }
+                else
+                {
+                    reference = nextReference;
+                    overflow[value] = reference;
+                }
+            }
+
             // Add the reference.
             reference = nextReference;
             AddToReferenceToIdMap(value, reference);
@@ -102,23 +125,38 @@ namespace Hagar.Session
 
         private void AddToReferenceToIdMap(object value, uint reference)
         {
-            if (_objectToReferenceCount >= _objectToReference.Length)
+            if (_objectToReferenceOverflow is { } overflow)
             {
-                var old = _objectToReference;
-                _objectToReference = new ReferencePair[_objectToReference.Length * 2];
-                Array.Copy(old, _objectToReference, _objectToReferenceCount);
+                overflow[value] = reference;
+            }
+            else
+            {
+                _objectToReference[_objectToReferenceCount++] = new ReferencePair(reference, value);
+
+                if (_objectToReferenceCount >= _objectToReference.Length)
+                {
+                    CreateObjectToReferenceOverflow();
+                }
             }
 
-            _objectToReference[_objectToReferenceCount++] = new ReferencePair(reference, value);
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            void CreateObjectToReferenceOverflow()
+            {
+                var result = new Dictionary<object, uint>(_objectToReferenceCount * 2, ReferenceEqualsComparer.Default);
+                for (var i = 0; i < _objectToReferenceCount; i++)
+                {
+                    var record = _objectToReference[i];
+                    result[record.Object] = record.Id;
+                    _objectToReference[i] = default;
+                }
+
+                _objectToReferenceCount = 0;
+                _objectToReferenceOverflow = result;
+            }
         }
 
         private void AddToReferences(object value, uint reference)
         {
-            if (ReferenceToObjectCount >= _referenceToObject.Length)
-            {
-                GrowReferenceToObjectArray();
-            }
-
             if (TryGetReferencedObject(reference, out var existing) && !(existing is UnknownFieldMarker) && !(value is UnknownFieldMarker))
             {
                 // Unknown field markers can be replaced once the type is known.
@@ -126,15 +164,34 @@ namespace Hagar.Session
                 return;
             }
 
-            _referenceToObject[ReferenceToObjectCount++] = new ReferencePair(reference, value);
-        }
+            if (_referenceToObjectOverflow is { } overflow)
+            {
+                overflow[reference] = value;
+            }
+            else
+            {
+                _referenceToObject[ReferenceToObjectCount++] = new ReferencePair(reference, value);
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void GrowReferenceToObjectArray()
-        {
-            var old = _referenceToObject;
-            _referenceToObject = new ReferencePair[_referenceToObject.Length * 2];
-            Array.Copy(old, _referenceToObject, ReferenceToObjectCount);
+                if (ReferenceToObjectCount >= _referenceToObject.Length)
+                {
+                    CreateReferenceToObjectOverflow();
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            void CreateReferenceToObjectOverflow()
+            {
+                var result = new Dictionary<uint, object>();
+                for (var i = 0; i < ReferenceToObjectCount - 1; i++)
+                {
+                    var record = _referenceToObject[i];
+                    result[record.Id] = record.Object;
+                    _referenceToObject[i] = default;
+                }
+
+                ReferenceToObjectCount = 0;
+                _referenceToObjectOverflow = result;
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -177,6 +234,9 @@ namespace Hagar.Session
             ReferenceToObjectCount = 0;
             _objectToReferenceCount = 0;
             CurrentReferenceId = 0;
+
+            _referenceToObjectOverflow = null;
+            _objectToReferenceOverflow = null;
         }
     }
 }
