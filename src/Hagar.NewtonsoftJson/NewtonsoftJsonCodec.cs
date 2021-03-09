@@ -9,6 +9,7 @@ using System.Text;
 
 namespace Hagar.Json
 {
+    [WellKnownAlias("NewtonsoftJson")]
     public class NewtonsoftJsonCodec : IGeneralizedCodec
     {
         private static readonly Type SelfType = typeof(NewtonsoftJsonCodec);

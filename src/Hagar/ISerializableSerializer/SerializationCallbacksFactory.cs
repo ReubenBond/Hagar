@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using System.Security;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
     /// <summary>
     /// Creates delegates for calling methods marked with serialization attributes.

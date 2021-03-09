@@ -1,7 +1,12 @@
+using Hagar.Activators;
+using Hagar.Cloning;
+using Hagar.Codecs;
 using Hagar.Configuration;
+using Hagar.Serializers;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Hagar.TypeSystem
@@ -12,21 +17,27 @@ namespace Hagar.TypeSystem
     public class TypeConverter
     {
         private readonly ITypeConverter[] _converters;
+        private readonly ITypeFilter[] _filters;
         private readonly TypeResolver _resolver;
-        private readonly Func<QualifiedType, QualifiedType> _convertToDisplayName;
-        private readonly Func<QualifiedType, QualifiedType> _convertFromDisplayName;
+        private readonly RuntimeTypeNameRewriter.Rewriter _convertToDisplayName;
+        private readonly RuntimeTypeNameRewriter.Rewriter _convertFromDisplayName;
         private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownAliasToType;
         private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownTypeToAlias;
+        private readonly HashSet<string> _allowedTypes;
 
-        public TypeConverter(IEnumerable<ITypeConverter> formatters, IConfiguration<SerializerConfiguration> configuration, TypeResolver typeResolver)
+        public TypeConverter(IEnumerable<ITypeConverter> formatters, IEnumerable<ITypeFilter> filters, IConfiguration<SerializerConfiguration> configuration, TypeResolver typeResolver)
         {
             _resolver = typeResolver;
             _converters = formatters.ToArray();
+            _filters = filters.ToArray();
             _convertToDisplayName = ConvertToDisplayName;
             _convertFromDisplayName = ConvertFromDisplayName;
 
             _wellKnownAliasToType = new Dictionary<QualifiedType, QualifiedType>();
             _wellKnownTypeToAlias = new Dictionary<QualifiedType, QualifiedType>();
+
+            _allowedTypes = new HashSet<string>(configuration.Value.AllowedTypes, StringComparer.Ordinal);
+            ConsumeMetadata(configuration.Value);
 
             var aliases = configuration.Value.WellKnownTypeAliases;
             foreach (var item in aliases)
@@ -48,6 +59,76 @@ namespace Hagar.TypeSystem
                 }
 
                 _wellKnownAliasToType[alias] = originalQualifiedType;
+            }
+        }
+
+        private void ConsumeMetadata(SerializerConfiguration metadata)
+        {
+            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IPartialSerializer<>));
+            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IValueSerializer<>));
+            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IFieldCodec<>));
+            AddFromMetadata(_allowedTypes, metadata.FieldCodecs, typeof(IFieldCodec<>));
+            AddFromMetadata(_allowedTypes, metadata.Activators, typeof(IActivator<>));
+            AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IDeepCopier<>));
+            AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IPartialCopier<>));
+
+            void AddFromMetadata(HashSet<string> allowedTypes, IEnumerable<Type> metadataCollection, Type genericType)
+            {
+                Debug.Assert(genericType.GetGenericArguments().Length == 1);
+
+                foreach (var type in metadataCollection)
+                {
+                    var interfaces = type.GetInterfaces();
+                    foreach (var @interface in interfaces)
+                    {
+                        if (!@interface.IsGenericType)
+                        {
+                            continue;
+                        }
+
+                        if (genericType != @interface.GetGenericTypeDefinition())
+                        {
+                            continue;
+                        }
+
+                        var genericArgument = @interface.GetGenericArguments()[0];
+                        if (typeof(object) == genericArgument)
+                        {
+                            continue;
+                        }
+
+                        if (genericArgument.IsConstructedGenericType && genericArgument.GenericTypeArguments.Any(arg => arg.IsGenericParameter))
+                        {
+                            genericArgument = genericArgument.GetGenericTypeDefinition();
+                        }
+
+                        if (genericArgument.IsGenericParameter || genericArgument.IsArray)
+                        {
+                            continue;
+                        }
+
+                        AddAllowedType(allowedTypes, genericArgument);
+                    }
+                }
+            }
+
+            static void AddAllowedType(HashSet<string> allowedTypes, Type type)
+            {
+                var formatted = RuntimeTypeNameFormatter.Format(type);
+                var parsed = RuntimeTypeNameParser.Parse(formatted);
+                if (parsed is AssemblyQualifiedTypeSpec qualified)
+                {
+                    allowedTypes.Add(qualified.Type.Format());
+                }
+                else
+                {
+                    allowedTypes.Add(parsed.Format());
+                }
+
+                if (type.DeclaringType is { } declaring)
+                {
+                    AddAllowedType(allowedTypes, declaring);
+                }
             }
         }
 
@@ -133,7 +214,21 @@ namespace Hagar.TypeSystem
             return _resolver.TryResolveType(runtimeType, out type);
         }
 
-        private QualifiedType ConvertToDisplayName(QualifiedType input) => input switch
+        private bool IsTypeAllowed(in QualifiedType type)
+        {
+            foreach (var filter in _filters)
+            {
+                var isAllowed = filter.IsTypeNameAllowed(type.Type, type.Assembly);
+                if (isAllowed.HasValue)
+                {
+                    return isAllowed.Value;
+                }
+            }
+
+            return _allowedTypes.Contains(type.Type);
+        }
+
+        private QualifiedType ConvertToDisplayName(in QualifiedType input) => input switch
         {
             (_, "System.Object") => new QualifiedType(null, "object"),
             (_, "System.String") => new QualifiedType(null, "string"),
@@ -150,11 +245,18 @@ namespace Hagar.TypeSystem
             (_, "System.Single") => new QualifiedType(null, "float"),
             (_, "System.Double") => new QualifiedType(null, "double"),
             (_, "System.Decimal") => new QualifiedType(null, "decimal"),
+            (_, "System.Guid") => new QualifiedType(null, "Guid"),
+            (_, "System.TimeSpan") => new QualifiedType(null, "TimeSpan"),
+            (_, "System.DateTime") => new QualifiedType(null, "Datetime"),
+            (_, "System.DateTimeOffset") => new QualifiedType(null, "DateTimeOffset"),
+            (_, "System.Type") => new QualifiedType(null, "Type"),
+            (_, "System.RuntimeType") => new QualifiedType(null, "Type"),
             _ when _wellKnownTypeToAlias.TryGetValue(input, out var alias) => alias,
-            _ => input,
+            var value when IsTypeAllowed(in value) => input,
+            var value => ThrowTypeNotAllowed(in value)
         };
 
-        private QualifiedType ConvertFromDisplayName(QualifiedType input) => input switch
+        private QualifiedType ConvertFromDisplayName(in QualifiedType input) => input switch
         {
             (_, "object") => new QualifiedType(null, "System.Object"),
             (_, "string") => new QualifiedType(null, "System.String"),
@@ -171,8 +273,29 @@ namespace Hagar.TypeSystem
             (_, "float") => new QualifiedType(null, "System.Single"),
             (_, "double") => new QualifiedType(null, "System.Double"),
             (_, "decimal") => new QualifiedType(null, "System.Decimal"),
+            (_, "Guid") => new QualifiedType(null, "System.Guid"),
+            (_, "TimeSpan") => new QualifiedType(null, "System.TimeSpan"),
+            (_, "DateTime") => new QualifiedType(null, "System.DateTime"),
+            (_, "DateTimeOffset") => new QualifiedType(null, "System.DateTimeOffset"),
+            (_, "Type") => new QualifiedType(null, "System.Type"),
             _ when _wellKnownAliasToType.TryGetValue(input, out var type) => type,
-            _ => input
+            var value when IsTypeAllowed(in value) => input,
+            var value => ThrowTypeNotAllowed(in value)
         };
+
+        private static QualifiedType ThrowTypeNotAllowed(in QualifiedType value)
+        {
+            string message;
+            if (!string.IsNullOrWhiteSpace(value.Assembly))
+            {
+                message = $"Type \"{value.Type}\" from assembly \"{value.Assembly}\" is not allowed. Add type to {nameof(SerializerConfiguration)}.{nameof(SerializerConfiguration.AllowedTypes)} to allow it.";
+            }
+            else
+            {
+                message = $"Type \"{value.Type}\" is not allowed. Add type to {nameof(SerializerConfiguration)}.{nameof(SerializerConfiguration.AllowedTypes)} to allow it.";
+            }
+
+            throw new InvalidOperationException(message);
+        }
     }
 }

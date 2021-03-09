@@ -28,9 +28,10 @@ namespace Benchmarks
         {
             const int Size = 250_000;
             Value = new Dictionary<string, int>(Size);
+            var bumper = new string('x', 3000);
             for (var i = 0; i < Size; i++)
             {
-                Value[i.ToString(CultureInfo.InvariantCulture)] = i;
+                Value[i.ToString(CultureInfo.InvariantCulture) + bumper] = i;
             }
             
             var services = new ServiceCollection()

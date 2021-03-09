@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{9CA57753-5
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar", "src\Hagar\Hagar.csproj", "{5C577472-EBC7-4472-A339-639A38A0531C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.ISerializable", "src\Hagar.ISerializable\Hagar.ISerializable.csproj", "{0F7397CF-9C94-4DF2-B38B-4560B6200630}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.NewtonsoftJson", "src\Hagar.NewtonsoftJson\Hagar.NewtonsoftJson.csproj", "{68BD5567-9F00-43A2-BC9D-913C18764280}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.UnitTests", "test\Hagar.UnitTests\Hagar.UnitTests.csproj", "{38C83221-53FD-470C-AF27-73325529745C}"
@@ -50,7 +48,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.Analyzers", "src\Haga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hagar.CodeGenerator.MSBuild.Tasks", "src\Hagar.CodeGenerator.MSBuild.Tasks\Hagar.CodeGenerator.MSBuild.Tasks.csproj", "{38CB9FFF-226C-49F2-A6C4-4F89C92B5714}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallLog", "test\CallLog\CallLog.csproj", "{9048E345-238F-4391-AA54-61FBF62B0822}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CallLog", "test\CallLog\CallLog.csproj", "{9048E345-238F-4391-AA54-61FBF62B0822}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,10 +60,6 @@ Global
 		{5C577472-EBC7-4472-A339-639A38A0531C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C577472-EBC7-4472-A339-639A38A0531C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C577472-EBC7-4472-A339-639A38A0531C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F7397CF-9C94-4DF2-B38B-4560B6200630}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F7397CF-9C94-4DF2-B38B-4560B6200630}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F7397CF-9C94-4DF2-B38B-4560B6200630}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F7397CF-9C94-4DF2-B38B-4560B6200630}.Release|Any CPU.Build.0 = Release|Any CPU
 		{68BD5567-9F00-43A2-BC9D-913C18764280}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{68BD5567-9F00-43A2-BC9D-913C18764280}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68BD5567-9F00-43A2-BC9D-913C18764280}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -120,7 +114,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5C577472-EBC7-4472-A339-639A38A0531C} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
-		{0F7397CF-9C94-4DF2-B38B-4560B6200630} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{68BD5567-9F00-43A2-BC9D-913C18764280} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}
 		{38C83221-53FD-470C-AF27-73325529745C} = {9CA57753-5824-4D32-825A-F9D0C6CABFBA}
 		{153D1F59-DEBF-4214-B4CA-9540CAB6B1A0} = {2A14EA5B-AB5E-4486-A746-B834A1C0F290}

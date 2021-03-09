@@ -7,10 +7,12 @@ namespace Hagar.TypeSystem
     /// </summary>
     internal static class RuntimeTypeNameRewriter
     {
+        public delegate QualifiedType Rewriter(in QualifiedType input);
+
         /// <summary>
         /// Rewrites a <see cref="TypeSpec"/> using the provided rewriter delegate.
         /// </summary>
-        public static TypeSpec Rewrite(TypeSpec input, Func<QualifiedType, QualifiedType> rewriter)
+        public static TypeSpec Rewrite(TypeSpec input, Rewriter rewriter)
         {
             var result = ApplyInner(input, null, rewriter);
             if (result.Assembly is object)
@@ -22,7 +24,7 @@ namespace Hagar.TypeSystem
             return result.Type;
         }
 
-        private static (TypeSpec Type, string Assembly) ApplyInner(TypeSpec input, string assemblyName, Func<QualifiedType, QualifiedType> replaceFunc) =>
+        private static (TypeSpec Type, string Assembly) ApplyInner(TypeSpec input, string assemblyName, Rewriter replaceFunc) =>
             // A type's assembly is passed downwards through the graph, and modifications to the assembly (from the user-provided delegate) flow upwards.
             input switch
             {
@@ -36,7 +38,7 @@ namespace Hagar.TypeSystem
                 _ => throw new NotSupportedException($"Argument of type {input.GetType()} is nut supported"),
             };
 
-        private static (TypeSpec Type, string Assembly) HandleGeneric(ConstructedGenericTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
+        private static (TypeSpec Type, string Assembly) HandleGeneric(ConstructedGenericTypeSpec type, string assemblyName, Rewriter replaceTypeName)
         {
             var (unconstructed, replacementAssembly) = ApplyInner(type.UnconstructedType, assemblyName, replaceTypeName);
 
@@ -67,7 +69,7 @@ namespace Hagar.TypeSystem
             return (new ConstructedGenericTypeSpec((NamedTypeSpec)unconstructed, newArguments), replacementAssembly);
         }
 
-        private static (TypeSpec Type, string Assembly) HandleNamedType(NamedTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
+        private static (TypeSpec Type, string Assembly) HandleNamedType(NamedTypeSpec type, string assemblyName, Rewriter replaceTypeName)
         {
             var nsQualified = type.GetNamespaceQualifiedName();
             var names = replaceTypeName(new QualifiedType(assembly: assemblyName, type: nsQualified));
@@ -108,7 +110,7 @@ namespace Hagar.TypeSystem
             }
         }
 
-        private static (TypeSpec Type, string Assembly) HandleAssembly(AssemblyQualifiedTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
+        private static (TypeSpec Type, string Assembly) HandleAssembly(AssemblyQualifiedTypeSpec type, string assemblyName, Rewriter replaceTypeName)
         {
             var replacement = ApplyInner(type.Type, type.Assembly, replaceTypeName);
 
@@ -128,7 +130,7 @@ namespace Hagar.TypeSystem
             return (type, assemblyName);
         }
 
-        private static (TypeSpec Type, string Assembly) HandleArray(ArrayTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
+        private static (TypeSpec Type, string Assembly) HandleArray(ArrayTypeSpec type, string assemblyName, Rewriter replaceTypeName)
         {
             var element = ApplyInner(type.ElementType, assemblyName, replaceTypeName);
             if (ReferenceEquals(element.Type, type.ElementType))
@@ -139,7 +141,7 @@ namespace Hagar.TypeSystem
             return (new ArrayTypeSpec(element.Type, type.Dimensions), element.Assembly);
         }
 
-        private static (TypeSpec Type, string Assembly) HandleReference(ReferenceTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
+        private static (TypeSpec Type, string Assembly) HandleReference(ReferenceTypeSpec type, string assemblyName, Rewriter replaceTypeName)
         {
             var element = ApplyInner(type.ElementType, assemblyName, replaceTypeName);
             if (ReferenceEquals(element.Type, type.ElementType))
@@ -150,7 +152,7 @@ namespace Hagar.TypeSystem
             return (new ReferenceTypeSpec(element.Type), element.Assembly);
         }
 
-        private static (TypeSpec Type, string Assembly) HandlePointer(PointerTypeSpec type, string assemblyName, Func<QualifiedType, QualifiedType> replaceTypeName)
+        private static (TypeSpec Type, string Assembly) HandlePointer(PointerTypeSpec type, string assemblyName, Rewriter replaceTypeName)
         {
             var element = ApplyInner(type.ElementType, assemblyName, replaceTypeName);
             if (ReferenceEquals(element.Type, type.ElementType))

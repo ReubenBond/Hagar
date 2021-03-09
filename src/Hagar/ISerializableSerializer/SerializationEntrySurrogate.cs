@@ -1,7 +1,6 @@
-using System.Runtime.Serialization;
-using System.Security;
+using System;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
     [GenerateSerializer]
     internal struct SerializationEntrySurrogate
@@ -11,5 +10,8 @@ namespace Hagar.ISerializable
 
         [Id(2)]
         public object Value { get; set; }
+
+        [Id(3)]
+        public Type ObjectType { get; set; }
     }
 }

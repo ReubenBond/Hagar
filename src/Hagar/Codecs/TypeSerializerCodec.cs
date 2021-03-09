@@ -59,7 +59,7 @@ namespace Hagar.Codecs
                 return ReferenceCodec.ReadReference<Type, TInput>(ref reader, field);
             }
 
-            ReferenceCodec.MarkValueField(reader.Session);
+            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
             uint fieldId = 0;
             var schemaType = default(SchemaType);
             uint id = 0;
@@ -85,6 +85,9 @@ namespace Hagar.Codecs
                     case 2:
                         id = reader.ReadVarUInt32();
                         break;
+                    default:
+                        reader.ConsumeUnknownField(header);
+                        break;
                 }
             }
 
@@ -93,27 +96,30 @@ namespace Hagar.Codecs
                 case SchemaType.Referenced:
                     if (reader.Session.ReferencedTypes.TryGetReferencedType(id, out result))
                     {
-                        return result;
+                        break;
                     }
 
                     return ThrowUnknownReferencedType(id);
                 case SchemaType.WellKnown:
                     if (reader.Session.WellKnownTypes.TryGetWellKnownType(id, out result))
                     {
-                        return result;
+                        break;
                     }
 
                     return ThrowUnknownWellKnownType(id);
                 case SchemaType.Encoded:
-                    if (result != null)
+                    if (result is not null)
                     {
-                        return result;
+                        break;
                     }
 
                     return ThrowMissingType();
                 default:
                     return ThrowInvalidSchemaType(schemaType);
             }
+
+            ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
+            return result;
         }
 
         private static (SchemaType, uint) GetSchemaType(SerializerSession session, Type actualType)

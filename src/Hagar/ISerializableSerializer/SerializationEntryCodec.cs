@@ -5,7 +5,7 @@ using System;
 using System.Buffers;
 using System.Security;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
     internal sealed class SerializationEntryCodec : IFieldCodec<SerializationEntrySurrogate>
     {
@@ -21,6 +21,11 @@ namespace Hagar.ISerializable
             writer.WriteFieldHeader(fieldIdDelta, expectedType, SerializationEntryType, WireType.TagDelimited);
             StringCodec.WriteField(ref writer, 0, typeof(string), value.Name);
             ObjectCodec.WriteField(ref writer, 1, typeof(object), value.Value);
+            if (value.ObjectType is { } objectType)
+            {
+                TypeSerializerCodec.WriteField(ref writer, 1, typeof(Type), objectType);
+            }
+
             writer.WriteEndObject();
         }
 
@@ -46,6 +51,12 @@ namespace Hagar.ISerializable
                         break;
                     case 1:
                         result.Value = ObjectCodec.ReadValue(ref reader, header);
+                        break;
+                    case 2:
+                        result.ObjectType = TypeSerializerCodec.ReadValue(ref reader, header);
+                        break;
+                    default:
+                        reader.ConsumeUnknownField(header);
                         break;
                 }
             }

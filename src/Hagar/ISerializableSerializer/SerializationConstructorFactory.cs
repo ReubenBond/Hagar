@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using System.Security;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
     /// <summary>
     /// Creates delegates for calling ISerializable-conformant constructors.
@@ -49,7 +49,7 @@ namespace Hagar.ISerializable
             var constructor = GetSerializationConstructor(type) ?? (typeof(Exception).IsAssignableFrom(type) ? GetSerializationConstructor(typeof(Exception)) : null);
             if (constructor is null)
             {
-                throw new SerializationException($"{nameof(ISerializable)} constructor not found on type {type}.");
+                throw new SerializationException($"{nameof(ISerializableSupport)} constructor not found on type {type}.");
             }
 
             Type[] parameterTypes;

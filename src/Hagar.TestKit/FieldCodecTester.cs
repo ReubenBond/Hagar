@@ -551,7 +551,7 @@ namespace Hagar.TestKit
         [Fact]
         public void CorrectlyHandlesBuffers()
         {
-            var testers = BufferTestHelper<TValue>.GetTestSerializers(_serviceProvider);
+            var testers = BufferTestHelper<TValue>.GetTestSerializers(_serviceProvider, MaxSegmentSizes);
 
             foreach (var tester in testers)
             {

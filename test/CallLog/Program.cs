@@ -26,8 +26,7 @@ namespace CallLog
                 {
                     Thread.Sleep(4000);
                     hagar
-                        .AddAssembly(typeof(Program).Assembly)
-                        .AddISerializableSupport();
+                        .AddAssembly(typeof(Program).Assembly);
                 });
                 services.AddSingleton<ApplicationContext>();
                 services.AddSingleton<Catalog>();

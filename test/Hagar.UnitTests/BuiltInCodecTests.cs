@@ -1537,6 +1537,21 @@ namespace Hagar.UnitTests
 
     public class DictionaryWithComparerCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
+        protected override int[] MaxSegmentSizes => new[] { 1024 };
+        private int _nextComparer;
+        private IEqualityComparer<string>[] _comparers = new IEqualityComparer<string>[]
+        {
+            new CaseInsensitiveEqualityComparer(),
+#if NETCOREAPP
+            StringComparer.Ordinal,
+            StringComparer.OrdinalIgnoreCase,
+            StringComparer.InvariantCulture,
+            StringComparer.InvariantCultureIgnoreCase,
+            StringComparer.CurrentCulture,
+            StringComparer.CurrentCultureIgnoreCase,
+#endif
+        };
+
         protected override void Configure(IHagarBuilder builder)
         {
             base.Configure(builder);
@@ -1546,17 +1561,30 @@ namespace Hagar.UnitTests
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
-            var eqComparer = new CaseInsensitiveEqualityComparer();
+            var eqComparer = _comparers[_nextComparer++ % _comparers.Length];
             var result = new Dictionary<string, int>(eqComparer);
             for (var i = 0; i < rand.Next(17) + 5; i++)
             {
-                result[rand.Next().ToString()] = rand.Next();
+                var key = Guid.NewGuid().ToString();
+                result[key.ToLowerInvariant()] = rand.Next();
+                result[key.ToUpperInvariant()] = rand.Next();
             }
 
             return result;
         }
 
-        protected override Dictionary<string, int>[] TestValues => new[] { null, new Dictionary<string, int>(), CreateValue(), CreateValue(), CreateValue() };
+        protected override Dictionary<string, int>[] TestValues => new[] {
+            null,
+            new Dictionary<string, int>(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue()
+        };
 
         protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
 

@@ -46,7 +46,6 @@ namespace TestRpc
                 .AddHagar(hagar =>
                 {
                     _ = hagar.AddAssembly(typeof(Program).Assembly);
-                    _ = hagar.AddISerializableSupport();
                 })
                 .AddSingleton<IActivator<Message>, PooledMessageActivator>()
                 .AddSingleton<Catalog>()

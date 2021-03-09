@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageDescription>Newtonsoft.Json integration for Hagar</PackageDescription>
+    <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
   </PropertyGroup>
 
   <ItemGroup>

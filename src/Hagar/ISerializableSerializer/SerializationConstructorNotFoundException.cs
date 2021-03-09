@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Security;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
     [Serializable]
     public class SerializationConstructorNotFoundException : Exception
