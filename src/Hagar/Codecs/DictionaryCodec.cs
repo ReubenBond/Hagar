@@ -48,6 +48,8 @@ namespace Hagar.Codecs
                 _comparerCodec.WriteField(ref writer, 0, typeof(IEqualityComparer<TKey>), value.Comparer);
             }
 
+            Int32Codec.WriteField(ref writer, 1, typeof(int), value.Count);
+
             uint innerFieldIdDelta = 1;
             foreach (var element in value)
             {
@@ -71,6 +73,7 @@ namespace Hagar.Codecs
             }
 
             var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
+            int length = 0;
             Dictionary<TKey, TValue> result = null;
             IEqualityComparer<TKey> comparer = null;
             uint fieldId = 0;
@@ -89,11 +92,15 @@ namespace Hagar.Codecs
                         comparer = _comparerCodec.ReadValue(ref reader, header);
                         break;
                     case 1:
-                        if (result is null)
+                        length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
                         {
-                            result = CreateInstance(comparer, reader.Session, placeholderReferenceId);
+                            ThrowInvalidSizeException(length);
                         }
 
+                        break;
+                    case 2:
+                        result ??= CreateInstance(length, comparer, reader.Session, placeholderReferenceId);
                         var pair = _pairCodec.ReadValue(ref reader, header);
                         result.Add(pair.Key, pair.Value);
                         break;
@@ -103,17 +110,13 @@ namespace Hagar.Codecs
                 }
             }
 
-            if (result is null)
-            {
-                result = CreateInstance(comparer, reader.Session, placeholderReferenceId);
-            }
-
+            result ??= CreateInstance(length, comparer, reader.Session, placeholderReferenceId);
             return result;
         }
 
-        private Dictionary<TKey, TValue> CreateInstance(IEqualityComparer<TKey> comparer, SerializerSession session, uint placeholderReferenceId)
+        private Dictionary<TKey, TValue> CreateInstance(int length, IEqualityComparer<TKey> comparer, SerializerSession session, uint placeholderReferenceId)
         {
-            var result = _activator.Create(comparer);
+            var result = new Dictionary<TKey, TValue>(length, comparer);
             ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
             return result;
         }
@@ -121,6 +124,10 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(Dictionary<TKey, TValue>)}, {length}, is greater than total length of input.");
     }
 
     [RegisterCopier]
