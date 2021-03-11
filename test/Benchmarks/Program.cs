@@ -61,6 +61,15 @@ namespace Benchmarks
                 }
             }
 
+            if (args.Length > 0 && args[0] == "s2loop")
+            {
+                var benchmarks = new MegaGraphBenchmark();
+                while (true)
+                {
+                    _ = benchmarks.Serialize2();
+                }
+            }
+
             var switcher = new BenchmarkSwitcher(new[]
             {
                 typeof(ClassDeserializeBenchmark),

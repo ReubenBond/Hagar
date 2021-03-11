@@ -3,6 +3,7 @@ using Hagar.Cloning;
 using Hagar.GeneratedCodeHelpers;
 using Hagar.WireProtocol;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -91,5 +92,73 @@ namespace Hagar.Codecs
         }
 
         public KeyValuePair<TKey, TValue> DeepCopy(KeyValuePair<TKey, TValue> input, CopyContext context) => new(_keyCopier.DeepCopy(input.Key, context), _valueCopier.DeepCopy(input.Value, context));
+    }
+
+    //[RegisterSerializer]
+    public sealed class StringKeyValuePairCodec<TValue> : IFieldCodec<KeyValuePair<string, TValue>>
+    {
+        private readonly IFieldCodec<TValue> _valueCodec;
+        private static readonly Type CodecKeyType = typeof(string);
+        private static readonly Type CodecValueType = typeof(TValue);
+
+        public StringKeyValuePairCodec(IFieldCodec<TValue> valueCodec)
+        {
+            _valueCodec = HagarGeneratedCodeHelper.UnwrapService(this, valueCodec);
+        }
+
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer,
+            uint fieldIdDelta,
+            Type expectedType,
+            KeyValuePair<string, TValue> value) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
+
+            NonTrackingStringCodec.WriteField(ref writer, 0, CodecKeyType, value.Key);
+            _valueCodec.WriteField(ref writer, 1, CodecValueType, value.Value);
+
+            writer.WriteEndObject();
+        }
+
+        public KeyValuePair<string, TValue> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        {
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
+            ReferenceCodec.MarkValueField(reader.Session);
+            var key = default(string);
+            var value = default(TValue);
+            uint fieldId = 0;
+            while (true)
+            {
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
+                fieldId += header.FieldIdDelta;
+                switch (fieldId)
+                {
+                    case 0:
+                        key = NonTrackingStringCodec.ReadValue(ref reader, header);
+                        break;
+                    case 1:
+                        value = _valueCodec.ReadValue(ref reader, header);
+                        break;
+                    default:
+                        reader.ConsumeUnknownField(header);
+                        break;
+                }
+            }
+
+            return new KeyValuePair<string, TValue>(key, value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
     }
 }

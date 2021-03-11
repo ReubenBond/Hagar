@@ -167,4 +167,119 @@ namespace Hagar.Codecs
             }
         }
     }
+
+    /// <summary>
+    /// Codec for <see cref="Dictionary{string, TValue}"/>.
+    /// </summary>
+    /// <typeparam name="TKey">The key type.</typeparam>
+    /// <typeparam name="TValue">The value type.</typeparam>
+    public sealed class StringDictionaryCodec<TValue> : IFieldCodec<Dictionary<string, TValue>>
+    {
+        private static readonly Type CodecFieldType = typeof(KeyValuePair<string, TValue>);
+
+        private readonly StringKeyValuePairCodec<TValue> _pairCodec;
+        private readonly IFieldCodec<IEqualityComparer<string>> _comparerCodec;
+
+        public StringDictionaryCodec(
+            StringKeyValuePairCodec<TValue> pairCodec,
+            IFieldCodec<IEqualityComparer<string>> comparerCodec)
+        {
+            _pairCodec = pairCodec;
+            _comparerCodec = comparerCodec;
+        }
+
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, Dictionary<string, TValue> value) where TBufferWriter : IBufferWriter<byte>
+        {
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
+
+            if (value.Comparer != EqualityComparer<string>.Default)
+            {
+                _comparerCodec.WriteField(ref writer, 0, typeof(IEqualityComparer<string>), value.Comparer);
+            }
+
+            uint innerFieldIdDelta = 1;
+            foreach (var element in value)
+            {
+                _pairCodec.WriteField(ref writer, innerFieldIdDelta, CodecFieldType, element);
+                innerFieldIdDelta = 0;
+            }
+
+            writer.WriteEndObject();
+        }
+
+        public Dictionary<string, TValue> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<Dictionary<string, TValue>, TInput>(ref reader, field);
+            }
+
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
+            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
+            int length = 0;
+            Dictionary<string, TValue> result = null;
+            IEqualityComparer<string> comparer = null;
+            uint fieldId = 0;
+            while (true)
+            {
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
+                fieldId += header.FieldIdDelta;
+                switch (fieldId)
+                {
+                    case 0:
+                        comparer = _comparerCodec.ReadValue(ref reader, header);
+                        break;
+                    case 1:
+                        length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
+                        {
+                            ThrowInvalidSizeException(length);
+                        }
+
+                        break;
+                    case 2:
+                        result ??= CreateInstance(length, comparer, reader.Session, placeholderReferenceId);
+                        var pair = _pairCodec.ReadValue(ref reader, header);
+                        result.Add(pair.Key, pair.Value);
+                        break;
+                    default:
+                        reader.ConsumeUnknownField(header);
+                        break;
+                }
+            }
+
+            result ??= CreateInstance(length, comparer, reader.Session, placeholderReferenceId);
+
+            return result;
+        }
+
+        private Dictionary<string, TValue> CreateInstance(int length, IEqualityComparer<string> comparer, SerializerSession session, uint placeholderReferenceId)
+        {
+            var result = new Dictionary<string, TValue>(length, comparer);
+            ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(Dictionary<string, TValue>)}, {length}, is greater than total length of input.");
+    }
 }
