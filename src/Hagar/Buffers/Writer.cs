@@ -63,7 +63,7 @@ namespace Hagar.Buffers
             {
                 _output = output;
                 Session = session;
-                _currentSpan = output.GetSpan();
+                _currentSpan = _output.GetSpan();
                 _bufferPos = default;
                 _previousBuffersSize = default;
             }

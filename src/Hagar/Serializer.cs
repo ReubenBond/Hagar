@@ -36,19 +36,13 @@ namespace Hagar
         public byte[] SerializeToArray<T>(T value, int sizeHint = 0)
         {
             using var session = _sessionPool.GetSession();
-            var buffer = new PooledArrayBufferWriter(sizeHint);
-            var writer = Writer.Create(buffer, session);
+            var writer = Writer.Create(new PooledArrayBufferWriter(sizeHint), session);
             try
             {
                 var codec = _codecProvider.GetCodec<T>();
                 codec.WriteField(ref writer, 0, typeof(T), value);
                 writer.Commit();
-
-                // Copy the result into a fresh array.
-                var written = writer.Output.WrittenSpan;
-                var result = new byte[written.Length];
-                written.CopyTo(result);
-                return result;
+                return writer.Output.ToArray();
             }
             finally
             {
@@ -493,12 +487,7 @@ namespace Hagar
             {
                 _codec.WriteField(ref writer, 0, typeof(T), value);
                 writer.Commit();
-
-                // Copy the result into a fresh array.
-                var written = writer.Output.WrittenSpan;
-                var result = new byte[written.Length];
-                written.CopyTo(result);
-                return result;
+                return writer.Output.ToArray();
             }
             finally
             {
@@ -859,13 +848,7 @@ namespace Hagar
             {
                 _codec.Serialize(ref writer, ref value);
                 writer.Commit();
-
-                // Copy the result into a fresh array.
-                var written = writer.Output.WrittenSpan;
-                var result = new byte[written.Length];
-                written.CopyTo(result);
-
-                return result;
+                return writer.Output.ToArray();
             }
             finally
             {
