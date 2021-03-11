@@ -142,7 +142,7 @@ namespace TestApp
         public static void Main(string[] args)
         {
             var serviceProvider = new ServiceCollection()
-                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly).AddISerializableSupport())
+                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
                 .BuildServiceProvider();
 
             SerializerSession GetSession() => serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();

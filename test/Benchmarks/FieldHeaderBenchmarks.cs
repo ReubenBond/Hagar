@@ -20,8 +20,7 @@ namespace Benchmarks
             var services = new ServiceCollection();
             _ = services
                 .AddHagar(hagar =>
-                    hagar.AddISerializableSupport()
-                        .AddAssembly(typeof(Program).Assembly));
+                    hagar.AddAssembly(typeof(Program).Assembly));
             var serviceProvider = services.BuildServiceProvider();
             var sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
             Session = sessionPool.GetSession();

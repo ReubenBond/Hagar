@@ -1,5 +1,4 @@
 using Hagar.Buffers;
-using Hagar.ISerializable;
 using Hagar.Session;
 using Hagar.TypeSystem;
 using Hagar.Utilities;
@@ -27,7 +26,15 @@ namespace Hagar.UnitTests
         public ISerializableTests(ITestOutputHelper log)
         {
             var services = new ServiceCollection();
-            _ = services.AddHagar(hagar => hagar.AddISerializableSupport());
+            _ = services.AddHagar(builder =>
+            {
+                builder.Configure(options =>
+                {
+                    options.AllowedTypes.Add("Hagar.UnitTests.ISerializableTests");
+                    options.AllowedTypes.Add("Hagar.UnitTests.ISerializableTests+SimpleISerializableObject");
+                    options.AllowedTypes.Add("Hagar.UnitTests.ISerializableTests+SimpleISerializableStruct");
+                });
+            });
             services.RemoveAll(typeof(TypeResolver));
             services.AddSingleton<TypeResolver>(sp => new BanningTypeResolver(typeof(UnserializableConformingException), typeof(UnserializableNonConformingException)));
 
@@ -93,7 +100,7 @@ namespace Hagar.UnitTests
         }
 
         /// <summary>
-        /// Tests that <see cref="Hagar.ISerializable.DotNetSerializableCodec"/> can correctly serialize objects.
+        /// Tests that <see cref="Hagar.ISerializableSupport.DotNetSerializableCodec"/> can correctly serialize objects.
         /// </summary>
         [Fact]
         public void ISerializableObjectWithCallbacks()
@@ -140,7 +147,7 @@ namespace Hagar.UnitTests
         }
 
         /// <summary>
-        /// Tests that <see cref="Hagar.ISerializable.DotNetSerializableCodec"/> can correctly serialize structs.
+        /// Tests that <see cref="Hagar.ISerializableSupport.DotNetSerializableCodec"/> can correctly serialize structs.
         /// </summary>
         [Fact]
         public void ISerializableStructWithCallbacks()
@@ -278,7 +285,12 @@ namespace Hagar.UnitTests
             {
                 throw new UnserializableNonConformingException(message);
             }));
-            object deserialized = serializer.Deserialize<Exception>(serializer.SerializeToArray(source));
+
+            var serialized = serializer.SerializeToArray(source);
+            using var formatterSession = _sessionPool.GetSession();
+            var formatted = BitStreamFormatter.Format(serialized, formatterSession);
+
+            object deserialized = serializer.Deserialize<Exception>(serialized);
 
             // Type is wrong after round trip of unserializable exception
             var result = Assert.IsAssignableFrom<UnavailableExceptionFallbackException>(deserialized);

@@ -3,6 +3,7 @@ using Hagar.Buffers;
 using Hagar.Cloning;
 using Hagar.Codecs;
 using Hagar.Configuration;
+using Hagar.ISerializableSupport;
 using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.TypeSystem;
@@ -48,8 +49,17 @@ namespace Hagar
                 services.TryAddScoped(typeof(IDeepCopier<>), typeof(CopierHolder<>));
                 services.TryAddScoped(typeof(IPartialCopier<>), typeof(PartialCopierHolder<>));
 
+                // Type filtering
+                services.AddSingleton<ITypeFilter, DefaultTypeFilter>();
+
                 // Session
                 services.TryAddSingleton<SerializerSessionPool>();
+
+                services.AddSingleton<IGeneralizedCodec, CompareInfoCodec>();
+                services.AddSingleton<IGeneralizedCopier, CompareInfoCopier>();
+
+                services.AddSingleton<IGeneralizedCodec, OrdinalStringComparerCodec>();
+                services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
 
                 // Serializer
                 services.TryAddSingleton<Serializer>();

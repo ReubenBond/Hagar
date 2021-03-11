@@ -18,5 +18,7 @@ namespace Hagar.Configuration
         public Dictionary<uint, Type> WellKnownTypeIds { get; } = new Dictionary<uint, Type>();
 
         public Dictionary<string, Type> WellKnownTypeAliases { get; } = new Dictionary<string, Type>();
+
+        public HashSet<string> AllowedTypes { get; } = new HashSet<string>(StringComparer.Ordinal);
     }
 }

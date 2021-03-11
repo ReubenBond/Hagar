@@ -48,7 +48,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hagar.Abstractions\Hagar.Abstractions.csproj" />
-    <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.NewtonsoftJson\Hagar.NewtonsoftJson.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
   </ItemGroup>

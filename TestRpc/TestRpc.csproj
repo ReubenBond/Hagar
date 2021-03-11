@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\src\Hagar\Hagar.csproj" />
   </ItemGroup>
 

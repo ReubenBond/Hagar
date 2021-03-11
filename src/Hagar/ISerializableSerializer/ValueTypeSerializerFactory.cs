@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
     internal class ValueTypeSerializerFactory
     {
@@ -13,10 +13,9 @@ namespace Hagar.ISerializable
         private readonly SerializationEntryCodec _entrySerializer;
         private readonly StreamingContext _streamingContext;
         private readonly IFormatterConverter _formatterConverter;
-        private readonly Func<Type, ISerializableSerializer> _createSerializerDelegate;
+        private readonly Func<Type, ValueTypeSerializer> _createSerializerDelegate;
 
-        private readonly ConcurrentDictionary<Type, ISerializableSerializer> _serializers =
-            new();
+        private readonly ConcurrentDictionary<Type, ValueTypeSerializer> _serializers = new();
 
         private readonly MethodInfo _createTypedSerializerMethodInfo = typeof(ValueTypeSerializerFactory).GetMethod(
             nameof(CreateTypedSerializer),
@@ -35,14 +34,14 @@ namespace Hagar.ISerializable
             _entrySerializer = entrySerializer;
             _streamingContext = streamingContext;
             _formatterConverter = formatterConverter;
-            _createSerializerDelegate = type => (ISerializableSerializer)_createTypedSerializerMethodInfo.MakeGenericMethod(type).Invoke(this, null);
+            _createSerializerDelegate = type => (ValueTypeSerializer)_createTypedSerializerMethodInfo.MakeGenericMethod(type).Invoke(this, null);
         }
 
         [SecurityCritical]
-        public ISerializableSerializer GetSerializer(Type type) => _serializers.GetOrAdd(type, _createSerializerDelegate);
+        public ValueTypeSerializer GetSerializer(Type type) => _serializers.GetOrAdd(type, _createSerializerDelegate);
 
         [SecurityCritical]
-        private ISerializableSerializer CreateTypedSerializer<T>() where T : struct
+        private ValueTypeSerializer CreateTypedSerializer<T>() where T : struct
         {
             var constructor = _constructorFactory.GetSerializationConstructorDelegate<T, ValueTypeSerializer<T>.ValueConstructor>();
             var callbacks =

@@ -17,4 +17,9 @@ namespace Hagar.TypeSystem
         /// </summary>
         bool TryParse(string formatted, out Type type);
     }
+
+    public interface ITypeFilter
+    {
+        bool? IsTypeNameAllowed(string typeName, string assemblyName);
+    }
 }

@@ -23,6 +23,16 @@ namespace Hagar.TypeSystem
 
         public override int GetHashCode() => HashCode.Combine(Assembly, Type);
 
-        public static implicit operator QualifiedType((string Assembly, string Type) args) => new QualifiedType(args.Assembly, args.Type);
+        public static implicit operator QualifiedType((string Assembly, string Type) args) => new(args.Assembly, args.Type);
+
+        public static bool operator ==(QualifiedType left, QualifiedType right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(QualifiedType left, QualifiedType right)
+        {
+            return !(left == right);
+        }
     }
 }

@@ -1,16 +1,23 @@
 using Hagar.Buffers;
 using Hagar.Codecs;
 using System;
+using System.Buffers;
 using System.Runtime.Serialization;
 using System.Security;
 
-namespace Hagar.ISerializable
+namespace Hagar.ISerializableSupport
 {
+    internal abstract class ValueTypeSerializer
+    {
+        public abstract void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value) where TBufferWriter : IBufferWriter<byte>;
+        public abstract object ReadValue<TInput>(ref Reader<TInput> reader, Type type);
+    }
+
     /// <summary>
     /// Serializer for ISerializable value types.
     /// </summary>
     /// <typeparam name="T">The type which this serializer can serialize.</typeparam>
-    internal class ValueTypeSerializer<T> : ISerializableSerializer where T : struct
+    internal class ValueTypeSerializer<T> : ValueTypeSerializer where T : struct
     {
         public delegate void ValueConstructor(ref T value, SerializationInfo info, StreamingContext context);
 
@@ -41,13 +48,16 @@ namespace Hagar.ISerializable
         }
 
         [SecurityCritical]
-        void ISerializableSerializer.WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value)
+        public override void WriteValue<TBufferWriter>(ref Writer<TBufferWriter> writer, object value)
         {
             var item = (T)value;
             _callbacks.OnSerializing?.Invoke(ref item, _streamingContext);
 
             var info = new SerializationInfo(Type, _formatterConverter);
-            ((System.Runtime.Serialization.ISerializable)value).GetObjectData(info, _streamingContext);
+            ((ISerializable)value).GetObjectData(info, _streamingContext);
+
+            Int32Codec.WriteField(ref writer, 0, typeof(int), 0);
+            TypeSerializerCodec.WriteField(ref writer, 1, typeof(Type), info.ObjectType);
 
             var first = true;
             foreach (var field in info)
@@ -55,8 +65,10 @@ namespace Hagar.ISerializable
                 var surrogate = new SerializationEntrySurrogate
                 {
                     Name = field.Name,
-                    Value = field.Value
+                    Value = field.Value,
+                    ObjectType = field.ObjectType
                 };
+
                 _entrySerializer.WriteField(ref writer, first ? 1 : (uint)0, SerializationEntryCodec.SerializationEntryType, surrogate);
                 if (first)
                 {
@@ -68,7 +80,7 @@ namespace Hagar.ISerializable
         }
 
         [SecurityCritical]
-        object ISerializableSerializer.ReadValue<TInput>(ref Reader<TInput> reader, Type type, uint placeholderReferenceId)
+        public override object ReadValue<TInput>(ref Reader<TInput> reader, Type type)
         {
             var info = new SerializationInfo(Type, _formatterConverter);
             T result = default;
@@ -88,7 +100,18 @@ namespace Hagar.ISerializable
                 if (fieldId == 1)
                 {
                     var entry = _entrySerializer.ReadValue(ref reader, header);
-                    info.AddValue(entry.Name, entry.Value);
+                    if (entry.ObjectType is { } entryType)
+                    {
+                        info.AddValue(entry.Name, entry.Value, entryType);
+                    }
+                    else
+                    {
+                        info.AddValue(entry.Name, entry.Value);
+                    }
+                }
+                else
+                {
+                    reader.ConsumeUnknownField(header);
                 }
             }
 

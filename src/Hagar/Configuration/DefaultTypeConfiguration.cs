@@ -1,3 +1,4 @@
+using Hagar.ISerializableSupport;
 using System;
 
 namespace Hagar.Configuration
@@ -27,6 +28,10 @@ namespace Hagar.Configuration
             wellKnownTypes[17] = typeof(TimeSpan);
             wellKnownTypes[18] = typeof(DateTimeOffset);
             wellKnownTypes[19] = typeof(object);
+            wellKnownTypes[20] = typeof(DotNetSerializableCodec);
+
+            var allowedTypes = options.AllowedTypes;
+            allowedTypes.Add("System.Globalization.CompareOptions");
         }
     }
 }

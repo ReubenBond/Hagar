@@ -40,7 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Hagar.ISerializable\Hagar.ISerializable.csproj" />
     <ProjectReference Include="..\..\src\Hagar.TestKit\Hagar.TestKit.csproj" />
     <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
     <ProjectReference Include="$(SourceRoot)src/Hagar.Analyzers/Hagar.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />

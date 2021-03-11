@@ -2,7 +2,6 @@ using Hagar.Buffers;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -64,8 +63,7 @@ namespace Hagar.TypeSystem
                     break;
                 }
 
-                var existingSpan = new ReadOnlySpan<byte>(existingKey.TypeName);
-                if (existingSpan.SequenceEqual(typeName))
+                if (existingKey.TypeName.AsSpan().SequenceEqual(typeName))
                 {
                     type = entry.Type;
                     return true;
@@ -150,7 +148,7 @@ namespace Hagar.TypeSystem
         /// <summary>
         /// Represents a named type for the purposes of serialization.
         /// </summary>
-        internal struct TypeKey
+        internal readonly struct TypeKey
         {
             public readonly int HashCode;
 
@@ -168,7 +166,7 @@ namespace Hagar.TypeSystem
                 TypeName = key;
             }
 
-            public bool Equals(TypeKey other)
+            public bool Equals(in TypeKey other)
             {
                 if (HashCode != other.HashCode)
                 {
@@ -177,12 +175,7 @@ namespace Hagar.TypeSystem
 
                 var a = TypeName;
                 var b = other.TypeName;
-                return ReferenceEquals(a, b) || ByteArrayCompare(a, b);
-
-                static bool ByteArrayCompare(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2)
-                {
-                    return a1.SequenceEqual(a2);
-                }
+                return ReferenceEquals(a, b) || a.AsSpan().SequenceEqual(b);
             }
 
             public override bool Equals(object obj) => obj is TypeKey key && Equals(key);

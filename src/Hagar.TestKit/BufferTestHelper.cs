@@ -4,6 +4,7 @@ using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Hagar.TestKit
@@ -11,12 +12,17 @@ namespace Hagar.TestKit
     [ExcludeFromCodeCoverage]
     public static class BufferTestHelper<TValue>
     {
-        public static IBufferTestSerializer[] GetTestSerializers(IServiceProvider serviceProvider) => new IBufferTestSerializer[]
+        public static IBufferTestSerializer[] GetTestSerializers(IServiceProvider serviceProvider, int[] maxSizes)
+        {
+            var result = new List<IBufferTestSerializer>();
+            foreach (var size in maxSizes)
             {
-                ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = 17 }),
-                ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = 128 }),
-                ActivatorUtilities.CreateInstance<StructBufferWriterTester>(serviceProvider),
-            };
+                result.Add(ActivatorUtilities.CreateInstance<MultiSegmentBufferWriterTester>(serviceProvider, new MultiSegmentBufferWriterTester.Options { MaxAllocationSize = size }));
+            }
+
+            result.Add(ActivatorUtilities.CreateInstance<StructBufferWriterTester>(serviceProvider));
+            return result.ToArray();
+        }
 
         public interface IBufferTestSerializer
         {
