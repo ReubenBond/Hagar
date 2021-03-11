@@ -73,6 +73,11 @@ namespace Hagar.Codecs
                 {
                     case 0:
                         length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
+                        {
+                            ThrowInvalidSizeException(length);
+                        }
+
                         result = new T[length];
                         ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
@@ -106,6 +111,10 @@ namespace Hagar.Codecs
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T[])} with declared length {length}.");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(T[])}, {length}, is greater than total length of input.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
@@ -204,6 +213,11 @@ namespace Hagar.Codecs
                 {
                     case 0:
                         length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
+                        {
+                            ThrowInvalidSizeException(length);
+                        }
+
                         result = new T[length];
                         ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
@@ -240,6 +254,10 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(ReadOnlyMemory<T>)}, {length}, is greater than total length of input.");
     }
 
     [RegisterCopier]
@@ -337,6 +355,11 @@ namespace Hagar.Codecs
                 {
                     case 0:
                         length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
+                        {
+                            ThrowInvalidSizeException(length);
+                        }
+
                         result = new T[length];
                         ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
                         break;
@@ -373,6 +396,10 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(ReadOnlyMemory<T>)}, {length}, is greater than total length of input.");
     }
 
     [RegisterCopier]

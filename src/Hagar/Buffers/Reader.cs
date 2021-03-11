@@ -17,6 +17,7 @@ namespace Hagar.Buffers
     public abstract class ReaderInput
     {
         public abstract long Position { get; }
+        public abstract long Length { get; }
         public abstract void Skip(long count);
         public abstract void Seek(long position);
         public abstract byte ReadByte();
@@ -36,6 +37,7 @@ namespace Hagar.Buffers
         private readonly ArrayPool<byte> _memoryPool;
 
         public override long Position => _stream.Position;
+        public override long Length => _stream.Length;
 
         public StreamReaderInput(Stream stream, ArrayPool<byte> memoryPool)
         {
@@ -251,6 +253,29 @@ namespace Hagar.Buffers
                 else if (_input is ReaderInput readerInput)
                 {
                     return readerInput.Position;
+                }
+                else
+                {
+                    return ThrowNotSupportedInput<long>();
+                }
+            }
+        }
+
+        public long Length
+        {
+            get
+            {
+                if (IsReadOnlySequenceInput)
+                {
+                    return Unsafe.As<TInput, ReadOnlySequence<byte>>(ref _input).Length;
+                }
+                else if (IsSpanInput)
+                {
+                    return _currentSpan.Length;
+                }
+                else if (_input is ReaderInput readerInput)
+                {
+                    return readerInput.Length;
                 }
                 else
                 {
@@ -531,6 +556,11 @@ namespace Hagar.Buffers
                 return Array.Empty<byte>();
             }
 
+            if (count > 10240 && count > Length)
+            {
+                ThrowInvalidSizeException(count);
+            }
+
             var bytes = new byte[count];
             if (IsReadOnlySequenceInput || IsSpanInput)
             {
@@ -780,6 +810,10 @@ namespace Hagar.Buffers
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowNotSupportedInput() => throw new NotSupportedException($"Type {typeof(TInput)} is not supported");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(uint length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(byte[])}, {length}, is greater than total length of input.");
     }
 
 }
