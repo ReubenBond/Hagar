@@ -128,7 +128,7 @@ namespace Hagar.CodeGenerator
                 .AddBodyStatements(body.ToArray());
 
             var interfaceType = libraryTypes.ConfigurationProvider.Construct(configType);
-            return ClassDeclaration(CodeGenerator.CodeGeneratorName + "_Metadata_" + compilation.AssemblyName.Replace('.', '_'))
+            return ClassDeclaration("Metadata_" + compilation.AssemblyName.Replace('.', '_'))
                 .AddBaseListTypes(SimpleBaseType(interfaceType.ToTypeSyntax()))
                 .AddModifiers(Token(SyntaxKind.InternalKeyword), Token(SyntaxKind.SealedKeyword))
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
@@ -144,7 +144,7 @@ namespace Hagar.CodeGenerator
                 name += $"<{new string(',', genericArity - 1)}>";
             }
 
-            return ParseTypeName(name);
+            return ParseTypeName(type.GeneratedNamespace + "." + name);
         }
 
         public static TypeSyntax GetCopierTypeName(this ISerializableTypeDescription type)
@@ -156,7 +156,7 @@ namespace Hagar.CodeGenerator
                 name += $"<{new string(',', genericArity - 1)}>";
             }
 
-            return ParseTypeName(name);
+            return ParseTypeName(type.GeneratedNamespace + "." + name);
         }
 
 
@@ -170,7 +170,7 @@ namespace Hagar.CodeGenerator
                 name += $"<{new string(',', genericArity - 1)}>";
             }
 
-            return ParseTypeName(name);
+            return ParseTypeName(proxy.InterfaceDescription.GeneratedNamespace + "." + name);
         }
 
         public static TypeSyntax GetActivatorTypeName(this ISerializableTypeDescription type)
@@ -182,7 +182,7 @@ namespace Hagar.CodeGenerator
                 name += $"<{new string(',', genericArity - 1)}>";
             }
 
-            return ParseTypeName(name);
+            return ParseTypeName(type.GeneratedNamespace + "." + name);
         }
     }
 }

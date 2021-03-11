@@ -5,6 +5,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageDescription>Fast, flexible, and version-tolerant serializer for .NET</PackageDescription>
     <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
+	<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>

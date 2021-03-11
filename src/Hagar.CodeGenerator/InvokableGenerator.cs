@@ -109,7 +109,6 @@ namespace Hagar.CodeGenerator
                     interfaceDescription,
                     methodDescription,
                     accessibility,
-                    codeGenerator.GeneratedNamespaceName,
                     generatedClassName,
                     fieldDescriptions.OfType<IMemberDescription>().ToList()));
         }
@@ -434,13 +433,11 @@ namespace Hagar.CodeGenerator
                 IInvokableInterfaceDescription interfaceDescription,
                 MethodDescription methodDescription,
                 Accessibility accessibility,
-                string generatedNamespaceName,
                 string generatedClassName,
                 List<IMemberDescription> members)
             {
                 InterfaceDescription = interfaceDescription;
                 _methodDescription = methodDescription;
-                Namespace = generatedNamespaceName;
                 Name = generatedClassName;
                 Members = members;
 
@@ -457,24 +454,27 @@ namespace Hagar.CodeGenerator
             {
                 get
                 {
-                    var name = GetSimpleClassName(InterfaceDescription, _methodDescription);
-
+                    var simpleName = GetSimpleClassName(InterfaceDescription, _methodDescription);
                     if (TypeParameters.Length > 0)
                     {
-                        return GenericName(
-                            Identifier(name),
-                            TypeArgumentList(
-                                SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name)))));
+                        return QualifiedName(
+                            ParseName(Namespace),
+                            GenericName(
+                                Identifier(simpleName),
+                                TypeArgumentList(
+                                    SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name))))));
                     }
 
-                    return IdentifierName(name);
+                    var name = QualifiedName(ParseName(Namespace), IdentifierName(simpleName));
+                    return name;
                 }
             }
 
             public TypeSyntax UnboundTypeSyntax => GetUnboundClassName(InterfaceDescription, _methodDescription);
             public bool HasComplexBaseType => false;
             public INamedTypeSymbol BaseType => throw new NotImplementedException();
-            public string Namespace { get; }
+            public string Namespace => GeneratedNamespace;
+            public string GeneratedNamespace => InterfaceDescription.GeneratedNamespace;
             public string Name { get; }
             public bool IsValueType => false;
             public bool IsSealedType => true;
@@ -500,11 +500,9 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription, MethodDescription method)
         {
-            
             var genericArity = method.Method.TypeParameters.Length + interfaceDescription.InterfaceType.TypeParameters.Length;
             var typeArgs = genericArity > 0 ? "_" + genericArity : string.Empty;
-            return
-                $"{CodeGenerator.CodeGeneratorName}_Invokable_{interfaceDescription.Name}_{method.Name}{typeArgs}";
+            return $"Invokable_{interfaceDescription.Name}_{method.Name}{typeArgs}";
         }
 
         public static TypeSyntax GetUnboundClassName(IInvokableInterfaceDescription interfaceDescription, MethodDescription method)

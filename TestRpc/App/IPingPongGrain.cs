@@ -3,6 +3,14 @@ using System;
 using System.Threading.Tasks;
 using TestRpc.Runtime;
 
+namespace TestRpc.App.Two
+{
+    public interface IPingGrain : IGrain
+    {
+        ValueTask Ping();
+    }
+}
+
 namespace TestRpc.App
 {
     public interface IPingGrain : IGrain
@@ -22,7 +30,6 @@ namespace TestRpc.App
             Task<string> Hello();
             Task<string[]> ConcreteGenArgTypeNames();
         }
-
 
         public interface IGrainWithTwoGenArgs<T1, T2> : IBasicGrain
         {

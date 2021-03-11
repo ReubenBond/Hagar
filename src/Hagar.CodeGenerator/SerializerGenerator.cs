@@ -21,7 +21,7 @@ namespace Hagar.CodeGenerator
         private const string ReadValueMethodName = "ReadValue";
         private const string CodecFieldTypeFieldName = "_codecFieldType";
 
-        public static ClassDeclarationSyntax GenerateSerializer(LibraryTypes libraryTypes, ISerializableTypeDescription type, Dictionary<string, List<MemberDeclarationSyntax>> partialTypeSerializers)
+        public static ClassDeclarationSyntax GenerateSerializer(LibraryTypes libraryTypes, ISerializableTypeDescription type)
         {
             var simpleClassName = GetSimpleClassName(type);
 
@@ -80,9 +80,11 @@ namespace Hagar.CodeGenerator
             return classDeclaration;
         }
 
-        public static string GetSimpleClassName(ISerializableTypeDescription serializableType) => GetSimpleClassName(serializableType.Namespace, serializableType.Name);
+        public static string GetSimpleClassName(ISerializableTypeDescription serializableType) => GetSimpleClassName(serializableType.Name);
 
-        public static string GetSimpleClassName(string namespaceName, string name) => $"{CodeGenerator.CodeGeneratorName}_{namespaceName.Replace('.', '_')}_Codec_{name}";
+        public static string GetSimpleClassName(string name) => $"Codec_{name}";
+
+        public static string GetGeneratedNamespaceName(ITypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}.{type.GetNamespaceAndNesting()}";
 
         private static ClassDeclarationSyntax AddGenericTypeParameters(ClassDeclarationSyntax classDeclaration, ISerializableTypeDescription serializableType)
         {
@@ -326,13 +328,13 @@ namespace Hagar.CodeGenerator
                     if (t is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
                     {
                         // Construct the full generic type name
-                        var ns = QualifiedName(IdentifierName("HagarGeneratedCode"), IdentifierName(t.ContainingAssembly.Name));
-                        var name = GenericName(Identifier(GetSimpleClassName(t.ContainingNamespace.Name, t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => arg.ToTypeSyntax()))));
+                        var ns = ParseName(GetGeneratedNamespaceName(t));
+                        var name = GenericName(Identifier(GetSimpleClassName(t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => arg.ToTypeSyntax()))));
                         codecType = QualifiedName(ns, name);
                     }
                     else
                     {
-                        var simpleName = $"HagarGeneratedCode.{t.ContainingAssembly.Name}.{GetSimpleClassName(t.ContainingNamespace.Name, t.Name)}";
+                        var simpleName = $"{GetGeneratedNamespaceName(t)}.{GetSimpleClassName(t.Name)}";
                         codecType = ParseTypeName(simpleName);
                     }
                 }
@@ -575,7 +577,7 @@ namespace Hagar.CodeGenerator
 
             body.Add(WhileStatement(LiteralExpression(SyntaxKind.TrueLiteralExpression), Block(GetDeserializerLoopBody())));
 
-            var genericParam = ParseTypeName("TInput");
+            var genericParam = ParseTypeName("TReaderInput");
             var parameters = new[]
             {
                 Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax(genericParam)).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
@@ -588,7 +590,7 @@ namespace Hagar.CodeGenerator
             }
 
             return MethodDeclaration(returnType, DeserializeMethodName)
-                .AddTypeParameterListParameters(TypeParameter("TInput"))
+                .AddTypeParameterListParameters(TypeParameter("TReaderInput"))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters)
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))
@@ -863,14 +865,14 @@ namespace Hagar.CodeGenerator
             var readerParam = "reader".ToIdentifierName();
             var fieldParam = "field".ToIdentifierName();
             var resultVar = "result".ToIdentifierName();
-            var readerInputTypeParam = ParseTypeName("TInput");
+            var readerInputTypeParam = ParseTypeName("TReaderInput");
 
             var body = new List<StatementSyntax>();
             var innerBody = new List<StatementSyntax>();
 
             if (!type.IsValueType)
             {
-                // C#: if (field.WireType == WireType.Reference) { return ReferenceCodec.ReadReference<TField, TInput>(ref reader, field); }
+                // C#: if (field.WireType == WireType.Reference) { return ReferenceCodec.ReadReference<TField, TReaderInput>(ref reader, field); }
                 body.Add(
                     IfStatement(
                         BinaryExpression(SyntaxKind.EqualsExpression, fieldParam.Member("WireType"), libraryTypes.WireType.ToTypeSyntax().Member("Reference")),
@@ -967,7 +969,7 @@ namespace Hagar.CodeGenerator
             };
 
             return MethodDeclaration(type.TypeSyntax, ReadValueMethodName)
-                .AddTypeParameterListParameters(TypeParameter("TInput"))
+                .AddTypeParameterListParameters(TypeParameter("TReaderInput"))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters)
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))
@@ -1043,7 +1045,7 @@ namespace Hagar.CodeGenerator
                 ReturnStatement(readValueExpression)
             };
 
-            var genericParam = ParseTypeName("TInput");
+            var genericParam = ParseTypeName("TReaderInput");
             var parameters = new[]
             {
                 Parameter(readerParam.Identifier).WithType(libraryTypes.Reader.ToTypeSyntax(genericParam)).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
@@ -1051,7 +1053,7 @@ namespace Hagar.CodeGenerator
             };
 
             return MethodDeclaration(type.TypeSyntax, ReadValueMethodName)
-                .AddTypeParameterListParameters(TypeParameter("TInput"))
+                .AddTypeParameterListParameters(TypeParameter("TReaderInput"))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters)
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))

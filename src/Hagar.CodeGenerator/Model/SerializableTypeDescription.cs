@@ -47,7 +47,9 @@ namespace Hagar.CodeGenerator
 
         public INamedTypeSymbol BaseType => Type.EnumUnderlyingType ?? Type.BaseType;
 
-        public string Namespace => Type.ContainingNamespace.Name;
+        public string Namespace => Type.GetNamespaceAndNesting();
+
+        public string GeneratedNamespace => CodeGenerator.CodeGeneratorName + "." + Namespace;
 
         public string Name => Type.Name;
 

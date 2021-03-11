@@ -32,7 +32,7 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(ISerializableTypeDescription serializableType)
         {
-            return $"{CodeGenerator.CodeGeneratorName}_Activator_{serializableType.Name}";
+            return $"Activator_{serializableType.Name}";
         }
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(ClassDeclarationSyntax classDeclaration, ISerializableTypeDescription type)
