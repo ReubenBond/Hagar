@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Buffers;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace Hagar.Buffers.Adaptors
 {
@@ -9,72 +9,96 @@ namespace Hagar.Buffers.Adaptors
     /// </summary>
     public struct PooledArrayBufferWriter : IBufferWriter<byte>, IDisposable
     {
-        private byte[] _buffer;
-        private int _bytesWritten;
-        private const int MinRequestSize = 256;
+        private static readonly ArrayPool<byte> Pool = ArrayPool<byte>.Shared;
+        private readonly List<(byte[], int)> _committed;
+        private readonly int _minAllocationSize;
+        private byte[] _current;
+        private long _totalLength;
 
-        internal PooledArrayBufferWriter(int sizeHint)
+        public PooledArrayBufferWriter(int minAllocationSize)
         {
-            _buffer = ArrayPool<byte>.Shared.Rent(Math.Max(sizeHint, MinRequestSize));
-            _bytesWritten = 0;
+            _committed = new();
+            _current = Array.Empty<byte>();
+            _totalLength = 0;
+            _minAllocationSize = minAllocationSize > 0 ? minAllocationSize : 4096;
         }
 
-        public ReadOnlySpan<byte> WrittenSpan => _buffer.AsSpan(0, _bytesWritten);
-
-        /// <inheritdoc />
-        public void Advance(int count)
+        public byte[] ToArray()
         {
-            _bytesWritten += count;
-            if (_bytesWritten > _buffer.Length)
+            var result = new byte[_totalLength];
+            var resultSpan = result.AsSpan();
+            foreach (var (buffer, length) in _committed)
             {
-                ThrowInvalidCount();
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                static void ThrowInvalidCount() => throw new InvalidOperationException("Cannot advance past the end of the buffer");
-            }
-        }
-
-        /// <inheritdoc />
-        public Memory<byte> GetMemory(int sizeHint = 0)
-        {
-            if (_bytesWritten + sizeHint > _buffer.Length)
-            {
-                Resize(sizeHint);
+                buffer.AsSpan(0, length).CopyTo(resultSpan);
+                resultSpan = resultSpan.Slice(length);
             }
 
-            return _buffer.AsMemory(_bytesWritten);
+            return result;
         }
 
-        /// <inheritdoc />
-        public Span<byte> GetSpan(int sizeHint = 0)
+        public void Advance(int bytes)
         {
-            if (_bytesWritten + sizeHint > _buffer.Length)
+            if (bytes == 0)
             {
-                Resize(sizeHint);
+                return;
             }
 
-            return _buffer.AsSpan(_bytesWritten);
+            _committed.Add((_current, bytes));
+            _totalLength += bytes;
+            _current = Array.Empty<byte>();
         }
 
-        /// <inheritdoc />
         public void Dispose()
         {
-            if (_buffer is object)
+            foreach (var (array, _) in _committed)
             {
-                ArrayPool<byte>.Shared.Return(_buffer);
+                if (array.Length == 0)
+                {
+                    continue;
+                }
+
+                Pool.Return(array);
             }
+
+            _committed.Clear();
         }
 
-        private void Resize(int sizeHint)
+        public Memory<byte> GetMemory(int sizeHint = 0)
         {
-            if (sizeHint < MinRequestSize)
+            if (sizeHint == 0)
             {
-                sizeHint = MinRequestSize;
+                sizeHint = _current.Length + _minAllocationSize;
             }
 
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_bytesWritten + sizeHint);
-            _buffer.CopyTo(newBuffer, 0);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
+            if (sizeHint < _current.Length)
+            {
+                throw new InvalidOperationException("Attempted to allocate a new buffer when the existing buffer has sufficient free space.");
+            }
+
+            var newBuffer = Pool.Rent(Math.Max(sizeHint, _minAllocationSize));
+            _current.CopyTo(newBuffer.AsSpan());
+            Pool.Return(_current);
+            _current = newBuffer;
+            return newBuffer;
+        }
+
+        public Span<byte> GetSpan(int sizeHint)
+        {
+            if (sizeHint == 0)
+            {
+                sizeHint = _current.Length + _minAllocationSize;
+            }
+
+            if (sizeHint < _current.Length)
+            {
+                throw new InvalidOperationException("Attempted to allocate a new buffer when the existing buffer has sufficient free space.");
+            }
+
+            var newBuffer = Pool.Rent(Math.Max(sizeHint, _minAllocationSize));
+            _current.CopyTo(newBuffer.AsSpan());
+            Pool.Return(_current);
+            _current = newBuffer;
+            return newBuffer;
         }
     }
 }

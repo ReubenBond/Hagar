@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using Benchmarks.Utilities;
 using Hagar;
 using Hagar.Buffers;
+using Hagar.Buffers.Adaptors;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -28,10 +29,9 @@ namespace Benchmarks
         {
             const int Size = 250_000;
             Value = new Dictionary<string, int>(Size);
-            var bumper = new string('x', 3000);
             for (var i = 0; i < Size; i++)
             {
-                Value[i.ToString(CultureInfo.InvariantCulture) + bumper] = i;
+                Value[i.ToString(CultureInfo.InvariantCulture)] = i;
             }
             
             var services = new ServiceCollection()
@@ -61,86 +61,10 @@ namespace Benchmarks
         public int Serialize()
         {
             Session.FullReset();
-            using (var buffer = new FakePooledBufferWriter(4096))
-            {
-                var writer = buffer.CreateWriter(Session);
-                HagarSerializer.Serialize(Value, ref writer);
-                return writer.Position;
-            }
-        }
-
-        public class FakePooledBufferWriter : IBufferWriter<byte>, IDisposable
-        {
-            private readonly List<(byte[], int)> _committed = new();
-            private readonly int _maxAllocationSize;
-            private byte[] _current = Array.Empty<byte>();
-
-            public FakePooledBufferWriter(int maxAllocationSize)
-            {
-                _maxAllocationSize = maxAllocationSize;
-            }
-
-            public void Advance(int bytes)
-            {
-                if (bytes == 0)
-                {
-                    return;
-                }
-
-                _committed.Add((_current, bytes));
-                _current = Array.Empty<byte>();
-            }
-
-            public void Dispose()
-            {
-                foreach (var (array, _) in _committed)
-                {
-                    if (array.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    ArrayPool<byte>.Shared.Return(array);
-                }
-
-                _committed.Clear();
-            }
-
-            public Memory<byte> GetMemory(int sizeHint = 0)
-            {
-                if (sizeHint == 0)
-                {
-                    sizeHint = _current.Length + 1;
-                }
-
-                if (sizeHint < _current.Length)
-                {
-                    throw new InvalidOperationException("Attempted to allocate a new buffer when the existing buffer has sufficient free space.");
-                }
-
-                var newBuffer = ArrayPool<byte>.Shared.Rent(Math.Min(sizeHint, _maxAllocationSize));
-                _current.CopyTo(newBuffer.AsSpan());
-                _current = newBuffer;
-                return _current;
-            }
-
-            public Span<byte> GetSpan(int sizeHint)
-            {
-                if (sizeHint == 0)
-                {
-                    sizeHint = _current.Length + 1;
-                }
-
-                if (sizeHint < _current.Length)
-                {
-                    throw new InvalidOperationException("Attempted to allocate a new buffer when the existing buffer has sufficient free space.");
-                }
-
-                var newBuffer = ArrayPool<byte>.Shared.Rent(Math.Min(sizeHint, _maxAllocationSize));
-                _current.CopyTo(newBuffer.AsSpan());
-                _current = newBuffer;
-                return _current;
-            }
+            var writer = new PooledArrayBufferWriter(4096).CreateWriter(Session);
+            HagarSerializer.Serialize(Value, ref writer);
+            writer.Output.Dispose();
+            return writer.Position;
         }
     }
 }
