@@ -35,74 +35,91 @@ namespace Hagar.CodeGenerator
             _compilation = compilation;
             _options = options;
             _libraryTypes = LibraryTypes.FromCompilation(compilation, options);
-            GeneratedNamespaceName = "HagarGeneratedCode." + compilation.AssemblyName;
             if (options.GenerateSerializerAttributes != null)
             {
                 _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
             }
         }
 
-        public string GeneratedNamespaceName { get; }
-
         public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
         {
-            var partialTypeSerializers = new Dictionary<string, List<MemberDeclarationSyntax>>();
-
             // Collect metadata from the compilation.
             var metadataModel = GenerateMetadataModel(cancellationToken);
-            var members = new List<MemberDeclarationSyntax>();
+            var nsMembers = new Dictionary<string, List<MemberDeclarationSyntax>>();
 
             foreach (var type in metadataModel.InvokableInterfaces)
             {
+                string ns = type.GeneratedNamespace;
                 foreach (var method in type.Methods)
                 {
                     var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(this, _libraryTypes, type, method);
                     metadataModel.SerializableTypes.Add(generatedInvokerDescription);
                     metadataModel.GeneratedInvokables[method] = generatedInvokerDescription;
-                    members.Add(invokable);
+                    AddMember(ns, invokable);
                 }
 
                 var (proxy, generatedProxyDescription) = ProxyGenerator.Generate(_libraryTypes, type, metadataModel);
                 metadataModel.GeneratedProxies.Add(generatedProxyDescription);
-                members.Add(proxy);
+                AddMember(ns, proxy);
             }
 
             // Generate code.
             foreach (var type in metadataModel.SerializableTypes)
             {
+                string ns = type.GeneratedNamespace;
+
                 // Generate a partial serializer class for each serializable type.
-                members.Add(SerializerGenerator.GenerateSerializer(_libraryTypes, type, partialTypeSerializers));
+                var serializer = SerializerGenerator.GenerateSerializer(_libraryTypes, type);
+                AddMember(ns, serializer);
 
                 // Generate a copier for each serializable type.
-                members.Add(DeepCopierGenerator.GenerateCopier(_libraryTypes, type));
+                var copier = DeepCopierGenerator.GenerateCopier(_libraryTypes, type); 
+                AddMember(ns, copier);
 
                 if (type.IsEmptyConstructable)
                 {
                     metadataModel.ActivatableTypes.Add(type);
 
                     // Generate a partial serializer class for each serializable type.
-                    members.Add(ActivatorGenerator.GenerateActivator(_libraryTypes, type));
+                    var activator = ActivatorGenerator.GenerateActivator(_libraryTypes, type);
+                    AddMember(ns, activator);
                 }
             }
 
             // Generate metadata.
+            var metadataClassNamespace = CodeGeneratorName + "." + _compilation.AssemblyName;
             var metadataClass = MetadataGenerator.GenerateMetadata(_compilation, metadataModel, _libraryTypes);
-            members.Add(metadataClass);
-
+            AddMember(ns: metadataClassNamespace, member: metadataClass);
             var metadataAttribute = AttributeList()
                 .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)))
                 .WithAttributes(
                     SingletonSeparatedList(
                         Attribute(_libraryTypes.MetadataProviderAttribute.ToNameSyntax())
-                            .AddArgumentListArguments(AttributeArgument(TypeOfExpression(ParseTypeName($"{GeneratedNamespaceName}.{metadataClass.Identifier.Text}"))))));
+                            .AddArgumentListArguments(AttributeArgument(TypeOfExpression(QualifiedName(IdentifierName(metadataClassNamespace), IdentifierName(metadataClass.Identifier.Text)))))));
+
+            var usings = List(new[] { UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) });
+            var namespaces = new List<MemberDeclarationSyntax>(nsMembers.Count);
+            foreach (var pair in nsMembers)
+            {
+                var ns = pair.Key;
+                var member = pair.Value;
+
+                namespaces.Add(NamespaceDeclaration(ParseName(ns)).WithMembers(List(member)).WithUsings(usings));
+            }
 
             return CompilationUnit()
                 .WithAttributeLists(List(new[] { metadataAttribute }))
-                .WithMembers(
-                    SingletonList<MemberDeclarationSyntax>(
-                        NamespaceDeclaration(ParseName(GeneratedNamespaceName))
-                        .WithMembers(List(members))
-                        .WithUsings(List(new[] { UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) }))));
+                .WithMembers(List(namespaces));
+
+           void AddMember(string ns, MemberDeclarationSyntax member)
+           {
+                if (!nsMembers.TryGetValue(ns, out var existing))
+                {
+                    existing = nsMembers[ns] = new List<MemberDeclarationSyntax>();
+                }
+
+                existing.Add(member);
+           }
         }
 
         private MetadataModel GenerateMetadataModel(CancellationToken cancellationToken)

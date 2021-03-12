@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator.SyntaxGeneration
@@ -125,6 +126,30 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                 if (candidate is TSymbol symbol)
                 {
                     yield return symbol;
+                }
+            }
+        }
+
+        public static string GetNamespaceAndNesting(this ISymbol symbol)
+        {
+            var result = new StringBuilder();
+            Visit(symbol, result);
+            return result.ToString();
+
+            static void Visit(ISymbol symbol, StringBuilder res)
+            {
+                switch (symbol.ContainingSymbol)
+                {
+                    case INamespaceOrTypeSymbol parent:
+                        Visit(parent, res);
+
+                        if (res is { Length: > 0 })
+                        {
+                            res.Append('.');
+                        }
+
+                        res.Append(parent.Name);
+                        break;
                 }
             }
         }

@@ -1,7 +1,7 @@
+using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Hagar.CodeGenerator
@@ -24,6 +24,7 @@ namespace Hagar.CodeGenerator
             IsExtension = isExtension;
             Methods = methods;
             Name = name;
+            GeneratedNamespace = CodeGenerator.CodeGeneratorName + "." + InterfaceType.GetNamespaceAndNesting();
         }
 
         private static void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
@@ -80,5 +81,6 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol ProxyBaseType { get; }
         public bool IsExtension { get; }
         public SemanticModel SemanticModel { get; }
+        public string GeneratedNamespace { get; }
     }
 }

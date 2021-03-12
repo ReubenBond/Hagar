@@ -71,9 +71,11 @@ namespace Hagar.CodeGenerator
             return classDeclaration;
         }
 
-        public static string GetSimpleClassName(ISerializableTypeDescription serializableType) => GetSimpleClassName(serializableType.Namespace, serializableType.Name);
+        public static string GetSimpleClassName(ISerializableTypeDescription serializableType) => GetSimpleClassName(serializableType.Name);
 
-        public static string GetSimpleClassName(string namespaceName, string name) => $"{CodeGenerator.CodeGeneratorName}_{namespaceName.Replace('.', '_')}_Copier_{name}";
+        public static string GetSimpleClassName(string name) => $"Copier_{name}";
+
+        public static string GetGeneratedNamespaceName(ITypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}.{type.GetNamespaceAndNesting()}";
 
         private static ClassDeclarationSyntax AddGenericTypeParameters(ClassDeclarationSyntax classDeclaration, ISerializableTypeDescription serializableType)
         {
@@ -308,13 +310,13 @@ namespace Hagar.CodeGenerator
                     if (t is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
                     {
                         // Construct the full generic type name
-                        var ns = QualifiedName(IdentifierName("HagarGeneratedCode"), IdentifierName(t.ContainingAssembly.Name));
-                        var name = GenericName(Identifier(GetSimpleClassName(t.ContainingNamespace.Name, t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => arg.ToTypeSyntax()))));
-                        copierType = QualifiedName(ns, name);
+                        var ns = GetGeneratedNamespaceName(t);
+                        var name = GenericName(Identifier(GetSimpleClassName(t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => arg.ToTypeSyntax()))));
+                        copierType = QualifiedName(ParseName(ns), name);
                     }
                     else
                     {
-                        var simpleName = $"HagarGeneratedCode.{t.ContainingAssembly.Name}.{GetSimpleClassName(t.ContainingNamespace.Name, t.Name)}";
+                        var simpleName = $"{GetGeneratedNamespaceName(t)}.{GetSimpleClassName(t.Name)}";
                         copierType = ParseTypeName(simpleName);
                     }
                 }

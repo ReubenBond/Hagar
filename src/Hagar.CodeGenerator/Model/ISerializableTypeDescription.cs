@@ -13,6 +13,7 @@ namespace Hagar.CodeGenerator
         bool HasComplexBaseType { get; }
         INamedTypeSymbol BaseType { get; }
         string Namespace { get; }
+        string GeneratedNamespace { get; }
         string Name { get; }
         bool IsValueType { get; }
         bool IsSealedType { get; }

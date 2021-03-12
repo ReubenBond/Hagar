@@ -53,7 +53,7 @@ namespace Hagar.CodeGenerator
             public IInvokableInterfaceDescription InterfaceDescription { get; }
         }
 
-        public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription) => $"{CodeGenerator.CodeGeneratorName}_Proxy_{interfaceDescription.Name}";
+        public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription) => $"Proxy_{interfaceDescription.Name}";
 
         private static ClassDeclarationSyntax AddGenericTypeConstraints(
             ClassDeclarationSyntax classDeclaration,
