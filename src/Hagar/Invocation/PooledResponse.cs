@@ -2,10 +2,15 @@ using System;
 
 namespace Hagar.Invocation
 {
+    [GenerateSerializer]
+    [Immutable]
+    [SuppressReferenceTracking]
     public class PooledResponse<TResult> : Response<TResult>
     {
+        [Id(0)]
         public override TResult TypedResult { get; set; }
 
+        [Id(1)]
         public override Exception Exception { get; set; }
 
         public override object Result
