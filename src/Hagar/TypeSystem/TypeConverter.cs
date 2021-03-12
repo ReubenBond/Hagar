@@ -247,7 +247,7 @@ namespace Hagar.TypeSystem
             (_, "System.Decimal") => new QualifiedType(null, "decimal"),
             (_, "System.Guid") => new QualifiedType(null, "Guid"),
             (_, "System.TimeSpan") => new QualifiedType(null, "TimeSpan"),
-            (_, "System.DateTime") => new QualifiedType(null, "Datetime"),
+            (_, "System.DateTime") => new QualifiedType(null, "DateTime"),
             (_, "System.DateTimeOffset") => new QualifiedType(null, "DateTimeOffset"),
             (_, "System.Type") => new QualifiedType(null, "Type"),
             (_, "System.RuntimeType") => new QualifiedType(null, "Type"),
