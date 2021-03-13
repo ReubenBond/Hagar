@@ -13,9 +13,9 @@ namespace Hagar.UnitTests
         public PolymorphismTests()
         {
             _serviceProvider = new ServiceCollection().AddHagar(hagar =>
-                {
-                    hagar.AddAssembly(typeof(PolymorphismTests).Assembly);
-                })
+            {
+                hagar.AddAssembly(typeof(PolymorphismTests).Assembly);
+            })
                 .AddSingleton<IConfigurationProvider<SerializerConfiguration>, TypeConfigurationProvider>()
                 .BuildServiceProvider();
         }
@@ -79,6 +79,50 @@ namespace Hagar.UnitTests
             Assert.Equal(someSubClassChild.SbcInteger, someSubClassChildResult.SbcInteger);
         }
 
+        [Fact]
+        public void DeepCopyPolymorphicTypes()
+        {
+            var someBaseClass = new SomeBaseClass
+            { SbcString = "Shaggy", SbcInteger = 13 };
+
+            var someSubClass = new SomeSubClass
+            { SbcString = "Shaggy", SbcInteger = 13, SscString = "Zoinks!", SscInteger = -1 };
+
+            var otherSubClass = new OtherSubClass
+            { SbcString = "sbcs", SbcInteger = 2000, OtherSubClassString = "oscs", OtherSubClassInt = 1000 };
+
+            var someSubClassChild = new SomeSubClassChild
+            { SbcString = "a", SbcInteger = 0, SscString = "Zoinks!", SscInteger = -1, SomeSubClassChildString = "string!", SomeSubClassChildInt = 5858 };
+
+            var someBaseClassResult = DeepCopy(someBaseClass);
+            Assert.Equal(someBaseClass.SbcString, someBaseClassResult.SbcString);
+            Assert.Equal(someBaseClass.SbcInteger, someBaseClassResult.SbcInteger);
+
+            // This doesn't work
+            // Currently throws:
+            //     System.Collections.Generic.KeyNotFoundException : Could not find a partial copier for type Hagar.UnitTests.PolymorphismTests+SomeBaseClass.
+            var someSubClassResult = DeepCopy(someSubClass);
+            Assert.Equal(someSubClass.SscString, someSubClassResult.SscString);
+            Assert.Equal(someSubClass.SscInteger, someSubClassResult.SscInteger);
+            Assert.Equal(someSubClass.SbcString, someSubClassResult.SbcString);
+            Assert.Equal(someSubClass.SbcInteger, someSubClassResult.SbcInteger);
+
+            var otherSubClassResult = DeepCopy(otherSubClass);
+            Assert.Equal(otherSubClass.OtherSubClassString, otherSubClassResult.OtherSubClassString);
+            Assert.Equal(otherSubClass.OtherSubClassInt, otherSubClassResult.OtherSubClassInt);
+            Assert.Equal(otherSubClass.SbcString, otherSubClassResult.SbcString);
+            Assert.Equal(otherSubClass.SbcInteger, otherSubClassResult.SbcInteger);
+
+            var someSubClassChildResult = DeepCopy(someSubClassChild);
+            Assert.Equal(someSubClassChild.SomeSubClassChildString, someSubClassChildResult.SomeSubClassChildString);
+            Assert.Equal(someSubClassChild.SomeSubClassChildInt, someSubClassChildResult.SomeSubClassChildInt);
+            Assert.Equal(someSubClassChild.SscString, someSubClassChildResult.SscString);
+            Assert.Equal(someSubClassChild.SscInteger, someSubClassChildResult.SscInteger);
+            Assert.Equal(someSubClassChild.SbcString, someSubClassChildResult.SbcString);
+            Assert.Equal(someSubClassChild.SbcInteger, someSubClassChildResult.SbcInteger);
+
+        }
+
         private TActual RoundTripToExpectedType<TBase, TActual>(TActual original)
             where TActual : TBase
         {
@@ -92,6 +136,12 @@ namespace Hagar.UnitTests
             }
 
             return (TActual)serializer.Deserialize(array);
+        }
+
+        private T DeepCopy<T>(T original)
+        {
+            var deepCopier = _serviceProvider.GetService<DeepCopier>();
+            return deepCopier.Copy(original);
         }
 
         [Id(1000)]
