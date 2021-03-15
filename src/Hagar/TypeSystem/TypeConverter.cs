@@ -71,6 +71,10 @@ namespace Hagar.TypeSystem
             AddFromMetadata(_allowedTypes, metadata.Activators, typeof(IActivator<>));
             AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IDeepCopier<>));
             AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IPartialCopier<>));
+            foreach (var type in metadata.InterfaceProxies)
+            {
+                AddAllowedType(_allowedTypes, type);
+            }
 
             void AddFromMetadata(HashSet<string> allowedTypes, IEnumerable<Type> metadataCollection, Type genericType)
             {
@@ -114,6 +118,21 @@ namespace Hagar.TypeSystem
 
             static void AddAllowedType(HashSet<string> allowedTypes, Type type)
             {
+                AddSingleAllowedType(allowedTypes, type);
+
+                if (type.DeclaringType is { } declaring)
+                {
+                    AddAllowedType(allowedTypes, declaring);
+                }
+
+                foreach (var @interface in type.GetInterfaces())
+                {
+                    AddSingleAllowedType(allowedTypes, @interface);
+                }
+            }
+
+            static void AddSingleAllowedType(HashSet<string> allowedTypes, Type type)
+            {
                 var formatted = RuntimeTypeNameFormatter.Format(type);
                 var parsed = RuntimeTypeNameParser.Parse(formatted);
                 if (parsed is AssemblyQualifiedTypeSpec qualified)
@@ -123,11 +142,6 @@ namespace Hagar.TypeSystem
                 else
                 {
                     allowedTypes.Add(parsed.Format());
-                }
-
-                if (type.DeclaringType is { } declaring)
-                {
-                    AddAllowedType(allowedTypes, declaring);
                 }
             }
         }

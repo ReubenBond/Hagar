@@ -182,7 +182,7 @@ namespace Hagar.Session
             void CreateReferenceToObjectOverflow()
             {
                 var result = new Dictionary<uint, object>();
-                for (var i = 0; i < ReferenceToObjectCount - 1; i++)
+                for (var i = 0; i < ReferenceToObjectCount; i++)
                 {
                     var record = _referenceToObject[i];
                     result[record.Id] = record.Object;
