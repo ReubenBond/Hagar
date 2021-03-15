@@ -8,7 +8,7 @@
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
     <Product>Hagar</Product>
-    <VersionPrefix>0.5.7</VersionPrefix>
+    <VersionPrefix>0.5.8</VersionPrefix>
     <Copyright>Copyright © Reuben Bond 2020</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
