@@ -24,6 +24,7 @@ namespace Hagar.Codecs
         public Field Field { get; }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(Position)}: {Position}, {nameof(Field)}: {Field}";
+        public override string ToString() => $"{nameof(Position)}: 0x{Position:X}, {nameof(Field)}: {Field}";
+
     }
 }
