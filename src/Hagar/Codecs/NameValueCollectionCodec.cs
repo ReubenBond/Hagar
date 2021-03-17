@@ -70,6 +70,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(NameValueCollection))
+            {
+                return context.Copy(input);
+            }
+
             result = new NameValueCollection(input.Count);
             context.RecordCopy(input, result);
             for (var i = 0; i < input.Count; i++)

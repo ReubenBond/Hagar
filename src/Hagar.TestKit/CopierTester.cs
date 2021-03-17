@@ -1,4 +1,5 @@
 ﻿using Hagar.Cloning;
+using Hagar.Serializers;
 using Hagar.Session;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -13,6 +14,7 @@ namespace Hagar.TestKit
     public abstract class CopierTester<TValue, TCopier> where TCopier : class, IDeepCopier<TValue>
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly CodecProvider _codecProvider;
 
         protected CopierTester()
         {
@@ -27,6 +29,7 @@ namespace Hagar.TestKit
             _ = services.AddHagar(Configure);
 
             _serviceProvider = services.BuildServiceProvider();
+            _codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
         }
 
         protected IServiceProvider ServiceProvider => _serviceProvider;
@@ -60,7 +63,7 @@ namespace Hagar.TestKit
 
             void Test(TValue original)
             {
-                var output = copier.DeepCopy(original, new CopyContext());
+                var output = copier.DeepCopy(original, new CopyContext(_codecProvider));
                 Assert.True(Equals(original, output), $"Copy value \"{output}\" must equal original value \"{original}\"");
             }
         }

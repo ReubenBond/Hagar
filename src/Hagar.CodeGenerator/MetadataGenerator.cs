@@ -150,7 +150,7 @@ namespace Hagar.CodeGenerator
         public static TypeSyntax GetCopierTypeName(this ISerializableTypeDescription type)
         {
             var genericArity = type.TypeParameters.Length;
-            var name = DeepCopierGenerator.GetSimpleClassName(type);
+            var name = CopierGenerator.GetSimpleClassName(type);
             if (genericArity > 0)
             {
                 name += $"<{new string(',', genericArity - 1)}>";

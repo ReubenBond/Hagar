@@ -94,6 +94,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(Tuple<T>))
+            {
+                return context.Copy(input);
+            }
+
             result = new Tuple<T>(_copier.DeepCopy(input.Item1, context));
             context.RecordCopy(input, result);
             return result;
@@ -196,6 +201,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2>))
+            {
+                return context.Copy(input);
             }
 
             result = Tuple.Create(
@@ -318,6 +328,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2, T3> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2, T3>))
+            {
+                return context.Copy(input);
             }
 
             result = Tuple.Create(
@@ -453,6 +468,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2, T3, T4>))
+            {
+                return context.Copy(input);
             }
 
             result = Tuple.Create(
@@ -604,6 +624,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2, T3, T4, T5>))
+            {
+                return context.Copy(input);
             }
 
             result = Tuple.Create(
@@ -768,6 +793,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5, T6> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2, T3, T4, T5, T6>))
+            {
+                return context.Copy(input);
             }
 
             result = Tuple.Create(
@@ -946,6 +976,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5, T6, T7> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2, T3, T4, T5, T6, T7>))
+            {
+                return context.Copy(input);
             }
 
             result = Tuple.Create(
@@ -1136,6 +1171,11 @@ namespace Hagar.Codecs
             if (context.TryGetCopy(input, out Tuple<T1, T2, T3, T4, T5, T6, T7, T8> result))
             {
                 return result;
+            }
+
+            if (input.GetType() != typeof(Tuple<T1, T2, T3, T4, T5, T6, T7, T8>))
+            {
+                return context.Copy(input);
             }
 
             result = new Tuple<T1, T2, T3, T4, T5, T6, T7, T8>(

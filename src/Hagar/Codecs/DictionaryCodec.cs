@@ -149,6 +149,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(Dictionary<TKey, TValue>))
+            {
+                return context.Copy(input);
+            }
+
             result = new Dictionary<TKey, TValue>(input.Count, input.Comparer);
             context.RecordCopy(input, result);
             foreach (var pair in input)

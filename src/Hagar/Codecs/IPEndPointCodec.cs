@@ -77,4 +77,10 @@ namespace Hagar.Codecs
     {
         public IPEndPoint DeepCopy(IPEndPoint input, CopyContext _) => input;
     }
+
+    [RegisterCopier]
+    public sealed class EndPointCopier : IDeepCopier<EndPoint>, IDerivedTypeCopier
+    {
+        public EndPoint DeepCopy(EndPoint input, CopyContext _) => input;
+    }
 }

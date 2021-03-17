@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
-    internal static class DeepCopierGenerator
+    internal static class CopierGenerator
     {
         private const string BaseTypeCopierFieldName = "_baseTypeCopier";
         private const string ActivatorFieldName = "_activator";
@@ -426,6 +426,19 @@ namespace Hagar.CodeGenerator
                                     .WithRefKindKeyword(Token(SyntaxKind.OutKeyword))
                     })));
                 body.Add(IfStatement(tryGetCopy, ReturnStatement(resultVar)));
+
+                if (!type.IsSealedType)
+                {
+                    // C#: if (original.GetType() != typeof(<codec>)) { return context.Copy(original); }
+                    var exactTypeMatch = BinaryExpression(
+                        SyntaxKind.NotEqualsExpression,
+                        InvocationExpression(
+                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, originalParam, IdentifierName("GetType"))),
+                            TypeOfExpression(type.TypeSyntax));
+                    var contextCopy = InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, contextParam, IdentifierName("Copy")))
+                        .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(originalParam))));
+                    body.Add(IfStatement(exactTypeMatch, ReturnStatement(contextCopy)));
+                }
 
                 // C#: result = _activator.Create();
                 body.Add(ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, resultVar, createValueExpression)));

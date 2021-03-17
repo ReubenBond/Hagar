@@ -54,7 +54,7 @@ namespace Hagar.Serializers
             // than adding some filtering logic to find "the object codec" below.
             _fieldCodecs[typeof(object)] = typeof(ObjectCodec);
             _copiers[typeof(object)] = typeof(ObjectCopier);
-            _objectCopier = new ObjectCopier(this);
+            _objectCopier = new ObjectCopier();
 
             ConsumeMetadata(codecConfiguration);
         }
