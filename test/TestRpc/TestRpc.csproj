@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Hagar\Hagar.csproj" />
+    <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
   </ItemGroup>
 
 </Project>
