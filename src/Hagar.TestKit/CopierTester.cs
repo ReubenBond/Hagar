@@ -63,7 +63,7 @@ namespace Hagar.TestKit
 
             void Test(TValue original)
             {
-                var output = copier.DeepCopy(original, new CopyContext(_codecProvider));
+                var output = copier.DeepCopy(original, new CopyContext(_codecProvider, _ => { }));
                 Assert.True(Equals(original, output), $"Copy value \"{output}\" must equal original value \"{original}\"");
             }
         }

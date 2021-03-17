@@ -1,5 +1,7 @@
 ﻿using Hagar.Serializers;
 using Hagar.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -46,14 +48,16 @@ namespace Hagar.Cloning
         bool IsSupportedType(Type type);
     }
 
-    public sealed class CopyContext
+    public sealed class CopyContext : IDisposable
     {
         private readonly Dictionary<object, object> _copies = new(ReferenceEqualsComparer.Default);
         private readonly CodecProvider _copierProvider;
+        private readonly Action<CopyContext> _onDisposed;
 
-        public CopyContext(CodecProvider codecProvider)
+        public CopyContext(CodecProvider codecProvider, Action<CopyContext> onDisposed)
         {
             _copierProvider = codecProvider;
+            _onDisposed = onDisposed;
         }
 
         public bool TryGetCopy<T>(object original, out T result) where T : class
@@ -86,6 +90,8 @@ namespace Hagar.Cloning
             var copier = _copierProvider.GetDeepCopier(value.GetType());
             return (T)copier.DeepCopy(value, this);
         }
+
+        public void Dispose() => _onDisposed?.Invoke(this);
     }
 
     internal static class ShallowCopyableTypes
@@ -162,7 +168,7 @@ namespace Hagar.Cloning
         }
     }
 
-    /// <summary>
+    /// <summary>throw new NotImplementedException();
     /// Methods for adapting typed and untyped copiers.
     /// </summary>
     internal static class CopierAdapter
@@ -209,5 +215,40 @@ namespace Hagar.Cloning
     public sealed class ShallowCopyableTypeCopier<T> : IDeepCopier<T>
     {
         public T DeepCopy(T input, CopyContext context) => input;
+    }
+
+    public sealed class CopyContextPool 
+    {
+        private readonly ObjectPool<CopyContext> _pool;
+
+        public CopyContextPool(CodecProvider codecProvider)
+        {
+            var sessionPoolPolicy = new PoolPolicy(codecProvider, Return);
+            _pool = new DefaultObjectPool<CopyContext>(sessionPoolPolicy);
+        }
+
+        public CopyContext GetContext() => _pool.Get();
+
+        private void Return(CopyContext session) => _pool.Return(session);
+
+        private class PoolPolicy : IPooledObjectPolicy<CopyContext>
+        {
+            private readonly CodecProvider _codecProvider;
+            private readonly Action<CopyContext> _onDisposed;
+
+            public PoolPolicy(CodecProvider codecProvider, Action<CopyContext> onDisposed)
+            {
+                _codecProvider = codecProvider;
+                _onDisposed = onDisposed;
+            }
+
+            public CopyContext Create() => new(_codecProvider, _onDisposed);
+
+            public bool Return(CopyContext obj)
+            {
+                obj.Reset();
+                return true;
+            }
+        }
     }
 }

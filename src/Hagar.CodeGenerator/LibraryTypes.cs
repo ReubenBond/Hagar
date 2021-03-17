@@ -50,8 +50,8 @@ namespace Hagar.CodeGenerator
                 NonSerializedAttribute = Type("System.NonSerializedAttribute"),
                 Object = compilation.GetSpecialType(SpecialType.System_Object),
                 ObsoleteAttribute = Type("System.ObsoleteAttribute"),
-                PartialSerializer = Type("Hagar.Serializers.IPartialSerializer`1"),
-                PartialCopier = Type("Hagar.Cloning.IPartialCopier`1"),
+                PartialSerializer_1 = Type("Hagar.Serializers.IPartialSerializer`1"),
+                PartialCopier_1 = Type("Hagar.Cloning.IPartialCopier`1"),
                 Reader = Type("Hagar.Buffers.Reader`1"),
                 Request = Type("Hagar.Invocation.Request"),
                 Request_1 = Type("Hagar.Invocation.Request`1"),
@@ -222,8 +222,8 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol NonSerializedAttribute { get; private set; }
         public INamedTypeSymbol Object { get; private set; }
         public INamedTypeSymbol ObsoleteAttribute { get; private set; }
-        public INamedTypeSymbol PartialSerializer { get; private set; }
-        public INamedTypeSymbol PartialCopier { get; private set; }
+        public INamedTypeSymbol PartialSerializer_1 { get; private set; }
+        public INamedTypeSymbol PartialCopier_1 { get; private set; }
         public INamedTypeSymbol Reader { get; private set; }
         public INamedTypeSymbol Request { get; private set; }
         public INamedTypeSymbol Request_1 { get; private set; }
