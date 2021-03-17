@@ -68,6 +68,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(ConcurrentDictionary<TKey, TValue>))
+            {
+                return context.Copy(input);
+            }
+
             // Note that this cannot propagate the input's key comparer, since it is not exposed from ConcurrentDictionary.
             result = new ConcurrentDictionary<TKey, TValue>();
             context.RecordCopy(input, result);

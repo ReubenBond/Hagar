@@ -73,7 +73,7 @@ namespace Hagar.CodeGenerator
                 AddMember(ns, serializer);
 
                 // Generate a copier for each serializable type.
-                var copier = DeepCopierGenerator.GenerateCopier(_libraryTypes, type); 
+                var copier = CopierGenerator.GenerateCopier(_libraryTypes, type); 
                 AddMember(ns, copier);
 
                 if (type.IsEmptyConstructable)

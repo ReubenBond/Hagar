@@ -79,6 +79,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(HashSet<T>))
+            {
+                return context.Copy(input);
+            }
+
             result = new HashSet<T>(input.Comparer);
             context.RecordCopy(input, result);
             foreach (var item in input)

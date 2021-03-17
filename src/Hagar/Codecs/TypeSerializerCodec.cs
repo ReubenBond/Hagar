@@ -146,10 +146,8 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class TypeCopier : IDeepCopier<Type>, IGeneralizedCopier
+    public sealed class TypeCopier : IDeepCopier<Type>, IDerivedTypeCopier
     {
-        public object DeepCopy(object input, CopyContext context) => input;
         public Type DeepCopy(Type input, CopyContext context) => input;
-        public bool IsSupportedType(Type type) => typeof(Type).IsAssignableFrom(type);
     }
 }

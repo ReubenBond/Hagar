@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Hagar.Cloning
@@ -50,6 +49,12 @@ namespace Hagar.Cloning
     public sealed class CopyContext
     {
         private readonly Dictionary<object, object> _copies = new(ReferenceEqualsComparer.Default);
+        private readonly CodecProvider _copierProvider;
+
+        public CopyContext(CodecProvider codecProvider)
+        {
+            _copierProvider = codecProvider;
+        }
 
         public bool TryGetCopy<T>(object original, out T result) where T : class
         {
@@ -75,6 +80,12 @@ namespace Hagar.Cloning
         }
 
         public void Reset() => _copies.Clear();
+
+        public T Copy<T>(T value)
+        {
+            var copier = _copierProvider.GetDeepCopier(value.GetType());
+            return (T)copier.DeepCopy(value, this);
+        }
     }
 
     internal static class ShallowCopyableTypes

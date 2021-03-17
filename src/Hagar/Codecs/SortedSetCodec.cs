@@ -79,6 +79,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(SortedSet<T>))
+            {
+                return context.Copy(input);
+            }
+
             result = new SortedSet<T>(input.Comparer);
             context.RecordCopy(input, result);
             foreach (var element in input)

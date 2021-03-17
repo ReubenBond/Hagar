@@ -1155,36 +1155,38 @@ namespace Hagar
         private readonly CodecProvider _codecProvider;
 
         [ThreadStatic]
-        private static CopyContext Context;
+        internal static CopyContext Context;
 
         public DeepCopier(CodecProvider codecProvider) => _codecProvider = codecProvider;
 
         public T Copy<T>(T value)
         {
-            var context = GetContext();
+            var context = Context ??= new CopyContext(_codecProvider);
             try
             {
-                var copier = _codecProvider.GetDeepCopier<T>();
-                return copier.DeepCopy(value, context);
+                return context.Copy(value);
             }
             finally
             {
                 context.Reset();
             }
         }
-
-        internal static CopyContext GetContext() => Context ??= new CopyContext();
     }
 
     public sealed class DeepCopier<T>
     {
         private readonly IDeepCopier<T> _copier;
+        private readonly CodecProvider _codecProvider;
 
-        public DeepCopier(IDeepCopier<T> copier) => _copier = copier;
+        public DeepCopier(IDeepCopier<T> copier, CodecProvider codecProvider)
+        {
+            _copier = copier;
+            _codecProvider = codecProvider;
+        }
 
         public T Copy(T value)
         {
-            var context = DeepCopier.GetContext();
+            var context = DeepCopier.Context ??= new CopyContext(_codecProvider);
             try
             {
                 return _copier.DeepCopy(value, context);

@@ -59,6 +59,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(ReadOnlyCollection<T>))
+            {
+                return context.Copy(input);
+            }
+
             var tempResult = new T[input.Count];
             for (var i = 0; i < tempResult.Length; i++)
             {

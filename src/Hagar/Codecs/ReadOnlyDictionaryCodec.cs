@@ -67,6 +67,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(ReadOnlyDictionary<TKey, TValue>))
+            {
+                return context.Copy(input);
+            }
+
             var temp = new Dictionary<TKey, TValue>(input.Count);
             foreach (var pair in input)
             {

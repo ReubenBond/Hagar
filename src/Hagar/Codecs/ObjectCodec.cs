@@ -58,13 +58,6 @@ namespace Hagar.Codecs
     [RegisterCopier]
     public sealed class ObjectCopier : IDeepCopier<object>
     {
-        private readonly CodecProvider _copierProvider;
-
-        public ObjectCopier(CodecProvider copierProvider)
-        {
-            _copierProvider = copierProvider;
-        }
-
         public object DeepCopy(object input, CopyContext context)
         {
             if (context.TryGetCopy<object>(input, out var result))
@@ -73,15 +66,14 @@ namespace Hagar.Codecs
             }
 
             var type = input.GetType();
-            if (type == typeof(object))
+            if (type != typeof(object))
             {
-                result = new object();
-                context.RecordCopy(input, result);
-                return result;
+                return context.Copy(input);
             }
 
-            var copier = _copierProvider.GetDeepCopier(type);
-            return copier.DeepCopy(input, context);
+            result = new object();
+            context.RecordCopy(input, result);
+            return result;
         }
     }
 }

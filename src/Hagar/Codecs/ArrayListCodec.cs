@@ -63,6 +63,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(ArrayList))
+            {
+                return context.Copy(input);
+            }
+
             result = new ArrayList(input.Count);
             context.RecordCopy(input, result);
             foreach (var item in input)

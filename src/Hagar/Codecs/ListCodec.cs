@@ -143,6 +143,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(List<T>))
+            {
+                return context.Copy(input);
+            }
+
             result = new List<T>(input.Count);
             context.RecordCopy(input, result);
             foreach (var item in input)

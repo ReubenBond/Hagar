@@ -9,7 +9,6 @@ namespace Hagar.CodeGenerator
     {
         Accessibility Accessibility { get; }
         TypeSyntax TypeSyntax { get; }
-        TypeSyntax UnboundTypeSyntax { get; }
         bool HasComplexBaseType { get; }
         INamedTypeSymbol BaseType { get; }
         string Namespace { get; }

@@ -11,6 +11,7 @@ namespace Hagar.CodeGenerator
     internal class SerializableTypeDescription : ISerializableTypeDescription
     {
         private readonly LibraryTypes _libraryTypes;
+        private TypeSyntax _typeSyntax;
 
         public SerializableTypeDescription(SemanticModel semanticModel, INamedTypeSymbol type, IEnumerable<IMemberDescription> members, LibraryTypes libraryTypes)
         {
@@ -38,8 +39,7 @@ namespace Hagar.CodeGenerator
 
         public Accessibility Accessibility { get; }
 
-        public TypeSyntax TypeSyntax => Type.ToTypeSyntax();
-        public TypeSyntax UnboundTypeSyntax => Type.ToTypeSyntax();
+        public TypeSyntax TypeSyntax => _typeSyntax ??= Type.ToTypeSyntax();
 
         public bool HasComplexBaseType => !IsValueType &&
                                           Type.BaseType != null &&

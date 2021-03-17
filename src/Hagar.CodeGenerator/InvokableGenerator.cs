@@ -428,6 +428,7 @@ namespace Hagar.CodeGenerator
         private class GeneratedInvokerDescription : IGeneratedInvokerDescription
         {
             private readonly MethodDescription _methodDescription;
+            private TypeSyntax _typeSyntax;
 
             public GeneratedInvokerDescription(
                 IInvokableInterfaceDescription interfaceDescription,
@@ -449,28 +450,7 @@ namespace Hagar.CodeGenerator
             }
 
             public Accessibility Accessibility { get; }
-
-            public TypeSyntax TypeSyntax
-            {
-                get
-                {
-                    var simpleName = GetSimpleClassName(InterfaceDescription, _methodDescription);
-                    if (TypeParameters.Length > 0)
-                    {
-                        return QualifiedName(
-                            ParseName(Namespace),
-                            GenericName(
-                                Identifier(simpleName),
-                                TypeArgumentList(
-                                    SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name))))));
-                    }
-
-                    var name = QualifiedName(ParseName(Namespace), IdentifierName(simpleName));
-                    return name;
-                }
-            }
-
-            public TypeSyntax UnboundTypeSyntax => GetUnboundClassName(InterfaceDescription, _methodDescription);
+            public TypeSyntax TypeSyntax => _typeSyntax ??= CreateTypeSyntax();
             public bool HasComplexBaseType => false;
             public INamedTypeSymbol BaseType => throw new NotImplementedException();
             public string Namespace => GeneratedNamespace;
@@ -484,18 +464,30 @@ namespace Hagar.CodeGenerator
             public List<IMemberDescription> Members { get; }
             public IInvokableInterfaceDescription InterfaceDescription { get; }
             public SemanticModel SemanticModel => InterfaceDescription.SemanticModel;
-
             public bool IsEmptyConstructable => true;
-
             public bool IsPartial => true;
             public bool UseActivator => true; 
-
             public bool TrackReferences => false; 
-
             public bool OmitDefaultMemberValues => false; 
-
             public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
+
+            private TypeSyntax CreateTypeSyntax()
+            {
+                var simpleName = GetSimpleClassName(InterfaceDescription, _methodDescription);
+                if (TypeParameters.Length > 0)
+                {
+                    return QualifiedName(
+                        ParseName(Namespace),
+                        GenericName(
+                            Identifier(simpleName),
+                            TypeArgumentList(
+                                SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name))))));
+                }
+
+                var name = QualifiedName(ParseName(Namespace), IdentifierName(simpleName));
+                return name;
+            }
         }
 
         public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription, MethodDescription method)
@@ -503,18 +495,6 @@ namespace Hagar.CodeGenerator
             var genericArity = method.Method.TypeParameters.Length + interfaceDescription.InterfaceType.TypeParameters.Length;
             var typeArgs = genericArity > 0 ? "_" + genericArity : string.Empty;
             return $"Invokable_{interfaceDescription.Name}_{method.Name}{typeArgs}";
-        }
-
-        public static TypeSyntax GetUnboundClassName(IInvokableInterfaceDescription interfaceDescription, MethodDescription method)
-        {
-            var genericArity = method.Method.TypeParameters.Length + interfaceDescription.InterfaceType.TypeParameters.Length;
-            var name = GetSimpleClassName(interfaceDescription, method);
-            if (genericArity > 0)
-            {
-                name += $"<{new string(',', genericArity - 1)}>";
-            }
-
-            return ParseTypeName(name);
         }
 
         private static ClassDeclarationSyntax AddGenericTypeParameters(

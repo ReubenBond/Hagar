@@ -89,6 +89,11 @@ namespace Hagar.Codecs
                 return result;
             }
 
+            if (input.GetType() != typeof(SortedList<TKey, TValue>))
+            {
+                return context.Copy(input);
+            }
+
             result = new SortedList<TKey, TValue>(input.Comparer);
             context.RecordCopy(input, result);
             foreach (var pair in input)
