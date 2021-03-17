@@ -63,6 +63,13 @@ namespace Hagar.CodeGenerator
                 classDeclaration = classDeclaration.AddMembers(copyMethod);
             }
 
+            if (!type.IsSealedType)
+            {
+                classDeclaration = classDeclaration
+                    .AddMembers(GeneratePartialCopierDeepCopyMethod(type, fieldDescriptions, members, libraryTypes))
+                    .AddBaseListTypes(SimpleBaseType(libraryTypes.PartialCopier_1.ToTypeSyntax(type.TypeSyntax)));
+            }
+
             if (type.IsGenericType)
             {
                 classDeclaration = AddGenericTypeParameters(classDeclaration, type);
@@ -268,7 +275,7 @@ namespace Hagar.CodeGenerator
 
             if (serializableTypeDescription.HasComplexBaseType)
             {
-                fields.Add(new PartialCopierFieldDescription(libraryTypes.PartialCopier.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeCopierFieldName));
+                fields.Add(new PartialCopierFieldDescription(libraryTypes.PartialCopier_1.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeCopierFieldName));
             }
 
             if (serializableTypeDescription.UseActivator)
@@ -405,7 +412,7 @@ namespace Hagar.CodeGenerator
             var resultVar = "result".ToIdentifierName();
 
             var body = new List<StatementSyntax>();
-            
+
             ExpressionSyntax createValueExpression = type.UseActivator switch
             {
                 true => InvocationExpression(copierFields.OfType<ActivatorFieldDescription>().Single().FieldName.ToIdentifierName().Member("Create")),
@@ -477,13 +484,79 @@ namespace Hagar.CodeGenerator
 
             }
 
+            body.AddRange(GenerateMemberwiseCopy(copierFields, members, libraryTypes, originalParam, contextParam, resultVar));
+
+            body.Add(ReturnStatement(resultVar));
+
+            var parameters = new[]
+            {
+                Parameter(originalParam.Identifier).WithType(type.TypeSyntax),
+                Parameter(contextParam.Identifier).WithType(libraryTypes.CopyContext.ToTypeSyntax())
+            };
+
+            return MethodDeclaration(returnType, DeepCopyMethodName)
+                .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                .AddParameterListParameters(parameters)
+                .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))
+                .AddBodyStatements(body.ToArray());
+        }
+
+        private static MemberDeclarationSyntax GeneratePartialCopierDeepCopyMethod(
+            ISerializableTypeDescription type,
+            List<FieldDescription> copierFields,
+            List<ISerializableMember> members,
+            LibraryTypes libraryTypes)
+        {
+            var inputParam = "input".ToIdentifierName();
+            var resultParam = "output".ToIdentifierName();
+            var contextParam = "context".ToIdentifierName();
+
+            var body = new List<StatementSyntax>();
+
+            if (type.HasComplexBaseType)
+            {
+                // C#: _baseTypeCopier.DeepCopy(original, result, context);
+                body.Add(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            ThisExpression().Member(BaseTypeCopierFieldName.ToIdentifierName()).Member(DeepCopyMethodName),
+                            ArgumentList(SeparatedList(new[]
+                            {
+                                Argument(inputParam),
+                                Argument(resultParam),
+                                Argument(contextParam)
+                            })))));
+            }
+
+            body.AddRange(GenerateMemberwiseCopy(copierFields, members, libraryTypes, inputParam, contextParam, resultParam));
+
+            var parameters = new[]
+            {
+                Parameter(inputParam.Identifier).WithType(type.TypeSyntax),
+                Parameter(resultParam.Identifier).WithType(type.TypeSyntax),
+                Parameter(contextParam.Identifier).WithType(libraryTypes.CopyContext.ToTypeSyntax())
+            };
+
+            return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), DeepCopyMethodName)
+                .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                .AddParameterListParameters(parameters)
+                .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))
+                .AddBodyStatements(body.ToArray());
+        }
+
+        private static IEnumerable<StatementSyntax> GenerateMemberwiseCopy(
+            List<FieldDescription> copierFields,
+            List<ISerializableMember> members,
+            LibraryTypes libraryTypes,
+            IdentifierNameSyntax sourceVar,
+            IdentifierNameSyntax contextVar,
+            IdentifierNameSyntax destinationVar)
+        {
             var codecs = copierFields.OfType<ICopierDescription>()
                     .Concat(libraryTypes.StaticCopiers)
                     .ToList();
 
             var orderedMembers = members.OrderBy(m => m.Description.FieldId).ToList();
-            var lastMember = orderedMembers.LastOrDefault();
-
             foreach (var member in orderedMembers)
             {
                 var description = member.Description;
@@ -508,13 +581,13 @@ namespace Hagar.CodeGenerator
 
                 if (libraryTypes.IsShallowCopyable(member.SafeType))
                 {
-                    getValueExpression = member.GetGetter(originalParam);
+                    getValueExpression = member.GetGetter(sourceVar);
                 }
                 else
                 {
                     getValueExpression = InvocationExpression(
                         codecExpression.Member(DeepCopyMethodName),
-                        ArgumentList(SeparatedList(new[] { Argument(member.GetGetter(originalParam)), Argument(contextParam) })));
+                        ArgumentList(SeparatedList(new[] { Argument(member.GetGetter(sourceVar)), Argument(contextVar) })));
                     if (!codec.UnderlyingType.Equals(member.Type))
                     {
                         // If the member type type differs from the codec type (eg because the member is an array), cast the result.
@@ -522,24 +595,10 @@ namespace Hagar.CodeGenerator
                     }
                 }
 
-                var memberAssignment = ExpressionStatement(member.GetSetter(resultVar, getValueExpression));
+                var memberAssignment = ExpressionStatement(member.GetSetter(destinationVar, getValueExpression));
 
-                body.Add(memberAssignment);
+                yield return memberAssignment;
             }
-
-            body.Add(ReturnStatement(resultVar));
-
-            var parameters = new[]
-            {
-                Parameter(originalParam.Identifier).WithType(type.TypeSyntax),
-                Parameter(contextParam.Identifier).WithType(libraryTypes.CopyContext.ToTypeSyntax())
-            };
-
-            return MethodDeclaration(returnType, DeepCopyMethodName)
-                .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                .AddParameterListParameters(parameters)
-                .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))
-                .AddBodyStatements(body.ToArray());
         }
 
         private static MemberDeclarationSyntax GenerateEnumCopyMethod(
