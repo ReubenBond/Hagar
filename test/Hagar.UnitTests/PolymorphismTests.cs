@@ -98,9 +98,6 @@ namespace Hagar.UnitTests
             Assert.Equal(someBaseClass.SbcString, someBaseClassResult.SbcString);
             Assert.Equal(someBaseClass.SbcInteger, someBaseClassResult.SbcInteger);
 
-            // This doesn't work
-            // Currently throws:
-            //     System.Collections.Generic.KeyNotFoundException : Could not find a partial copier for type Hagar.UnitTests.PolymorphismTests+SomeBaseClass.
             var someSubClassResult = DeepCopy(someSubClass);
             Assert.Equal(someSubClass.SscString, someSubClassResult.SscString);
             Assert.Equal(someSubClass.SscInteger, someSubClassResult.SscInteger);
@@ -140,7 +137,7 @@ namespace Hagar.UnitTests
 
         private T DeepCopy<T>(T original)
         {
-            var deepCopier = _serviceProvider.GetService<DeepCopier>();
+            var deepCopier = _serviceProvider.GetService<DeepCopier<T>>();
             return deepCopier.Copy(original);
         }
 
