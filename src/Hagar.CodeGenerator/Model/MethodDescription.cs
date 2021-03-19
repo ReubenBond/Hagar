@@ -33,6 +33,15 @@ namespace Hagar.CodeGenerator
                 MethodTypeParameters.Add((tpName, tp));
             }
 
+#pragma warning disable RS1024 // Compare symbols correctly
+            TypeParameterSubstitutions = new(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
+            foreach (var tp in AllTypeParameters)
+            {
+                TypeParameterSubstitutions[tp.Parameter] = tp.Name;
+            }
+
             static string GetTypeParameterName(HashSet<string> names, ITypeParameterSymbol tp)
             {
                 var count = 0;
@@ -56,6 +65,8 @@ namespace Hagar.CodeGenerator
         public List<(string Name, ITypeParameterSymbol Parameter)> AllTypeParameters { get; }
 
         public List<(string Name, ITypeParameterSymbol Parameter)> MethodTypeParameters { get; }
+        
+        public Dictionary<ITypeParameterSymbol, string> TypeParameterSubstitutions { get; }
 
         public override int GetHashCode() => SymbolEqualityComparer.Default.GetHashCode(Method);
     }

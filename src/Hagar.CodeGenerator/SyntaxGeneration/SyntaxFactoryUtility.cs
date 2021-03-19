@@ -52,7 +52,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             ClassDeclarationSyntax classDeclaration,
             List<(string Name, ITypeParameterSymbol Parameter)> typeParameters)
         {
-            var typeParametersWithConstraints = GetTypeParametersWithConstraints(typeParameters);
+            var typeParametersWithConstraints = GetTypeParameterConstraints(typeParameters);
             foreach (var (name, constraints) in typeParametersWithConstraints)
             {
                 if (constraints.Count > 0)
@@ -71,7 +71,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return classDeclaration;
         }
 
-        public static List<(string Name, List<TypeParameterConstraintSyntax> Constraints)> GetTypeParametersWithConstraints(List<(string Name, ITypeParameterSymbol Parameter)> typeParameter)
+        public static List<(string Name, List<TypeParameterConstraintSyntax> Constraints)> GetTypeParameterConstraints(List<(string Name, ITypeParameterSymbol Parameter)> typeParameter)
         {
             var allConstraints = new List<(string, List<TypeParameterConstraintSyntax>)>();
             foreach (var (name, tp) in typeParameter)

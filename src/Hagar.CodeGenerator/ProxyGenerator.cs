@@ -72,7 +72,7 @@ namespace Hagar.CodeGenerator
             ConstructorDeclarationSyntax CreateConstructor(IMethodSymbol baseConstructor)
             {
                 return ConstructorDeclaration(simpleClassName)
-                    .AddParameterListParameters(baseConstructor.Parameters.Select(GetParameterSyntax).ToArray())
+                    .AddParameterListParameters(baseConstructor.Parameters.Select(p => GetParameterSyntax(p, null)).ToArray())
                     .WithModifiers(TokenList(GetModifiers(baseConstructor)))
                     .WithInitializer(
                         ConstructorInitializer(
@@ -134,8 +134,8 @@ namespace Hagar.CodeGenerator
             MethodDeclarationSyntax CreateProxyMethod(MethodDescription methodDescription)
             {
                 var method = methodDescription.Method;
-                var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(), method.Name.EscapeIdentifier())
-                    .AddParameterListParameters(method.Parameters.Select(GetParameterSyntax).ToArray())
+                var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions), method.Name.EscapeIdentifier())
+                    .AddParameterListParameters(method.Parameters.Select(p => GetParameterSyntax(p, methodDescription)).ToArray())
                     .WithBody(
                         CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
                 if (methodDescription.HasCollision)
@@ -143,7 +143,7 @@ namespace Hagar.CodeGenerator
                     declaration = declaration.WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)));
 
                     // Type parameter constrains are not valid on explicit interface definitions
-                    var typeParameters = SyntaxFactoryUtility.GetTypeParametersWithConstraints(methodDescription.MethodTypeParameters);
+                    var typeParameters = SyntaxFactoryUtility.GetTypeParameterConstraints(methodDescription.MethodTypeParameters);
                     foreach (var (name, constraints) in typeParameters)
                     {
                         if (constraints.Count > 0)
@@ -218,7 +218,7 @@ namespace Hagar.CodeGenerator
                 returnType = libraryTypes.Object;
             }
 
-            var createCompletionExpr = InvocationExpression(libraryTypes.ResponseCompletionSourcePool.ToTypeSyntax().Member("Get", returnType.ToTypeSyntax()))
+            var createCompletionExpr = InvocationExpression(libraryTypes.ResponseCompletionSourcePool.ToTypeSyntax().Member("Get", returnType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions)))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
             statements.Add(
                 LocalDeclarationStatement(
@@ -260,9 +260,9 @@ namespace Hagar.CodeGenerator
             return Block(statements);
         }
 
-        private static ParameterSyntax GetParameterSyntax(IParameterSymbol parameter)
+        private static ParameterSyntax GetParameterSyntax(IParameterSymbol parameter, MethodDescription methodDescription)
         {
-            var result = Parameter(Identifier(parameter.Name)).WithType(parameter.Type.ToTypeSyntax());
+            var result = Parameter(Identifier(parameter.Name)).WithType(parameter.Type.ToTypeSyntax(methodDescription?.TypeParameterSubstitutions));
             switch (parameter.RefKind)
             {
                 case RefKind.None:

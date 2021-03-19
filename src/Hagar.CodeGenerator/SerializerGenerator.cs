@@ -86,11 +86,11 @@ namespace Hagar.CodeGenerator
 
         public static string GetGeneratedNamespaceName(ITypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}.{type.GetNamespaceAndNesting()}";
 
-        private static MemberDeclarationSyntax[] GetFieldDeclarations(List<SerializerFieldDescription> fieldDescriptions)
+        private static MemberDeclarationSyntax[] GetFieldDeclarations(List<GeneratedFieldDescription> fieldDescriptions)
         {
             return fieldDescriptions.Select(GetFieldDeclaration).ToArray();
 
-            static MemberDeclarationSyntax GetFieldDeclaration(SerializerFieldDescription description)
+            static MemberDeclarationSyntax GetFieldDeclaration(GeneratedFieldDescription description)
             {
                 switch (description)
                 {
@@ -99,7 +99,7 @@ namespace Hagar.CodeGenerator
                                 VariableDeclaration(
                                     type.FieldType,
                                     SingletonSeparatedList(VariableDeclarator(type.FieldName)
-                                        .WithInitializer(EqualsValueClause(TypeOfExpression(type.UnderlyingType.ToTypeSyntax()))))))
+                                        .WithInitializer(EqualsValueClause(TypeOfExpression(type.UnderlyingTypeSyntax))))))
                             .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword));
                     case CodecFieldTypeFieldDescription type:
                         return FieldDeclaration(
@@ -135,7 +135,7 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        private static ConstructorDeclarationSyntax GenerateConstructor(LibraryTypes libraryTypes, string simpleClassName, List<SerializerFieldDescription> fieldDescriptions)
+        private static ConstructorDeclarationSyntax GenerateConstructor(LibraryTypes libraryTypes, string simpleClassName, List<GeneratedFieldDescription> fieldDescriptions)
         {
             var injected = fieldDescriptions.Where(f => f.IsInjected).ToList();
             var parameters = new List<ParameterSyntax>(injected.Select(f => Parameter(f.FieldName.ToIdentifier()).WithType(f.FieldType)));
@@ -158,7 +158,7 @@ namespace Hagar.CodeGenerator
                             yield return InitializeSetterField(setter);
                             break;
 
-                        case SerializerFieldDescription _ when field.IsInjected:
+                        case GeneratedFieldDescription _ when field.IsInjected:
                             yield return ExpressionStatement(
                                 AssignmentExpression(
                                     SyntaxKind.SimpleAssignmentExpression,
@@ -180,7 +180,7 @@ namespace Hagar.CodeGenerator
 
             StatementSyntax InitializeGetterField(GetterFieldDescription getter)
             {
-                var fieldInfo = GetFieldInfo(getter.Member.Field.ContainingType, getter.Member.Field.Name);
+                var fieldInfo = GetFieldInfo(getter.Member.Member, getter.Member.Field.ContainingType, getter.Member.Field.Name);
                 var accessorInvoke = CastExpression(
                     getter.FieldType,
                     InvocationExpression(fieldAccessorUtility.Member("GetGetter")).AddArgumentListArguments(Argument(fieldInfo)));
@@ -192,7 +192,7 @@ namespace Hagar.CodeGenerator
             StatementSyntax InitializeSetterField(SetterFieldDescription setter)
             {
                 var field = setter.Member.Field;
-                var fieldInfo = GetFieldInfo(field.ContainingType, field.Name);
+                var fieldInfo = GetFieldInfo(setter.Member.Member, field.ContainingType, field.Name);
                 var accessorMethod = setter.IsContainedByValueType ? "GetValueSetter" : "GetReferenceSetter";
                 var accessorInvoke = CastExpression(
                     setter.FieldType,
@@ -203,14 +203,14 @@ namespace Hagar.CodeGenerator
                     AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(setter.FieldName), accessorInvoke));
             }
 
-            static InvocationExpressionSyntax GetFieldInfo(INamedTypeSymbol containingType, string fieldName)
+            static InvocationExpressionSyntax GetFieldInfo(IMemberDescription member, INamedTypeSymbol containingType, string fieldName)
             {
                 var bindingFlags = SymbolSyntaxExtensions.GetBindingFlagsParenthesizedExpressionSyntax(
                     SyntaxKind.BitwiseOrExpression,
                     BindingFlags.Instance,
                     BindingFlags.NonPublic,
                     BindingFlags.Public);
-                return InvocationExpression(TypeOfExpression(containingType.ToTypeSyntax()).Member("GetField"))
+                return InvocationExpression(TypeOfExpression(member.GetTypeSyntax(containingType)).Member("GetField"))
                             .AddArgumentListArguments(
                                 Argument(fieldName.GetLiteralExpression()),
                                 Argument(bindingFlags));
@@ -236,15 +236,15 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        private static List<SerializerFieldDescription> GetFieldDescriptions(
+        private static List<GeneratedFieldDescription> GetFieldDescriptions(
             ISerializableTypeDescription serializableTypeDescription,
             List<ISerializableMember> members,
             LibraryTypes libraryTypes)
         {
-            var fields = new List<SerializerFieldDescription>();
-#pragma warning disable RS1024 // Compare symbols correctly
-            fields.AddRange(serializableTypeDescription.Members.Select(m => m.Type).Distinct(SymbolEqualityComparer.Default).OfType<ITypeSymbol>().Select(GetTypeDescription));
-#pragma warning restore RS1024 // Compare symbols correctly
+            var fields = new List<GeneratedFieldDescription>();
+            fields.AddRange(serializableTypeDescription.Members
+                .Distinct(MemberDescriptionTypeComparer.Default)
+                .Select(member => GetTypeDescription(member)));
 
             fields.Add(new CodecFieldTypeFieldDescription(libraryTypes.Type.ToTypeSyntax(), CodecFieldTypeFieldName, serializableTypeDescription.TypeSyntax)); 
 
@@ -259,13 +259,10 @@ namespace Hagar.CodeGenerator
             }
 
             // Add a codec field for any field in the target which does not have a static codec.
-#pragma warning disable RS1024 // Compare symbols correctly
             fields.AddRange(serializableTypeDescription.Members
-                .Select(m => m.Type).Distinct(SymbolEqualityComparer.Default)
-#pragma warning restore RS1024 // Compare symbols correctly
-                .Cast<ITypeSymbol>()
-                .Where(t => !libraryTypes.StaticCodecs.Any(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, t)))
-                .Select(type => GetCodecDescription(type)));
+                .Distinct(MemberDescriptionTypeComparer.Default)
+                .Where(t => !libraryTypes.StaticCodecs.Any(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, t.Type)))
+                .Select(member => GetCodecDescription(member)));
 
             foreach (var member in members)
             {
@@ -282,32 +279,32 @@ namespace Hagar.CodeGenerator
 
             return fields;
 
-            CodecFieldDescription GetCodecDescription(ITypeSymbol t)
+            CodecFieldDescription GetCodecDescription(IMemberDescription member)
             {
                 TypeSyntax codecType = null;
-                if (t.HasAttribute(libraryTypes.GenerateSerializerAttribute)
-                    && (!SymbolEqualityComparer.Default.Equals(t.ContainingAssembly, libraryTypes.Compilation.Assembly) || t.ContainingAssembly.HasAttribute(libraryTypes.MetadataProviderAttribute)))
+                if (member.Type.HasAttribute(libraryTypes.GenerateSerializerAttribute)
+                    && (!SymbolEqualityComparer.Default.Equals(member.Type.ContainingAssembly, libraryTypes.Compilation.Assembly) || member.Type.ContainingAssembly.HasAttribute(libraryTypes.MetadataProviderAttribute)))
                 {
                     // Use the concrete generated type and avoid expensive interface dispatch
-                    if (t is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+                    if (member.Type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
                     {
                         // Construct the full generic type name
-                        var ns = ParseName(GetGeneratedNamespaceName(t));
-                        var name = GenericName(Identifier(GetSimpleClassName(t.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => arg.ToTypeSyntax()))));
+                        var ns = ParseName(GetGeneratedNamespaceName(member.Type));
+                        var name = GenericName(Identifier(GetSimpleClassName(member.Type.Name)), TypeArgumentList(SeparatedList(namedTypeSymbol.TypeArguments.Select(arg => member.GetTypeSyntax(arg)))));
                         codecType = QualifiedName(ns, name);
                     }
                     else
                     {
-                        var simpleName = $"{GetGeneratedNamespaceName(t)}.{GetSimpleClassName(t.Name)}";
+                        var simpleName = $"{GetGeneratedNamespaceName(member.Type)}.{GetSimpleClassName(member.Type.Name)}";
                         codecType = ParseTypeName(simpleName);
                     }
                 }
-                else if (libraryTypes.WellKnownCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, t)) is WellKnownCodecDescription codec)
+                else if (libraryTypes.WellKnownCodecs.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, member.Type)) is WellKnownCodecDescription codec)
                 {
                     // The codec is not a static codec and is also not a generic codec.
                     codecType = codec.CodecType.ToTypeSyntax();
                 }
-                else if (t is INamedTypeSymbol named && libraryTypes.WellKnownCodecs.FirstOrDefault(c => t is INamedTypeSymbol named && named.ConstructedFrom is ISymbol unboundFieldType && SymbolEqualityComparer.Default.Equals(c.UnderlyingType, unboundFieldType)) is WellKnownCodecDescription genericCodec)
+                else if (member.Type is INamedTypeSymbol named && libraryTypes.WellKnownCodecs.FirstOrDefault(c => member.Type is INamedTypeSymbol named && named.ConstructedFrom is ISymbol unboundFieldType && SymbolEqualityComparer.Default.Equals(c.UnderlyingType, unboundFieldType)) is WellKnownCodecDescription genericCodec)
                 {
                     // Construct the generic codec type using the field's type arguments.
                     codecType = genericCodec.CodecType.Construct(named.TypeArguments.ToArray()).ToTypeSyntax();
@@ -315,23 +312,23 @@ namespace Hagar.CodeGenerator
                 else
                 {
                     // Use the IFieldCodec<TField> interface
-                    codecType = libraryTypes.FieldCodec_1.Construct(t).ToTypeSyntax();
+                    codecType = libraryTypes.FieldCodec_1.ToTypeSyntax(member.TypeSyntax);
                 }
 
-                var fieldName = '_' + ToLowerCamelCase(t.GetValidIdentifier()) + "Codec";
-                return new CodecFieldDescription(codecType, fieldName, t);
+                var fieldName = '_' + ToLowerCamelCase(member.TypeNameIdentifier) + "Codec";
+                return new CodecFieldDescription(codecType, fieldName, member.Type);
             }
 
-            TypeFieldDescription GetTypeDescription(ITypeSymbol t)
+            TypeFieldDescription GetTypeDescription(IMemberDescription member)
             {
-                var fieldName = '_' + ToLowerCamelCase(t.GetValidIdentifier()) + "Type";
-                return new TypeFieldDescription(libraryTypes.Type.ToTypeSyntax(), fieldName, t);
+                var fieldName = '_' + ToLowerCamelCase(member.TypeNameIdentifier) + "Type";
+                return new TypeFieldDescription(libraryTypes.Type.ToTypeSyntax(), fieldName, member.TypeSyntax, member.Type);
             }
 
             GetterFieldDescription GetGetterDescription(ISerializableMember member)
             {
                 var containingType = member.Field.ContainingType;
-                var getterType = libraryTypes.Func_2.ToTypeSyntax(containingType.ToTypeSyntax(), member.TypeSyntax);
+                var getterType = libraryTypes.Func_2.ToTypeSyntax(member.Member.GetTypeSyntax(containingType), member.TypeSyntax);
                 return new GetterFieldDescription(getterType, member.GetterFieldName, member.Field.Type, member);
             }
 
@@ -341,11 +338,11 @@ namespace Hagar.CodeGenerator
                 TypeSyntax fieldType;
                 if (containingType != null && containingType.IsValueType)
                 {
-                    fieldType = libraryTypes.ValueTypeSetter_2.ToTypeSyntax(containingType.ToTypeSyntax(), member.TypeSyntax);
+                    fieldType = libraryTypes.ValueTypeSetter_2.ToTypeSyntax(member.Member.GetTypeSyntax(containingType), member.TypeSyntax);
                 }
                 else
                 {
-                    fieldType = libraryTypes.Action_2.ToTypeSyntax(containingType.ToTypeSyntax(), member.TypeSyntax);
+                    fieldType = libraryTypes.Action_2.ToTypeSyntax(member.Member.GetTypeSyntax(containingType), member.TypeSyntax);
                 }
 
                 return new SetterFieldDescription(fieldType, member.SetterFieldName, member.Field.Type, member);
@@ -356,7 +353,7 @@ namespace Hagar.CodeGenerator
 
         private static MemberDeclarationSyntax GenerateSerializeMethod(
             ISerializableTypeDescription type,
-            List<SerializerFieldDescription> serializerFields,
+            List<GeneratedFieldDescription> serializerFields,
             List<ISerializableMember> members,
             LibraryTypes libraryTypes)
         {
@@ -389,9 +386,9 @@ namespace Hagar.CodeGenerator
             }
 
             uint previousFieldId = 0;
-            foreach (var member in members.OrderBy(m => m.Description.FieldId))
+            foreach (var member in members.OrderBy(m => m.Member.FieldId))
             {
-                var description = member.Description;
+                var description = member.Member;
                 ExpressionSyntax fieldIdDeltaExpr;
                 if (type.OmitDefaultMemberValues)
                 {
@@ -475,7 +472,7 @@ namespace Hagar.CodeGenerator
 
         private static MemberDeclarationSyntax GenerateDeserializeMethod(
             ISerializableTypeDescription type,
-            List<SerializerFieldDescription> serializerFields,
+            List<GeneratedFieldDescription> serializerFields,
             List<ISerializableMember> members,
             LibraryTypes libraryTypes)
         {
@@ -548,7 +545,7 @@ namespace Hagar.CodeGenerator
                         .Concat(libraryTypes.StaticCodecs)
                         .ToList();
 
-                var orderedMembers = members.OrderBy(m => m.Description.FieldId).ToList();
+                var orderedMembers = members.OrderBy(m => m.Member.FieldId).ToList();
                 var lastMember = orderedMembers.LastOrDefault();
 
                 // C#: id = HagarGeneratedCodeHelper.ReadHeader(ref reader, ref header, id);
@@ -572,7 +569,7 @@ namespace Hagar.CodeGenerator
 
                 foreach (var member in orderedMembers)
                 {
-                    var description = member.Description;
+                    var description = member.Member;
 
                     // C#: instance.<member> = <codec>.ReadValue(ref reader, header);
                     // Codecs can either be static classes or injected into the constructor.
@@ -597,7 +594,7 @@ namespace Hagar.CodeGenerator
                     if (!codec.UnderlyingType.Equals(member.TypeSyntax))
                     {
                         // If the member type type differs from the codec type (eg because the member is an array), cast the result.
-                        readValueExpression = CastExpression(description.Type.ToTypeSyntax(), readValueExpression);
+                        readValueExpression = CastExpression(description.TypeSyntax, readValueExpression);
                     }
 
                     var memberAssignment = ExpressionStatement(member.GetSetter(instanceParam, readValueExpression));
@@ -803,7 +800,7 @@ namespace Hagar.CodeGenerator
 
         private static MemberDeclarationSyntax GenerateCompoundTypeReadValueMethod(
             ISerializableTypeDescription type,
-            List<SerializerFieldDescription> serializerFields,
+            List<GeneratedFieldDescription> serializerFields,
             LibraryTypes libraryTypes)
         {
             var readerParam = "reader".ToIdentifierName();
@@ -1004,9 +1001,9 @@ namespace Hagar.CodeGenerator
                 .AddBodyStatements(body.ToArray());
         }
 
-        internal abstract class SerializerFieldDescription
+        internal abstract class GeneratedFieldDescription
         {
-            protected SerializerFieldDescription(TypeSyntax fieldType, string fieldName)
+            protected GeneratedFieldDescription(TypeSyntax fieldType, string fieldName)
             {
                 FieldType = fieldType;
                 FieldName = fieldName;
@@ -1017,7 +1014,7 @@ namespace Hagar.CodeGenerator
             public abstract bool IsInjected { get; }
         }
 
-        internal class PartialSerializerFieldDescription : SerializerFieldDescription
+        internal class PartialSerializerFieldDescription : GeneratedFieldDescription
         {
             public PartialSerializerFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
             {
@@ -1026,8 +1023,7 @@ namespace Hagar.CodeGenerator
             public override bool IsInjected => true;
         }
 
-
-        internal class ActivatorFieldDescription : SerializerFieldDescription 
+        internal class ActivatorFieldDescription : GeneratedFieldDescription 
         {
             public ActivatorFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
             {
@@ -1036,7 +1032,7 @@ namespace Hagar.CodeGenerator
             public override bool IsInjected => true;
         }
 
-        internal class CodecFieldDescription : SerializerFieldDescription, ICodecDescription
+        internal class CodecFieldDescription : GeneratedFieldDescription, ICodecDescription
         {
             public CodecFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
             {
@@ -1047,18 +1043,20 @@ namespace Hagar.CodeGenerator
             public override bool IsInjected => false;
         }
 
-        internal class TypeFieldDescription : SerializerFieldDescription
+        internal class TypeFieldDescription : GeneratedFieldDescription
         {
-            public TypeFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol underlyingType) : base(fieldType, fieldName)
+            public TypeFieldDescription(TypeSyntax fieldType, string fieldName, TypeSyntax underlyingTypeSyntax, ITypeSymbol underlyingType) : base(fieldType, fieldName)
             {
                 UnderlyingType = underlyingType;
+                UnderlyingTypeSyntax = underlyingTypeSyntax; 
             }
 
+            public TypeSyntax UnderlyingTypeSyntax { get; }
             public ITypeSymbol UnderlyingType { get; }
             public override bool IsInjected => false;
         }
 
-        internal class CodecFieldTypeFieldDescription : SerializerFieldDescription
+        internal class CodecFieldTypeFieldDescription : GeneratedFieldDescription
         {
             public CodecFieldTypeFieldDescription(TypeSyntax fieldType, string fieldName, TypeSyntax codecFieldType) : base(fieldType, fieldName)
             {
@@ -1069,7 +1067,7 @@ namespace Hagar.CodeGenerator
             public override bool IsInjected => false;
         }
 
-        internal class SetterFieldDescription : SerializerFieldDescription
+        internal class SetterFieldDescription : GeneratedFieldDescription
         {
             public SetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, ISerializableMember member) : base(fieldType, fieldName)
             {
@@ -1086,7 +1084,7 @@ namespace Hagar.CodeGenerator
             public bool IsContainedByValueType => Member.Field.ContainingType != null && Member.Field.ContainingType.IsValueType;
         }
 
-        internal class GetterFieldDescription : SerializerFieldDescription
+        internal class GetterFieldDescription : GeneratedFieldDescription
         {
             public GetterFieldDescription(TypeSyntax fieldType, string fieldName, ITypeSymbol targetFieldType, ISerializableMember member) : base(fieldType, fieldName)
             {
@@ -1102,7 +1100,7 @@ namespace Hagar.CodeGenerator
 
         internal interface ISerializableMember
         {
-            IMemberDescription Description { get; }
+            IMemberDescription Member { get; }
 
             /// <summary>
             /// Gets the underlying <see cref="Field"/> instance.
@@ -1159,11 +1157,11 @@ namespace Hagar.CodeGenerator
             public SerializableMethodMember(MethodParameterFieldDescription member, int ordinal)
             {
                 _member = member;
-                Description = member;
+                Member = member;
                 _ordinal = ordinal;
             }
 
-            public IMemberDescription Description { get; }
+            public IMemberDescription Member { get; }
 
             /// <summary>
             /// Gets the underlying <see cref="Field"/> instance.
@@ -1226,16 +1224,16 @@ namespace Hagar.CodeGenerator
             {
                 _wellKnownTypes = wellKnownTypes;
                 _model = type.SemanticModel;
-                Description = member;
+                Member = member;
                 _ordinal = ordinal;
             }
 
-            public IMemberDescription Description { get; }
+            public IMemberDescription Member { get; }
 
             /// <summary>
             /// Gets the underlying <see cref="Field"/> instance.
             /// </summary>
-            public IFieldSymbol Field => (IFieldSymbol)Description.Member;
+            public IFieldSymbol Field => (IFieldSymbol)Member.Member;
 
             /// <summary>
             /// Gets the name of the getter field.
@@ -1270,7 +1268,7 @@ namespace Hagar.CodeGenerator
             /// </summary>
             public TypeSyntax TypeSyntax => Field.Type.TypeKind == TypeKind.Dynamic
                 ? PredefinedType(Token(SyntaxKind.ObjectKeyword)) 
-                : Field.Type.ToTypeSyntax();
+                : Member.GetTypeSyntax(Field.Type);
 
 
             /// <summary>

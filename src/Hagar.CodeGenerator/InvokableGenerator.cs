@@ -17,25 +17,24 @@ namespace Hagar.CodeGenerator
         public static (ClassDeclarationSyntax, GeneratedInvokerDescription) Generate(
             LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription,
-            MethodDescription methodDescription)
+            MethodDescription method)
         {
-            var method = methodDescription.Method;
-            var generatedClassName = GetSimpleClassName(interfaceDescription, methodDescription);
+            var generatedClassName = GetSimpleClassName(interfaceDescription, method);
 
-            var fieldDescriptions = GetFieldDescriptions(methodDescription, interfaceDescription);
-            var fields = GetFieldDeclarations(fieldDescriptions, libraryTypes);
-            var ctor = GenerateConstructor(generatedClassName, fieldDescriptions);
+            var fieldDescriptions = GetFieldDescriptions(method, interfaceDescription);
+            var fields = GetFieldDeclarations(method, fieldDescriptions, libraryTypes);
+            var ctor = GenerateConstructor(generatedClassName, method, fieldDescriptions);
 
             Accessibility accessibility = GetAccessibility(interfaceDescription);
             var invokerDescription = new GeneratedInvokerDescription(
                                 interfaceDescription,
-                                methodDescription,
+                                method,
                                 accessibility,
                                 generatedClassName,
                                 fieldDescriptions.OfType<IMemberDescription>().ToList());
 
             var targetField = fieldDescriptions.OfType<TargetFieldDescription>().Single();
-            var methodReturnType = (INamedTypeSymbol)method.ReturnType;
+            var methodReturnType = (INamedTypeSymbol)method.Method.ReturnType;
 
             ITypeSymbol baseClassType = GetBaseClassType(libraryTypes, methodReturnType);
 
@@ -45,22 +44,22 @@ namespace Hagar.CodeGenerator
                 _ => SyntaxKind.InternalKeyword,
             };
             var classDeclaration = ClassDeclaration(generatedClassName)
-                .AddBaseListTypes(SimpleBaseType(baseClassType.ToTypeSyntax()))
+                .AddBaseListTypes(SimpleBaseType(baseClassType.ToTypeSyntax(method.TypeParameterSubstitutions)))
                 .AddModifiers(Token(accessibilityKind), Token(SyntaxKind.SealedKeyword), Token(SyntaxKind.PartialKeyword))
                 .AddAttributeLists(
                     AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
                 .AddMembers(fields)
                 .AddMembers(ctor)
                 .AddMembers(
-                    GenerateGetArgumentCount(libraryTypes, methodDescription),
+                    GenerateGetArgumentCount(libraryTypes, method),
                     GenerateSetTargetMethod(libraryTypes, interfaceDescription, targetField),
                     GenerateGetTargetMethod(targetField),
-                    GenerateDisposeMethod(libraryTypes, fieldDescriptions),
-                    GenerateGetArgumentMethod(libraryTypes, methodDescription, fieldDescriptions),
-                    GenerateSetArgumentMethod(libraryTypes, methodDescription, fieldDescriptions),
-                    GenerateInvokeInnerMethod(libraryTypes, methodDescription, fieldDescriptions, targetField));
+                    GenerateDisposeMethod(libraryTypes, method, fieldDescriptions),
+                    GenerateGetArgumentMethod(libraryTypes, method, fieldDescriptions),
+                    GenerateSetArgumentMethod(libraryTypes, method, fieldDescriptions),
+                    GenerateInvokeInnerMethod(libraryTypes, method, fieldDescriptions, targetField));
 
-            var typeParametersWithNames = methodDescription.AllTypeParameters;
+            var typeParametersWithNames = method.AllTypeParameters;
             if (typeParametersWithNames.Count > 0)
             {
                 classDeclaration = SyntaxFactoryUtility.AddGenericTypeParameters(classDeclaration, typeParametersWithNames);
@@ -272,7 +271,7 @@ namespace Hagar.CodeGenerator
                                         SyntaxKind.SimpleAssignmentExpression,
                                         ThisExpression().Member(parameter.FieldName),
                                         CastExpression(
-                                            parameter.FieldType.ToTypeSyntax(),
+                                            parameter.FieldType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions),
                                             CastExpression(
                                                 libraryTypes.Object.ToTypeSyntax(),
                                                 value
@@ -359,7 +358,7 @@ namespace Hagar.CodeGenerator
                 methodCall = ThisExpression().Member(target.FieldName).Member(method.Method.Name);
             }
 
-            return MethodDeclaration(method.Method.ReturnType.ToTypeSyntax(), "InvokeInner")
+            return MethodDeclaration(method.Method.ReturnType.ToTypeSyntax(method.TypeParameterSubstitutions), "InvokeInner")
                 .WithParameterList(ParameterList())
                 .WithExpressionBody(ArrowExpressionClause(InvocationExpression(methodCall, ArgumentList(args))))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
@@ -368,6 +367,7 @@ namespace Hagar.CodeGenerator
 
         private static MemberDeclarationSyntax GenerateDisposeMethod(
             LibraryTypes libraryTypes,
+            MethodDescription methodDescription,
             List<InvokerFieldDescripton> fields)
         {
             var body = new List<StatementSyntax>();
@@ -381,7 +381,7 @@ namespace Hagar.CodeGenerator
                             AssignmentExpression(
                                 SyntaxKind.SimpleAssignmentExpression,
                                 ThisExpression().Member(field.FieldName),
-                                DefaultExpression(field.FieldType.ToTypeSyntax()))));
+                                DefaultExpression(field.FieldType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions)))));
                 }
             }
 
@@ -413,6 +413,7 @@ namespace Hagar.CodeGenerator
         }
 
         private static MemberDeclarationSyntax[] GetFieldDeclarations(
+            MethodDescription method,
             List<InvokerFieldDescripton> fieldDescriptions,
             LibraryTypes libraryTypes)
         {
@@ -422,7 +423,7 @@ namespace Hagar.CodeGenerator
             {
                 var field = FieldDeclaration(
                     VariableDeclaration(
-                        description.FieldType.ToTypeSyntax(),
+                        description.FieldType.ToTypeSyntax(method.TypeParameterSubstitutions),
                         SingletonSeparatedList(VariableDeclarator(description.FieldName))));
 
                 switch (description)
@@ -459,11 +460,12 @@ namespace Hagar.CodeGenerator
 
         private static ConstructorDeclarationSyntax GenerateConstructor(
             string simpleClassName,
+            MethodDescription method,
             List<InvokerFieldDescripton> fieldDescriptions)
         {
             var injected = fieldDescriptions.Where(f => f.IsInjected).ToList();
             var parameters = injected.Select(
-                f => Parameter(f.FieldName.ToIdentifier()).WithType(f.FieldType.ToTypeSyntax()));
+                f => Parameter(f.FieldName.ToIdentifier()).WithType(f.FieldType.ToTypeSyntax(method.TypeParameterSubstitutions)));
             var body = injected.Select(
                 f => (StatementSyntax)ExpressionStatement(
                     AssignmentExpression(
@@ -499,7 +501,7 @@ namespace Hagar.CodeGenerator
                 fieldId++;
             }
 
-            fields.Add(new TargetFieldDescription(interfaceDescription.InterfaceType));
+            fields.Add(new TargetFieldDescription(method, interfaceDescription.InterfaceType));
 
             return fields;
         }
@@ -521,34 +523,37 @@ namespace Hagar.CodeGenerator
 
         internal class TargetFieldDescription : InvokerFieldDescripton
         {
-            public TargetFieldDescription(ITypeSymbol fieldType) : base(fieldType, "target")
+            private readonly MethodDescription _method;
+
+            public TargetFieldDescription(MethodDescription method, ITypeSymbol fieldType) : base(fieldType, "target")
             {
+                _method = method;
             }
 
             public override bool IsInjected => false;
             public override bool IsSerializable => false;
-            public override TypeSyntax FieldTypeSyntax => FieldType.ToTypeSyntax();
+            public override TypeSyntax FieldTypeSyntax => FieldType.ToTypeSyntax(_method.TypeParameterSubstitutions);
         }
 
         internal class MethodParameterFieldDescription : InvokerFieldDescripton, IMemberDescription
         {
+            private readonly MethodDescription _method;
+
             public MethodParameterFieldDescription(MethodDescription method, IParameterSymbol parameter, string fieldName, ushort fieldId)
                 : base(parameter.Type, fieldName)
             {
+                _method = method;
                 FieldId = fieldId;
                 Parameter = parameter;
                 if (parameter.Type.TypeKind == TypeKind.Dynamic)
                 {
                     TypeSyntax = PredefinedType(Token(SyntaxKind.ObjectKeyword));
-                }
-                else if (parameter.Type is ITypeParameterSymbol)
-                {
-                    var match = method.AllTypeParameters.First(p => SymbolEqualityComparer.Default.Equals(parameter.Type, p.Parameter));
-                    TypeSyntax = IdentifierName(match.Name);
+                    TypeName = "dynamic";
                 }
                 else
                 {
-                    TypeSyntax = Type.ToTypeSyntax();
+                    TypeName = Type.ToDisplayName(method.TypeParameterSubstitutions);
+                    TypeSyntax = Type.ToTypeSyntax(method.TypeParameterSubstitutions);
                 }
 
                 FieldTypeSyntax = TypeSyntax;
@@ -556,6 +561,7 @@ namespace Hagar.CodeGenerator
 
             public int ParameterOrdinal => Parameter.Ordinal;
             public override bool IsInjected => false;
+
             public ushort FieldId { get; }
             public ISymbol Member => Parameter;
             public ITypeSymbol Type => FieldType;
@@ -564,6 +570,24 @@ namespace Hagar.CodeGenerator
             public string Name => FieldName;
             public override bool IsSerializable => true;
             public override TypeSyntax FieldTypeSyntax { get; }
+
+            public string AssemblyName => Parameter.Type.ContainingAssembly.ToDisplayName();
+            public string TypeName { get; }
+
+            public string TypeNameIdentifier
+            {
+                get
+                {
+                    if (Type is ITypeParameterSymbol tp && _method.TypeParameterSubstitutions.TryGetValue(tp, out var name))
+                    {
+                        return name;
+                    }
+
+                    return Type.GetValidIdentifier();
+                }
+            }
+
+            public TypeSyntax GetTypeSyntax(ITypeSymbol typeSymbol) => typeSymbol.ToTypeSyntax(_method.TypeParameterSubstitutions);
         }
     }
 }

@@ -28,6 +28,12 @@ namespace Hagar.CodeGenerator
         public ITypeSymbol Type => Field.Type;
         public string Name => Field.Name;
         public TypeSyntax TypeSyntax { get; }
+
+        public string AssemblyName => Type.ContainingAssembly.ToDisplayName();
+        public string TypeName => Type.ToDisplayName();
+        public string TypeNameIdentifier => Type.GetValidIdentifier();
+
+        public TypeSyntax GetTypeSyntax(ITypeSymbol typeSymbol) => typeSymbol.ToTypeSyntax();
     }
 
     internal interface IFieldDescription : IMemberDescription
