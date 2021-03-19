@@ -22,12 +22,10 @@ namespace Hagar.CodeGenerator
         {
             ValidateBaseClass(generator.LibraryTypes, proxyBaseType);
             _generator = generator;
-            var methods = GetMethods(interfaceType).ToList();
             SemanticModel = semanticModel;
             InterfaceType = interfaceType;
             ProxyBaseType = proxyBaseType;
             IsExtension = isExtension;
-            Methods = methods;
             Name = name;
             GeneratedNamespace = CodeGenerator.CodeGeneratorName + "." + InterfaceType.GetNamespaceAndNesting();
 
@@ -39,6 +37,8 @@ namespace Hagar.CodeGenerator
                 var tpName = GetTypeParameterName(names, tp);
                 TypeParameters.Add((tpName, tp));
             }
+
+            Methods = GetMethods(interfaceType).ToList();
 
             static string GetTypeParameterName(HashSet<string> names, ITypeParameterSymbol tp)
             {
@@ -56,19 +56,6 @@ namespace Hagar.CodeGenerator
 
         private IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
         {
-            IEnumerable<INamedTypeSymbol> GetAllInterfaces(INamedTypeSymbol s)
-            {
-                if (s.TypeKind == TypeKind.Interface)
-                {
-                    yield return s;
-                }
-
-                foreach (var i in s.AllInterfaces)
-                {
-                    yield return i;
-                }
-            }
-
 #pragma warning disable RS1024 // Compare symbols correctly
             var methods = new Dictionary<IMethodSymbol, bool>(MethodSignatureComparer.Default);
 #pragma warning restore RS1024 // Compare symbols correctly
@@ -97,6 +84,19 @@ namespace Hagar.CodeGenerator
                 }
 
                 yield return new MethodDescription(this, method, id.ToString(CultureInfo.InvariantCulture), hasCollision: pair.Value);
+            }
+
+            IEnumerable<INamedTypeSymbol> GetAllInterfaces(INamedTypeSymbol s)
+            {
+                if (s.TypeKind == TypeKind.Interface)
+                {
+                    yield return s;
+                }
+
+                foreach (var i in s.AllInterfaces)
+                {
+                    yield return i;
+                }
             }
         }
 

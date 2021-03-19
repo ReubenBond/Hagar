@@ -134,13 +134,24 @@ namespace Hagar.CodeGenerator
             MethodDeclarationSyntax CreateProxyMethod(MethodDescription methodDescription)
             {
                 var method = methodDescription.Method;
-                var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(), method.Name)
+                var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(), method.Name.EscapeIdentifier())
                     .AddParameterListParameters(method.Parameters.Select(GetParameterSyntax).ToArray())
                     .WithBody(
                         CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
                 if (methodDescription.HasCollision)
                 {
                     declaration = declaration.WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)));
+
+                    // Type parameter constrains are not valid on explicit interface definitions
+                    var typeParameters = SyntaxFactoryUtility.GetTypeParametersWithConstraints(methodDescription.MethodTypeParameters);
+                    foreach (var (name, constraints) in typeParameters)
+                    {
+                        if (constraints.Count > 0)
+                        {
+                            declaration = declaration.AddConstraintClauses(
+                                TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
+                        }
+                    }
                 }
                 else
                 {
@@ -148,20 +159,10 @@ namespace Hagar.CodeGenerator
                     declaration = declaration.WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
                 }
 
-                var typeParameters = SyntaxFactoryUtility.GetTypeParametersWithConstraints(methodDescription.MethodTypeParameters);
-                foreach (var (name, constraints) in typeParameters)
-                {
-                    if (constraints.Count > 0)
-                    {
-                        declaration = declaration.AddConstraintClauses(
-                            TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
-                    }
-                }
-
-                if (typeParameters.Count > 0)
+                if (methodDescription.MethodTypeParameters.Count > 0)
                 {
                     declaration = declaration.WithTypeParameterList(
-                        TypeParameterList(SeparatedList(typeParameters.Select(tp => TypeParameter(tp.Item1)))));
+                        TypeParameterList(SeparatedList(methodDescription.MethodTypeParameters.Select(tp => TypeParameter(tp.Name)))));
                 }
 
                 return declaration;

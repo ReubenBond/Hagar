@@ -192,7 +192,7 @@ namespace Hagar.CodeGenerator
                             var baseClass = (INamedTypeSymbol)attribute.ConstructorArguments[0].Value;
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
                             var description = new InvokableInterfaceDescription(
-                                LibraryTypes,
+                                this,
                                 semanticModel,
                                 symbol,
                                 GetTypeAlias(symbol) ?? symbol.Name,

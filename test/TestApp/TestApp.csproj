@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <LangVersion>9</LangVersion>
     <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>

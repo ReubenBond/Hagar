@@ -72,7 +72,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                     return aliased.WithName(WithGenericParameters(aliased.Name, typeSymbol.Arity));
                 case QualifiedNameSyntax qualified:
                     return qualified.WithRight(WithGenericParameters(qualified.Right, typeSymbol.Arity));
-                case GenericNameSyntax g:
+                case GenericNameSyntax g when typeSymbol.Arity > 0:
                     return WithGenericParameters(g, typeSymbol.Arity);
                 default:
                     return nameSyntax;
@@ -169,7 +169,15 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 
         public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
         {
-            if (symbol.BaseType is { } baseType)
+            if (symbol.ContainingType is { } containingType && containingType.IsGenericType)
+            {
+                foreach (var containingTypeParameter in containingType.GetAllTypeParameters())
+                {
+                    yield return containingTypeParameter;
+                }
+            }
+
+            if (symbol.BaseType is { } baseType && baseType.IsGenericType)
             {
                 foreach (var baseTypeParameter in baseType.GetAllTypeParameters())
                 {
