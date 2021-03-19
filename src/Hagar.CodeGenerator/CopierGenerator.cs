@@ -72,7 +72,7 @@ namespace Hagar.CodeGenerator
 
             if (type.IsGenericType)
             {
-                classDeclaration = AddGenericTypeParameters(classDeclaration, type);
+                classDeclaration = SyntaxFactoryUtility.AddGenericTypeParameters(classDeclaration, type.TypeParameters);
             }
 
             return classDeclaration;
@@ -83,42 +83,6 @@ namespace Hagar.CodeGenerator
         public static string GetSimpleClassName(string name) => $"Copier_{name}";
 
         public static string GetGeneratedNamespaceName(ITypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}.{type.GetNamespaceAndNesting()}";
-
-        private static ClassDeclarationSyntax AddGenericTypeParameters(ClassDeclarationSyntax classDeclaration, ISerializableTypeDescription serializableType)
-        {
-            classDeclaration = classDeclaration.WithTypeParameterList(TypeParameterList(SeparatedList(serializableType.TypeParameters.Select(tp => TypeParameter(tp.Name)))));
-            var constraints = new List<TypeParameterConstraintSyntax>();
-            foreach (var tp in serializableType.TypeParameters)
-            {
-                constraints.Clear();
-                if (tp.HasReferenceTypeConstraint)
-                {
-                    constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
-                }
-
-                if (tp.HasValueTypeConstraint)
-                {
-                    constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
-                }
-
-                foreach (var c in tp.ConstraintTypes)
-                {
-                    constraints.Add(TypeConstraint(c.ToTypeSyntax()));
-                }
-
-                if (tp.HasConstructorConstraint)
-                {
-                    constraints.Add(ConstructorConstraint());
-                }
-
-                if (constraints.Count > 0)
-                {
-                    classDeclaration = classDeclaration.AddConstraintClauses(TypeParameterConstraintClause(tp.Name).AddConstraints(constraints.ToArray()));
-                }
-            }
-
-            return classDeclaration;
-        }
 
         private static MemberDeclarationSyntax[] GetFieldDeclarations(List<FieldDescription> fieldDescriptions)
         {
@@ -270,7 +234,7 @@ namespace Hagar.CodeGenerator
         {
             var fields = new List<FieldDescription>();
 #pragma warning disable RS1024 // Compare symbols correctly
-            fields.AddRange(serializableTypeDescription.Members.Select(m => GetExpectedType(m.Type)).Distinct(SymbolEqualityComparer.Default).OfType<ITypeSymbol>().Select(GetTypeDescription));
+            fields.AddRange(serializableTypeDescription.Members.Select(t => t.Type).Distinct(SymbolEqualityComparer.Default).OfType<ITypeSymbol>().Select(GetTypeDescription));
 #pragma warning restore RS1024 // Compare symbols correctly
 
             if (serializableTypeDescription.HasComplexBaseType)
@@ -286,7 +250,8 @@ namespace Hagar.CodeGenerator
             // Add a codec field for any field in the target which does not have a static codec.
 #pragma warning disable RS1024 // Compare symbols correctly
             fields.AddRange(serializableTypeDescription.Members
-                .Select(m => GetExpectedType(m.Type)).Distinct(SymbolEqualityComparer.Default)
+                .Select(t => t.Type)
+                .Distinct(SymbolEqualityComparer.Default)
 #pragma warning restore RS1024 // Compare symbols correctly
                 .Cast<ITypeSymbol>()
                 .Where(t => !libraryTypes.StaticCopiers.Any(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, t)))
@@ -377,26 +342,6 @@ namespace Hagar.CodeGenerator
             }
 
             static string ToLowerCamelCase(string input) => char.IsLower(input, 0) ? input : char.ToLowerInvariant(input[0]) + input.Substring(1);
-        }
-
-        /// <summary>
-        /// Returns the "expected" type for <paramref name="type"/> which is used for selecting the correct copier.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private static ITypeSymbol GetExpectedType(ITypeSymbol type)
-        {
-            if (type is IArrayTypeSymbol)
-            {
-                return type;
-            }
-
-            if (type is IPointerTypeSymbol pointerType)
-            {
-                throw new NotSupportedException($"Cannot serialize pointer type {pointerType.Name}");
-            }
-
-            return type;
         }
 
         private static MemberDeclarationSyntax GenerateDeepCopyMethod(
@@ -563,8 +508,8 @@ namespace Hagar.CodeGenerator
 
                 // Copiers can either be static classes or injected into the constructor.
                 // Either way, the member signatures are the same.
-                var codec = codecs.First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, GetExpectedType(description.Type)));
-                var memberType = GetExpectedType(description.Type);
+                var codec = codecs.First(f => SymbolEqualityComparer.Default.Equals(f.UnderlyingType, description.Type));
+                var memberType = description.Type;
                 var staticCopier = libraryTypes.StaticCopiers.FirstOrDefault(c => SymbolEqualityComparer.Default.Equals(c.UnderlyingType, memberType));
                 ExpressionSyntax codecExpression;
                 if (staticCopier != null)

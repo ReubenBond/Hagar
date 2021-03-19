@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -14,7 +13,7 @@ namespace Hagar.CodeGenerator
     /// </summary>
     internal static class ProxyGenerator
     {
-        public static (ClassDeclarationSyntax, IGeneratedProxyDescription) Generate(
+        public static (ClassDeclarationSyntax, GeneratedProxyDescription) Generate(
             LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription,
             MetadataModel metadataModel)
@@ -34,81 +33,16 @@ namespace Hagar.CodeGenerator
                 .AddMembers(ctors)
                 .AddMembers(proxyMethods);
 
-            if (interfaceDescription.InterfaceType.TypeParameters.Length > 0)
+            var typeParameters = interfaceDescription.TypeParameters;
+            if (typeParameters.Count > 0)
             {
-                classDeclaration = AddGenericTypeConstraints(classDeclaration, interfaceDescription.InterfaceType);
+                classDeclaration = SyntaxFactoryUtility.AddGenericTypeParameters(classDeclaration, typeParameters);
             }
 
             return (classDeclaration, new GeneratedProxyDescription(interfaceDescription));
         }
 
-        private class GeneratedProxyDescription : IGeneratedProxyDescription
-        {
-            public GeneratedProxyDescription(IInvokableInterfaceDescription interfaceDescription)
-            {
-                InterfaceDescription = interfaceDescription;
-            }
-
-            public TypeSyntax TypeSyntax => this.GetProxyTypeName();
-            public IInvokableInterfaceDescription InterfaceDescription { get; }
-        }
-
         public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription) => $"Proxy_{interfaceDescription.Name}";
-
-        private static ClassDeclarationSyntax AddGenericTypeConstraints(
-            ClassDeclarationSyntax classDeclaration,
-            INamedTypeSymbol type)
-        {
-            var typeParameters = GetTypeParametersWithConstraints(type.TypeParameters);
-            foreach (var (name, constraints) in typeParameters)
-            {
-                if (constraints.Count > 0)
-                {
-                    classDeclaration = classDeclaration.AddConstraintClauses(
-                        TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
-                }
-            }
-
-            if (typeParameters.Count > 0)
-            {
-                classDeclaration = classDeclaration.WithTypeParameterList(
-                    TypeParameterList(SeparatedList(typeParameters.Select(tp => TypeParameter(tp.Item1)))));
-            }
-
-            return classDeclaration;
-        }
-
-        private static List<(string, List<TypeParameterConstraintSyntax>)> GetTypeParametersWithConstraints(ImmutableArray<ITypeParameterSymbol> typeParameter)
-        {
-            var allConstraints = new List<(string, List<TypeParameterConstraintSyntax>)>();
-            foreach (var tp in typeParameter)
-            {
-                var constraints = new List<TypeParameterConstraintSyntax>();
-                if (tp.HasReferenceTypeConstraint)
-                {
-                    constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
-                }
-
-                if (tp.HasValueTypeConstraint)
-                {
-                    constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
-                }
-
-                foreach (var c in tp.ConstraintTypes)
-                {
-                    constraints.Add(TypeConstraint(c.ToTypeSyntax()));
-                }
-
-                if (tp.HasConstructorConstraint)
-                {
-                    constraints.Add(ConstructorConstraint());
-                }
-
-                allConstraints.Add((tp.Name, constraints));
-            }
-
-            return allConstraints;
-        }
 
         private static IEnumerable<MemberDeclarationSyntax> GenerateConstructors(
             string simpleClassName,
@@ -214,7 +148,7 @@ namespace Hagar.CodeGenerator
                     declaration = declaration.WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
                 }
 
-                var typeParameters = GetTypeParametersWithConstraints(method.TypeParameters);
+                var typeParameters = SyntaxFactoryUtility.GetTypeParametersWithConstraints(methodDescription.MethodTypeParameters);
                 foreach (var (name, constraints) in typeParameters)
                 {
                     if (constraints.Count > 0)
@@ -346,70 +280,6 @@ namespace Hagar.CodeGenerator
             }
 
             return result;
-        }
-
-        internal abstract class FieldDescription
-        {
-            protected FieldDescription(ITypeSymbol fieldType, string fieldName)
-            {
-                FieldType = fieldType;
-                FieldName = fieldName;
-            }
-
-            public ITypeSymbol FieldType { get; }
-            public string FieldName { get; }
-            public abstract bool IsInjected { get; }
-        }
-
-        internal class InjectedFieldDescription : FieldDescription
-        {
-            public InjectedFieldDescription(ITypeSymbol fieldType, string fieldName) : base(fieldType, fieldName)
-            {
-            }
-
-            public override bool IsInjected => true;
-        }
-
-        internal class CodecFieldDescription : FieldDescription, ICodecDescription
-        {
-            public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType)
-                : base(fieldType, fieldName)
-            {
-                UnderlyingType = underlyingType;
-            }
-
-            public ITypeSymbol UnderlyingType { get; }
-            public override bool IsInjected => true;
-        }
-
-        internal class TypeFieldDescription : FieldDescription
-        {
-            public TypeFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType) : base(
-                fieldType,
-                fieldName)
-            {
-                UnderlyingType = underlyingType;
-            }
-
-            public ITypeSymbol UnderlyingType { get; }
-            public override bool IsInjected => false;
-        }
-
-        internal class MethodParameterFieldDescription : FieldDescription, IMemberDescription
-        {
-            public MethodParameterFieldDescription(IParameterSymbol parameter, string fieldName, ushort fieldId)
-                : base(parameter.Type, fieldName)
-            {
-                FieldId = fieldId;
-                Parameter = parameter;
-            }
-
-            public override bool IsInjected => false;
-            public ushort FieldId { get; }
-            public ISymbol Member => Parameter;
-            public ITypeSymbol Type => FieldType;
-            public IParameterSymbol Parameter { get; }
-            public string Name => FieldName;
         }
     }
 }

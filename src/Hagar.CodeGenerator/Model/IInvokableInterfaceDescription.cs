@@ -9,6 +9,7 @@ namespace Hagar.CodeGenerator
         string GeneratedNamespace { get; }
         INamedTypeSymbol InterfaceType { get; }
         List<MethodDescription> Methods { get; }
+        List<(string Name, ITypeParameterSymbol Parameter)> TypeParameters { get; }
         INamedTypeSymbol ProxyBaseType { get; }
         bool IsExtension { get; }
         SemanticModel SemanticModel { get; }

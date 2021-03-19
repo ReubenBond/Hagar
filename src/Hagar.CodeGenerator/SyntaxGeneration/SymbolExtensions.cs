@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,19 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 {
     internal static class SymbolExtensions
     {
-        public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol) => ParseTypeName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+#pragma warning disable RS1024 // Compare symbols correctly
+        private static readonly ConcurrentDictionary<ITypeSymbol, TypeSyntax> TypeCache = new(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
+        public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol)
+        {
+            if (!TypeCache.TryGetValue(typeSymbol, out var result))
+            {
+                result = TypeCache[typeSymbol] = ParseTypeName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            }
+
+            return result;
+        }
 
         public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol, params TypeSyntax[] genericParameters)
         {
@@ -151,6 +164,22 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                         res.Append(parent.Name);
                         break;
                 }
+            }
+        }
+
+        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
+        {
+            if (symbol.BaseType is { } baseType)
+            {
+                foreach (var baseTypeParameter in baseType.GetAllTypeParameters())
+                {
+                    yield return baseTypeParameter;
+                }
+            }
+
+            foreach (var tp in symbol.TypeParameters)
+            {
+                yield return tp;
             }
         }
     }

@@ -40,9 +40,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Hagar.TestKit\Hagar.TestKit.csproj" />
-    <ProjectReference Include="..\..\src\Hagar\Hagar.csproj" />
-    <ProjectReference Include="$(SourceRoot)src/Hagar.Analyzers/Hagar.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="$(SourceRoot)src\Hagar.TestKit\Hagar.TestKit.csproj" />
+    <ProjectReference Include="$(SourceRoot)src\Hagar\Hagar.csproj" />
+    <ProjectReference Include="$(SourceRoot)src\Hagar.Analyzers\Hagar.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

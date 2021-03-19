@@ -26,7 +26,6 @@ namespace Hagar.CodeGenerator
     {
         internal const string CodeGeneratorName = "HagarGen";
         private readonly Compilation _compilation;
-        private readonly LibraryTypes _libraryTypes;
         private readonly CodeGeneratorOptions _options;
         private readonly INamedTypeSymbol[] _generateSerializerAttributes;
 
@@ -34,12 +33,14 @@ namespace Hagar.CodeGenerator
         {
             _compilation = compilation;
             _options = options;
-            _libraryTypes = LibraryTypes.FromCompilation(compilation, options);
+            LibraryTypes = LibraryTypes.FromCompilation(compilation, options);
             if (options.GenerateSerializerAttributes != null)
             {
                 _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
             }
         }
+
+        internal LibraryTypes LibraryTypes { get; }
 
         public CompilationUnitSyntax GenerateCode(CancellationToken cancellationToken)
         {
@@ -52,13 +53,13 @@ namespace Hagar.CodeGenerator
                 string ns = type.GeneratedNamespace;
                 foreach (var method in type.Methods)
                 {
-                    var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(this, _libraryTypes, type, method);
+                    var (invokable, generatedInvokerDescription) = InvokableGenerator.Generate(LibraryTypes, type, method);
                     metadataModel.SerializableTypes.Add(generatedInvokerDescription);
                     metadataModel.GeneratedInvokables[method] = generatedInvokerDescription;
                     AddMember(ns, invokable);
                 }
 
-                var (proxy, generatedProxyDescription) = ProxyGenerator.Generate(_libraryTypes, type, metadataModel);
+                var (proxy, generatedProxyDescription) = ProxyGenerator.Generate(LibraryTypes, type, metadataModel);
                 metadataModel.GeneratedProxies.Add(generatedProxyDescription);
                 AddMember(ns, proxy);
             }
@@ -69,11 +70,11 @@ namespace Hagar.CodeGenerator
                 string ns = type.GeneratedNamespace;
 
                 // Generate a partial serializer class for each serializable type.
-                var serializer = SerializerGenerator.GenerateSerializer(_libraryTypes, type);
+                var serializer = SerializerGenerator.GenerateSerializer(LibraryTypes, type);
                 AddMember(ns, serializer);
 
                 // Generate a copier for each serializable type.
-                var copier = CopierGenerator.GenerateCopier(_libraryTypes, type); 
+                var copier = CopierGenerator.GenerateCopier(LibraryTypes, type); 
                 AddMember(ns, copier);
 
                 if (type.IsEmptyConstructable)
@@ -81,20 +82,20 @@ namespace Hagar.CodeGenerator
                     metadataModel.ActivatableTypes.Add(type);
 
                     // Generate a partial serializer class for each serializable type.
-                    var activator = ActivatorGenerator.GenerateActivator(_libraryTypes, type);
+                    var activator = ActivatorGenerator.GenerateActivator(LibraryTypes, type);
                     AddMember(ns, activator);
                 }
             }
 
             // Generate metadata.
             var metadataClassNamespace = CodeGeneratorName + "." + _compilation.AssemblyName;
-            var metadataClass = MetadataGenerator.GenerateMetadata(_compilation, metadataModel, _libraryTypes);
+            var metadataClass = MetadataGenerator.GenerateMetadata(_compilation, metadataModel, LibraryTypes);
             AddMember(ns: metadataClassNamespace, member: metadataClass);
             var metadataAttribute = AttributeList()
                 .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword)))
                 .WithAttributes(
                     SingletonSeparatedList(
-                        Attribute(_libraryTypes.MetadataProviderAttribute.ToNameSyntax())
+                        Attribute(LibraryTypes.MetadataProviderAttribute.ToNameSyntax())
                             .AddArgumentListArguments(AttributeArgument(TypeOfExpression(QualifiedName(IdentifierName(metadataClassNamespace), IdentifierName(metadataClass.Identifier.Text)))))));
 
             var usings = List(new[] { UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) });
@@ -145,7 +146,7 @@ namespace Hagar.CodeGenerator
                             return false;
                         }
 
-                        if (HasAttribute(t, _libraryTypes.GenerateSerializerAttribute, inherited: true) != null)
+                        if (HasAttribute(t, LibraryTypes.GenerateSerializerAttribute, inherited: true) != null)
                         {
                             return true;
                         }
@@ -176,7 +177,7 @@ namespace Hagar.CodeGenerator
 
                     if (ShouldGenerateSerializer(symbol))
                     {
-                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, GetDataMembers(symbol), _libraryTypes);
+                        var typeDescription = new SerializableTypeDescription(semanticModel, symbol, GetDataMembers(symbol), LibraryTypes);
                         metadataModel.SerializableTypes.Add(typeDescription);
                     }
 
@@ -184,19 +185,17 @@ namespace Hagar.CodeGenerator
                     {
                         var attribute = HasAttribute(
                             symbol,
-                            _libraryTypes.GenerateMethodSerializersAttribute,
+                            LibraryTypes.GenerateMethodSerializersAttribute,
                             inherited: true);
                         if (attribute != null)
                         {
                             var baseClass = (INamedTypeSymbol)attribute.ConstructorArguments[0].Value;
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
-                            var methods = GetMethods(symbol).ToList();
                             var description = new InvokableInterfaceDescription(
-                                _libraryTypes,
+                                LibraryTypes,
                                 semanticModel,
                                 symbol,
                                 GetTypeAlias(symbol) ?? symbol.Name,
-                                methods,
                                 baseClass,
                                 isExtension);
                             metadataModel.InvokableInterfaces.Add(description);
@@ -205,17 +204,17 @@ namespace Hagar.CodeGenerator
 
                     if ((symbol.TypeKind == TypeKind.Class || symbol.TypeKind == TypeKind.Struct) && !symbol.IsAbstract && (symbol.DeclaredAccessibility == Accessibility.Public || symbol.DeclaredAccessibility == Accessibility.Internal))
                     {
-                        if (symbol.HasAttribute(_libraryTypes.RegisterSerializerAttribute))
+                        if (symbol.HasAttribute(LibraryTypes.RegisterSerializerAttribute))
                         {
                             metadataModel.DetectedSerializers.Add(symbol);
                         }
 
-                        if (symbol.HasAttribute(_libraryTypes.RegisterActivatorAttribute))
+                        if (symbol.HasAttribute(LibraryTypes.RegisterActivatorAttribute))
                         {
                             metadataModel.DetectedActivators.Add(symbol);
                         }
 
-                        if (symbol.HasAttribute(_libraryTypes.RegisterCopierAttribute))
+                        if (symbol.HasAttribute(LibraryTypes.RegisterCopierAttribute))
                         {
                             metadataModel.DetectedCopiers.Add(symbol);
                         }
@@ -269,12 +268,12 @@ namespace Hagar.CodeGenerator
                     continue;
                 }
 
-                if (member.HasAttribute(_libraryTypes.NonSerializedAttribute))
+                if (member.HasAttribute(LibraryTypes.NonSerializedAttribute))
                 {
                     continue;
                 }
 
-                if (_libraryTypes.IdAttributeTypes.Any(t => member.HasAttribute(t)))
+                if (LibraryTypes.IdAttributeTypes.Any(t => member.HasAttribute(t)))
                 {
                     hasAttributes = true;
                     break;
@@ -290,7 +289,7 @@ namespace Hagar.CodeGenerator
                     continue;
                 }
 
-                if (member.HasAttribute(_libraryTypes.NonSerializedAttribute))
+                if (member.HasAttribute(LibraryTypes.NonSerializedAttribute))
                 {
                     continue;
                 }
@@ -323,7 +322,7 @@ namespace Hagar.CodeGenerator
                             continue;
                         }
 
-                        if (prop.HasAttribute(_libraryTypes.NonSerializedAttribute))
+                        if (prop.HasAttribute(LibraryTypes.NonSerializedAttribute))
                         {
                             continue;
                         }
@@ -346,9 +345,11 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        public ushort? GetId(ISymbol memberSymbol)
+        public ushort? GetId(ISymbol memberSymbol) => GetId(LibraryTypes, memberSymbol);
+
+        internal static ushort? GetId(LibraryTypes libraryTypes, ISymbol memberSymbol)
         {
-            var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => _libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
+            var idAttr = memberSymbol.GetAttributes().FirstOrDefault(attr => libraryTypes.IdAttributeTypes.Any(t => SymbolEqualityComparer.Default.Equals(t, attr.AttributeClass)));
             if (idAttr is null)
             {
                 return null;
@@ -360,7 +361,7 @@ namespace Hagar.CodeGenerator
 
         private uint? GetWellKnownTypeId(INamedTypeSymbol typeSymbol)
         {
-            var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(_libraryTypes.WellKnownIdAttribute, attr.AttributeClass));
+            var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(LibraryTypes.WellKnownIdAttribute, attr.AttributeClass));
             if (attr is null)
             {
                 return null;
@@ -372,7 +373,7 @@ namespace Hagar.CodeGenerator
 
         private string GetTypeAlias(INamedTypeSymbol typeSymbol)
         {
-            var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(_libraryTypes.WellKnownAliasAttribute, attr.AttributeClass));
+            var attr = typeSymbol.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(LibraryTypes.WellKnownAliasAttribute, attr.AttributeClass));
             if (attr is null)
             {
                 return null;
@@ -380,161 +381,6 @@ namespace Hagar.CodeGenerator
 
             var value = (string)attr.ConstructorArguments.First().Value;
             return value;
-        }
-
-        // Returns descriptions of all methods 
-        private IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
-        {
-            IEnumerable<INamedTypeSymbol> GetAllInterfaces(INamedTypeSymbol s)
-            {
-                if (s.TypeKind == TypeKind.Interface)
-                {
-                    yield return s;
-                }
-
-                foreach (var i in s.AllInterfaces)
-                {
-                    yield return i;
-                }
-            }
-
-#pragma warning disable RS1024 // Compare symbols correctly
-            var methods = new Dictionary<IMethodSymbol, bool>(MethodSignatureComparer.Default);
-#pragma warning restore RS1024 // Compare symbols correctly
-            foreach (var iface in GetAllInterfaces(symbol))
-            {
-                foreach (var method in iface.GetDeclaredInstanceMembers<IMethodSymbol>())
-                {
-                    if (methods.TryGetValue(method, out var description))
-                    {
-                        methods[method] = true;
-                        continue;
-                    }
-
-                    methods.Add(method, false);
-                }
-            }
-
-            var idCounter = 1;
-            foreach (var pair in methods.OrderBy(kv => kv.Key, MethodSignatureComparer.Default))
-            {
-                var method = pair.Key;
-                var id = GetId(method) ?? idCounter;
-                if (id >= idCounter)
-                {
-                    idCounter = id + 1;
-                }
-
-                yield return new MethodDescription(method, id.ToString(CultureInfo.InvariantCulture), hasCollision: pair.Value);
-            }
-        }
-
-        private sealed class MethodSignatureComparer : IEqualityComparer<IMethodSymbol>, IComparer<IMethodSymbol>
-        {
-            public static MethodSignatureComparer Default { get; } = new();
-
-            private MethodSignatureComparer()
-            {
-            }
-
-            public bool Equals(IMethodSymbol x, IMethodSymbol y)
-            {
-                if (!string.Equals(x.Name, y.Name, StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                if (x.TypeArguments.Length != y.TypeArguments.Length)
-                {
-                    return false;
-                }
-
-                for (var i = 0; i < x.TypeArguments.Length; i++)
-                {
-                    if (!SymbolEqualityComparer.Default.Equals(x.TypeArguments[i], y.TypeArguments[i]))
-                    {
-                        return false;
-                    }
-                }
-
-                if (x.Parameters.Length != y.Parameters.Length)
-                {
-                    return false;
-                }
-
-                for (var i = 0; i < x.Parameters.Length; i++)
-                {
-                    if (!SymbolEqualityComparer.Default.Equals(x.Parameters[i].Type, y.Parameters[i].Type))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            public int GetHashCode(IMethodSymbol obj)
-            {
-                int hashCode = -499943048;
-                hashCode = hashCode * -1521134295 + StringComparer.Ordinal.GetHashCode(obj.Name);
-
-                foreach (var arg in obj.TypeArguments)
-                {
-                    hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(arg);
-                }
-
-                foreach (var parameter in obj.Parameters)
-                {
-                    hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(parameter.Type);
-                }
-
-                return hashCode;
-            }
-
-            public int Compare(IMethodSymbol x, IMethodSymbol y)
-            {
-                var result = StringComparer.Ordinal.Compare(x.Name, y.Name);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                result = x.TypeArguments.Length.CompareTo(y.TypeArguments.Length);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                for (var i = 0; i < x.TypeArguments.Length; i++)
-                {
-                    var xh = SymbolEqualityComparer.Default.GetHashCode(x.TypeArguments[i]);
-                    var yh = SymbolEqualityComparer.Default.GetHashCode(y.TypeArguments[i]);
-                    result = xh.CompareTo(yh);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                }
-
-                result = x.Parameters.Length.CompareTo(y.Parameters.Length);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                for (var i = 0; i < x.Parameters.Length; i++)
-                {
-                    var xh = SymbolEqualityComparer.Default.GetHashCode(x.Parameters[i].Type);
-                    var yh = SymbolEqualityComparer.Default.GetHashCode(y.Parameters[i].Type);
-                    result = xh.CompareTo(yh);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                }
-
-                return 0;
-            }
         }
 
         // Returns true if the type declaration has the specified attribute.

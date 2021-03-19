@@ -1,5 +1,8 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator.SyntaxGeneration
@@ -44,5 +47,60 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                         .AddTypeArgumentListArguments(genericTypes));
 
         public static GenericNameSyntax ToGenericName(this string identifier) => GenericName(identifier.ToIdentifier());
+
+        public static ClassDeclarationSyntax AddGenericTypeParameters(
+            ClassDeclarationSyntax classDeclaration,
+            List<(string Name, ITypeParameterSymbol Parameter)> typeParameters)
+        {
+            var typeParametersWithConstraints = GetTypeParametersWithConstraints(typeParameters);
+            foreach (var (name, constraints) in typeParametersWithConstraints)
+            {
+                if (constraints.Count > 0)
+                {
+                    classDeclaration = classDeclaration.AddConstraintClauses(
+                        TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
+                }
+            }
+
+            if (typeParametersWithConstraints.Count > 0)
+            {
+                classDeclaration = classDeclaration.WithTypeParameterList(
+                    TypeParameterList(SeparatedList(typeParametersWithConstraints.Select(tp => TypeParameter(tp.Name)))));
+            }
+
+            return classDeclaration;
+        }
+
+        public static List<(string Name, List<TypeParameterConstraintSyntax> Constraints)> GetTypeParametersWithConstraints(List<(string Name, ITypeParameterSymbol Parameter)> typeParameter)
+        {
+            var allConstraints = new List<(string, List<TypeParameterConstraintSyntax>)>();
+            foreach (var (name, tp) in typeParameter)
+            {
+                var constraints = new List<TypeParameterConstraintSyntax>();
+                if (tp.HasReferenceTypeConstraint)
+                {
+                    constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+                }
+
+                if (tp.HasValueTypeConstraint)
+                {
+                    constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
+                }
+
+                foreach (var c in tp.ConstraintTypes)
+                {
+                    constraints.Add(TypeConstraint(c.ToTypeSyntax()));
+                }
+
+                if (tp.HasConstructorConstraint)
+                {
+                    constraints.Add(ConstructorConstraint());
+                }
+
+                allConstraints.Add((name, constraints));
+            }
+
+            return allConstraints;
+        }
     }
 }
