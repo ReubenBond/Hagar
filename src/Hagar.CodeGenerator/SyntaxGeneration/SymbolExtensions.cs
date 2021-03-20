@@ -58,7 +58,10 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 
         public static string ToDisplayName(this IAssemblySymbol assemblySymbol)
         {
-            if (assemblySymbol is null) return string.Empty;
+            if (assemblySymbol is null)
+            {
+                return string.Empty;
+            }
 
             if (!NameCache.TryGetValue(assemblySymbol, out var result))
             {
@@ -111,7 +114,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                         break;
                     case INamedTypeSymbol containingType:
                         OnNamedTypeSymbol(containingType, substitutions, res);
-                        res.Append('+');
+                        res.Append('.');
                         break;
                 }
 

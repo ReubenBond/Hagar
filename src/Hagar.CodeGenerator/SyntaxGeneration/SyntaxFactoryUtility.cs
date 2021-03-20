@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -101,6 +102,12 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             }
 
             return allConstraints;
+        }
+
+        public static string GetSanitizedName(IParameterSymbol parameter, int index)
+        {
+            var parameterName = string.IsNullOrWhiteSpace(parameter.Name) ? "arg" : parameter.Name;
+            return string.Format(CultureInfo.InvariantCulture, "{0}{1:G}", parameterName, index);
         }
     }
 }

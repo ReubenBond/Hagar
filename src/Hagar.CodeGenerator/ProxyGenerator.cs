@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -72,7 +73,7 @@ namespace Hagar.CodeGenerator
             ConstructorDeclarationSyntax CreateConstructor(IMethodSymbol baseConstructor)
             {
                 return ConstructorDeclaration(simpleClassName)
-                    .AddParameterListParameters(baseConstructor.Parameters.Select(p => GetParameterSyntax(p, null)).ToArray())
+                    .AddParameterListParameters(baseConstructor.Parameters.Select((p, i) => GetParameterSyntax(i, p, null)).ToArray())
                     .WithModifiers(TokenList(GetModifiers(baseConstructor)))
                     .WithInitializer(
                         ConstructorInitializer(
@@ -100,9 +101,10 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            static ArgumentSyntax GetBaseInitializerArgument(IParameterSymbol parameter)
+            static ArgumentSyntax GetBaseInitializerArgument(IParameterSymbol parameter, int index)
             {
-                var result = Argument(IdentifierName(parameter.Name));
+                var name = SyntaxFactoryUtility.GetSanitizedName(parameter, index);
+                var result = Argument(IdentifierName(name));
                 switch (parameter.RefKind)
                 {
                     case RefKind.None:
@@ -135,7 +137,7 @@ namespace Hagar.CodeGenerator
             {
                 var method = methodDescription.Method;
                 var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions), method.Name.EscapeIdentifier())
-                    .AddParameterListParameters(method.Parameters.Select(p => GetParameterSyntax(p, methodDescription)).ToArray())
+                    .AddParameterListParameters(method.Parameters.Select((p, i) => GetParameterSyntax(i, p, methodDescription)).ToArray())
                     .WithBody(
                         CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
                 if (methodDescription.HasCollision)
@@ -202,7 +204,7 @@ namespace Hagar.CodeGenerator
                         AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
                             requestVar.Member($"arg{parameterIndex}"),
-                            IdentifierName(parameter.Name))));
+                            IdentifierName(SyntaxFactoryUtility.GetSanitizedName(parameter, parameterIndex)))));
 
                 parameterIndex++;
             }
@@ -260,9 +262,9 @@ namespace Hagar.CodeGenerator
             return Block(statements);
         }
 
-        private static ParameterSyntax GetParameterSyntax(IParameterSymbol parameter, MethodDescription methodDescription)
+        private static ParameterSyntax GetParameterSyntax(int index, IParameterSymbol parameter, MethodDescription methodDescription)
         {
-            var result = Parameter(Identifier(parameter.Name)).WithType(parameter.Type.ToTypeSyntax(methodDescription?.TypeParameterSubstitutions));
+            var result = Parameter(Identifier(SyntaxFactoryUtility.GetSanitizedName(parameter, index))).WithType(parameter.Type.ToTypeSyntax(methodDescription?.TypeParameterSubstitutions));
             switch (parameter.RefKind)
             {
                 case RefKind.None:
