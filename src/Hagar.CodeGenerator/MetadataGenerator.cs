@@ -137,7 +137,7 @@ namespace Hagar.CodeGenerator
 
         public static TypeSyntax GetCodecTypeName(this ISerializableTypeDescription type)
         {
-            var genericArity = type.TypeParameters.Length;
+            var genericArity = type.TypeParameters.Count;
             var name = SerializerGenerator.GetSimpleClassName(type);
             if (genericArity > 0)
             {
@@ -149,7 +149,7 @@ namespace Hagar.CodeGenerator
 
         public static TypeSyntax GetCopierTypeName(this ISerializableTypeDescription type)
         {
-            var genericArity = type.TypeParameters.Length;
+            var genericArity = type.TypeParameters.Count;
             var name = CopierGenerator.GetSimpleClassName(type);
             if (genericArity > 0)
             {
@@ -159,23 +159,9 @@ namespace Hagar.CodeGenerator
             return ParseTypeName(type.GeneratedNamespace + "." + name);
         }
 
-
-        public static TypeSyntax GetProxyTypeName(this IGeneratedProxyDescription proxy)
-        {
-            var interfaceType = proxy.InterfaceDescription.InterfaceType;
-            var genericArity = interfaceType.TypeParameters.Length;
-            var name = ProxyGenerator.GetSimpleClassName(proxy.InterfaceDescription);
-            if (genericArity > 0)
-            {
-                name += $"<{new string(',', genericArity - 1)}>";
-            }
-
-            return ParseTypeName(proxy.InterfaceDescription.GeneratedNamespace + "." + name);
-        }
-
         public static TypeSyntax GetActivatorTypeName(this ISerializableTypeDescription type)
         {
-            var genericArity = type.TypeParameters.Length;
+            var genericArity = type.TypeParameters.Count;
             var name = ActivatorGenerator.GetSimpleClassName(type);
             if (genericArity > 0)
             {

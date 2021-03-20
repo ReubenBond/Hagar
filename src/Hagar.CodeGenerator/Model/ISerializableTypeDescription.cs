@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Hagar.CodeGenerator
 {
@@ -18,7 +17,7 @@ namespace Hagar.CodeGenerator
         bool IsSealedType { get; }
         bool IsEnumType { get; }
         bool IsGenericType { get; }
-        ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
+        List<(string Name, ITypeParameterSymbol Parameter)> TypeParameters { get; }
         List<IMemberDescription> Members { get; }
         SemanticModel SemanticModel { get; }
         bool UseActivator { get; }

@@ -1,6 +1,7 @@
 using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -33,6 +34,26 @@ namespace Hagar.CodeGenerator
             }
 
             Accessibility = accessibility;
+            TypeParameters = new();
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var tp in type.GetAllTypeParameters())
+            {
+                var tpName = GetTypeParameterName(names, tp);
+                TypeParameters.Add((tpName, tp));
+            }
+
+            static string GetTypeParameterName(HashSet<string> names, ITypeParameterSymbol tp)
+            {
+                var count = 0;
+                var result = tp.Name;
+                while (names.Contains(result))
+                {
+                    result = $"{tp.Name}_{++count}";
+                }
+
+                names.Add(result);
+                return result.EscapeIdentifier();
+            }
         }
 
         private INamedTypeSymbol Type { get; }
@@ -59,7 +80,7 @@ namespace Hagar.CodeGenerator
 
         public bool IsGenericType => Type.IsGenericType;
 
-        public ImmutableArray<ITypeParameterSymbol> TypeParameters => Type.TypeParameters;
+        public List<(string Name, ITypeParameterSymbol Parameter)> TypeParameters { get; }
 
         public List<IMemberDescription> Members { get; }
         public SemanticModel SemanticModel { get; }

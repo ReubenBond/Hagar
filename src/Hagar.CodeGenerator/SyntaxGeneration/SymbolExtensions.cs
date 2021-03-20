@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,150 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 {
     internal static class SymbolExtensions
     {
-        public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol) => ParseTypeName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+#pragma warning disable RS1024 // Compare symbols correctly
+        private static readonly ConcurrentDictionary<ITypeSymbol, TypeSyntax> TypeCache = new(SymbolEqualityComparer.Default);
+        private static readonly ConcurrentDictionary<ISymbol, string> NameCache = new(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
+        public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol)
+        {
+            if (!TypeCache.TryGetValue(typeSymbol, out var result))
+            {
+                result = TypeCache[typeSymbol] = ParseTypeName(typeSymbol.ToDisplayName());
+            }
+
+            return result;
+        }
+
+        public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions)
+        {
+            if (substitutions is null or { Count: 0 })
+            {
+                return typeSymbol.ToTypeSyntax();
+            }
+
+            var res = new StringBuilder();
+            ToTypeSyntaxInner(typeSymbol, substitutions, res);
+            var result = ParseTypeName(res.ToString());
+            return result;
+        }
+
+        public static string ToDisplayName(this ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions)
+        {
+            var result = new StringBuilder();
+            ToTypeSyntaxInner(typeSymbol, substitutions, result);
+            return result.ToString();
+        }
+
+        public static string ToDisplayName(this ITypeSymbol typeSymbol)
+        {
+            if (!NameCache.TryGetValue(typeSymbol, out var result))
+            {
+                result = NameCache[typeSymbol] = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            }
+
+            return result;
+        }
+
+        public static string ToDisplayName(this IAssemblySymbol assemblySymbol)
+        {
+            if (assemblySymbol is null)
+            {
+                return string.Empty;
+            }
+
+            if (!NameCache.TryGetValue(assemblySymbol, out var result))
+            {
+                result = NameCache[assemblySymbol] = assemblySymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            }
+
+            return result;
+        }
+
+        private static void ToTypeSyntaxInner(ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions, StringBuilder res)
+        {
+            switch (typeSymbol)
+            {
+                case IDynamicTypeSymbol:
+                    res.Append("dynamic");
+                    break;
+                case IArrayTypeSymbol a:
+                    ToTypeSyntaxInner(a.ElementType, substitutions, res);
+                    res.Append('[');
+                    if (a.Rank > 1)
+                    {
+                        res.Append(new string(',', a.Rank - 1));
+                    }
+
+                    res.Append(']');
+                    break;
+                case ITypeParameterSymbol tp:
+                    if (substitutions.TryGetValue(tp, out var sub))
+                    {
+                        res.Append(sub);
+                    }
+                    else
+                    {
+                        res.Append(tp.Name.EscapeIdentifier());
+                    }
+                    break;
+                case INamedTypeSymbol n:
+                    OnNamedTypeSymbol(n, substitutions, res);
+                    break;
+                default:
+                    throw new NotSupportedException($"Symbols of type {typeSymbol?.GetType().ToString() ?? "null"} are not supported");
+            }
+
+            static void OnNamedTypeSymbol(INamedTypeSymbol symbol, Dictionary<ITypeParameterSymbol, string> substitutions, StringBuilder res)
+            {
+                switch (symbol.ContainingSymbol)
+                {
+                    case INamespaceSymbol ns:
+                        AddFullNamespace(ns, res);
+                        break;
+                    case INamedTypeSymbol containingType:
+                        OnNamedTypeSymbol(containingType, substitutions, res);
+                        res.Append('.');
+                        break;
+                }
+
+                res.Append(symbol.Name.EscapeIdentifier());
+                if (symbol.TypeArguments.Length > 0)
+                {
+                    res.Append('<');
+                    bool first = true;
+                    foreach (var typeParameter in symbol.TypeArguments)
+                    {
+                        if (!first)
+                        {
+                            res.Append(',');
+                        }
+
+                        ToTypeSyntaxInner(typeParameter, substitutions, res);
+                        first = false;
+                    }
+                    res.Append('>');
+                }
+            }
+
+            static void AddFullNamespace(INamespaceSymbol symbol, StringBuilder res)
+            {
+                if (symbol.ContainingNamespace is { } parent)
+                {
+                    AddFullNamespace(parent, res);
+                }
+
+                if (symbol.IsGlobalNamespace)
+                {
+                    res.Append("global::");
+                }
+                else
+                {
+                    res.Append(symbol.Name.EscapeIdentifier());
+                    res.Append('.');
+                }
+            }
+        }
 
         public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol, params TypeSyntax[] genericParameters)
         {
@@ -59,7 +203,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                     return aliased.WithName(WithGenericParameters(aliased.Name, typeSymbol.Arity));
                 case QualifiedNameSyntax qualified:
                     return qualified.WithRight(WithGenericParameters(qualified.Right, typeSymbol.Arity));
-                case GenericNameSyntax g:
+                case GenericNameSyntax g when typeSymbol.Arity > 0:
                     return WithGenericParameters(g, typeSymbol.Arity);
                 default:
                     return nameSyntax;
@@ -83,7 +227,6 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             INamedTypeSymbol named when !named.IsGenericType => $"{named.Name}",
             INamedTypeSymbol named => $"{named.Name}_{string.Join("_", named.TypeArguments.Select(GetValidIdentifier))}",
             IArrayTypeSymbol array => $"{GetValidIdentifier(array.ElementType)}_{array.Rank}",
-            IPointerTypeSymbol pointer => $"{GetValidIdentifier(pointer.PointedAtType)}_ptr",
             ITypeParameterSymbol parameter => $"{parameter.Name}",
             _ => throw new NotSupportedException($"Unable to format type of kind {type.GetType()} with name \"{type.Name}\""),
         };
@@ -151,6 +294,24 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                         res.Append(parent.Name);
                         break;
                 }
+            }
+        }
+
+        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
+        {
+            // Note that this will not work if multiple points in the inheritance hierarchy are containing within a single generic type.
+            // To solve that, we could retain some context throughout the recursive calls.
+            if (symbol.ContainingType is { } containingType && containingType.IsGenericType)
+            {
+                foreach (var containingTypeParameter in containingType.GetAllTypeParameters())
+                {
+                    yield return containingTypeParameter;
+                }
+            }
+
+            foreach (var tp in symbol.TypeParameters)
+            {
+                yield return tp;
             }
         }
     }

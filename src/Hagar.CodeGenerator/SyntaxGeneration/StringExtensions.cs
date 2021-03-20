@@ -43,6 +43,16 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return SyntaxFactory.Identifier(SyntaxTriviaList.Empty, identifier, SyntaxTriviaList.Empty);
         }
 
+        public static string EscapeIdentifier(this string str)
+        {
+            if (Identifier.IsCSharpKeyword(str))
+            {
+                return "@" + str;
+            }
+
+            return str;
+        }
+
         public static IdentifierNameSyntax ToIdentifierName(this string identifier) => SyntaxFactory.IdentifierName(identifier.ToIdentifier());
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -14,7 +14,7 @@ namespace Hagar.CodeGenerator
     /// </summary>
     internal static class ProxyGenerator
     {
-        public static (ClassDeclarationSyntax, IGeneratedProxyDescription) Generate(
+        public static (ClassDeclarationSyntax, GeneratedProxyDescription) Generate(
             LibraryTypes libraryTypes,
             IInvokableInterfaceDescription interfaceDescription,
             MetadataModel metadataModel)
@@ -34,81 +34,16 @@ namespace Hagar.CodeGenerator
                 .AddMembers(ctors)
                 .AddMembers(proxyMethods);
 
-            if (interfaceDescription.InterfaceType.TypeParameters.Length > 0)
+            var typeParameters = interfaceDescription.TypeParameters;
+            if (typeParameters.Count > 0)
             {
-                classDeclaration = AddGenericTypeConstraints(classDeclaration, interfaceDescription.InterfaceType);
+                classDeclaration = SyntaxFactoryUtility.AddGenericTypeParameters(classDeclaration, typeParameters);
             }
 
             return (classDeclaration, new GeneratedProxyDescription(interfaceDescription));
         }
 
-        private class GeneratedProxyDescription : IGeneratedProxyDescription
-        {
-            public GeneratedProxyDescription(IInvokableInterfaceDescription interfaceDescription)
-            {
-                InterfaceDescription = interfaceDescription;
-            }
-
-            public TypeSyntax TypeSyntax => this.GetProxyTypeName();
-            public IInvokableInterfaceDescription InterfaceDescription { get; }
-        }
-
         public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription) => $"Proxy_{interfaceDescription.Name}";
-
-        private static ClassDeclarationSyntax AddGenericTypeConstraints(
-            ClassDeclarationSyntax classDeclaration,
-            INamedTypeSymbol type)
-        {
-            var typeParameters = GetTypeParametersWithConstraints(type.TypeParameters);
-            foreach (var (name, constraints) in typeParameters)
-            {
-                if (constraints.Count > 0)
-                {
-                    classDeclaration = classDeclaration.AddConstraintClauses(
-                        TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
-                }
-            }
-
-            if (typeParameters.Count > 0)
-            {
-                classDeclaration = classDeclaration.WithTypeParameterList(
-                    TypeParameterList(SeparatedList(typeParameters.Select(tp => TypeParameter(tp.Item1)))));
-            }
-
-            return classDeclaration;
-        }
-
-        private static List<(string, List<TypeParameterConstraintSyntax>)> GetTypeParametersWithConstraints(ImmutableArray<ITypeParameterSymbol> typeParameter)
-        {
-            var allConstraints = new List<(string, List<TypeParameterConstraintSyntax>)>();
-            foreach (var tp in typeParameter)
-            {
-                var constraints = new List<TypeParameterConstraintSyntax>();
-                if (tp.HasReferenceTypeConstraint)
-                {
-                    constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
-                }
-
-                if (tp.HasValueTypeConstraint)
-                {
-                    constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
-                }
-
-                foreach (var c in tp.ConstraintTypes)
-                {
-                    constraints.Add(TypeConstraint(c.ToTypeSyntax()));
-                }
-
-                if (tp.HasConstructorConstraint)
-                {
-                    constraints.Add(ConstructorConstraint());
-                }
-
-                allConstraints.Add((tp.Name, constraints));
-            }
-
-            return allConstraints;
-        }
 
         private static IEnumerable<MemberDeclarationSyntax> GenerateConstructors(
             string simpleClassName,
@@ -138,7 +73,7 @@ namespace Hagar.CodeGenerator
             ConstructorDeclarationSyntax CreateConstructor(IMethodSymbol baseConstructor)
             {
                 return ConstructorDeclaration(simpleClassName)
-                    .AddParameterListParameters(baseConstructor.Parameters.Select(GetParameterSyntax).ToArray())
+                    .AddParameterListParameters(baseConstructor.Parameters.Select((p, i) => GetParameterSyntax(i, p, null)).ToArray())
                     .WithModifiers(TokenList(GetModifiers(baseConstructor)))
                     .WithInitializer(
                         ConstructorInitializer(
@@ -166,9 +101,10 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            static ArgumentSyntax GetBaseInitializerArgument(IParameterSymbol parameter)
+            static ArgumentSyntax GetBaseInitializerArgument(IParameterSymbol parameter, int index)
             {
-                var result = Argument(IdentifierName(parameter.Name));
+                var name = SyntaxFactoryUtility.GetSanitizedName(parameter, index);
+                var result = Argument(IdentifierName(name));
                 switch (parameter.RefKind)
                 {
                     case RefKind.None:
@@ -200,13 +136,24 @@ namespace Hagar.CodeGenerator
             MethodDeclarationSyntax CreateProxyMethod(MethodDescription methodDescription)
             {
                 var method = methodDescription.Method;
-                var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(), method.Name)
-                    .AddParameterListParameters(method.Parameters.Select(GetParameterSyntax).ToArray())
+                var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions), method.Name.EscapeIdentifier())
+                    .AddParameterListParameters(method.Parameters.Select((p, i) => GetParameterSyntax(i, p, methodDescription)).ToArray())
                     .WithBody(
                         CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
                 if (methodDescription.HasCollision)
                 {
                     declaration = declaration.WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)));
+
+                    // Type parameter constrains are not valid on explicit interface definitions
+                    var typeParameters = SyntaxFactoryUtility.GetTypeParameterConstraints(methodDescription.MethodTypeParameters);
+                    foreach (var (name, constraints) in typeParameters)
+                    {
+                        if (constraints.Count > 0)
+                        {
+                            declaration = declaration.AddConstraintClauses(
+                                TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
+                        }
+                    }
                 }
                 else
                 {
@@ -214,20 +161,10 @@ namespace Hagar.CodeGenerator
                     declaration = declaration.WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
                 }
 
-                var typeParameters = GetTypeParametersWithConstraints(method.TypeParameters);
-                foreach (var (name, constraints) in typeParameters)
-                {
-                    if (constraints.Count > 0)
-                    {
-                        declaration = declaration.AddConstraintClauses(
-                            TypeParameterConstraintClause(name).AddConstraints(constraints.ToArray()));
-                    }
-                }
-
-                if (typeParameters.Count > 0)
+                if (methodDescription.MethodTypeParameters.Count > 0)
                 {
                     declaration = declaration.WithTypeParameterList(
-                        TypeParameterList(SeparatedList(typeParameters.Select(tp => TypeParameter(tp.Item1)))));
+                        TypeParameterList(SeparatedList(methodDescription.MethodTypeParameters.Select(tp => TypeParameter(tp.Name)))));
                 }
 
                 return declaration;
@@ -267,7 +204,7 @@ namespace Hagar.CodeGenerator
                         AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
                             requestVar.Member($"arg{parameterIndex}"),
-                            IdentifierName(parameter.Name))));
+                            IdentifierName(SyntaxFactoryUtility.GetSanitizedName(parameter, parameterIndex)))));
 
                 parameterIndex++;
             }
@@ -283,7 +220,7 @@ namespace Hagar.CodeGenerator
                 returnType = libraryTypes.Object;
             }
 
-            var createCompletionExpr = InvocationExpression(libraryTypes.ResponseCompletionSourcePool.ToTypeSyntax().Member("Get", returnType.ToTypeSyntax()))
+            var createCompletionExpr = InvocationExpression(libraryTypes.ResponseCompletionSourcePool.ToTypeSyntax().Member("Get", returnType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions)))
                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
             statements.Add(
                 LocalDeclarationStatement(
@@ -325,9 +262,9 @@ namespace Hagar.CodeGenerator
             return Block(statements);
         }
 
-        private static ParameterSyntax GetParameterSyntax(IParameterSymbol parameter)
+        private static ParameterSyntax GetParameterSyntax(int index, IParameterSymbol parameter, MethodDescription methodDescription)
         {
-            var result = Parameter(Identifier(parameter.Name)).WithType(parameter.Type.ToTypeSyntax());
+            var result = Parameter(Identifier(SyntaxFactoryUtility.GetSanitizedName(parameter, index))).WithType(parameter.Type.ToTypeSyntax(methodDescription?.TypeParameterSubstitutions));
             switch (parameter.RefKind)
             {
                 case RefKind.None:
@@ -346,70 +283,6 @@ namespace Hagar.CodeGenerator
             }
 
             return result;
-        }
-
-        internal abstract class FieldDescription
-        {
-            protected FieldDescription(ITypeSymbol fieldType, string fieldName)
-            {
-                FieldType = fieldType;
-                FieldName = fieldName;
-            }
-
-            public ITypeSymbol FieldType { get; }
-            public string FieldName { get; }
-            public abstract bool IsInjected { get; }
-        }
-
-        internal class InjectedFieldDescription : FieldDescription
-        {
-            public InjectedFieldDescription(ITypeSymbol fieldType, string fieldName) : base(fieldType, fieldName)
-            {
-            }
-
-            public override bool IsInjected => true;
-        }
-
-        internal class CodecFieldDescription : FieldDescription, ICodecDescription
-        {
-            public CodecFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType)
-                : base(fieldType, fieldName)
-            {
-                UnderlyingType = underlyingType;
-            }
-
-            public ITypeSymbol UnderlyingType { get; }
-            public override bool IsInjected => true;
-        }
-
-        internal class TypeFieldDescription : FieldDescription
-        {
-            public TypeFieldDescription(ITypeSymbol fieldType, string fieldName, ITypeSymbol underlyingType) : base(
-                fieldType,
-                fieldName)
-            {
-                UnderlyingType = underlyingType;
-            }
-
-            public ITypeSymbol UnderlyingType { get; }
-            public override bool IsInjected => false;
-        }
-
-        internal class MethodParameterFieldDescription : FieldDescription, IMemberDescription
-        {
-            public MethodParameterFieldDescription(IParameterSymbol parameter, string fieldName, ushort fieldId)
-                : base(parameter.Type, fieldName)
-            {
-                FieldId = fieldId;
-                Parameter = parameter;
-            }
-
-            public override bool IsInjected => false;
-            public ushort FieldId { get; }
-            public ISymbol Member => Parameter;
-            public ITypeSymbol Type => FieldType;
-            public IParameterSymbol Parameter { get; }
-            public string Name => FieldName;
         }
     }
 }
