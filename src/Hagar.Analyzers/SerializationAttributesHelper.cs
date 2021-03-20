@@ -7,7 +7,7 @@ namespace Hagar.Analyzers
     {
         public static (List<MemberDeclarationSyntax> UnannotatedMembers, uint NextAvailableId) AnalyzeTypeDeclaration(TypeDeclarationSyntax declaration)
         {
-            uint nextId = 1;
+            uint nextId = 0;
             var serializableMembers = new List<MemberDeclarationSyntax>();
             foreach (var member in declaration.Members)
             {
