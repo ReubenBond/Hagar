@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0;netcoreapp3.1;net48;netstandard2.0</TargetFrameworks>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hagar.Abstractions\Hagar.Abstractions.csproj"/>
+    <ProjectReference Include="..\Hagar\Hagar.csproj"/>
+    <ProjectReference Include="..\Hagar.Analyzers\Hagar.Analyzers.csproj"/>
+    <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj"/>
+  </ItemGroup>
+</Project>
