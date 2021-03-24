@@ -344,7 +344,7 @@ namespace Hagar.UnitTests
             public override string ToString() => $"{nameof(Blah)}: {Blah}; {nameof(NewField)}: {NewField}; {nameof(Version)}: {Version}";
         }
 
-        public class ObjectWithNewFieldTypeSerializer : IPartialSerializer<ObjectWithNewField>
+        public class ObjectWithNewFieldTypeSerializer : IBaseCodec<ObjectWithNewField>
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ObjectWithNewField obj) where TBufferWriter : IBufferWriter<byte>
             {
@@ -377,7 +377,7 @@ namespace Hagar.UnitTests
             public override string ToString() => $"{nameof(Blah)}: {Blah}; {nameof(Version)}: {Version}";
         }
 
-        public class ObjectWithoutNewFieldTypeSerializer : IPartialSerializer<ObjectWithoutNewField>
+        public class ObjectWithoutNewFieldTypeSerializer : IBaseCodec<ObjectWithoutNewField>
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, ObjectWithoutNewField obj) where TBufferWriter : IBufferWriter<byte>
             {
@@ -460,14 +460,14 @@ namespace Hagar.UnitTests
             }
         }
 
-        public class SubTypeSerializer : IPartialSerializer<SubType>
+        public class SubTypeSerializer : IBaseCodec<SubType>
         {
-            private readonly IPartialSerializer<BaseType> _baseTypeSerializer;
+            private readonly IBaseCodec<BaseType> _baseTypeSerializer;
             private readonly IFieldCodec<string> _stringCodec;
             private readonly IFieldCodec<int> _intCodec;
             private readonly IFieldCodec<object> _objectCodec;
 
-            public SubTypeSerializer(IPartialSerializer<BaseType> baseTypeSerializer, IFieldCodec<string> stringCodec, IFieldCodec<int> intCodec, IFieldCodec<object> objectCodec)
+            public SubTypeSerializer(IBaseCodec<BaseType> baseTypeSerializer, IFieldCodec<string> stringCodec, IFieldCodec<int> intCodec, IFieldCodec<object> objectCodec)
             {
                 _baseTypeSerializer = HagarGeneratedCodeHelper.UnwrapService(this, baseTypeSerializer);
                 _stringCodec = HagarGeneratedCodeHelper.UnwrapService(this, stringCodec);
@@ -521,7 +521,7 @@ namespace Hagar.UnitTests
             }
         }
 
-        public class BaseTypeSerializer : IPartialSerializer<BaseType>
+        public class BaseTypeSerializer : IBaseCodec<BaseType>
         {
             public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, BaseType obj) where TBufferWriter : IBufferWriter<byte>
             {

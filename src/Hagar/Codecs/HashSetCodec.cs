@@ -63,7 +63,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class HashSetCopier<T> : IDeepCopier<HashSet<T>>, IPartialCopier<HashSet<T>>
+    public sealed class HashSetCopier<T> : IDeepCopier<HashSet<T>>, IBaseCopier<HashSet<T>>
     {
         private readonly IDeepCopier<T> _copier;
 

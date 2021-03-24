@@ -67,8 +67,8 @@ namespace Hagar.CodeGenerator
             if (!type.IsSealedType)
             {
                 classDeclaration = classDeclaration
-                    .AddMembers(GeneratePartialCopierDeepCopyMethod(type, fieldDescriptions, members, libraryTypes))
-                    .AddBaseListTypes(SimpleBaseType(libraryTypes.PartialCopier_1.ToTypeSyntax(type.TypeSyntax)));
+                    .AddMembers(GenerateBaseCopierDeepCopyMethod(type, fieldDescriptions, members, libraryTypes))
+                    .AddBaseListTypes(SimpleBaseType(libraryTypes.BaseCopier_1.ToTypeSyntax(type.TypeSyntax)));
             }
 
             if (type.IsGenericType)
@@ -230,7 +230,7 @@ namespace Hagar.CodeGenerator
 
             if (serializableTypeDescription.HasComplexBaseType)
             {
-                fields.Add(new PartialCopierFieldDescription(libraryTypes.PartialCopier_1.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeCopierFieldName));
+                fields.Add(new BaseCopierFieldDescription(libraryTypes.BaseCopier_1.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeCopierFieldName));
             }
 
             if (serializableTypeDescription.UseActivator)
@@ -428,7 +428,7 @@ namespace Hagar.CodeGenerator
                 .AddBodyStatements(body.ToArray());
         }
 
-        private static MemberDeclarationSyntax GeneratePartialCopierDeepCopyMethod(
+        private static MemberDeclarationSyntax GenerateBaseCopierDeepCopyMethod(
             ISerializableTypeDescription type,
             List<GeneratedFieldDescription> copierFields,
             List<ISerializableMember> members,
@@ -554,9 +554,9 @@ namespace Hagar.CodeGenerator
                 .AddBodyStatements(body.ToArray());
         }
 
-        internal class PartialCopierFieldDescription : SerializerGenerator.GeneratedFieldDescription
+        internal class BaseCopierFieldDescription : SerializerGenerator.GeneratedFieldDescription
         {
-            public PartialCopierFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
+            public BaseCopierFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
             {
             }
 

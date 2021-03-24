@@ -12,14 +12,14 @@ namespace Hagar.Serializers
     /// Serializer for reference types which can be instantiated.
     /// </summary>
     /// <typeparam name="TField">The field type.</typeparam>
-    /// <typeparam name="TPartialSerializer">The partial serializer implementation type.</typeparam>
-    public sealed class ConcreteTypeSerializer<TField, TPartialSerializer> : IFieldCodec<TField> where TField : class where TPartialSerializer : IPartialSerializer<TField>
+    /// <typeparam name="TBaseCodec">The partial serializer implementation type.</typeparam>
+    public sealed class ConcreteTypeSerializer<TField, TBaseCodec> : IFieldCodec<TField> where TField : class where TBaseCodec : IBaseCodec<TField>
     {
         private static readonly Type CodecFieldType = typeof(TField);
         private readonly IActivator<TField> _activator;
-        private readonly TPartialSerializer _serializer;
+        private readonly TBaseCodec _serializer;
 
-        public ConcreteTypeSerializer(IActivator<TField> activator, TPartialSerializer serializer)
+        public ConcreteTypeSerializer(IActivator<TField> activator, TBaseCodec serializer)
         {
             _activator = activator;
             _serializer = serializer;

@@ -71,7 +71,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class SortedListCopier<TKey, TValue> : IDeepCopier<SortedList<TKey, TValue>>, IPartialCopier<SortedList<TKey, TValue>>
+    public sealed class SortedListCopier<TKey, TValue> : IDeepCopier<SortedList<TKey, TValue>>, IBaseCopier<SortedList<TKey, TValue>>
     {
         private readonly IDeepCopier<TKey> _keyCopier;
         private readonly IDeepCopier<TValue> _valueCopier;

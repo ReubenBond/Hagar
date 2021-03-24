@@ -48,7 +48,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class ArrayListCopier : IDeepCopier<ArrayList>, IPartialCopier<ArrayList>
+    public sealed class ArrayListCopier : IDeepCopier<ArrayList>, IBaseCopier<ArrayList>
     {
         private readonly IDeepCopier<object> _copier;
         public ArrayListCopier(IDeepCopier<object> copier)

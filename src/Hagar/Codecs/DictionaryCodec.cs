@@ -131,7 +131,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class DictionaryCopier<TKey, TValue> : IDeepCopier<Dictionary<TKey, TValue>>, IPartialCopier<Dictionary<TKey, TValue>>
+    public sealed class DictionaryCopier<TKey, TValue> : IDeepCopier<Dictionary<TKey, TValue>>, IBaseCopier<Dictionary<TKey, TValue>>
     {
         private readonly IDeepCopier<TKey> _keyCopier;
         private readonly IDeepCopier<TValue> _valueCopier;

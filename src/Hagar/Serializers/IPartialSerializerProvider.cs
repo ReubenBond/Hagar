@@ -1,7 +1,7 @@
 namespace Hagar.Serializers
 {
-    public interface IPartialSerializerProvider
+    public interface IBaseCodecProvider
     {
-        IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class;
+        IBaseCodec<TField> GetBaseCodec<TField>() where TField : class;
     }
 }

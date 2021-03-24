@@ -6,7 +6,7 @@ using System;
 namespace Hagar.Invocation
 {
     [RegisterSerializer]
-    internal sealed class PooledResponseCodec<TResult> : IPartialSerializer<PooledResponse<TResult>>
+    internal sealed class PooledResponseCodec<TResult> : IBaseCodec<PooledResponse<TResult>>
     {
         private static readonly Type ExceptionType = typeof(Exception);
         private static readonly Type ResultType = typeof(TResult);
