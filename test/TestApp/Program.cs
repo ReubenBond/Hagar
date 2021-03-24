@@ -31,7 +31,7 @@ namespace TestApp
         {
             Console.WriteLine("Hello World!");
             var serviceProvider = new ServiceCollection()
-                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
 
             var config = serviceProvider.GetRequiredService<IConfiguration<SerializerConfiguration>>();
@@ -103,7 +103,7 @@ namespace TestApp
         {
             Console.WriteLine("Hello World!");
             var serviceProvider = new ServiceCollection()
-                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
 
             var codecs = serviceProvider.GetRequiredService<ICodecProvider>();
@@ -142,7 +142,7 @@ namespace TestApp
         public static void Main(string[] args)
         {
             var serviceProvider = new ServiceCollection()
-                .AddHagar(builder => builder.AddAssembly(typeof(SomeClassWithSerialzers).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
 
             SerializerSession GetSession() => serviceProvider.GetRequiredService<SerializerSessionPool>().GetSession();

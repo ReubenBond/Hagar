@@ -49,7 +49,7 @@ namespace Benchmarks.Comparison
         {
             // Hagar
             var services = new ServiceCollection()
-                .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<IntStruct>>();
             HagarData = new byte[1000];

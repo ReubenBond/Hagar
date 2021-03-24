@@ -39,7 +39,6 @@ namespace Hagar.UnitTests
         protected override void Configure(IHagarBuilder builder)
         {
             ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.RemoveAll(typeof(IFieldCodec<MyEnum>)));
-            builder.AddAssembly(typeof(EnumTests).Assembly);
         }
 
         protected override Action<Action<MyEnum>> ValueProvider => Gen.Int.Select(v => (MyEnum)v).ToValueProvider();
@@ -53,7 +52,6 @@ namespace Hagar.UnitTests
         protected override void Configure(IHagarBuilder builder)
         {
             ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.RemoveAll(typeof(IFieldCodec<MyEnum>)));
-            builder.AddAssembly(typeof(EnumTests).Assembly);
         }
 
         protected override Action<Action<MyEnum>> ValueProvider => Gen.Int.Select(v => (MyEnum)v).ToValueProvider();
@@ -1552,12 +1550,6 @@ namespace Hagar.UnitTests
 #endif
         };
 
-        protected override void Configure(IHagarBuilder builder)
-        {
-            base.Configure(builder);
-            builder.AddAssembly(typeof(CaseInsensitiveEqualityComparer).Assembly);
-        }
-
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());
@@ -1617,12 +1609,6 @@ namespace Hagar.UnitTests
 
     public class DictionaryWithComparerCopierTests : CopierTester<Dictionary<string, int>, DictionaryCopier<string, int>>
     {
-        protected override void Configure(IHagarBuilder builder)
-        {
-            base.Configure(builder);
-            builder.AddAssembly(typeof(DictionaryWithComparerCodecTests.CaseInsensitiveEqualityComparer).Assembly);
-        }
-
         protected override Dictionary<string, int> CreateValue()
         {
             var rand = new Random(Guid.NewGuid().GetHashCode());

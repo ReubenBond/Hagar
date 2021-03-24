@@ -16,6 +16,7 @@ namespace Hagar.CodeGenerator
             return new LibraryTypes
             {
                 Compilation = compilation,
+                ApplicationPartAttribute = Type("Hagar.ApplicationPartAttribute"),
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
@@ -271,6 +272,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Immutable { get; private set; }
         public INamedTypeSymbol Exception { get; private set; }
         public INamedTypeSymbol VoidRequest { get; private set; }
+        public INamedTypeSymbol ApplicationPartAttribute { get; private set; }
 
 #pragma warning disable RS1024 // Compare symbols correctly
         private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);

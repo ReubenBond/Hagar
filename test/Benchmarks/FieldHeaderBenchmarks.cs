@@ -17,10 +17,7 @@ namespace Benchmarks
 
         static FieldHeaderBenchmarks()
         {
-            var services = new ServiceCollection();
-            _ = services
-                .AddHagar(hagar =>
-                    hagar.AddAssembly(typeof(Program).Assembly));
+            var services = new ServiceCollection().AddHagar();
             var serviceProvider = services.BuildServiceProvider();
             var sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
             Session = sessionPool.GetSession();

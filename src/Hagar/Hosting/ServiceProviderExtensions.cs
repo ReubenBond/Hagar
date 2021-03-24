@@ -15,7 +15,7 @@ using System.Buffers;
 
 namespace Hagar
 {
-    public static class ServiceProviderExtensions
+    public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddHagar(this IServiceCollection services, Action<IHagarBuilder> configure = null)
         {
@@ -24,7 +24,11 @@ namespace Hagar
             if (context is null)
             {
                 context = new HagarConfigurationContext(services);
-                context.Builder.AddAssembly(typeof(ServiceProviderExtensions).Assembly);
+                foreach (var asm in ReferencedAssemblyHelper.GetRelevantAssemblies(services))
+                {
+                    context.Builder.AddAssembly(asm);
+                }
+
                 services.Add(context.CreateServiceDescriptor());
                 services.AddSingleton<IConfigurationProvider<SerializerConfiguration>, DefaultTypeConfiguration>();
                 services.AddSingleton<TypeResolver, CachedTypeResolver>();

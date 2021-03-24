@@ -35,7 +35,7 @@ namespace Benchmarks
             }
             
             var services = new ServiceCollection()
-                .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<Dictionary<string, int>>>();
             Session = services.GetRequiredService<SerializerSessionPool>().GetSession();

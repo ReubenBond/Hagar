@@ -22,12 +22,7 @@ namespace CallLog
             .CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
-                services.AddHagar(hagar =>
-                {
-                    Thread.Sleep(4000);
-                    hagar
-                        .AddAssembly(typeof(Program).Assembly);
-                });
+                services.AddHagar();
                 services.AddSingleton<ApplicationContext>();
                 services.AddSingleton<Catalog>();
                 services.AddSingleton<MessageRouter>();

@@ -15,5 +15,6 @@ namespace Hagar.CodeGenerator
         public List<INamedTypeSymbol> DetectedCopiers { get; } = new();
         public List<(INamedTypeSymbol Type, string Alias)> TypeAliases { get; } = new(1024);
         public List<(INamedTypeSymbol Type, uint Id)> WellKnownTypeIds { get; } = new(1024);
+        public HashSet<string> ApplicationParts { get; } = new();
     }
 }
