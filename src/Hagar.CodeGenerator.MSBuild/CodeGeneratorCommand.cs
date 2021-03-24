@@ -69,7 +69,10 @@ namespace Hagar.CodeGenerator.MSBuild
         /// <summary>
         /// The metadata name of the attribute used to specify ids.
         /// </summary>
-        public List<string> IdAttributeTypes { get; set; }
+        public List<string> IdAttributes { get; set; } = new();
+        public List<string> AliasAttributes { get; private set; } = new();
+        public List<string> ImmutableAttributes { get; private set; } = new();
+        public List<string> GenerateSerializerAttributes { get; private set; } = new();
 
         public async Task<bool> Execute(CancellationToken cancellationToken)
         {
@@ -125,10 +128,12 @@ namespace Hagar.CodeGenerator.MSBuild
                     return false;
                 }
 
-                var codeGeneratorOptions = new CodeGeneratorOptions
-                {
-                    IdAttributeTypes = IdAttributeTypes
-                };
+                var codeGeneratorOptions = new CodeGeneratorOptions();
+                codeGeneratorOptions.IdAttributes.AddRange(IdAttributes);
+                codeGeneratorOptions.AliasAttributes.AddRange(AliasAttributes);
+                codeGeneratorOptions.ImmutableAttributes.AddRange(ImmutableAttributes);
+                codeGeneratorOptions.GenerateSerializerAttributes.AddRange(GenerateSerializerAttributes);
+
                 var generator = new CodeGenerator(compilation, codeGeneratorOptions);
                 stopwatch.Restart();
                 var syntax = generator.GenerateCode(cancellationToken);

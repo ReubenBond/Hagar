@@ -2,14 +2,21 @@
 
   <ItemGroup>
     <CompilerVisibleProperty Include="Hagar_DesignTimeBuild" />
-  </ItemGroup>
-
-  <ItemGroup>
     <CompilerVisibleProperty Include="Hagar_AttachDebugger" />
+    <CompilerVisibleProperty Include="Hagar_GenerateFieldIds" />
+    <CompilerVisibleProperty Include="Hagar_ImmutableAttributes" />
+    <CompilerVisibleProperty Include="Hagar_IdAttributes" />
+    <CompilerVisibleProperty Include="Hagar_AliasAttributes" />
+    <CompilerVisibleProperty Include="Hagar_GenerateSerializerAttributes" />
   </ItemGroup>
 
   <PropertyGroup>
     <Hagar_DesignTimeBuild>$(DesignTimeBuild)</Hagar_DesignTimeBuild>
+    <Hagar_GenerateFieldIds>$(HagarGenerateFieldIds)</Hagar_GenerateFieldIds>
+    <Hagar_ImmutableAttributes>$(HagarImmutableAttributes)</Hagar_ImmutableAttributes>
+    <Hagar_IdAttributes>$(HagarIdAttributes)</Hagar_IdAttributes>
+    <Hagar_AliasAttributes>$(HagarAliasAttributes)</Hagar_AliasAttributes>
+    <Hagar_GenerateSerializerAttributes>$(HagarGenerateSerializerAttributes)</Hagar_GenerateSerializerAttributes>
   </PropertyGroup>
 
 </Project>

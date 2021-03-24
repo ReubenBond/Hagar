@@ -4,10 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -15,9 +12,10 @@ namespace Hagar.CodeGenerator
 {
     public class CodeGeneratorOptions
     {
-        public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
-        public List<string> IdAttributeTypes { get; set; } = new() { "Hagar.IdAttribute" };
-        public List<string> AliasAttributeTypes { get; set; } = new() { "Hagar.AliasAttribute" };
+        public List<string> GenerateSerializerAttributes { get; } = new() { "Hagar.GenerateSerializer" };
+        public List<string> IdAttributes { get; } = new() { "Hagar.IdAttribute" };
+        public List<string> AliasAttributes { get; } = new() { "Hagar.AliasAttribute" };
+        public List<string> ImmutableAttributes { get; } = new() { "Hagar.ImmutableAttribute" };
 
         public bool GenerateFieldIds { get; set; } = false;
     }
@@ -28,16 +26,15 @@ namespace Hagar.CodeGenerator
         private readonly Compilation _compilation;
         private readonly CodeGeneratorOptions _options;
         private readonly INamedTypeSymbol[] _generateSerializerAttributes;
+        private readonly INamedTypeSymbol[] _immutableAttributes;
 
         public CodeGenerator(Compilation compilation, CodeGeneratorOptions options)
         {
             _compilation = compilation;
             _options = options;
             LibraryTypes = LibraryTypes.FromCompilation(compilation, options);
-            if (options.GenerateSerializerAttributes != null)
-            {
-                _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
-            }
+            _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
+            _immutableAttributes = options.ImmutableAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
         }
 
         internal LibraryTypes LibraryTypes { get; }
@@ -154,14 +151,11 @@ namespace Hagar.CodeGenerator
                             return true;
                         }
 
-                        if (_generateSerializerAttributes != null)
+                        foreach (var attr in _generateSerializerAttributes)
                         {
-                            foreach (var attr in _generateSerializerAttributes)
+                            if (HasAttribute(t, attr, inherited: true) != null)
                             {
-                                if (HasAttribute(t, attr, inherited: true) != null)
-                                {
-                                    return true;
-                                }
+                                return true;
                             }
                         }
 
