@@ -1,9 +1,11 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -18,6 +20,11 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 
         public static TypeSyntax ToTypeSyntax(this ITypeSymbol typeSymbol)
         {
+            if (typeSymbol.SpecialType == SpecialType.System_Void)
+            {
+                return PredefinedType(Token(SyntaxKind.VoidKeyword));
+            }
+
             if (!TypeCache.TryGetValue(typeSymbol, out var result))
             {
                 result = TypeCache[typeSymbol] = ParseTypeName(typeSymbol.ToDisplayName());
@@ -32,6 +39,11 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             {
                 return typeSymbol.ToTypeSyntax();
             }
+             
+            if (typeSymbol.SpecialType == SpecialType.System_Void)
+            {
+                return PredefinedType(Token(SyntaxKind.VoidKeyword));
+            }
 
             var res = new StringBuilder();
             ToTypeSyntaxInner(typeSymbol, substitutions, res);
@@ -41,6 +53,11 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 
         public static string ToDisplayName(this ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions)
         {
+            if (typeSymbol.SpecialType == SpecialType.System_Void)
+            {
+                return "void";
+            }
+
             var result = new StringBuilder();
             ToTypeSyntaxInner(typeSymbol, substitutions, result);
             return result.ToString();
@@ -48,6 +65,11 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
 
         public static string ToDisplayName(this ITypeSymbol typeSymbol)
         {
+            if (typeSymbol.SpecialType == SpecialType.System_Void)
+            {
+                return "void";
+            }
+
             if (!NameCache.TryGetValue(typeSymbol, out var result))
             {
                 result = NameCache[typeSymbol] = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -255,6 +277,38 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             }
 
             return false;
+        }
+
+        public static IEnumerable<TSymbol> GetAllMembers<TSymbol>(this ITypeSymbol type) where TSymbol : ISymbol
+        {
+            var bases = new Stack<ITypeSymbol>();
+            var b = type.BaseType;
+            while (b is { })
+            {
+                bases.Push(b);
+                b = b.BaseType;
+            }
+
+            foreach (var @base in bases)
+            {
+                foreach (var member in @base.GetDeclaredInstanceMembers<TSymbol>())
+                {
+                    yield return member;
+                }
+            }
+
+            foreach (var iface in type.AllInterfaces)
+            {
+                foreach (var member in iface.GetDeclaredInstanceMembers<TSymbol>())
+                {
+                    yield return member;
+                }
+            }
+
+            foreach (var member in type.GetDeclaredInstanceMembers<TSymbol>())
+            {
+                yield return member;
+            }
         }
         
         public static IEnumerable<TSymbol> GetDeclaredInstanceMembers<TSymbol>(this ITypeSymbol type) where TSymbol : ISymbol

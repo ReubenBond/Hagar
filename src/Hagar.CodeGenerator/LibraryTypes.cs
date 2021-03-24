@@ -69,6 +69,7 @@ namespace Hagar.CodeGenerator
                 ValueTask_1 = Type("System.Threading.Tasks.ValueTask`1"),
                 ValueTypeSetter_2 = Type("Hagar.Utilities.ValueTypeSetter`2"),
                 Void = compilation.GetSpecialType(SpecialType.System_Void),
+                VoidRequest = Type("Hagar.Invocation.VoidRequest"),
                 Writer = Type("Hagar.Buffers.Writer`1"),
                 StaticCodecs = new List<WellKnownCodecDescription>
                 {
@@ -269,6 +270,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Immutable_1 { get; private set; }
         public INamedTypeSymbol Immutable { get; private set; }
         public INamedTypeSymbol Exception { get; private set; }
+        public INamedTypeSymbol VoidRequest { get; private set; }
 
 #pragma warning disable RS1024 // Compare symbols correctly
         private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);

@@ -34,9 +34,7 @@ namespace Hagar.CodeGenerator
                                 fieldDescriptions.OfType<IMemberDescription>().ToList());
 
             var targetField = fieldDescriptions.OfType<TargetFieldDescription>().Single();
-            var methodReturnType = (INamedTypeSymbol)method.Method.ReturnType;
-
-            ITypeSymbol baseClassType = GetBaseClassType(libraryTypes, methodReturnType);
+            ITypeSymbol baseClassType = GetBaseClassType(libraryTypes, method);
 
             var accessibilityKind = accessibility switch
             {
@@ -85,8 +83,9 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        private static ITypeSymbol GetBaseClassType(LibraryTypes libraryTypes, INamedTypeSymbol methodReturnType)
+        private static ITypeSymbol GetBaseClassType(LibraryTypes libraryTypes, MethodDescription method)
         {
+            var methodReturnType = (INamedTypeSymbol)method.Method.ReturnType;
             ITypeSymbol baseClassType;
             if (methodReturnType.TypeArguments.Length == 1)
             {
@@ -100,7 +99,7 @@ namespace Hagar.CodeGenerator
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Unsupported return type {methodReturnType}. Constructed from: {methodReturnType.ConstructedFrom}");
+                    baseClassType = null;
                 }
             }
             else
@@ -113,10 +112,19 @@ namespace Hagar.CodeGenerator
                 {
                     baseClassType = libraryTypes.TaskRequest;
                 }
+                else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Void))
+                {
+                    baseClassType = libraryTypes.VoidRequest;
+                }
                 else
                 {
-                    throw new InvalidOperationException($"Unsupported return type {methodReturnType}");
+                    baseClassType = null;
                 }
+            }
+            
+            if (baseClassType is null)
+            {
+                throw new InvalidOperationException($"Unsupported return type {methodReturnType} for method {method.Method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
             }
 
             return baseClassType;

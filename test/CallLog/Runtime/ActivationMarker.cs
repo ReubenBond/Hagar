@@ -48,7 +48,7 @@ namespace CallLog
             }
             catch (Exception exception)
             {
-                return Response.FromException<object>(exception);
+                return Response.FromException(exception);
             }
         }
 

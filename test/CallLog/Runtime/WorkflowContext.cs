@@ -365,7 +365,7 @@ namespace CallLog
                 }
                 catch (Exception exception)
                 {
-                    responseTask = new ValueTask<Response>(Response.FromException<object>(exception));
+                    responseTask = new ValueTask<Response>(Response.FromException(exception));
                 }
 
                 if (responseTask.IsCompleted)
@@ -391,7 +391,7 @@ namespace CallLog
                         }
                         catch (Exception exception)
                         {
-                            response = Response.FromException<object>(exception);
+                            response = Response.FromException(exception);
                         }
                         finally
                         {
@@ -544,7 +544,7 @@ namespace CallLog
                 var (sequenceNumber, state) = (request.Key, request.Value);
                 if (state.Response is null && state.Completion is object)
                 {
-                    state.Response = Response.FromException<object>(new TaskCanceledException("Running requests have been canceled"));
+                    state.Response = Response.FromException(new TaskCanceledException("Running requests have been canceled"));
                 }
 
                 _outboundRequests[sequenceNumber] = state;

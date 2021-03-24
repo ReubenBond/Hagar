@@ -42,7 +42,7 @@ namespace CallLog
                 }
                 catch (Exception exception)
                 {
-                    current.OnMessage(new Message { SenderId = current.Id, SequenceNumber = sequenceNumber, Body = Response.FromException<T>(exception) });
+                    current.OnMessage(new Message { SenderId = current.Id, SequenceNumber = sequenceNumber, Body = Response.FromException(exception) });
                 }
             }    
 
@@ -62,7 +62,7 @@ namespace CallLog
                 }
                 catch (Exception exception)
                 {
-                    current.OnMessage(new Message { SenderId = current.Id, SequenceNumber = sequenceNumber, Body = Response.FromException<T>(exception) });
+                    current.OnMessage(new Message { SenderId = current.Id, SequenceNumber = sequenceNumber, Body = Response.FromException(exception) });
                 }
             }    
 
@@ -82,7 +82,7 @@ namespace CallLog
                 }
                 catch (Exception exception)
                 {
-                    current.OnMessage(new Message { SenderId = current.Id, SequenceNumber = sequenceNumber, Body = Response.FromException<int>(exception) });
+                    current.OnMessage(new Message { SenderId = current.Id, SequenceNumber = sequenceNumber, Body = Response.FromException(exception) });
                 }
             }    
 

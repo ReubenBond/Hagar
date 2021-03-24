@@ -10,8 +10,11 @@ namespace Hagar.Invocation
         [Id(0)]
         public override TResult TypedResult { get; set; }
 
-        [Id(1)]
-        public override Exception Exception { get; set; }
+        public override Exception Exception
+        {
+            get => null;
+            set => throw new InvalidOperationException($"Cannot set {nameof(Exception)} property for type {nameof(Response<TResult>)}");
+        }
 
         public override object Result
         {
@@ -24,7 +27,6 @@ namespace Hagar.Invocation
 #pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
         {
             TypedResult = default;
-            Exception = default;
             ResponsePool.Return(this);
         }
     }

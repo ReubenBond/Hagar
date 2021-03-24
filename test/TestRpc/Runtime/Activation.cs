@@ -99,7 +99,7 @@ namespace TestRpc.Runtime
                             {
                                 try
                                 {
-                                    runtimeClient.SendResponse(message.MessageId, message.Source, Response.FromException<object>(exception));
+                                    runtimeClient.SendResponse(message.MessageId, message.Source, Response.FromException(exception));
                                 }
                                 catch (Exception innerException)
                                 {

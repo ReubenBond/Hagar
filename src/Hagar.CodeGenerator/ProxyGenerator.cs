@@ -245,19 +245,26 @@ namespace Hagar.CodeGenerator
             {
                 valueTaskMethodName = "AsValueTask";
             }
+            else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Void))
+            {
+                valueTaskMethodName = null;
+            }
             else
             {
                 valueTaskMethodName = "AsVoidValueTask";
             }
 
-            var returnVal = InvocationExpression(completionVar.Member(valueTaskMethodName));
-
-            if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.Task_1) || SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Task))
+            if (valueTaskMethodName is not null)
             {
-                returnVal = InvocationExpression(returnVal.Member("AsTask"));
-            }
+                var returnVal = InvocationExpression(completionVar.Member(valueTaskMethodName));
 
-            statements.Add(ReturnStatement(returnVal));
+                if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.Task_1) || SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Task))
+                {
+                    returnVal = InvocationExpression(returnVal.Member("AsTask"));
+                }
+
+                statements.Add(ReturnStatement(returnVal));
+            }
 
             return Block(statements);
         }
