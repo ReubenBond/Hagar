@@ -18,6 +18,104 @@ namespace Hagar
 
         public Type ProxyBase { get; }
         public bool IsExtension { get; }
+        public Type ValueTaskInvoker { get; init; }
+        public Type ValueTask1Invoker { get; init; }
+        public Type TaskInvoker { get; init; }
+        public Type Task1Invoker { get; init; }
+        public Type VoidInvoker { get; init; }
+    }
+
+    /// <summary>
+    /// Applied to method attributes on invokable interfaces to specify the name of the method to call when submitting a request.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class SubmitInvokableMethodNameAttribute : Attribute
+    {
+        public SubmitInvokableMethodNameAttribute(string invokeMethodName)
+        {
+            InvokeMethodName = invokeMethodName;
+        }
+
+        public string InvokeMethodName { get; }
+    }
+
+    /// <summary>
+    /// Applied to method attributes on invokable interfaces to specify the name of the method to call when submitting a request.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class InvokablePropertyValueAttribute : Attribute
+    {
+        public InvokablePropertyValueAttribute(string propertyName, object propertyValue)
+        {
+            PropertyName = propertyName;
+            PropertyValue = propertyValue;
+            AttributeArgumentIndex = -1;
+        }
+
+        public InvokablePropertyValueAttribute(string propertyName)
+        {
+            PropertyName = propertyName;
+            PropertyValue = null;
+            AttributeArgumentIndex = 0;
+        }
+
+        public string PropertyName { get; }
+        public int AttributeArgumentIndex { get; init; }
+        public object PropertyValue { get; }
+    }
+
+    /// <summary>
+    /// Applied to proxy base types and to attribute types used on invokable interface methods to specify the base type for the <see cref="IInvokable"/> which represents a method call.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class DefaultInvokableBaseTypeAttribute : Attribute
+    {
+        public DefaultInvokableBaseTypeAttribute(Type returnType, Type invokableBaseType) { }
+        public Type ProxyBaseClass { get; }
+        public Type ReturnType { get; }
+        public Type InvokableBaseType { get; }
+    }
+
+    /// <summary>
+    /// Applied to attribute types used on invokable interface methods to specify the base type for the <see cref="IInvokable"/> which represents a method call.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
+    public sealed class InvokableBaseTypeAttribute : Attribute
+    {
+        public InvokableBaseTypeAttribute(Type proxyBaseClass, Type returnType, Type invokableBaseType) { }
+        public Type ProxyBaseClass { get; }
+        public Type ReturnType { get; }
+        public Type InvokableBaseType { get; }
+    }
+
+    /// <summary>
+    /// Applied to method attributes on invokable interfaces to specify the name of the method to call to get a completion source which is submitted to the submit method and eventually returned to the caller.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class GetCompletionSourceMethodNameAttribute : Attribute
+    {
+        public GetCompletionSourceMethodNameAttribute(string methodName)
+        {
+            MethodName = methodName;
+        }
+
+        public string MethodName { get; }
+    }
+
+    /// <summary>
+    /// Applied to method attributes on invokable interfaces to specify the name of the method to call to adapt the completion source into the method return type.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class AdaptCompletionSourceMethodNameAttribute : Attribute
+    {
+        public AdaptCompletionSourceMethodNameAttribute(Type returnType, string methodName)
+        {
+            ReturnType = returnType;
+            MethodName = methodName;
+        }
+
+        public Type ReturnType { get; }
+        public string MethodName { get; }
     }
 
     [AttributeUsage(

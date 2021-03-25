@@ -26,7 +26,6 @@ namespace Hagar.CodeGenerator
         private readonly Compilation _compilation;
         private readonly CodeGeneratorOptions _options;
         private readonly INamedTypeSymbol[] _generateSerializerAttributes;
-        private readonly INamedTypeSymbol[] _immutableAttributes;
 
         public CodeGenerator(Compilation compilation, CodeGeneratorOptions options)
         {
@@ -34,7 +33,6 @@ namespace Hagar.CodeGenerator
             _options = options;
             LibraryTypes = LibraryTypes.FromCompilation(compilation, options);
             _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
-            _immutableAttributes = options.ImmutableAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
         }
 
         internal LibraryTypes LibraryTypes { get; }
@@ -127,6 +125,11 @@ namespace Hagar.CodeGenerator
         {
             var metadataModel = new MetadataModel();
 
+            // The mapping of proxy base types to a mapping of return types to invokable base types. Used to set default invokable base types for each proxy base type.
+#pragma warning disable RS1024 // Compare symbols correctly
+            var proxyBaseTypeInvokableBaseTypes = new Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, INamedTypeSymbol>>(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
             foreach (var syntaxTree in _compilation.SyntaxTrees)
             {
                 var semanticModel = _compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
@@ -194,13 +197,16 @@ namespace Hagar.CodeGenerator
 
                             var baseClass = (INamedTypeSymbol)attribute.ConstructorArguments[0].Value;
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
+                            var invokableBaseTypes = GetInvokableBaseTypes(proxyBaseTypeInvokableBaseTypes, baseClass);
+
                             var description = new InvokableInterfaceDescription(
                                 this,
                                 semanticModel,
                                 symbol,
                                 GetTypeAlias(symbol) ?? symbol.Name,
                                 baseClass,
-                                isExtension);
+                                isExtension,
+                                invokableBaseTypes);
                             metadataModel.InvokableInterfaces.Add(description);
                         }
                     }
@@ -258,7 +264,34 @@ namespace Hagar.CodeGenerator
                     }
                 }
             }
+
             return metadataModel;
+
+            Dictionary<INamedTypeSymbol, INamedTypeSymbol> GetInvokableBaseTypes(Dictionary<INamedTypeSymbol, Dictionary<INamedTypeSymbol, INamedTypeSymbol>> proxyBaseTypeInvokableBaseTypes, INamedTypeSymbol baseClass)
+            {
+                // Set the base invokable types which are used if attributes on individual methods do not override them.
+                if (!proxyBaseTypeInvokableBaseTypes.TryGetValue(baseClass, out var invokableBaseTypes))
+                {
+#pragma warning disable RS1024 // Compare symbols correctly
+                    invokableBaseTypes = new Dictionary<INamedTypeSymbol, INamedTypeSymbol>(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
+                    if (baseClass.GetAttributes(LibraryTypes.DefaultInvokableBaseTypeAttribute, out var invokableBaseTypeAttributes))
+                    {
+                        foreach (var attr in invokableBaseTypeAttributes)
+                        {
+                            var ctorArgs = attr.ConstructorArguments;
+                            var returnType = (INamedTypeSymbol)ctorArgs[0].Value;
+                            var invokableBaseType = (INamedTypeSymbol)ctorArgs[1].Value;
+                            invokableBaseTypes[returnType] = invokableBaseType;
+                        }
+                    }
+
+                    proxyBaseTypeInvokableBaseTypes[baseClass] = invokableBaseTypes;
+                }
+
+                return invokableBaseTypes;
+            }
         }
 
         private static IEnumerable<MemberDeclarationSyntax> GetTypeDeclarations(SyntaxNode node)

@@ -3,8 +3,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -16,7 +16,7 @@ namespace Hagar.CodeGenerator
     {
         public static (ClassDeclarationSyntax, GeneratedProxyDescription) Generate(
             LibraryTypes libraryTypes,
-            IInvokableInterfaceDescription interfaceDescription,
+            InvokableInterfaceDescription interfaceDescription,
             MetadataModel metadataModel)
         {
             var generatedClassName = GetSimpleClassName(interfaceDescription);
@@ -43,11 +43,11 @@ namespace Hagar.CodeGenerator
             return (classDeclaration, new GeneratedProxyDescription(interfaceDescription));
         }
 
-        public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription) => $"Proxy_{interfaceDescription.Name}";
+        public static string GetSimpleClassName(InvokableInterfaceDescription interfaceDescription) => $"Proxy_{interfaceDescription.Name}";
 
         private static IEnumerable<MemberDeclarationSyntax> GenerateConstructors(
             string simpleClassName,
-            IInvokableInterfaceDescription interfaceDescription)
+            InvokableInterfaceDescription interfaceDescription)
         {
             var baseType = interfaceDescription.ProxyBaseType;
             foreach (var member in baseType.GetMembers())
@@ -125,7 +125,7 @@ namespace Hagar.CodeGenerator
 
         private static IEnumerable<MemberDeclarationSyntax> CreateProxyMethods(
             LibraryTypes libraryTypes,
-            IInvokableInterfaceDescription interfaceDescription,
+            InvokableInterfaceDescription interfaceDescription,
             MetadataModel metadataModel)
         {
             foreach (var methodDescription in interfaceDescription.Methods)
@@ -232,11 +232,23 @@ namespace Hagar.CodeGenerator
                                 .WithInitializer(
                                     EqualsValueClause(createCompletionExpr))))));
 
+            var sendRequestMethodName = "SendRequest";
+            foreach (var attr in methodDescription.Method.GetAttributes())
+            {
+                if (attr.AttributeClass.GetAttributes(libraryTypes.SubmitInvokableMethodNameAttribute, out var attrs))
+                {
+                    foreach (var methodAttr in attrs)
+                    {
+                        sendRequestMethodName = (string)methodAttr.ConstructorArguments.First().Value;
+                    }
+                }
+            }
+
             // Issue request
             statements.Add(
                 ExpressionStatement(
                         InvocationExpression(
-                            BaseExpression().Member("SendRequest"),
+                            BaseExpression().Member(sendRequestMethodName),
                             ArgumentList(SeparatedList(new[] { Argument(completionVar), Argument(requestVar) })))));
 
             // Return result

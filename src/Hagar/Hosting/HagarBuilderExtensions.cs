@@ -1,12 +1,14 @@
 using Hagar.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Hagar
 {
     public static class HagarBuilderExtensions
     {
+        private static readonly object _assembliesKey = new object();
         public static IHagarBuilder AddProvider(this IHagarBuilder builder, Func<IServiceProvider, IConfigurationProvider<SerializerConfiguration>> factory) => ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.AddTransient(sp => factory(sp)));
 
         public static IHagarBuilder AddProvider(this IHagarBuilder builder, IConfigurationProvider<SerializerConfiguration> provider) => ((IHagarBuilderImplementation)builder).ConfigureServices(services => services.AddSingleton(provider));
@@ -15,6 +17,23 @@ namespace Hagar
 
         public static IHagarBuilder AddAssembly(this IHagarBuilder builder, Assembly assembly)
         {
+            var properties = ((IHagarBuilderImplementation)builder).Properties;
+            HashSet<Assembly> assembliesSet;
+            if (!properties.TryGetValue(_assembliesKey, out var assembliesSetObj))
+            {
+                assembliesSet = new HashSet<Assembly>();
+                properties[_assembliesKey] = assembliesSet;
+            }
+            else
+            {
+                assembliesSet = (HashSet<Assembly>)assembliesSetObj;
+            }
+                
+            if (!assembliesSet.Add(assembly))
+            {
+                return builder;
+            }
+
             var attrs = assembly.GetCustomAttributes<MetadataProviderAttribute>();
             foreach (var attr in attrs)
             {

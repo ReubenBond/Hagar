@@ -1,8 +1,15 @@
+using Hagar;
 using Hagar.Invocation;
 using System;
+using System.Threading.Tasks;
 
 namespace TestRpc.Runtime
 {
+    [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
+    [DefaultInvokableBaseType(typeof(ValueTask), typeof(Request))]
+    [DefaultInvokableBaseType(typeof(Task<>), typeof(TaskRequest<>))]
+    [DefaultInvokableBaseType(typeof(Task), typeof(TaskRequest))]
+    [DefaultInvokableBaseType(typeof(void), typeof(VoidRequest))]
     public abstract class ProxyBase
     {
         [NonSerialized]

@@ -16,7 +16,7 @@ namespace Hagar.CodeGenerator
     {
         public static (ClassDeclarationSyntax, GeneratedInvokerDescription) Generate(
             LibraryTypes libraryTypes,
-            IInvokableInterfaceDescription interfaceDescription,
+            InvokableInterfaceDescription interfaceDescription,
             MethodDescription method)
         {
             var generatedClassName = GetSimpleClassName(interfaceDescription, method);
@@ -34,7 +34,7 @@ namespace Hagar.CodeGenerator
                                 fieldDescriptions.OfType<IMemberDescription>().ToList());
 
             var targetField = fieldDescriptions.OfType<TargetFieldDescription>().Single();
-            ITypeSymbol baseClassType = GetBaseClassType(libraryTypes, method);
+            ITypeSymbol baseClassType = GetBaseClassType(method);
 
             var accessibilityKind = accessibility switch
             {
@@ -65,7 +65,7 @@ namespace Hagar.CodeGenerator
 
             return (classDeclaration, invokerDescription);
 
-            static Accessibility GetAccessibility(IInvokableInterfaceDescription interfaceDescription)
+            static Accessibility GetAccessibility(InvokableInterfaceDescription interfaceDescription)
             {
                 var t = interfaceDescription.InterfaceType;
                 Accessibility accessibility = t.DeclaredAccessibility;
@@ -83,56 +83,29 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        private static ITypeSymbol GetBaseClassType(LibraryTypes libraryTypes, MethodDescription method)
+        private static ITypeSymbol GetBaseClassType(MethodDescription method)
         {
             var methodReturnType = (INamedTypeSymbol)method.Method.ReturnType;
-            ITypeSymbol baseClassType;
-            if (methodReturnType.TypeArguments.Length == 1)
+            if (method.InvokableBaseTypes.TryGetValue(methodReturnType, out var baseClassType))
             {
-                if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.ValueTask_1))
-                {
-                    baseClassType = libraryTypes.Request_1.Construct(methodReturnType.TypeArguments[0]);
-                }
-                else if (SymbolEqualityComparer.Default.Equals(methodReturnType.ConstructedFrom, libraryTypes.Task_1))
-                {
-                    baseClassType = libraryTypes.TaskRequest_1.Construct(methodReturnType.TypeArguments[0]);
-                }
-                else
-                {
-                    baseClassType = null;
-                }
+                return baseClassType;
             }
-            else
+
+            if (methodReturnType.ConstructedFrom is { } constructedFrom)
             {
-                if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.ValueTask))
+                var unbound = constructedFrom.ConstructUnboundGenericType();
+                if (method.InvokableBaseTypes.TryGetValue(unbound, out baseClassType))
                 {
-                    baseClassType = libraryTypes.Request;
-                }
-                else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Task))
-                {
-                    baseClassType = libraryTypes.TaskRequest;
-                }
-                else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Void))
-                {
-                    baseClassType = libraryTypes.VoidRequest;
-                }
-                else
-                {
-                    baseClassType = null;
+                    return baseClassType.ConstructedFrom.Construct(methodReturnType.TypeArguments.ToArray());
                 }
             }
             
-            if (baseClassType is null)
-            {
-                throw new InvalidOperationException($"Unsupported return type {methodReturnType} for method {method.Method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
-            }
-
-            return baseClassType;
+            throw new InvalidOperationException($"Unsupported return type {methodReturnType} for method {method.Method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         }
 
         private static MemberDeclarationSyntax GenerateSetTargetMethod(
             LibraryTypes libraryTypes,
-            IInvokableInterfaceDescription interfaceDescription,
+            InvokableInterfaceDescription interfaceDescription,
             TargetFieldDescription targetField)
         {
             var type = IdentifierName("TTargetHolder");
@@ -413,11 +386,11 @@ namespace Hagar.CodeGenerator
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
 
-        public static string GetSimpleClassName(IInvokableInterfaceDescription interfaceDescription, MethodDescription method)
+        public static string GetSimpleClassName(InvokableInterfaceDescription interfaceDescription, MethodDescription method)
         {
             var genericArity = method.AllTypeParameters.Count;
             var typeArgs = genericArity > 0 ? "_" + genericArity : string.Empty;
-            return $"Invokable_{interfaceDescription.Name}_{method.Name}{typeArgs}";
+            return $"Invokable_{interfaceDescription.Name}_{interfaceDescription.ProxyBaseType.Name}_{method.Name}{typeArgs}";
         }
 
         private static MemberDeclarationSyntax[] GetFieldDeclarations(
@@ -498,7 +471,7 @@ namespace Hagar.CodeGenerator
 
         private static List<InvokerFieldDescripton> GetFieldDescriptions(
             MethodDescription method,
-            IInvokableInterfaceDescription interfaceDescription)
+            InvokableInterfaceDescription interfaceDescription)
         {
             var fields = new List<InvokerFieldDescripton>();
 

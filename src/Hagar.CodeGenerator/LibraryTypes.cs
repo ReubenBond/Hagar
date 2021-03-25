@@ -35,6 +35,10 @@ namespace Hagar.CodeGenerator
                 WellKnownAliasAttribute = Type("Hagar.WellKnownAliasAttribute"), 
                 WellKnownIdAttribute = Type("Hagar.WellKnownIdAttribute"), 
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
+                SubmitInvokableMethodNameAttribute = Type("Hagar.SubmitInvokableMethodNameAttribute"),
+                InvokablePropertyValueAttribute = Type("Hagar.InvokablePropertyValueAttribute"),
+                DefaultInvokableBaseTypeAttribute = Type("Hagar.DefaultInvokableBaseTypeAttribute"),
+                InvokableBaseTypeAttribute = Type("Hagar.InvokableBaseTypeAttribute"),
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
                 RegisterCopierAttribute = Type("Hagar.RegisterCopierAttribute"),
@@ -273,6 +277,10 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Exception { get; private set; }
         public INamedTypeSymbol VoidRequest { get; private set; }
         public INamedTypeSymbol ApplicationPartAttribute { get; private set; }
+        public INamedTypeSymbol SubmitInvokableMethodNameAttribute { get; private set; }
+        public INamedTypeSymbol InvokablePropertyValueAttribute { get; private set; }
+        public INamedTypeSymbol InvokableBaseTypeAttribute { get; private set; }
+        public INamedTypeSymbol DefaultInvokableBaseTypeAttribute { get; private set; }
 
 #pragma warning disable RS1024 // Compare symbols correctly
         private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);

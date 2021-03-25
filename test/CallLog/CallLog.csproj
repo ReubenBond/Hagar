@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <HagarBuildTimeCodeGen>true</HagarBuildTimeCodeGen>
+	<Hagar_AttachDebugger>false</Hagar_AttachDebugger>
   </PropertyGroup>
 
   <ItemGroup>

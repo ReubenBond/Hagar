@@ -14,7 +14,7 @@ namespace Hagar.CodeGenerator
         private TypeSyntax _typeSyntax;
 
         public GeneratedInvokerDescription(
-            IInvokableInterfaceDescription interfaceDescription,
+            InvokableInterfaceDescription interfaceDescription,
             MethodDescription methodDescription,
             Accessibility accessibility,
             string generatedClassName,
@@ -40,7 +40,7 @@ namespace Hagar.CodeGenerator
         public bool IsEnumType => false;
         public bool IsGenericType => TypeParameters.Count > 0;
         public List<IMemberDescription> Members { get; }
-        public IInvokableInterfaceDescription InterfaceDescription { get; }
+        public InvokableInterfaceDescription InterfaceDescription { get; }
         public SemanticModel SemanticModel => InterfaceDescription.SemanticModel;
         public bool IsEmptyConstructable => true;
         public bool IsPartial => true;
