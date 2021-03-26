@@ -45,7 +45,15 @@ namespace Hagar.Invocation
             }
             else
             {
-                SetResult((TResult)value.Result);
+                var result = value.Result;
+                if (result is null)
+                {
+                    SetResult(default);
+                }
+                else
+                {
+                    SetResult((TResult)result);
+                }
             }
         }
 

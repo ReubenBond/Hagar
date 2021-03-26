@@ -26,12 +26,6 @@ namespace Hagar.CodeGenerator
             var ctor = GenerateConstructor(generatedClassName, method, fieldDescriptions);
 
             Accessibility accessibility = GetAccessibility(interfaceDescription);
-            var invokerDescription = new GeneratedInvokerDescription(
-                                interfaceDescription,
-                                method,
-                                accessibility,
-                                generatedClassName,
-                                fieldDescriptions.OfType<IMemberDescription>().ToList());
 
             var targetField = fieldDescriptions.OfType<TargetFieldDescription>().Single();
             ITypeSymbol baseClassType = GetBaseClassType(method);
@@ -63,6 +57,23 @@ namespace Hagar.CodeGenerator
                 classDeclaration = SyntaxFactoryUtility.AddGenericTypeParameters(classDeclaration, typeParametersWithNames);
             }
 
+            List<INamedTypeSymbol> serializationHooks = new();
+            if (baseClassType.GetAttributes(libraryTypes.SerializationCallbacksAttribute, out var hookAttributes))
+            {
+                foreach (var hookAttribute in hookAttributes)
+                {
+                    var hookType = (INamedTypeSymbol)hookAttribute.ConstructorArguments[0].Value;
+                    serializationHooks.Add(hookType);
+                }
+            }
+
+            var invokerDescription = new GeneratedInvokerDescription(
+                interfaceDescription,
+                method,
+                accessibility,
+                generatedClassName,
+                fieldDescriptions.OfType<IMemberDescription>().ToList(),
+                serializationHooks);
             return (classDeclaration, invokerDescription);
 
             static Accessibility GetAccessibility(InvokableInterfaceDescription interfaceDescription)
@@ -445,14 +456,23 @@ namespace Hagar.CodeGenerator
             List<InvokerFieldDescripton> fieldDescriptions)
         {
             var injected = fieldDescriptions.Where(f => f.IsInjected).ToList();
+
             var parameters = injected.Select(
                 f => Parameter(f.FieldName.ToIdentifier()).WithType(f.FieldType.ToTypeSyntax(method.TypeParameterSubstitutions)));
+
             var body = injected.Select(
                 f => (StatementSyntax)ExpressionStatement(
                     AssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         ThisExpression().Member(f.FieldName.ToIdentifierName()),
-                        Unwrapped(f.FieldName.ToIdentifierName()))));
+                        Unwrapped(f.FieldName.ToIdentifierName())))).ToList();
+
+            foreach (var (methodName, methodArgument) in method.CustomInitializerMethods)
+            {
+                var argumentExpression = methodArgument.ToExpression();
+                body.Add(ExpressionStatement(InvocationExpression(ThisExpression().Member(methodName), ArgumentList(SeparatedList(new[] { Argument(argumentExpression) })))));
+            }
+
             return ConstructorDeclaration(simpleClassName)
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(parameters.ToArray())

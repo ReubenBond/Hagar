@@ -18,7 +18,8 @@ namespace Hagar.CodeGenerator
             MethodDescription methodDescription,
             Accessibility accessibility,
             string generatedClassName,
-            List<IMemberDescription> members)
+            List<IMemberDescription> members,
+            List<INamedTypeSymbol> serializationHooks)
         {
             InterfaceDescription = interfaceDescription;
             _methodDescription = methodDescription;
@@ -26,6 +27,7 @@ namespace Hagar.CodeGenerator
             Members = members;
 
             Accessibility = accessibility;
+            SerializationHooks = serializationHooks;
         }
 
         public Accessibility Accessibility { get; }
@@ -48,6 +50,8 @@ namespace Hagar.CodeGenerator
         public bool TrackReferences => false; 
         public bool OmitDefaultMemberValues => false;
         public List<(string Name, ITypeParameterSymbol Parameter)> TypeParameters => _methodDescription.AllTypeParameters;
+
+        public List<INamedTypeSymbol> SerializationHooks { get; }
 
         public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
             .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));

@@ -277,6 +277,12 @@ namespace Hagar.CodeGenerator
                 }
             }
 
+            for (var hookIndex = 0; hookIndex < serializableTypeDescription.SerializationHooks.Count; ++hookIndex)
+            {
+                var hookType = serializableTypeDescription.SerializationHooks[hookIndex];
+                fields.Add(new SerializationHookFieldDescription(hookType.ToTypeSyntax(), $"_hook{hookIndex}"));
+            }
+
             return fields;
 
             CodecFieldDescription GetCodecDescription(IMemberDescription member)
@@ -373,6 +379,8 @@ namespace Hagar.CodeGenerator
                 body.Add(ExpressionStatement(InvocationExpression(writerParam.Member("WriteEndBase"), ArgumentList())));
             }
 
+            body.AddRange(AddSerializationCallbacks(type, instanceParam, "OnSerializing"));
+
             // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
             var previousFieldIdVar = "previousFieldId".ToIdentifierName();
             if (type.OmitDefaultMemberValues)
@@ -450,6 +458,8 @@ namespace Hagar.CodeGenerator
                 }
             }
 
+            body.AddRange(AddSerializationCallbacks(type, instanceParam, "OnSerialized"));
+
             var parameters = new[]
             {
                 Parameter("writer".ToIdentifier()).WithType(libraryTypes.Writer.ToTypeSyntax()).WithModifiers(TokenList(Token(SyntaxKind.RefKeyword))),
@@ -516,7 +526,11 @@ namespace Hagar.CodeGenerator
                             })))));
             }
 
+            body.AddRange(AddSerializationCallbacks(type, instanceParam, "OnDeserializing"));
+
             body.Add(WhileStatement(LiteralExpression(SyntaxKind.TrueLiteralExpression), Block(GetDeserializerLoopBody())));
+
+            body.AddRange(AddSerializationCallbacks(type, instanceParam, "OnDeserialized"));
 
             var genericParam = ParseTypeName("TReaderInput");
             var parameters = new[]
@@ -615,7 +629,7 @@ namespace Hagar.CodeGenerator
                                     })))));
 
                     var ifBody = Block(List(new StatementSyntax[] { memberAssignment, readFieldHeader }));
-                    
+
                     // C#: if (id == <fieldId>) { ... }
                     var ifStatement = IfStatement(BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(idVar.Identifier), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal((int)description.FieldId))),
                         ifBody);
@@ -634,6 +648,29 @@ namespace Hagar.CodeGenerator
                 loopBody.Add(consumeUnknown);
 
                 return loopBody;
+            }
+        }
+
+        private static IEnumerable<StatementSyntax> AddSerializationCallbacks(ISerializableTypeDescription type, IdentifierNameSyntax instanceParam, string callbackMethodName)
+        {
+            for (var hookIndex = 0; hookIndex < type.SerializationHooks.Count; ++hookIndex)
+            {
+                var hookType = type.SerializationHooks[hookIndex];
+                var member = hookType.GetAllMembers<IMethodSymbol>(callbackMethodName, Accessibility.Public).FirstOrDefault();
+                if (member is null || member.Parameters.Length != 1)
+                {
+                    continue;
+                }
+
+                var argument = Argument(instanceParam);
+                if (member.Parameters[0].RefKind == RefKind.Ref)
+                {
+                    argument = argument.WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword));
+                }
+
+                yield return ExpressionStatement(InvocationExpression(
+                    ThisExpression().Member($"_hook{hookIndex}").Member(callbackMethodName),
+                    ArgumentList(SeparatedList(new[] { argument }))));
             }
         }
 
@@ -1096,6 +1133,15 @@ namespace Hagar.CodeGenerator
             public ITypeSymbol TargetFieldType { get; }
 
             public override bool IsInjected => false;
+        }
+
+        internal class SerializationHookFieldDescription : GeneratedFieldDescription
+        {
+            public SerializationHookFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
+            {
+            }
+
+            public override bool IsInjected => true;
         }
 
         internal interface ISerializableMember

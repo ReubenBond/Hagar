@@ -26,5 +26,6 @@ namespace Hagar.CodeGenerator
         bool TrackReferences { get; }
         bool OmitDefaultMemberValues { get; }
         ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes);
+        List<INamedTypeSymbol> SerializationHooks { get; }
     }
 }

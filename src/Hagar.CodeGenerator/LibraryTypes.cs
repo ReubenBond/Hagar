@@ -29,6 +29,7 @@ namespace Hagar.CodeGenerator
                 Func_2 = Type("System.Func`2"),
                 GenerateMethodSerializersAttribute = Type("Hagar.GenerateMethodSerializersAttribute"),
                 GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
+                SerializationCallbacksAttribute = Type("Hagar.SerializationCallbacksAttribute"),
                 IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
                 IdAttributeTypes = options.IdAttributes.Select(Type).ToList(),
@@ -36,7 +37,7 @@ namespace Hagar.CodeGenerator
                 WellKnownIdAttribute = Type("Hagar.WellKnownIdAttribute"), 
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
                 SubmitInvokableMethodNameAttribute = Type("Hagar.SubmitInvokableMethodNameAttribute"),
-                InvokablePropertyValueAttribute = Type("Hagar.InvokablePropertyValueAttribute"),
+                InvokableCustomInitializerAttribute = Type("Hagar.InvokableCustomInitializerAttribute"),
                 DefaultInvokableBaseTypeAttribute = Type("Hagar.DefaultInvokableBaseTypeAttribute"),
                 InvokableBaseTypeAttribute = Type("Hagar.InvokableBaseTypeAttribute"),
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
@@ -278,9 +279,10 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol VoidRequest { get; private set; }
         public INamedTypeSymbol ApplicationPartAttribute { get; private set; }
         public INamedTypeSymbol SubmitInvokableMethodNameAttribute { get; private set; }
-        public INamedTypeSymbol InvokablePropertyValueAttribute { get; private set; }
+        public INamedTypeSymbol InvokableCustomInitializerAttribute { get; private set; }
         public INamedTypeSymbol InvokableBaseTypeAttribute { get; private set; }
         public INamedTypeSymbol DefaultInvokableBaseTypeAttribute { get; private set; }
+        public INamedTypeSymbol SerializationCallbacksAttribute { get; private set; }
 
 #pragma warning disable RS1024 // Compare symbols correctly
         private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);

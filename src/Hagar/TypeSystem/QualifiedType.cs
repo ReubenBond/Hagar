@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Hagar.TypeSystem
 {
     public readonly struct QualifiedType
     {
+        public static QualifiedTypeEqualityComparer EqualityComparer { get; } = new QualifiedTypeEqualityComparer();
+
         public QualifiedType(string assembly, string type)
         {
             Assembly = assembly;
@@ -33,6 +37,12 @@ namespace Hagar.TypeSystem
         public static bool operator !=(QualifiedType left, QualifiedType right)
         {
             return !(left == right);
+        }
+
+        public sealed class QualifiedTypeEqualityComparer : IEqualityComparer<QualifiedType>
+        {
+            public bool Equals(QualifiedType x, QualifiedType y) => x == y;
+            public int GetHashCode(QualifiedType obj) => obj.GetHashCode();
         }
     }
 }

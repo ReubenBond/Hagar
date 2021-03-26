@@ -43,46 +43,56 @@ namespace Hagar
     /// Applied to method attributes on invokable interfaces to specify the name of the method to call when submitting a request.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public sealed class InvokablePropertyValueAttribute : Attribute
+    public sealed class InvokableCustomInitializerAttribute : Attribute
     {
-        public InvokablePropertyValueAttribute(string propertyName, object propertyValue)
+        public InvokableCustomInitializerAttribute(string methodName, object methodArgumentValue)
         {
-            PropertyName = propertyName;
-            PropertyValue = propertyValue;
+            MethodName = methodName;
+            MethodArgumentValue = methodArgumentValue;
             AttributeArgumentIndex = -1;
         }
 
-        public InvokablePropertyValueAttribute(string propertyName)
+        public InvokableCustomInitializerAttribute(string methodName)
         {
-            PropertyName = propertyName;
-            PropertyValue = null;
+            MethodName = methodName;
+            MethodArgumentValue = null;
             AttributeArgumentIndex = 0;
         }
 
-        public string PropertyName { get; }
+        public string MethodName { get; }
         public int AttributeArgumentIndex { get; init; }
-        public object PropertyValue { get; }
+        public int AttributeArgumentName { get; init; }
+        public object MethodArgumentValue { get; }
     }
 
     /// <summary>
-    /// Applied to proxy base types and to attribute types used on invokable interface methods to specify the base type for the <see cref="IInvokable"/> which represents a method call.
+    /// Applied to proxy base types and to attribute types used on invokable interface methods to specify the base type for the invokable object which represents a method call.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class DefaultInvokableBaseTypeAttribute : Attribute
     {
-        public DefaultInvokableBaseTypeAttribute(Type returnType, Type invokableBaseType) { }
-        public Type ProxyBaseClass { get; }
+        public DefaultInvokableBaseTypeAttribute(Type returnType, Type invokableBaseType)
+        {
+            ReturnType = returnType;
+            InvokableBaseType = invokableBaseType;
+        }
         public Type ReturnType { get; }
         public Type InvokableBaseType { get; }
     }
 
     /// <summary>
-    /// Applied to attribute types used on invokable interface methods to specify the base type for the <see cref="IInvokable"/> which represents a method call.
+    /// Applied to attribute types used on invokable interface methods to specify the base type for the invokable object which represents a method call.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
     public sealed class InvokableBaseTypeAttribute : Attribute
     {
-        public InvokableBaseTypeAttribute(Type proxyBaseClass, Type returnType, Type invokableBaseType) { }
+        public InvokableBaseTypeAttribute(Type proxyBaseClass, Type returnType, Type invokableBaseType)
+        {
+            ProxyBaseClass = proxyBaseClass;
+            ReturnType = returnType;
+            InvokableBaseType = invokableBaseType;
+        }
+
         public Type ProxyBaseClass { get; }
         public Type ReturnType { get; }
         public Type InvokableBaseType { get; }
@@ -225,5 +235,16 @@ namespace Hagar
         /// Gets the assembly name.
         /// </summary>
         public string AssemblyName { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class SerializationCallbacksAttribute : Attribute
+    {
+        public SerializationCallbacksAttribute(Type hookType)
+        {
+            HookType = hookType;
+        }
+
+        public Type HookType { get; }
     }
 }
