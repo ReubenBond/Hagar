@@ -175,27 +175,27 @@ namespace Hagar.Serializers
                 else
                 {
                     untypedResult = CreateCodecInstance(fieldType, fieldType);
+                }
 
-                    if (untypedResult is null)
+                if (untypedResult is null)
+                {
+                    foreach (var specializableCodec in _specializableCodecs)
                     {
-                        foreach (var specializableCodec in _specializableCodecs)
+                        if (specializableCodec.IsSupportedType(fieldType))
                         {
-                            if (specializableCodec.IsSupportedType(fieldType))
-                            {
-                                untypedResult = specializableCodec.GetSpecializedCodec(fieldType);
-                            }
+                            untypedResult = specializableCodec.GetSpecializedCodec(fieldType);
                         }
                     }
+                }
 
-                    if (untypedResult is null)
+                if (untypedResult is null)
+                {
+                    foreach (var dynamicCodec in _generalizedCodecs)
                     {
-                        foreach (var dynamicCodec in _generalizedCodecs)
+                        if (dynamicCodec.IsSupportedType(fieldType))
                         {
-                            if (dynamicCodec.IsSupportedType(fieldType))
-                            {
-                                untypedResult = dynamicCodec;
-                                break;
-                            }
+                            untypedResult = dynamicCodec;
+                            break;
                         }
                     }
                 }
@@ -371,27 +371,28 @@ namespace Hagar.Serializers
                 else
                 {
                     untypedResult = CreateCopierInstance(fieldType, fieldType);
-                    if (untypedResult is null)
+                }
+
+                if (untypedResult is null)
+                {
+                    foreach (var specializableCopier in _specializableCopiers)
                     {
-                        foreach (var specializableCopier in _specializableCopiers)
+                        if (specializableCopier.IsSupportedType(fieldType))
                         {
-                            if (specializableCopier.IsSupportedType(fieldType))
-                            {
-                                untypedResult = specializableCopier.GetSpecializedCodec(fieldType);
-                                break;
-                            }
+                            untypedResult = specializableCopier.GetSpecializedCodec(fieldType);
+                            break;
                         }
                     }
+                }
 
-                    if (untypedResult is null)
+                if (untypedResult is null)
+                {
+                    foreach (var dynamicCopier in _generalizedCopiers)
                     {
-                        foreach (var dynamicCopier in _generalizedCopiers)
+                        if (dynamicCopier.IsSupportedType(fieldType))
                         {
-                            if (dynamicCopier.IsSupportedType(fieldType))
-                            {
-                                untypedResult = dynamicCopier;
-                                break;
-                            }
+                            untypedResult = dynamicCopier;
+                            break;
                         }
                     }
                 }
