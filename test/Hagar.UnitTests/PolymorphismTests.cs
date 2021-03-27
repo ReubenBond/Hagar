@@ -2,6 +2,7 @@
 using Hagar.Session;
 using Hagar.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using Xunit;
 
 namespace Hagar.UnitTests
@@ -26,6 +27,45 @@ namespace Hagar.UnitTests
                 configuration.WellKnownTypeIds[1002] = typeof(OtherSubClass);
                 configuration.WellKnownTypeIds[1003] = typeof(SomeSubClassChild);
             }
+        }
+
+        [Fact]
+        public void ExceptionsAreSerializable()
+        {
+            InvalidOperationException exception;
+            AggregateException aggregateException;
+            try
+            {
+                throw new InvalidOperationException("This is exceptional!");
+            }
+            catch (InvalidOperationException ex)
+            {
+                exception = ex;
+                exception.Data.Add("Hi", "yes?");
+                try
+                {
+                    throw new AggregateException("This is insane!", ex);
+                }
+                catch (AggregateException ag)
+                {
+                    aggregateException = ag;
+                }
+            }
+
+            var result = RoundTripToExpectedType<Exception, InvalidOperationException>(exception);
+            Assert.Equal(exception.Message, result.Message);
+            Assert.Equal(exception.StackTrace, result.StackTrace);
+            Assert.Equal(exception.InnerException, result.InnerException);
+            Assert.NotNull(result.Data);
+            var data = result.Data;
+            Assert.True(data.Count == 1);
+            Assert.Equal("yes?", data["Hi"]);
+
+            var agResult = RoundTripToExpectedType<Exception, AggregateException>(aggregateException);
+            Assert.Equal(aggregateException.Message, agResult.Message);
+            Assert.Equal(aggregateException.StackTrace, agResult.StackTrace);
+            var inner = Assert.IsType<InvalidOperationException>(agResult.InnerException);
+            Assert.Equal(exception.Message, inner.Message);
         }
 
         [Fact]
