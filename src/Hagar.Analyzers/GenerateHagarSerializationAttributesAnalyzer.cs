@@ -31,7 +31,7 @@ namespace Hagar.Analyzers
         {
             if (context.Node is TypeDeclarationSyntax declaration && !declaration.Modifiers.Any(m => m.Kind() == SyntaxKind.StaticKeyword))
             {
-                if (declaration.HasAttribute(Constants.GenerateSerializerAttributeName) || declaration.HasAttribute(Constants.SerializableAttributeName))
+                if (declaration.HasAttribute(Constants.GenerateSerializerAttributeName))
                 {
                     var (serializableMembers, nextId) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
                     if (serializableMembers.Count > 0)
@@ -67,7 +67,7 @@ namespace Hagar.Analyzers
         {
             if (context.Node is TypeDeclarationSyntax declaration && !declaration.Modifiers.Any(m => m.Kind() == SyntaxKind.StaticKeyword))
             {
-                if (declaration.HasAttribute(Constants.SerializableAttributeName) && !declaration.HasAttribute(Constants.GenerateSerializerAttributeName)) 
+                if (declaration.HasAttribute(Constants.SerializableAttributeName) && !declaration.HasAttribute(Constants.GenerateSerializerAttributeName))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
                 }
