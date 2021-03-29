@@ -16,7 +16,7 @@ namespace Hagar.Analyzers
     [ExportCodeFixProvider(LanguageNames.CSharp)]
     public class GenerateHagarSerializationAttributesCodeFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(GenerateHagarSerializationAttributesAnalyzer.RuleId); //, AddGenerateHagarSerializationAttributeAnalyzer.RuleId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(GenerateHagarSerializationAttributesAnalyzer.RuleId, AddGenerateHagarSerializationAttributeAnalyzer.RuleId);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer; 
 
