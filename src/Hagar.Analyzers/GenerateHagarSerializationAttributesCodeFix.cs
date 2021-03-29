@@ -36,25 +36,25 @@ namespace Hagar.Analyzers
                             CodeAction.Create("Mark properties and fields [NonSerialized]", cancellationToken => AddNonSerializedAttributes(root, declaration, context, cancellationToken), equivalenceKey: GenerateHagarSerializationAttributesAnalyzer.RuleId + "NonSerialized"),
                             diagnostic);
                         break;
-                    //case AddGenerateHagarSerializationAttributeAnalyzer.RuleId:
-                    //    context.RegisterCodeFix(
-                    //        CodeAction.Create("Add [GenerateSerializer] attribute", cancellationToken => AddGenerateSerializerAttribute(declaration, context, cancellationToken), equivalenceKey: AddGenerateHagarSerializationAttributeAnalyzer.RuleId),
-                    //        diagnostic);
-                    //    break;
+                    case AddGenerateHagarSerializationAttributeAnalyzer.RuleId:
+                        context.RegisterCodeFix(
+                            CodeAction.Create("Add [GenerateSerializer] attribute", cancellationToken => AddGenerateSerializerAttribute(declaration, context, cancellationToken), equivalenceKey: AddGenerateHagarSerializationAttributeAnalyzer.RuleId),
+                            diagnostic);
+                        break;
                 }
             }
         }
 
-        //private static async Task<Document> AddGenerateSerializerAttribute(TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
-        //{
-        //    var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
+        private static async Task<Document> AddGenerateSerializerAttribute(TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
+        {
+            var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
 
-        //    // Add the [GenerateSerializer] attribute
-        //    var attribute = Attribute(ParseName(Constants.GenerateSerializerAttributeFullyQualifiedName))
-        //        .WithAdditionalAnnotations(Simplifier.Annotation);
-        //    editor.AddAttribute(declaration, attribute);
-        //    return editor.GetChangedDocument();
-        //}
+            // Add the [GenerateSerializer] attribute
+            var attribute = Attribute(ParseName(Constants.GenerateSerializerAttributeFullyQualifiedName))
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            editor.AddAttribute(declaration, attribute);
+            return editor.GetChangedDocument();
+        }
 
         private static async Task<Document> AddSerializationAttributes(TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
         {
