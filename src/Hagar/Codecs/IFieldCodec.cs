@@ -21,4 +21,14 @@ namespace Hagar.Codecs
     public interface IDerivedTypeCodec
     {
     }
+
+    public interface ISerializationCallbacks<T>
+    {
+        void OnSerializing(T value);
+        void OnSerialized(T value);
+        void OnDeserializing(T value);
+        void OnDeserialized(T value);
+        void OnCopying(T original, T result);
+        void OnCopied(T original, T result);
+    }
 }

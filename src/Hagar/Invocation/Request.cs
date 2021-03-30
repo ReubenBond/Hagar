@@ -1,3 +1,4 @@
+using Hagar.Codecs;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;

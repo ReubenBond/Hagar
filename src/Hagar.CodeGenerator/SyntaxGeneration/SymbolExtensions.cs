@@ -304,6 +304,24 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return attributes != null && attributes.Length > 0;
         }
 
+        public static IEnumerable<TSymbol> GetAllMembers<TSymbol>(this ITypeSymbol type, string name, Accessibility accessibility) where TSymbol : ISymbol
+        {
+            foreach (var member in type.GetAllMembers<TSymbol>())
+            {
+                if (!string.Equals(member.Name, name, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (member.DeclaredAccessibility != accessibility)
+                {
+                    continue;
+                }
+
+                yield return member;
+            }
+        }
+
         public static IEnumerable<TSymbol> GetAllMembers<TSymbol>(this ITypeSymbol type) where TSymbol : ISymbol
         {
             var bases = new Stack<ITypeSymbol>();

@@ -2,6 +2,8 @@ using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace Hagar.CodeGenerator
 {
@@ -53,28 +55,7 @@ namespace Hagar.CodeGenerator
             }
 
             // Set overrides from user-defined attributes on the method.
-            foreach (var methodAttr in method.GetAttributes())
-            {
-                if (!methodAttr.AttributeClass.GetAttributes(containingType.CodeGenerator.LibraryTypes.InvokableBaseTypeAttribute, out var attrs))
-                {
-                    continue;
-                }
-
-                foreach (var attr in attrs)
-                {
-                    var ctorArgs = attr.ConstructorArguments;
-                    var proxyBaseType = (INamedTypeSymbol)ctorArgs[0].Value;
-                    var returnType = (INamedTypeSymbol)ctorArgs[1].Value;
-                    var invokableBaseType = (INamedTypeSymbol)ctorArgs[2].Value;
-                    if (SymbolEqualityComparer.Default.Equals(containingType.ProxyBaseType, proxyBaseType))
-                    {
-                        // This attribute does not apply to this particular invoker, since it is for a different proxy base type.
-                        continue;
-                    }
-
-                    InvokableBaseTypes[returnType] = invokableBaseType;
-                }
-            }
+            PopulateOverrides(containingType, method);
 
             static string GetTypeParameterName(HashSet<string> names, ITypeParameterSymbol tp)
             {
@@ -90,6 +71,81 @@ namespace Hagar.CodeGenerator
             }
         }
 
+        private void PopulateOverrides(InvokableInterfaceDescription containingType, IMethodSymbol method)
+        {
+            foreach (var methodAttr in method.GetAttributes())
+            {
+                if (methodAttr.AttributeClass.GetAttributes(containingType.CodeGenerator.LibraryTypes.InvokableBaseTypeAttribute, out var attrs))
+                {
+                    foreach (var attr in attrs)
+                    {
+                        var ctorArgs = attr.ConstructorArguments;
+                        var proxyBaseType = (INamedTypeSymbol)ctorArgs[0].Value;
+                        var returnType = (INamedTypeSymbol)ctorArgs[1].Value;
+                        var invokableBaseType = (INamedTypeSymbol)ctorArgs[2].Value;
+                        if (SymbolEqualityComparer.Default.Equals(containingType.ProxyBaseType, proxyBaseType))
+                        {
+                            // This attribute does not apply to this particular invoker, since it is for a different proxy base type.
+                            continue;
+                        }
+
+                        InvokableBaseTypes[returnType] = invokableBaseType;
+                    }
+                }
+
+                if (methodAttr.AttributeClass.GetAttributes(containingType.CodeGenerator.LibraryTypes.InvokableCustomInitializerAttribute, out attrs))
+                {
+                    foreach (var attr in attrs)
+                    {
+                        var methodName = (string)attr.ConstructorArguments[0].Value;
+
+                        TypedConstant methodArgument;
+                        if (attr.ConstructorArguments.Length == 2)
+                        {
+                            // Take the value from the attribute directly.
+                            methodArgument = attr.ConstructorArguments[1];
+                        }
+                        else
+                        {
+                            // Take the value from the attribute which this attribute is attached to.
+                            if (TryGetNamedArgument(attr.NamedArguments, "AttributeArgumentName", out var argNameArg)
+                                && TryGetNamedArgument(methodAttr.NamedArguments, (string)argNameArg.Value, out var namedArgument))
+                            {
+                                methodArgument = namedArgument;
+                            }
+                            else
+                            {
+                                var index = 0;
+                                if (TryGetNamedArgument(attr.NamedArguments, "AttributeArgumentIndex", out var indexArg))
+                                {
+                                    index = (int)indexArg.Value;
+                                }
+
+                                methodArgument = methodAttr.ConstructorArguments[index];
+                            }
+                        }
+
+                        CustomInitializerMethods.Add((methodName, methodArgument));
+                    }
+                }
+            }
+
+            bool TryGetNamedArgument(ImmutableArray<KeyValuePair<string, TypedConstant>> arguments, string name, out TypedConstant value)
+            {
+                foreach (var arg in arguments)
+                {
+                    if (string.Equals(arg.Key, name, StringComparison.Ordinal))
+                    {
+                        value = arg.Value;
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
+            }
+        }
+
         public string Name { get; }
 
         public IMethodSymbol Method { get; }
@@ -101,6 +157,8 @@ namespace Hagar.CodeGenerator
         public List<(string Name, ITypeParameterSymbol Parameter)> MethodTypeParameters { get; }
         
         public Dictionary<ITypeParameterSymbol, string> TypeParameterSubstitutions { get; }
+
+        public List<(string, TypedConstant)> CustomInitializerMethods { get; } = new();
 
         /// <summary>
         /// Mapping of method return types to invokable base type. The code generator will create a derived type with the method arguments as fields.

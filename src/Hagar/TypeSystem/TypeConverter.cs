@@ -5,6 +5,7 @@ using Hagar.Configuration;
 using Hagar.Serializers;
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -23,7 +24,8 @@ namespace Hagar.TypeSystem
         private readonly RuntimeTypeNameRewriter.Rewriter _convertFromDisplayName;
         private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownAliasToType;
         private readonly Dictionary<QualifiedType, QualifiedType> _wellKnownTypeToAlias;
-        private readonly HashSet<string> _allowedTypes;
+        private readonly ConcurrentDictionary<QualifiedType, bool> _allowedTypes;
+        private readonly HashSet<string> _allowedTypesConfiguration;
 
         public TypeConverter(IEnumerable<ITypeConverter> formatters, IEnumerable<ITypeFilter> filters, IConfiguration<SerializerConfiguration> configuration, TypeResolver typeResolver)
         {
@@ -36,7 +38,13 @@ namespace Hagar.TypeSystem
             _wellKnownAliasToType = new Dictionary<QualifiedType, QualifiedType>();
             _wellKnownTypeToAlias = new Dictionary<QualifiedType, QualifiedType>();
 
-            _allowedTypes = new HashSet<string>(configuration.Value.AllowedTypes, StringComparer.Ordinal);
+            _allowedTypes = new ConcurrentDictionary<QualifiedType, bool>(QualifiedType.EqualityComparer);
+            _allowedTypesConfiguration = new(StringComparer.Ordinal);
+            foreach (var t in configuration.Value.AllowedTypes)
+            {
+                _allowedTypesConfiguration.Add(t);
+            }
+
             ConsumeMetadata(configuration.Value);
 
             var aliases = configuration.Value.WellKnownTypeAliases;
@@ -64,19 +72,19 @@ namespace Hagar.TypeSystem
 
         private void ConsumeMetadata(SerializerConfiguration metadata)
         {
-            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IBaseCodec<>));
-            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IValueSerializer<>));
-            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IFieldCodec<>));
-            AddFromMetadata(_allowedTypes, metadata.FieldCodecs, typeof(IFieldCodec<>));
-            AddFromMetadata(_allowedTypes, metadata.Activators, typeof(IActivator<>));
-            AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IDeepCopier<>));
-            AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IBaseCopier<>));
+            AddFromMetadata(metadata.Serializers, typeof(IBaseCodec<>));
+            AddFromMetadata(metadata.Serializers, typeof(IValueSerializer<>));
+            AddFromMetadata(metadata.Serializers, typeof(IFieldCodec<>));
+            AddFromMetadata(metadata.FieldCodecs, typeof(IFieldCodec<>));
+            AddFromMetadata(metadata.Activators, typeof(IActivator<>));
+            AddFromMetadata(metadata.Copiers, typeof(IDeepCopier<>));
+            AddFromMetadata(metadata.Copiers, typeof(IBaseCopier<>));
             foreach (var type in metadata.InterfaceProxies)
             {
-                AddAllowedType(_allowedTypes, type);
+                AddAllowedType(type);
             }
 
-            void AddFromMetadata(HashSet<string> allowedTypes, IEnumerable<Type> metadataCollection, Type genericType)
+            void AddFromMetadata(IEnumerable<Type> metadataCollection, Type genericType)
             {
                 Debug.Assert(genericType.GetGenericArguments().Length == 1);
 
@@ -111,37 +119,37 @@ namespace Hagar.TypeSystem
                             continue;
                         }
 
-                        AddAllowedType(allowedTypes, genericArgument);
+                        AddAllowedType(genericArgument);
                     }
                 }
             }
 
-            static void AddAllowedType(HashSet<string> allowedTypes, Type type)
+            void AddAllowedType(Type type)
             {
-                AddSingleAllowedType(allowedTypes, type);
+                FormatAndAddAllowedType(type);
 
                 if (type.DeclaringType is { } declaring)
                 {
-                    AddAllowedType(allowedTypes, declaring);
+                    AddAllowedType(declaring);
                 }
 
                 foreach (var @interface in type.GetInterfaces())
                 {
-                    AddSingleAllowedType(allowedTypes, @interface);
+                    FormatAndAddAllowedType(@interface);
                 }
             }
 
-            static void AddSingleAllowedType(HashSet<string> allowedTypes, Type type)
+            void FormatAndAddAllowedType(Type type)
             {
                 var formatted = RuntimeTypeNameFormatter.Format(type);
                 var parsed = RuntimeTypeNameParser.Parse(formatted);
-                if (parsed is AssemblyQualifiedTypeSpec qualified)
+
+                // Use the type name rewriter to visit every component of the type.
+                _ = RuntimeTypeNameRewriter.Rewrite(parsed, AddQualifiedType);
+                QualifiedType AddQualifiedType(in QualifiedType type)
                 {
-                    allowedTypes.Add(qualified.Type.Format());
-                }
-                else
-                {
-                    allowedTypes.Add(parsed.Format());
+                    _allowedTypes[type] = true;
+                    return type;
                 }
             }
         }
@@ -230,16 +238,27 @@ namespace Hagar.TypeSystem
 
         private bool IsTypeAllowed(in QualifiedType type)
         {
+            if (_allowedTypes.TryGetValue(type, out var allowed))
+            {
+                return allowed;
+            }
+
+            if (_allowedTypesConfiguration.Contains(type.Type))
+            {
+                return true;
+            }
+
             foreach (var filter in _filters)
             {
                 var isAllowed = filter.IsTypeNameAllowed(type.Type, type.Assembly);
                 if (isAllowed.HasValue)
                 {
-                    return isAllowed.Value;
+                    allowed = _allowedTypes[type] = isAllowed.Value;
+                    return allowed;
                 }
             }
 
-            return _allowedTypes.Contains(type.Type);
+            return false;
         }
 
         private QualifiedType ConvertToDisplayName(in QualifiedType input) => input switch
@@ -298,15 +317,17 @@ namespace Hagar.TypeSystem
         };
 
         private static QualifiedType ThrowTypeNotAllowed(in QualifiedType value)
+
         {
             string message;
+
             if (!string.IsNullOrWhiteSpace(value.Assembly))
             {
-                message = $"Type \"{value.Type}\" from assembly \"{value.Assembly}\" is not allowed. Add type to {nameof(SerializerConfiguration)}.{nameof(SerializerConfiguration.AllowedTypes)} to allow it.";
+                message = $"Type \"{value.Type}\" from assembly \"{value.Assembly}\" is not allowed. To allow it, add it to {nameof(SerializerConfiguration)}.{nameof(SerializerConfiguration.AllowedTypes)} or register an {nameof(ITypeFilter)} instance which allows it.";
             }
             else
             {
-                message = $"Type \"{value.Type}\" is not allowed. Add type to {nameof(SerializerConfiguration)}.{nameof(SerializerConfiguration.AllowedTypes)} to allow it.";
+                message = $"Type \"{value.Type}\" is not allowed. To allow it, add it to {nameof(SerializerConfiguration)}.{nameof(SerializerConfiguration.AllowedTypes)} or register an {nameof(ITypeFilter)} instance which allows it.";
             }
 
             throw new InvalidOperationException(message);

@@ -257,6 +257,12 @@ namespace Hagar.CodeGenerator
                 }
             }
 
+            for (var hookIndex = 0; hookIndex < serializableTypeDescription.SerializationHooks.Count; ++hookIndex)
+            {
+                var hookType = serializableTypeDescription.SerializationHooks[hookIndex];
+                fields.Add(new SerializationHookFieldDescription(hookType.ToTypeSyntax(), $"_hook{hookIndex}"));
+            }
+
             return fields;
 
             CopierFieldDescription GetCopierDescription(IMemberDescription member)
@@ -411,7 +417,9 @@ namespace Hagar.CodeGenerator
 
             }
 
+            body.AddRange(AddSerializationCallbacks(type, originalParam, resultVar, "OnCopying"));
             body.AddRange(GenerateMemberwiseCopy(copierFields, members, libraryTypes, originalParam, contextParam, resultVar));
+            body.AddRange(AddSerializationCallbacks(type, originalParam, resultVar, "OnCopied"));
 
             body.Add(ReturnStatement(resultVar));
 
@@ -455,7 +463,9 @@ namespace Hagar.CodeGenerator
                             })))));
             }
 
+            body.AddRange(AddSerializationCallbacks(type, inputParam, resultParam, "OnCopying"));
             body.AddRange(GenerateMemberwiseCopy(copierFields, members, libraryTypes, inputParam, contextParam, resultParam));
+            body.AddRange(AddSerializationCallbacks(type, inputParam, resultParam, "OnCopied"));
 
             var parameters = new[]
             {
@@ -553,6 +563,36 @@ namespace Hagar.CodeGenerator
                 .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetMethodImplAttributeSyntax())))
                 .AddBodyStatements(body.ToArray());
         }
+
+        private static IEnumerable<StatementSyntax> AddSerializationCallbacks(ISerializableTypeDescription type, IdentifierNameSyntax originalInstance, IdentifierNameSyntax resultInstance, string callbackMethodName)
+        {
+            for (var hookIndex = 0; hookIndex < type.SerializationHooks.Count; ++hookIndex)
+            {
+                var hookType = type.SerializationHooks[hookIndex];
+                var member = hookType.GetAllMembers<IMethodSymbol>(callbackMethodName, Accessibility.Public).FirstOrDefault();
+                if (member is null || member.Parameters.Length != 2)
+                {
+                    continue;
+                }
+
+                var originalArgument = Argument(originalInstance);
+                if (member.Parameters[0].RefKind == RefKind.Ref)
+                {
+                    originalArgument = originalArgument.WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword));
+                }
+
+                var resultArgument = Argument(resultInstance);
+                if (member.Parameters[1].RefKind == RefKind.Ref)
+                {
+                    resultArgument = resultArgument.WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword));
+                }
+
+                yield return ExpressionStatement(InvocationExpression(
+                    ThisExpression().Member($"_hook{hookIndex}").Member(callbackMethodName),
+                    ArgumentList(SeparatedList(new[] { originalArgument, resultArgument }))));
+            }
+        }
+
 
         internal class BaseCopierFieldDescription : SerializerGenerator.GeneratedFieldDescription
         {

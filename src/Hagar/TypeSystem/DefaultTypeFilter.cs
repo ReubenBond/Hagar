@@ -9,19 +9,32 @@ namespace Hagar.TypeSystem
     {
         public bool? IsTypeNameAllowed(string typeName, string assemblyName)
         {
+            if (assemblyName is { } && assemblyName.Contains("Hagar"))
+            {
+                return true;
+            }
+
             if (typeName.EndsWith(nameof(Exception)))
             {
                 return true;
             }
 
-            if (typeName.StartsWith("System.Collections."))
+            if (typeName.StartsWith("System."))
             {
-                return true;
-            }
+                if (typeName.EndsWith("Comparer"))
+                {
+                    return true;
+                }
 
-            if (typeName.StartsWith("System.") && typeName.EndsWith("Comparer"))
-            {
-                return true;
+                if (typeName.StartsWith("System.Collections."))
+                {
+                    return true;
+                }
+
+                if (typeName.StartsWith("System.Net.IP"))
+                {
+                    return true;
+                }
             }
 
             return null;

@@ -42,6 +42,16 @@ namespace Hagar.CodeGenerator
                 TypeParameters.Add((tpName, tp));
             }
 
+            SerializationHooks = new();
+            if (type.GetAttributes(libraryTypes.SerializationCallbacksAttribute, out var hookAttributes))
+            {
+                foreach (var hookAttribute in hookAttributes)
+                {
+                    var hookType = (INamedTypeSymbol)hookAttribute.ConstructorArguments[0].Value;
+                    SerializationHooks.Add(hookType);
+                }
+            }
+
             static string GetTypeParameterName(HashSet<string> names, ITypeParameterSymbol tp)
             {
                 var count = 0;
@@ -133,6 +143,8 @@ namespace Hagar.CodeGenerator
 
         public bool TrackReferences => !IsValueType && !Type.HasAttribute(_libraryTypes.SuppressReferenceTrackingAttribute);
         public bool OmitDefaultMemberValues => Type.HasAttribute(_libraryTypes.OmitDefaultMemberValuesAttribute);
+
+        public List<INamedTypeSymbol> SerializationHooks { get; }
 
         public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(TypeSyntax));
     }

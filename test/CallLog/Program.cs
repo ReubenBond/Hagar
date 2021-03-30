@@ -1,5 +1,6 @@
 ﻿using FASTER.core;
 using Hagar;
+using Hagar.Codecs;
 using Hagar.Configuration;
 using Hagar.Invocation;
 using Microsoft.Extensions.DependencyInjection;
@@ -411,6 +412,68 @@ namespace CallLog
 
             return true;
         }
+    }
+
+    public class RequestSerializationCallbacks : ISerializationCallbacks<IInvokable>
+    {
+        public void OnCopied(IInvokable original, IInvokable result) => throw new NotImplementedException();
+        public void OnCopying(IInvokable original, IInvokable result) => throw new NotImplementedException();
+        public void OnDeserialized(IInvokable value) => throw new NotImplementedException();
+        public void OnDeserializing(IInvokable value) => throw new NotImplementedException();
+        public void OnSerialized(IInvokable value) => throw new NotImplementedException();
+        public void OnSerializing(IInvokable value) => throw new NotImplementedException();
+    }
+
+    [SerializationCallbacks(typeof(RequestSerializationCallbacks))]
+    public abstract class Request : IInvokable
+    {
+        public abstract int ArgumentCount { get; }
+
+        public ValueTask<Response> Invoke()
+        {
+            try
+            {
+                var resultTask = InvokeInner();
+                if (resultTask.IsCompleted)
+                {
+                    resultTask.GetAwaiter().GetResult();
+                    return new ValueTask<Response>(Response.FromResult<object>(null));
+                }
+
+                return CompleteInvokeAsync(resultTask);
+            }
+            catch (Exception exception)
+            {
+                return new ValueTask<Response>(Response.FromException(exception));
+            }
+        }
+
+        private static async ValueTask<Response> CompleteInvokeAsync(ValueTask resultTask)
+        {
+            try
+            {
+                await resultTask;
+                return Response.FromResult<object>(null);
+            }
+            catch (Exception exception)
+            {
+                return Response.FromException(exception);
+            }
+        }
+
+        // Generated
+        protected abstract ValueTask InvokeInner();
+        public abstract TTarget GetTarget<TTarget>();
+        public abstract void SetTarget<TTargetHolder>(TTargetHolder holder) where TTargetHolder : ITargetHolder;
+        public abstract TArgument GetArgument<TArgument>(int index);
+        public abstract void SetArgument<TArgument>(int index, in TArgument value);
+        public abstract void Dispose();
+    }
+    [InvokableCustomInitializer("Yo")]
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class YoDayAttribute : Attribute
+    {
+        public YoDayAttribute(DayOfWeek day) { }
     }
 
     [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
