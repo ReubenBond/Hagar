@@ -1,4 +1,6 @@
 using Hagar.Buffers;
+using Hagar.ISerializableSupport;
+using Hagar.Serializers;
 using Hagar.Session;
 using Hagar.TypeSystem;
 using Hagar.Utilities;
@@ -37,6 +39,7 @@ namespace Hagar.UnitTests
             });
             services.RemoveAll(typeof(TypeResolver));
             services.AddSingleton<TypeResolver>(sp => new BanningTypeResolver(typeof(UnserializableConformingException), typeof(UnserializableNonConformingException)));
+            services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
 
             _serviceProvider = services.BuildServiceProvider();
             _sessionPool = _serviceProvider.GetService<SerializerSessionPool>();

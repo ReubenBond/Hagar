@@ -1,11 +1,14 @@
 using Hagar.Buffers;
 using Hagar.Codecs;
+using Hagar.GeneratedCodeHelpers;
 using Hagar.Serializers;
 using Hagar.TypeSystem;
 using Hagar.WireProtocol;
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Security;
 

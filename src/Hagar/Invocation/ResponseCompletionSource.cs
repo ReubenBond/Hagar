@@ -14,9 +14,15 @@ namespace Hagar.Invocation
 
         public TResult GetResult(short token)
         {
-            var result = _core.GetResult(token);
-            Reset();
-            return result;
+            try
+            {
+                var result = _core.GetResult(token);
+                return result;
+            }
+            finally
+            {
+                Reset();
+            }
         }
 
         public ValueTaskSourceStatus GetStatus(short token) => _core.GetStatus(token);
@@ -77,8 +83,14 @@ namespace Hagar.Invocation
 
         void IValueTaskSource.GetResult(short token)
         {
-            _ = _core.GetResult(token);
-            Reset();
+            try
+            {
+                _ = _core.GetResult(token);
+            }
+            finally
+            {
+                Reset();
+            }
         }
     }
 }

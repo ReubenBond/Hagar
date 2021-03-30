@@ -63,9 +63,10 @@ namespace Hagar
 
                 services.AddSingleton<IGeneralizedCodec, CompareInfoCodec>();
                 services.AddSingleton<IGeneralizedCopier, CompareInfoCopier>();
-
-                services.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
                 services.AddSingleton<IGeneralizedCodec, WellKnownStringComparerCodec>();
+
+                services.AddSingleton<ExceptionCodec>();
+                services.AddSingleton<IGeneralizedCodec>(sp => sp.GetRequiredService<ExceptionCodec>());
 
                 // Serializer
                 services.TryAddSingleton<Serializer>();
