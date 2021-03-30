@@ -130,6 +130,22 @@ namespace Hagar.Codecs
         }
     }
 
+    [RegisterCopier]
+    public sealed class ArraySegmentOfByteCopier : IDeepCopier<ArraySegment<byte>>
+    {
+        public ArraySegment<byte> DeepCopy(ArraySegment<byte> input, CopyContext _)
+        {
+            if (input.Array is null)
+            {
+                return default;
+            }
+
+            var result = new byte[input.Count];
+            input.AsSpan().CopyTo(result.AsSpan());
+            return new ArraySegment<byte>(result);
+        }
+    }
+
     [RegisterSerializer]
     public sealed class MemoryOfByteCodec : TypedCodecBase<Memory<byte>, MemoryOfByteCodec>, IFieldCodec<Memory<byte>>
     {
