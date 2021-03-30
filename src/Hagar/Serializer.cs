@@ -705,6 +705,13 @@ namespace Hagar
         /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
         /// </summary>
         /// <param name="source">The source buffer.</param>
+        /// <returns>The deserialized value.</returns>
+        public T Deserialize(ArraySegment<byte> source) => Deserialize(source.AsSpan());
+
+        /// <summary>
+        /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">The source buffer.</param>
         /// <param name="session">The serializer session.</param>
         /// <returns>The deserialized value.</returns>
         public T Deserialize(ReadOnlySequence<byte> source, SerializerSession session)
@@ -769,6 +776,14 @@ namespace Hagar
         /// <param name="session">The serializer session.</param>
         /// <returns>The deserialized value.</returns>
         public T Deserialize(ReadOnlyMemory<byte> source, SerializerSession session) => Deserialize(source.Span, session);
+
+        /// <summary>
+        /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">The source buffer.</param>
+        /// <param name="session">The serializer session.</param>
+        /// <returns>The deserialized value.</returns>
+        public T Deserialize(ArraySegment<byte> source, SerializerSession session) => Deserialize(source.AsSpan(), session);
     }
 
     /// <summary>
@@ -854,6 +869,18 @@ namespace Hagar
             {
                 writer.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Serializes the provided <paramref name="value"/> into <paramref name="destination"/>.
+        /// </summary>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="destination">The destination where serialized data will be written.</param>
+        /// <remarks>This method slices the <paramref name="destination"/> to the serialized data length.</remarks>
+        public void Serialize(ref T value, ArraySegment<byte> destination)
+        {
+            var destinationSpan = destination.AsSpan();
+            Serialize(ref value, ref destinationSpan);
         }
 
         /// <summary>
@@ -1090,6 +1117,15 @@ namespace Hagar
         /// </summary>
         /// <param name="source">The source buffer.</param>
         /// <param name="result">The deserialized value.</param>
+        /// <param name="session">The serializer session.</param>
+        /// <returns>The deserialized value.</returns>
+        public void Deserialize(ArraySegment<byte> source, ref T result, SerializerSession session) => Deserialize(source.AsSpan(), ref result, session);
+
+        /// <summary>
+        /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">The source buffer.</param>
+        /// <param name="result">The deserialized value.</param>
         /// <returns>The deserialized value.</returns>
         public void Deserialize(ReadOnlySpan<byte> source, ref T result)
         {
@@ -1148,6 +1184,14 @@ namespace Hagar
         /// <param name="session">The serializer session.</param>
         /// <returns>The deserialized value.</returns>
         public void Deserialize(ReadOnlyMemory<byte> source, ref T result, SerializerSession session) => Deserialize(source.Span, ref result, session);
+
+        /// <summary>
+        /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">The source buffer.</param>
+        /// <param name="result">The deserialized value.</param>
+        /// <returns>The deserialized value.</returns>
+        public void Deserialize(ArraySegment<byte> source, ref T result) => Deserialize(source.AsSpan(), ref result);
     }
 
     public sealed class DeepCopier
