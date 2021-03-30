@@ -17,7 +17,7 @@ namespace Hagar.Cloning
         IDeepCopier<T> TryGetDeepCopier<T>();
         IDeepCopier<object> GetDeepCopier(Type type);
         IDeepCopier<object> TryGetDeepCopier(Type type);
-        IPartialCopier<T> GetPartialCopier<T>() where T : class;
+        IBaseCopier<T> GetBaseCopier<T>() where T : class;
     }
     
     public interface IDeepCopier { }
@@ -27,11 +27,11 @@ namespace Hagar.Cloning
         T DeepCopy(T input, CopyContext context);
     }
 
-    public interface IPartialCopier
+    public interface IBaseCopier
     {
     }
 
-    public interface IPartialCopier<T> : IPartialCopier where T : class
+    public interface IBaseCopier<T> : IBaseCopier where T : class
     {
         void DeepCopy(T input, T output, CopyContext context);
     }

@@ -112,7 +112,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class QueueCopier<T> : IDeepCopier<Queue<T>>, IPartialCopier<Queue<T>>
+    public sealed class QueueCopier<T> : IDeepCopier<Queue<T>>, IBaseCopier<Queue<T>>
     {
         private readonly IDeepCopier<T> _copier;
 

@@ -28,15 +28,15 @@ namespace Hagar.Serializers
         private readonly ConcurrentDictionary<(Type, Type), IFieldCodec> _adaptedCodecs = new ConcurrentDictionary<(Type, Type), IFieldCodec>();
         private readonly ConcurrentDictionary<(Type, Type), IDeepCopier> _adaptedCopiers = new ConcurrentDictionary<(Type, Type), IDeepCopier>();
 
-        private readonly ConcurrentDictionary<Type, object> _instantiatedPartialSerializers = new ConcurrentDictionary<Type, object>();
-        private readonly ConcurrentDictionary<Type, object> _instantiatedPartialCopiers = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Type, object> _instantiatedBaseCodecs = new ConcurrentDictionary<Type, object>();
+        private readonly ConcurrentDictionary<Type, object> _instantiatedBaseCopiers = new ConcurrentDictionary<Type, object>();
         private readonly ConcurrentDictionary<Type, object> _instantiatedValueSerializers = new ConcurrentDictionary<Type, object>();
         private readonly ConcurrentDictionary<Type, object> _instantiatedActivators = new ConcurrentDictionary<Type, object>();
-        private readonly Dictionary<Type, Type> _partialSerializers = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> _baseCodecs = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> _valueSerializers = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> _fieldCodecs = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> _copiers = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, Type> _partialCopiers = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, Type> _baseCopiers = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, Type> _activators = new Dictionary<Type, Type>();
         private readonly List<IGeneralizedCodec> _generalizedCodecs = new List<IGeneralizedCodec>();
         private readonly List<IGeneralizedCopier> _generalizedCopiers = new List<IGeneralizedCopier>();
@@ -84,13 +84,13 @@ namespace Hagar.Serializers
         private void ConsumeMetadata(IConfiguration<SerializerConfiguration> codecConfiguration)
         {
             var metadata = codecConfiguration.Value;
-            AddFromMetadata(_partialSerializers, metadata.Serializers, typeof(IPartialSerializer<>));
+            AddFromMetadata(_baseCodecs, metadata.Serializers, typeof(IBaseCodec<>));
             AddFromMetadata(_valueSerializers, metadata.Serializers, typeof(IValueSerializer<>));
             AddFromMetadata(_fieldCodecs, metadata.Serializers, typeof(IFieldCodec<>));
             AddFromMetadata(_fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
             AddFromMetadata(_activators, metadata.Activators, typeof(IActivator<>));
             AddFromMetadata(_copiers, metadata.Copiers, typeof(IDeepCopier<>));
-            AddFromMetadata(_partialCopiers, metadata.Copiers, typeof(IPartialCopier<>));
+            AddFromMetadata(_baseCopiers, metadata.Copiers, typeof(IBaseCopier<>));
 
             static void AddFromMetadata(IDictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
             {
@@ -270,7 +270,7 @@ namespace Hagar.Serializers
             return GetActivatorInner<T>(type, searchType) ?? ThrowActivatorNotFound<T>(type);
         }
 
-        public IPartialSerializer<TField> GetPartialSerializer<TField>() where TField : class
+        public IBaseCodec<TField> GetBaseCodec<TField>() where TField : class
         {
             if (!_initialized)
             {
@@ -281,7 +281,7 @@ namespace Hagar.Serializers
             var type = typeof(TField);
             var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
-            return GetPartialSerializerInner<TField>(type, searchType) ?? ThrowPartialSerializerNotFound<TField>(type);
+            return GetBaseCodecInner<TField>(type, searchType) ?? ThrowBaseCodecNotFound<TField>(type);
         }
 
         public IValueSerializer<TField> GetValueSerializer<TField>() where TField : struct
@@ -298,7 +298,7 @@ namespace Hagar.Serializers
             return GetValueSerializerInner<TField>(type, searchType) ?? ThrowValueSerializerNotFound<TField>(type);
         }
 
-        public IPartialCopier<TField> GetPartialCopier<TField>() where TField : class
+        public IBaseCopier<TField> GetBaseCopier<TField>() where TField : class
         {
             if (!_initialized)
             {
@@ -309,7 +309,7 @@ namespace Hagar.Serializers
             var type = typeof(TField);
             var searchType = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
-            return GetPartialCopierInner<TField>(type, searchType) ?? ThrowPartialCopierNotFound<TField>(type);
+            return GetBaseCopierInner<TField>(type, searchType) ?? ThrowBaseCopierNotFound<TField>(type);
         }
 
         public IDeepCopier<T> GetDeepCopier<T>() => TryGetCopierInner<T>(typeof(T)) ?? ThrowCopierNotFound<T>(typeof(T));
@@ -440,9 +440,9 @@ namespace Hagar.Serializers
             }
         }
 
-        private IPartialSerializer<TField> GetPartialSerializerInner<TField>(Type concreteType, Type searchType) where TField : class
+        private IBaseCodec<TField> GetBaseCodecInner<TField>(Type concreteType, Type searchType) where TField : class
         {
-            if (!_partialSerializers.TryGetValue(searchType, out var serializerType))
+            if (!_baseCodecs.TryGetValue(searchType, out var serializerType))
             {
                 return null;
             }
@@ -452,13 +452,13 @@ namespace Hagar.Serializers
                 serializerType = serializerType.MakeGenericType(concreteType.GetGenericArguments());
             }
 
-            if (!_instantiatedPartialSerializers.TryGetValue(serializerType, out var result))
+            if (!_instantiatedBaseCodecs.TryGetValue(serializerType, out var result))
             {
                 result = GetServiceOrCreateInstance(serializerType);
-                _ = _instantiatedPartialSerializers.TryAdd(serializerType, result);
+                _ = _instantiatedBaseCodecs.TryAdd(serializerType, result);
             }
 
-            return (IPartialSerializer<TField>)result;
+            return (IBaseCodec<TField>)result;
         }
 
         private IValueSerializer<TField> GetValueSerializerInner<TField>(Type concreteType, Type searchType) where TField : struct
@@ -482,9 +482,9 @@ namespace Hagar.Serializers
             return (IValueSerializer<TField>)result;
         }
 
-        private IPartialCopier<T> GetPartialCopierInner<T>(Type concreteType, Type searchType) where T : class
+        private IBaseCopier<T> GetBaseCopierInner<T>(Type concreteType, Type searchType) where T : class
         {
-            if (!_partialCopiers.TryGetValue(searchType, out var copierType))
+            if (!_baseCopiers.TryGetValue(searchType, out var copierType))
             {
                 return null;
             }
@@ -494,13 +494,13 @@ namespace Hagar.Serializers
                 copierType = copierType.MakeGenericType(concreteType.GetGenericArguments());
             }
 
-            if (!_instantiatedPartialCopiers.TryGetValue(copierType, out var result))
+            if (!_instantiatedBaseCopiers.TryGetValue(copierType, out var result))
             {
                 result = GetServiceOrCreateInstance(copierType);
-                _ = _instantiatedPartialCopiers.TryAdd(copierType, result);
+                _ = _instantiatedBaseCopiers.TryAdd(copierType, result);
             }
 
-            return (IPartialCopier<T>)result;
+            return (IBaseCopier<T>)result;
         }
 
         private IActivator<T> GetActivatorInner<T>(Type concreteType, Type searchType)
@@ -570,16 +570,16 @@ namespace Hagar.Serializers
                     codecType = codecType.MakeGenericType(fieldType.GetGenericArguments());
                 }
             }
-            else if (_partialSerializers.TryGetValue(searchType, out var partialSerializerType))
+            else if (_baseCodecs.TryGetValue(searchType, out var baseCodecType))
             {
-                if (partialSerializerType.IsGenericTypeDefinition)
+                if (baseCodecType.IsGenericTypeDefinition)
                 {
-                    partialSerializerType = partialSerializerType.MakeGenericType(fieldType.GetGenericArguments());
+                    baseCodecType = baseCodecType.MakeGenericType(fieldType.GetGenericArguments());
                 }
 
                 // If there is a partial serializer for this type, create a codec which will then accept that partial serializer.
-                codecType = typeof(ConcreteTypeSerializer<,>).MakeGenericType(fieldType, partialSerializerType);
-                constructorArguments = new[] { GetServiceOrCreateInstance(partialSerializerType) };
+                codecType = typeof(ConcreteTypeSerializer<,>).MakeGenericType(fieldType, baseCodecType);
+                constructorArguments = new[] { GetServiceOrCreateInstance(baseCodecType) };
             }
             else if (_valueSerializers.TryGetValue(searchType, out var valueSerializerType))
             {
@@ -602,12 +602,12 @@ namespace Hagar.Serializers
             {
                 return CreateCodecInstance(fieldType, fieldType.GetEnumUnderlyingType());
             }
-            else if (searchType.BaseType is object && CreateCodecInstance(fieldType, searchType.BaseType) is IFieldCodec baseCodec)
+            else if (searchType.BaseType is object && CreateCodecInstance(fieldType, searchType.BaseType) is IFieldCodec fieldIdDelta)
             {
                 // Find codecs which generalize over all subtypes.
-                if (baseCodec is IDerivedTypeCodec)
+                if (fieldIdDelta is IDerivedTypeCodec)
                 {
-                    return baseCodec;
+                    return fieldIdDelta;
                 }
             }
 
@@ -629,16 +629,16 @@ namespace Hagar.Serializers
                 copierType = typeof(ShallowCopyableTypeCopier<>).MakeGenericType(fieldType);
             }
             /*
-            else if (_partialCopiers.TryGetValue(searchType, out var partialCopierType))
+            else if (_baseCopiers.TryGetValue(searchType, out var baseCopierType))
             {
-                if (partialCopierType.IsGenericTypeDefinition)
+                if (baseCopierType.IsGenericTypeDefinition)
                 {
-                    partialCopierType = partialCopierType.MakeGenericType(fieldType.GetGenericArguments());
+                    baseCopierType = baseCopierType.MakeGenericType(fieldType.GetGenericArguments());
                 }
 
                 // If there is a partial serializer for this type, create a copier which will then accept that partial serializer.
-                copierType = typeof(ConcreteTypeCopier<,>).MakeGenericType(fieldType, partialCopierType);
-                constructorArguments = new[] { GetServiceOrCreateInstance(partialCopierType) };
+                copierType = typeof(ConcreteTypeCopier<,>).MakeGenericType(fieldType, baseCopierType);
+                constructorArguments = new[] { GetServiceOrCreateInstance(baseCopierType) };
             }
             else if (_valueCopiers.TryGetValue(searchType, out var valueCopierType))
             {
@@ -686,7 +686,7 @@ namespace Hagar.Serializers
         private static IDeepCopier<T> ThrowCopierNotFound<T>(Type type) => throw new CodecNotFoundException($"Could not find a copier for type {type}.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IPartialSerializer<TField> ThrowPartialSerializerNotFound<TField>(Type fieldType) where TField : class => throw new KeyNotFoundException($"Could not find a partial serializer for type {fieldType}.");
+        private static IBaseCodec<TField> ThrowBaseCodecNotFound<TField>(Type fieldType) where TField : class => throw new KeyNotFoundException($"Could not find a partial serializer for type {fieldType}.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IValueSerializer<TField> ThrowValueSerializerNotFound<TField>(Type fieldType) where TField : struct => throw new KeyNotFoundException($"Could not find a value serializer for type {fieldType}.");
@@ -695,6 +695,6 @@ namespace Hagar.Serializers
         private static IActivator<T> ThrowActivatorNotFound<T>(Type type) => throw new KeyNotFoundException($"Could not find an activator for type {type}.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IPartialCopier<T> ThrowPartialCopierNotFound<T>(Type type) where T : class => throw new KeyNotFoundException($"Could not find a partial copier for type {type}.");
+        private static IBaseCopier<T> ThrowBaseCopierNotFound<T>(Type type) where T : class => throw new KeyNotFoundException($"Could not find a partial copier for type {type}.");
     }
 }

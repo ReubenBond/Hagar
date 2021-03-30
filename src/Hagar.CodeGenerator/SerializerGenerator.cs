@@ -68,7 +68,7 @@ namespace Hagar.CodeGenerator
                 var readValueMethod = GenerateCompoundTypeReadValueMethod(type, fieldDescriptions, libraryTypes);
                 classDeclaration = classDeclaration.AddMembers(serializeMethod, deserializeMethod, writeFieldMethod, readValueMethod);
 
-                var serializerInterface = type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.PartialSerializer_1;
+                var serializerInterface = type.IsValueType ? libraryTypes.ValueSerializer : libraryTypes.BaseCodec_1;
                 classDeclaration = classDeclaration.AddBaseListTypes(SimpleBaseType(serializerInterface.ToTypeSyntax(type.TypeSyntax)));
             }
 
@@ -250,7 +250,7 @@ namespace Hagar.CodeGenerator
 
             if (serializableTypeDescription.HasComplexBaseType)
             {
-                fields.Add(new PartialSerializerFieldDescription(libraryTypes.PartialSerializer_1.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeSerializerFieldName));
+                fields.Add(new BaseCodecFieldDescription(libraryTypes.BaseCodec_1.Construct(serializableTypeDescription.BaseType).ToTypeSyntax(), BaseTypeSerializerFieldName));
             }
 
             if (serializableTypeDescription.UseActivator)
@@ -1014,9 +1014,9 @@ namespace Hagar.CodeGenerator
             public abstract bool IsInjected { get; }
         }
 
-        internal class PartialSerializerFieldDescription : GeneratedFieldDescription
+        internal class BaseCodecFieldDescription : GeneratedFieldDescription
         {
-            public PartialSerializerFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
+            public BaseCodecFieldDescription(TypeSyntax fieldType, string fieldName) : base(fieldType, fieldName)
             {
             }
 

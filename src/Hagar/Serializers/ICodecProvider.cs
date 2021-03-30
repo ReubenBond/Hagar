@@ -5,7 +5,7 @@ namespace Hagar.Serializers
 {
     public interface ICodecProvider :
         IFieldCodecProvider,
-        IPartialSerializerProvider,
+        IBaseCodecProvider,
         IValueSerializerProvider,
         IActivatorProvider,
         IDeepCopierProvider

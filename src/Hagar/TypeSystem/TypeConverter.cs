@@ -64,13 +64,13 @@ namespace Hagar.TypeSystem
 
         private void ConsumeMetadata(SerializerConfiguration metadata)
         {
-            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IPartialSerializer<>));
+            AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IBaseCodec<>));
             AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IValueSerializer<>));
             AddFromMetadata(_allowedTypes, metadata.Serializers, typeof(IFieldCodec<>));
             AddFromMetadata(_allowedTypes, metadata.FieldCodecs, typeof(IFieldCodec<>));
             AddFromMetadata(_allowedTypes, metadata.Activators, typeof(IActivator<>));
             AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IDeepCopier<>));
-            AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IPartialCopier<>));
+            AddFromMetadata(_allowedTypes, metadata.Copiers, typeof(IBaseCopier<>));
             foreach (var type in metadata.InterfaceProxies)
             {
                 AddAllowedType(_allowedTypes, type);

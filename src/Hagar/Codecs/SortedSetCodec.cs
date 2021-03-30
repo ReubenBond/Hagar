@@ -63,7 +63,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class SortedSetCopier<T> : IDeepCopier<SortedSet<T>>, IPartialCopier<SortedSet<T>>
+    public sealed class SortedSetCopier<T> : IDeepCopier<SortedSet<T>>, IBaseCopier<SortedSet<T>>
     {
         private readonly IDeepCopier<T> _elementCopier;
 

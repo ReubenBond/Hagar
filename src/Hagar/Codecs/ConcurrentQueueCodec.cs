@@ -53,7 +53,7 @@ namespace Hagar.Codecs
     }
 
     [RegisterCopier]
-    public sealed class ConcurrentQueueCopier<T> : IDeepCopier<ConcurrentQueue<T>>, IPartialCopier<ConcurrentQueue<T>>
+    public sealed class ConcurrentQueueCopier<T> : IDeepCopier<ConcurrentQueue<T>>, IBaseCopier<ConcurrentQueue<T>>
     {
         private readonly IDeepCopier<T> _copier;
 
