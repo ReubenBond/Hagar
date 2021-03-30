@@ -4,12 +4,13 @@
     <TargetFrameworks>net5.0;netcoreapp3.1;net48;netstandard2.0</TargetFrameworks>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <IncludeSymbols>false</IncludeSymbols>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hagar.Abstractions\Hagar.Abstractions.csproj"/>
-    <ProjectReference Include="..\Hagar\Hagar.csproj"/>
-    <ProjectReference Include="..\Hagar.Analyzers\Hagar.Analyzers.csproj"/>
-    <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj"/>
+    <ProjectReference Include="..\Hagar.Abstractions\Hagar.Abstractions.csproj" PrivateAssets="None" />
+    <ProjectReference Include="..\Hagar\Hagar.csproj" PrivateAssets="None" />
+    <ProjectReference Include="..\Hagar.Analyzers\Hagar.Analyzers.csproj" PrivateAssets="None" />
+    <ProjectReference Include="..\Hagar.CodeGenerator\Hagar.CodeGenerator.csproj" PrivateAssets="None" />
   </ItemGroup>
 </Project>
