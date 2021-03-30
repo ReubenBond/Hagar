@@ -25,6 +25,7 @@ namespace Hagar.Invocation
     }
 
     [GenerateSerializer]
+    [Immutable]
     public sealed class CompletedResponse : Response
     {
         public override object Result { get => null; set => throw new InvalidOperationException($"Type {nameof(CompletedResponse)} is read-only"); } 
@@ -35,6 +36,7 @@ namespace Hagar.Invocation
     }
 
     [GenerateSerializer]
+    [Immutable]
     public sealed class ExceptionResponse : Response
     {
         public override object Result
