@@ -8,6 +8,7 @@ namespace TestRpc.App.Two
     public interface IPingGrain : IGrain
     {
         ValueTask Ping();
+        void VoidMethod();
     }
 }
 

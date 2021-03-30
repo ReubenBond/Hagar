@@ -39,7 +39,7 @@ namespace Hagar.Invocation
             {
                 Complete(typed);
             }
-            else if (value.Exception is Exception exception)
+            else if (value.Exception is { } exception)
             {
                 SetException(exception);
             }
@@ -55,7 +55,7 @@ namespace Hagar.Invocation
         /// <param name="value">The result value.</param>
         public void Complete(Response<TResult> value)
         {
-            if (value.Exception is Exception exception)
+            if (value.Exception is { } exception)
             {
                 SetException(exception);
             }

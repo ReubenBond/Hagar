@@ -24,7 +24,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return new ValueTask<Response>(Response.FromException<object>(exception));
+                return new ValueTask<Response>(Response.FromException(exception));
             }
         }
 
@@ -38,7 +38,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return Response.FromException<object>(exception);
+                return Response.FromException(exception);
             }
         }
 
@@ -71,7 +71,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return new ValueTask<Response>(Response.FromException<TResult>(exception));
+                return new ValueTask<Response>(Response.FromException(exception));
             }
         }
 
@@ -85,7 +85,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return Response.FromException<TResult>(exception);
+                return Response.FromException(exception);
             }
         }
 
@@ -119,7 +119,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return new ValueTask<Response>(Response.FromException<TResult>(exception));
+                return new ValueTask<Response>(Response.FromException(exception));
             }
         }
 
@@ -133,7 +133,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return Response.FromException<TResult>(exception);
+                return Response.FromException(exception);
             }
         }
 
@@ -168,7 +168,7 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return new ValueTask<Response>(Response.FromException<object>(exception));
+                return new ValueTask<Response>(Response.FromException(exception));
             }
         }
 
@@ -182,13 +182,41 @@ namespace Hagar.Invocation
             }
             catch (Exception exception)
             {
-                return Response.FromException<object>(exception);
+                return Response.FromException(exception);
             }
         }
 
         // Generated
         [DebuggerHidden]
         protected abstract Task InvokeInner();
+        public abstract TTarget GetTarget<TTarget>();
+        public abstract void SetTarget<TTargetHolder>(TTargetHolder holder) where TTargetHolder : ITargetHolder;
+        public abstract TArgument GetArgument<TArgument>(int index);
+        public abstract void SetArgument<TArgument>(int index, in TArgument value);
+        public abstract void Dispose();
+    }
+
+    public abstract class VoidRequest : IInvokable
+    {
+        public abstract int ArgumentCount { get; }
+
+        [DebuggerHidden]
+        public ValueTask<Response> Invoke()
+        {
+            try
+            {
+                InvokeInner();
+                return new ValueTask<Response>(Response.FromResult<object>(null));
+            }
+            catch (Exception exception)
+            {
+                return new ValueTask<Response>(Response.FromException(exception));
+            }
+        }
+
+        // Generated
+        [DebuggerHidden]
+        protected abstract void InvokeInner();
         public abstract TTarget GetTarget<TTarget>();
         public abstract void SetTarget<TTargetHolder>(TTargetHolder holder) where TTargetHolder : ITargetHolder;
         public abstract TArgument GetArgument<TArgument>(int index);

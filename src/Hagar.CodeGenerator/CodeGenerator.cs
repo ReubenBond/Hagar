@@ -189,6 +189,12 @@ namespace Hagar.CodeGenerator
                             inherited: true);
                         if (attribute != null)
                         {
+                            var prop = symbol.GetAllMembers<IPropertySymbol>().FirstOrDefault();
+                            if (prop is { })
+                            {
+                                throw new InvalidOperationException($"Invokable type {symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} contains property {prop.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}. Invokable types cannot contain properties.");
+                            }
+
                             var baseClass = (INamedTypeSymbol)attribute.ConstructorArguments[0].Value;
                             var isExtension = (bool)attribute.ConstructorArguments[1].Value;
                             var description = new InvokableInterfaceDescription(
