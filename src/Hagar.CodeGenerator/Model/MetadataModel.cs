@@ -6,7 +6,7 @@ namespace Hagar.CodeGenerator
     internal class MetadataModel
     {
         public List<ISerializableTypeDescription> SerializableTypes { get; } = new(1024);
-        public List<IInvokableInterfaceDescription> InvokableInterfaces { get; } = new(1024);
+        public List<InvokableInterfaceDescription> InvokableInterfaces { get; } = new(1024);
         public Dictionary<MethodDescription, GeneratedInvokerDescription> GeneratedInvokables { get; } = new();
         public List<GeneratedProxyDescription> GeneratedProxies { get; } = new(1024);
         public List<ISerializableTypeDescription> ActivatableTypes { get; } = new(1024);

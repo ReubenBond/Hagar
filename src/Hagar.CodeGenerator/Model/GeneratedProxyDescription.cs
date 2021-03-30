@@ -7,16 +7,16 @@ namespace Hagar.CodeGenerator
 {
     internal class GeneratedProxyDescription
     {
-        public GeneratedProxyDescription(IInvokableInterfaceDescription interfaceDescription)
+        public GeneratedProxyDescription(InvokableInterfaceDescription interfaceDescription)
         {
             InterfaceDescription = interfaceDescription;
             TypeSyntax = GetProxyTypeName(interfaceDescription);
         }
 
         public TypeSyntax TypeSyntax { get; }
-        public IInvokableInterfaceDescription InterfaceDescription { get; }
+        public InvokableInterfaceDescription InterfaceDescription { get; }
 
-        private static TypeSyntax GetProxyTypeName(IInvokableInterfaceDescription interfaceDescription)
+        private static TypeSyntax GetProxyTypeName(InvokableInterfaceDescription interfaceDescription)
         {
             var interfaceType = interfaceDescription.InterfaceType;
             var genericArity = interfaceType.GetAllTypeParameters().Count();

@@ -14,6 +14,11 @@ namespace MyPocos
         public int MyInt2 { get; set; }
     }
 
+    [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
+    [DefaultInvokableBaseType(typeof(ValueTask), typeof(Request))]
+    [DefaultInvokableBaseType(typeof(Task<>), typeof(TaskRequest<>))]
+    [DefaultInvokableBaseType(typeof(Task), typeof(TaskRequest))]
+    [DefaultInvokableBaseType(typeof(void), typeof(VoidRequest))]
     public abstract class MyProxyBaseClass
     {
         public List<IInvokable> Invocations { get; } = new();

@@ -21,6 +21,7 @@ namespace TestRpc.App
 
     public interface IPingPongGrain : IPingGrain
     {
+        [Transaction(TransactionOption.CreateOrJoin)]
         ValueTask<string> Echo(string input);
     }
 

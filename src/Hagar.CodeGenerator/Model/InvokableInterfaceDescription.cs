@@ -8,20 +8,19 @@ using System.Runtime.CompilerServices;
 
 namespace Hagar.CodeGenerator
 {
-    internal class InvokableInterfaceDescription : IInvokableInterfaceDescription
+    internal class InvokableInterfaceDescription
     {
-        private readonly CodeGenerator _generator;
-
         public InvokableInterfaceDescription(
             CodeGenerator generator,
             SemanticModel semanticModel,
             INamedTypeSymbol interfaceType,
             string name,
             INamedTypeSymbol proxyBaseType,
-            bool isExtension)
+            bool isExtension,
+            Dictionary<INamedTypeSymbol, INamedTypeSymbol> invokableBaseTypes)
         {
             ValidateBaseClass(generator.LibraryTypes, proxyBaseType);
-            _generator = generator;
+            CodeGenerator = generator;
             SemanticModel = semanticModel;
             InterfaceType = interfaceType;
             ProxyBaseType = proxyBaseType;
@@ -38,6 +37,7 @@ namespace Hagar.CodeGenerator
                 TypeParameters.Add((tpName, tp));
             }
 
+            InvokableBaseTypes = invokableBaseTypes;
             Methods = GetMethods(interfaceType).ToList();
 
             static string GetTypeParameterName(HashSet<string> names, ITypeParameterSymbol tp)
@@ -53,6 +53,8 @@ namespace Hagar.CodeGenerator
                 return result;
             }
         }
+
+        public CodeGenerator CodeGenerator { get; }
 
         private IEnumerable<MethodDescription> GetMethods(INamedTypeSymbol symbol)
         {
@@ -77,7 +79,7 @@ namespace Hagar.CodeGenerator
             foreach (var pair in methods.OrderBy(kv => kv.Key, MethodSignatureComparer.Default))
             {
                 var method = pair.Key;
-                var id = _generator.GetId(method) ?? idCounter;
+                var id = CodeGenerator.GetId(method) ?? idCounter;
                 if (id >= idCounter)
                 {
                     idCounter = id + 1;
@@ -108,6 +110,7 @@ namespace Hagar.CodeGenerator
         public SemanticModel SemanticModel { get; }
         public string GeneratedNamespace { get; }
         public List<(string Name, ITypeParameterSymbol Parameter)> TypeParameters { get; }
+        public Dictionary<INamedTypeSymbol, INamedTypeSymbol> InvokableBaseTypes { get; }
 
         private static void ValidateBaseClass(LibraryTypes l, INamedTypeSymbol baseClass)
         {

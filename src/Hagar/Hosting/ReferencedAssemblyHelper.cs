@@ -32,12 +32,6 @@ namespace Hagar
             return parts;
         }
 
-        /// <summary>
-        /// Adds the provided assembly to the builder.
-        /// </summary>
-        /// <param name="manager">The builder.</param>
-        /// <param name="assembly">The assembly.</param>
-        /// <returns>The builder with the additionally added assembly.</returns>
         public static void AddAssembly(HashSet<Assembly> parts, Assembly assembly)
         {
             if (assembly == null)

@@ -413,6 +413,11 @@ namespace CallLog
         }
     }
 
+    [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
+    [DefaultInvokableBaseType(typeof(ValueTask), typeof(Request))]
+    [DefaultInvokableBaseType(typeof(Task<>), typeof(TaskRequest<>))]
+    [DefaultInvokableBaseType(typeof(Task), typeof(TaskRequest))]
+    [DefaultInvokableBaseType(typeof(void), typeof(VoidRequest))]
     internal abstract class WorkflowProxyBase
     {
         private readonly IdSpan _id;

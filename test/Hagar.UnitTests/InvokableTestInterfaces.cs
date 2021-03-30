@@ -10,6 +10,11 @@ using System.Threading.Tasks;
 
 namespace Hagar.UnitTests
 {
+    [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
+    [DefaultInvokableBaseType(typeof(ValueTask), typeof(Request))]
+    [DefaultInvokableBaseType(typeof(Task<>), typeof(TaskRequest<>))]
+    [DefaultInvokableBaseType(typeof(Task), typeof(TaskRequest))]
+    [DefaultInvokableBaseType(typeof(void), typeof(VoidRequest))]
     public abstract class MyInvokableProxyBase
     {
         protected void SendRequest(IResponseCompletionSource callback, IInvokable body)

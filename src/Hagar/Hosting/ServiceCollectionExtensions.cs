@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 
 namespace Hagar
 {
@@ -106,6 +107,8 @@ namespace Hagar
             private readonly IServiceCollection _services;
 
             public HagarBuilder(IServiceCollection services) => _services = services;
+
+            public Dictionary<object, object> Properties { get; } = new();
 
             public IHagarBuilderImplementation ConfigureServices(Action<IServiceCollection> configureDelegate)
             {
