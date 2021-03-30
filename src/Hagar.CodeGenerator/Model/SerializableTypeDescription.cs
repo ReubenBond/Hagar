@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -80,7 +79,11 @@ namespace Hagar.CodeGenerator
 
         public string Namespace => Type.GetNamespaceAndNesting();
 
-        public string GeneratedNamespace => CodeGenerator.CodeGeneratorName + "." + Namespace;
+        public string GeneratedNamespace => Namespace switch
+        {
+            { Length: > 0 } ns => $"{CodeGenerator.CodeGeneratorName}.{ns}",
+            _ => CodeGenerator.CodeGeneratorName
+        };
 
         public string Name => Type.Name;
 

@@ -59,18 +59,13 @@ namespace Hagar.CodeGenerator
         private TypeSyntax CreateTypeSyntax()
         {
             var simpleName = InvokableGenerator.GetSimpleClassName(InterfaceDescription, _methodDescription);
-            if (TypeParameters.Count > 0)
+            return (TypeParameters, Namespace) switch
             {
-                return QualifiedName(
-                    ParseName(Namespace),
-                    GenericName(
-                        Identifier(simpleName),
-                        TypeArgumentList(
-                            SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name))))));
-            }
-
-            var name = QualifiedName(ParseName(Namespace), IdentifierName(simpleName));
-            return name;
+                ({ Count: > 0 }, { Length: > 0 }) => QualifiedName(ParseName(Namespace), GenericName(Identifier(simpleName), TypeArgumentList(SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name)))))),
+                ({ Count: > 0 }, _) => GenericName(Identifier(simpleName), TypeArgumentList(SeparatedList<TypeSyntax>(TypeParameters.Select(p => IdentifierName(p.Name))))),
+                (_, { Length: > 0 }) => QualifiedName(ParseName(Namespace), IdentifierName(simpleName)),
+                _ => IdentifierName(simpleName),
+            };
         }
     }
 
