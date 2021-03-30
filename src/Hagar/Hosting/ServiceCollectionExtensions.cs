@@ -44,15 +44,15 @@ namespace Hagar
                 services.TryAddSingleton<IBaseCodecProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IValueSerializerProvider>(sp => sp.GetRequiredService<CodecProvider>());
                 services.TryAddSingleton<IActivatorProvider>(sp => sp.GetRequiredService<CodecProvider>());
-                services.TryAddScoped(typeof(IFieldCodec<>), typeof(FieldCodecHolder<>));
-                services.TryAddScoped(typeof(IBaseCodec<>), typeof(BaseCodecHolder<>));
-                services.TryAddScoped(typeof(IValueSerializer<>), typeof(ValueSerializerHolder<>));
+                services.TryAddSingleton(typeof(IFieldCodec<>), typeof(FieldCodecHolder<>));
+                services.TryAddSingleton(typeof(IBaseCodec<>), typeof(BaseCodecHolder<>));
+                services.TryAddSingleton(typeof(IValueSerializer<>), typeof(ValueSerializerHolder<>));
                 services.TryAddSingleton(typeof(DefaultActivator<>));
                 services.TryAddSingleton(typeof(IActivator<>), typeof(ActivatorHolder<>));
                 services.TryAddSingleton<WellKnownTypeCollection>();
                 services.TryAddSingleton<TypeCodec>();
-                services.TryAddScoped(typeof(IDeepCopier<>), typeof(CopierHolder<>));
-                services.TryAddScoped(typeof(IBaseCopier<>), typeof(BaseCopierHolder<>));
+                services.TryAddSingleton(typeof(IDeepCopier<>), typeof(CopierHolder<>));
+                services.TryAddSingleton(typeof(IBaseCopier<>), typeof(BaseCopierHolder<>));
 
                 // Type filtering
                 services.AddSingleton<ITypeFilter, DefaultTypeFilter>();
