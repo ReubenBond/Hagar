@@ -5,6 +5,7 @@ using Hagar.WireProtocol;
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Hagar.Codecs
 {
@@ -277,10 +278,17 @@ namespace Hagar.Codecs
                 return input;
             }
 
-            // Note that there is a possibility for infinite recursion here if the underlying object in the input is
-            // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
             var inputSpan = input.Span;
             var result = new T[inputSpan.Length];
+
+            // Note that there is a possibility for unbounded recursion if the underlying object in the input is
+            // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
+            // It is also possible that an IMemoryOwner<T> is the backing object, in which case this will not work.
+            if (MemoryMarshal.TryGetArray(input, out var segment))
+            {
+                context.RecordCopy(segment.Array, result);
+            }
+
             for (var i = 0; i < inputSpan.Length; i++)
             {
                 result[i] = _elementCopier.DeepCopy(inputSpan[i], context);
@@ -391,15 +399,15 @@ namespace Hagar.Codecs
             $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static T[] ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
+        private static Memory<T> ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
             $"Encountered too many elements in array of type {typeof(T[])} with declared length {length}.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static T[] ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+        private static Memory<T> ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
-            $"Declared length of {typeof(ReadOnlyMemory<T>)}, {length}, is greater than total length of input.");
+            $"Declared length of {typeof(Memory<T>)}, {length}, is greater than total length of input.");
     }
 
     [RegisterCopier]
@@ -423,12 +431,154 @@ namespace Hagar.Codecs
             // able to take part in a cyclic reference. If we could get that object then we could prevent that cycle.
             var inputSpan = input.Span;
             var result = new T[inputSpan.Length];
+
             for (var i = 0; i < inputSpan.Length; i++)
             {
                 result[i] = _elementCopier.DeepCopy(inputSpan[i], context);
             }
 
             return result;
+        }
+    }
+    
+    /// <summary>
+    /// Codec for <see cref="ArraySegment{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    [RegisterSerializer]
+    public sealed class ArraySegmentCodec<T> : IFieldCodec<ArraySegment<T>>
+    {
+        private static readonly Type CodecElementType = typeof(T);
+        private readonly IFieldCodec<T> _fieldCodec;
+
+        public ArraySegmentCodec(IFieldCodec<T> fieldCodec)
+        {
+            _fieldCodec = HagarGeneratedCodeHelper.UnwrapService(this, fieldCodec);
+        }
+
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ArraySegment<T> value) where TBufferWriter : IBufferWriter<byte>
+        {
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
+            {
+                return;
+            }
+
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
+
+            Int32Codec.WriteField(ref writer, 0, Int32Codec.CodecFieldType, value.Count);
+            uint innerFieldIdDelta = 1;
+            foreach (var element in value.AsSpan())
+            {
+                _fieldCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, element);
+                innerFieldIdDelta = 0;
+            }
+
+            writer.WriteEndObject();
+        }
+
+        public ArraySegment<T> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<ArraySegment<T>, TInput>(ref reader, field);
+            }
+
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
+            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
+            T[] result = null;
+            uint fieldId = 0;
+            var length = 0;
+            var index = 0;
+            while (true)
+            {
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
+                fieldId += header.FieldIdDelta;
+                switch (fieldId)
+                {
+                    case 0:
+                        length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
+                        {
+                            ThrowInvalidSizeException(length);
+                        }
+
+                        result = new T[length];
+                        ReferenceCodec.RecordObject(reader.Session, result, placeholderReferenceId);
+                        break;
+                    case 1:
+                        if (result is null)
+                        {
+                            return ThrowLengthFieldMissing();
+                        }
+
+                        if (index >= length)
+                        {
+                            return ThrowIndexOutOfRangeException(length);
+                        }
+
+                        result[index] = _fieldCodec.ReadValue(ref reader, header);
+                        ++index;
+                        break;
+                    default:
+                        reader.ConsumeUnknownField(header);
+                        break;
+                }
+            }
+
+            return new ArraySegment<T>(result);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported for string fields. {field}");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ArraySegment<T> ThrowIndexOutOfRangeException(int length) => throw new IndexOutOfRangeException(
+            $"Encountered too many elements in array of type {typeof(T[])} with declared length {length}.");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ArraySegment<T> ThrowLengthFieldMissing() => throw new RequiredFieldMissingException("Serialized array is missing its length field.");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(ArraySegment<T>)}, {length}, is greater than total length of input.");
+    }
+
+    [RegisterCopier]
+    public sealed class ArraySegmentCopier<T> : IDeepCopier<ArraySegment<T>>
+    {
+        private readonly IDeepCopier<T> _elementCopier;
+
+        public ArraySegmentCopier(IDeepCopier<T> elementCopier)
+        {
+            _elementCopier = HagarGeneratedCodeHelper.UnwrapService(this, elementCopier);
+        }
+
+        public ArraySegment<T> DeepCopy(ArraySegment<T> input, CopyContext context)
+        {
+            if (input.Array is null)
+            {
+                return input;
+            }
+
+            var inputSpan = input.AsSpan();
+            var result = new T[inputSpan.Length];
+            context.RecordCopy(input.Array, result);
+            for (var i = 0; i < inputSpan.Length; i++)
+            {
+                result[i] = _elementCopier.DeepCopy(inputSpan[i], context);
+            }
+
+            return new ArraySegment<T>(result);
         }
     }
 }
