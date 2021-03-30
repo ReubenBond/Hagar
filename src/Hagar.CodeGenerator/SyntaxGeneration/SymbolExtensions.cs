@@ -265,6 +265,19 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return false;
         }
 
+        public static bool HasAnyAttribute(this ISymbol symbol, List<INamedTypeSymbol> attributeType)
+        {
+            foreach (var t in attributeType)
+            {
+                if (symbol.HasAttribute(t))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attributeType)
         {
             var attributes = symbol.GetAttributes();

@@ -50,8 +50,8 @@ namespace Hagar.CodeGenerator
         public bool TrackReferences => false; 
         public bool OmitDefaultMemberValues => false;
         public List<(string Name, ITypeParameterSymbol Parameter)> TypeParameters => _methodDescription.AllTypeParameters;
-
         public List<INamedTypeSymbol> SerializationHooks { get; }
+        public bool IsImmutable => false;
 
         public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(libraryTypes.InvokablePool.ToTypeSyntax().Member("Get", TypeSyntax))
             .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));

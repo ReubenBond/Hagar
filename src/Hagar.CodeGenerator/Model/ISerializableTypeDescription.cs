@@ -27,5 +27,6 @@ namespace Hagar.CodeGenerator
         bool OmitDefaultMemberValues { get; }
         ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes);
         List<INamedTypeSymbol> SerializationHooks { get; }
+        bool IsImmutable { get; }
     }
 }
