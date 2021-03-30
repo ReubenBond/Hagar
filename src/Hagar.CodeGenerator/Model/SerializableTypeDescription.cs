@@ -146,6 +146,8 @@ namespace Hagar.CodeGenerator
 
         public List<INamedTypeSymbol> SerializationHooks { get; }
 
+        public bool IsImmutable => IsEnumType || Type.HasAnyAttribute(_libraryTypes.ImmutableAttributes);
+
         public ExpressionSyntax GetObjectCreationExpression(LibraryTypes libraryTypes) => InvocationExpression(ObjectCreationExpression(TypeSyntax));
     }
 }

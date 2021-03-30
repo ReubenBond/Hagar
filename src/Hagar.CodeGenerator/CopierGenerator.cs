@@ -37,10 +37,6 @@ namespace Hagar.CodeGenerator
                 }
             }
 
-            var fieldDescriptions = GetFieldDescriptions(type, members, libraryTypes);
-            var fieldDeclarations = GetFieldDeclarations(fieldDescriptions);
-            var ctor = GenerateConstructor(libraryTypes, simpleClassName, fieldDescriptions);
-
             var accessibility = type.Accessibility switch
             {
                 Accessibility.Public => SyntaxKind.PublicKeyword,
@@ -49,26 +45,31 @@ namespace Hagar.CodeGenerator
             var classDeclaration = ClassDeclaration(simpleClassName)
                 .AddBaseListTypes(SimpleBaseType(libraryTypes.DeepCopier_1.ToTypeSyntax(type.TypeSyntax)))
                 .AddModifiers(Token(accessibility), Token(SyntaxKind.SealedKeyword))
-                .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())))
-                .AddMembers(fieldDeclarations)
-                .AddMembers(ctor);
+                .AddAttributeLists(AttributeList(SingletonSeparatedList(CodeGenerator.GetGeneratedCodeAttributeSyntax())));
 
-            if (type.IsEnumType)
+            if (type.IsImmutable)
             {
-                var copyMethod = GenerateEnumCopyMethod(type, libraryTypes);
+                var copyMethod = GenerateImmutableTypeCopyMethod(type, libraryTypes);
                 classDeclaration = classDeclaration.AddMembers(copyMethod);
             }
             else
             {
-                var copyMethod = GenerateDeepCopyMethod(type, fieldDescriptions, members, libraryTypes);
-                classDeclaration = classDeclaration.AddMembers(copyMethod);
-            }
+                var fieldDescriptions = GetFieldDescriptions(type, members, libraryTypes);
+                var fieldDeclarations = GetFieldDeclarations(fieldDescriptions);
+                var ctor = GenerateConstructor(libraryTypes, simpleClassName, fieldDescriptions);
 
-            if (!type.IsSealedType)
-            {
+                var copyMethod = GenerateMemberwiseDeepCopyMethod(type, fieldDescriptions, members, libraryTypes);
                 classDeclaration = classDeclaration
-                    .AddMembers(GenerateBaseCopierDeepCopyMethod(type, fieldDescriptions, members, libraryTypes))
-                    .AddBaseListTypes(SimpleBaseType(libraryTypes.BaseCopier_1.ToTypeSyntax(type.TypeSyntax)));
+                    .AddMembers(copyMethod)
+                    .AddMembers(fieldDeclarations)
+                    .AddMembers(ctor);
+
+                if (!type.IsSealedType)
+                {
+                    classDeclaration = classDeclaration
+                        .AddMembers(GenerateBaseCopierDeepCopyMethod(type, fieldDescriptions, members, libraryTypes))
+                        .AddBaseListTypes(SimpleBaseType(libraryTypes.BaseCopier_1.ToTypeSyntax(type.TypeSyntax)));
+                }
             }
 
             if (type.IsGenericType)
@@ -332,7 +333,7 @@ namespace Hagar.CodeGenerator
             static string ToLowerCamelCase(string input) => char.IsLower(input, 0) ? input : char.ToLowerInvariant(input[0]) + input.Substring(1);
         }
 
-        private static MemberDeclarationSyntax GenerateDeepCopyMethod(
+        private static MemberDeclarationSyntax GenerateMemberwiseDeepCopyMethod(
             ISerializableTypeDescription type,
             List<GeneratedFieldDescription> copierFields,
             List<ISerializableMember> members,
@@ -538,7 +539,7 @@ namespace Hagar.CodeGenerator
             }
         }
 
-        private static MemberDeclarationSyntax GenerateEnumCopyMethod(
+        private static MemberDeclarationSyntax GenerateImmutableTypeCopyMethod(
             ISerializableTypeDescription type,
             LibraryTypes libraryTypes)
         {
