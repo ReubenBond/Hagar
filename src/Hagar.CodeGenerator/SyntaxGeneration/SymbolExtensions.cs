@@ -279,6 +279,31 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return false;
         }
 
+        /// <summary>
+        /// Gets all attributes which are assignable to the specified attribute type.
+        /// </summary>
+        public static bool GetAttributes(this ISymbol symbol, INamedTypeSymbol attributeType, out AttributeData[] attributes)
+        {
+            var result = default(List<AttributeData>);
+            foreach (var attr in symbol.GetAttributes())
+            {
+                if (!attr.AttributeClass.HasBaseType(attributeType))
+                {
+                    continue;
+                }
+
+                if (result is null)
+                {
+                    result = new List<AttributeData>();
+                }
+
+                result.Add(attr);
+            }
+
+            attributes = result?.ToArray();
+            return attributes != null && attributes.Length > 0;
+        }
+
         public static IEnumerable<TSymbol> GetAllMembers<TSymbol>(this ITypeSymbol type) where TSymbol : ISymbol
         {
             var bases = new Stack<ITypeSymbol>();

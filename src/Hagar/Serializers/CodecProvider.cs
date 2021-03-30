@@ -23,24 +23,26 @@ namespace Hagar.Serializers
         private static readonly Type OpenGenericCopierType = typeof(IDeepCopier<>);
         private static readonly MethodInfo TypedCopierWrapperCreateMethod = typeof(CopierAdapter).GetMethod(nameof(CopierAdapter.CreateUntypedFromTyped), BindingFlags.Public | BindingFlags.Static);
 
-        private readonly object _initializationLock = new object();
+        private readonly object _initializationLock = new();
 
-        private readonly ConcurrentDictionary<(Type, Type), IFieldCodec> _adaptedCodecs = new ConcurrentDictionary<(Type, Type), IFieldCodec>();
-        private readonly ConcurrentDictionary<(Type, Type), IDeepCopier> _adaptedCopiers = new ConcurrentDictionary<(Type, Type), IDeepCopier>();
+        private readonly ConcurrentDictionary<(Type, Type), IFieldCodec> _adaptedCodecs = new();
+        private readonly ConcurrentDictionary<(Type, Type), IDeepCopier> _adaptedCopiers = new();
 
-        private readonly ConcurrentDictionary<Type, object> _instantiatedBaseCodecs = new ConcurrentDictionary<Type, object>();
-        private readonly ConcurrentDictionary<Type, object> _instantiatedBaseCopiers = new ConcurrentDictionary<Type, object>();
-        private readonly ConcurrentDictionary<Type, object> _instantiatedValueSerializers = new ConcurrentDictionary<Type, object>();
-        private readonly ConcurrentDictionary<Type, object> _instantiatedActivators = new ConcurrentDictionary<Type, object>();
-        private readonly Dictionary<Type, Type> _baseCodecs = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, Type> _valueSerializers = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, Type> _fieldCodecs = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, Type> _copiers = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, Type> _baseCopiers = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, Type> _activators = new Dictionary<Type, Type>();
-        private readonly List<IGeneralizedCodec> _generalizedCodecs = new List<IGeneralizedCodec>();
-        private readonly List<IGeneralizedCopier> _generalizedCopiers = new List<IGeneralizedCopier>();
-        private readonly VoidCodec _voidCodec = new VoidCodec();
+        private readonly ConcurrentDictionary<Type, object> _instantiatedBaseCodecs = new();
+        private readonly ConcurrentDictionary<Type, object> _instantiatedBaseCopiers = new();
+        private readonly ConcurrentDictionary<Type, object> _instantiatedValueSerializers = new();
+        private readonly ConcurrentDictionary<Type, object> _instantiatedActivators = new();
+        private readonly Dictionary<Type, Type> _baseCodecs = new();
+        private readonly Dictionary<Type, Type> _valueSerializers = new();
+        private readonly Dictionary<Type, Type> _fieldCodecs = new();
+        private readonly Dictionary<Type, Type> _copiers = new();
+        private readonly Dictionary<Type, Type> _baseCopiers = new();
+        private readonly Dictionary<Type, Type> _activators = new();
+        private readonly List<IGeneralizedCodec> _generalizedCodecs = new();
+        private readonly List<ISpecializableCodec> _specializableCodecs = new();
+        private readonly List<IGeneralizedCopier> _generalizedCopiers = new();
+        private readonly List<ISpecializableCopier> _specializableCopiers = new();
+        private readonly VoidCodec _voidCodec = new();
         private readonly ObjectCopier _objectCopier;
         private readonly IServiceProvider _serviceProvider;
         private readonly IDeepCopier _voidCopier = new VoidCopier();
@@ -78,26 +80,34 @@ namespace Hagar.Serializers
                 _initialized = true;
                 _generalizedCodecs.AddRange(_serviceProvider.GetServices<IGeneralizedCodec>());
                 _generalizedCopiers.AddRange(_serviceProvider.GetServices<IGeneralizedCopier>());
+                _specializableCodecs.AddRange(_serviceProvider.GetServices<ISpecializableCodec>());
+                _specializableCopiers.AddRange(_serviceProvider.GetServices<ISpecializableCopier>());
             }
         }
 
         private void ConsumeMetadata(IConfiguration<SerializerConfiguration> codecConfiguration)
         {
             var metadata = codecConfiguration.Value;
-            AddFromMetadata(_baseCodecs, metadata.Serializers, typeof(IBaseCodec<>));
-            AddFromMetadata(_valueSerializers, metadata.Serializers, typeof(IValueSerializer<>));
-            AddFromMetadata(_fieldCodecs, metadata.Serializers, typeof(IFieldCodec<>));
-            AddFromMetadata(_fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>));
-            AddFromMetadata(_activators, metadata.Activators, typeof(IActivator<>));
-            AddFromMetadata(_copiers, metadata.Copiers, typeof(IDeepCopier<>));
-            AddFromMetadata(_baseCopiers, metadata.Copiers, typeof(IBaseCopier<>));
+            Func<Type, bool> noFilter = _ => true;
+            AddFromMetadata(_baseCodecs, metadata.Serializers, typeof(IBaseCodec<>), noFilter);
+            AddFromMetadata(_valueSerializers, metadata.Serializers, typeof(IValueSerializer<>), noFilter);
+            AddFromMetadata(_fieldCodecs, metadata.Serializers, typeof(IFieldCodec<>), noFilter);
+            AddFromMetadata(_fieldCodecs, metadata.FieldCodecs, typeof(IFieldCodec<>), noFilter);
+            AddFromMetadata(_activators, metadata.Activators, typeof(IActivator<>), noFilter);
+            AddFromMetadata(_copiers, metadata.Copiers, typeof(IDeepCopier<>), noFilter);
+            AddFromMetadata(_baseCopiers, metadata.Copiers, typeof(IBaseCopier<>), noFilter);
 
-            static void AddFromMetadata(IDictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType)
+            static void AddFromMetadata(IDictionary<Type, Type> resultCollection, IEnumerable<Type> metadataCollection, Type genericType, Func<Type, bool> predicate)
             {
                 Debug.Assert(genericType.GetGenericArguments().Length == 1);
 
                 foreach (var type in metadataCollection)
                 {
+                    if (!predicate(type))
+                    {
+                        continue;
+                    }
+
                     var interfaces = type.GetInterfaces();
                     foreach (var @interface in interfaces)
                     {
@@ -165,6 +175,18 @@ namespace Hagar.Serializers
                 else
                 {
                     untypedResult = CreateCodecInstance(fieldType, fieldType);
+
+                    if (untypedResult is null)
+                    {
+                        foreach (var specializableCodec in _specializableCodecs)
+                        {
+                            if (specializableCodec.IsSupportedType(fieldType))
+                            {
+                                untypedResult = specializableCodec.GetSpecializedCodec(fieldType);
+                            }
+                        }
+                    }
+
                     if (untypedResult is null)
                     {
                         foreach (var dynamicCodec in _generalizedCodecs)
@@ -349,6 +371,18 @@ namespace Hagar.Serializers
                 else
                 {
                     untypedResult = CreateCopierInstance(fieldType, fieldType);
+                    if (untypedResult is null)
+                    {
+                        foreach (var specializableCopier in _specializableCopiers)
+                        {
+                            if (specializableCopier.IsSupportedType(fieldType))
+                            {
+                                untypedResult = specializableCopier.GetSpecializedCodec(fieldType);
+                                break;
+                            }
+                        }
+                    }
+
                     if (untypedResult is null)
                     {
                         foreach (var dynamicCopier in _generalizedCopiers)

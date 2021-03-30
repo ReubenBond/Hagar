@@ -43,10 +43,7 @@ namespace TestRpc
         {
             var chan = Channel.CreateUnbounded<Message>();
             var services = new ServiceCollection()
-                .AddHagar(hagar =>
-                {
-                    _ = hagar.AddAssembly(typeof(Program).Assembly);
-                })
+                .AddHagar()
                 .AddSingleton<IActivator<Message>, PooledMessageActivator>()
                 .AddSingleton<Catalog>()
                 .AddSingleton<ProxyFactory>()

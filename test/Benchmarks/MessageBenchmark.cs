@@ -41,7 +41,7 @@ namespace Benchmarks
 
             // Hagar
             var services = new ServiceCollection()
-                .AddHagar(hagar => hagar.AddAssembly(typeof(Program).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
             HagarSerializer = services.GetRequiredService<Serializer<Message.HeadersContainer>>();
             var bytes = new byte[4000];

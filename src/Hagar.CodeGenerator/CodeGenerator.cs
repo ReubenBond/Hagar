@@ -4,10 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -15,9 +12,10 @@ namespace Hagar.CodeGenerator
 {
     public class CodeGeneratorOptions
     {
-        public string[] GenerateSerializerAttributes { get; set; } = new[] { "System.SerializableAttribute" };
-        public List<string> IdAttributeTypes { get; set; } = new() { "Hagar.IdAttribute" };
-        public List<string> AliasAttributeTypes { get; set; } = new() { "Hagar.AliasAttribute" };
+        public List<string> GenerateSerializerAttributes { get; } = new() { "Hagar.GenerateSerializer" };
+        public List<string> IdAttributes { get; } = new() { "Hagar.IdAttribute" };
+        public List<string> AliasAttributes { get; } = new() { "Hagar.AliasAttribute" };
+        public List<string> ImmutableAttributes { get; } = new() { "Hagar.ImmutableAttribute" };
 
         public bool GenerateFieldIds { get; set; } = false;
     }
@@ -28,16 +26,15 @@ namespace Hagar.CodeGenerator
         private readonly Compilation _compilation;
         private readonly CodeGeneratorOptions _options;
         private readonly INamedTypeSymbol[] _generateSerializerAttributes;
+        private readonly INamedTypeSymbol[] _immutableAttributes;
 
         public CodeGenerator(Compilation compilation, CodeGeneratorOptions options)
         {
             _compilation = compilation;
             _options = options;
             LibraryTypes = LibraryTypes.FromCompilation(compilation, options);
-            if (options.GenerateSerializerAttributes != null)
-            {
-                _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
-            }
+            _generateSerializerAttributes = options.GenerateSerializerAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
+            _immutableAttributes = options.ImmutableAttributes.Select(compilation.GetTypeByMetadataName).ToArray();
         }
 
         internal LibraryTypes LibraryTypes { get; }
@@ -98,6 +95,9 @@ namespace Hagar.CodeGenerator
                         Attribute(LibraryTypes.MetadataProviderAttribute.ToNameSyntax())
                             .AddArgumentListArguments(AttributeArgument(TypeOfExpression(QualifiedName(IdentifierName(metadataClassNamespace), IdentifierName(metadataClass.Identifier.Text)))))));
 
+            var assemblyAttributes = ApplicationPartAttributeGenerator.GenerateSyntax(LibraryTypes, metadataModel);
+            assemblyAttributes.Add(metadataAttribute);
+
             var usings = List(new[] { UsingDirective(ParseName("global::Hagar.Codecs")), UsingDirective(ParseName("global::Hagar.GeneratedCodeHelpers")) });
             var namespaces = new List<MemberDeclarationSyntax>(nsMembers.Count);
             foreach (var pair in nsMembers)
@@ -109,7 +109,7 @@ namespace Hagar.CodeGenerator
             }
 
             return CompilationUnit()
-                .WithAttributeLists(List(new[] { metadataAttribute }))
+                .WithAttributeLists(List(assemblyAttributes))
                 .WithMembers(List(namespaces));
 
            void AddMember(string ns, MemberDeclarationSyntax member)
@@ -151,14 +151,11 @@ namespace Hagar.CodeGenerator
                             return true;
                         }
 
-                        if (_generateSerializerAttributes != null)
+                        foreach (var attr in _generateSerializerAttributes)
                         {
-                            foreach (var attr in _generateSerializerAttributes)
+                            if (HasAttribute(t, attr, inherited: true) != null)
                             {
-                                if (HasAttribute(t, attr, inherited: true) != null)
-                                {
-                                    return true;
-                                }
+                                return true;
                             }
                         }
 
@@ -228,6 +225,39 @@ namespace Hagar.CodeGenerator
                 }
             }
 
+#pragma warning disable RS1024 // Compare symbols correctly
+            var parts = new HashSet<IAssemblySymbol>(SymbolEqualityComparer.Default);
+#pragma warning restore RS1024 // Compare symbols correctly
+
+            var compilationAsm = LibraryTypes.Compilation.Assembly;
+            parts.Add(compilationAsm);
+            metadataModel.ApplicationParts.Add(compilationAsm.MetadataName);
+            foreach (var reference in LibraryTypes.Compilation.References)
+            {
+                if (LibraryTypes.Compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol asm)
+                {
+                    continue;
+                }
+
+                AddApplicationParts(asm);
+            }
+
+            void AddApplicationParts(IAssemblySymbol asm)
+            {
+                if (!parts.Add(asm))
+                {
+                    return;
+                }
+
+                if (asm.GetAttributes(LibraryTypes.ApplicationPartAttribute, out var attrs))
+                {
+                    metadataModel.ApplicationParts.Add(asm.MetadataName);
+                    foreach (var attr in attrs)
+                    {
+                        metadataModel.ApplicationParts.Add((string)attr.ConstructorArguments.First().Value);
+                    }
+                }
+            }
             return metadataModel;
         }
 

@@ -48,6 +48,12 @@ namespace Hagar.Cloning
         bool IsSupportedType(Type type);
     }
 
+    public interface ISpecializableCopier
+    {
+        bool IsSupportedType(Type type);
+        IDeepCopier GetSpecializedCodec(Type type);
+    }
+
     public sealed class CopyContext : IDisposable
     {
         private readonly Dictionary<object, object> _copies = new(ReferenceEqualsComparer.Default);

@@ -16,6 +16,7 @@ namespace Hagar.CodeGenerator
             return new LibraryTypes
             {
                 Compilation = compilation,
+                ApplicationPartAttribute = Type("Hagar.ApplicationPartAttribute"),
                 Action_2 = Type("System.Action`2"),
                 Byte = compilation.GetSpecialType(SpecialType.System_Byte),
                 ConfigurationProvider = Type("Hagar.Configuration.IConfigurationProvider`1"),
@@ -30,7 +31,7 @@ namespace Hagar.CodeGenerator
                 GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
                 IActivator_1 = Type("Hagar.Activators.IActivator`1"),
                 IBufferWriter = Type("System.Buffers.IBufferWriter`1"),
-                IdAttributeTypes = options.IdAttributeTypes.Select(Type).ToList(),
+                IdAttributeTypes = options.IdAttributes.Select(Type).ToList(),
                 WellKnownAliasAttribute = Type("Hagar.WellKnownAliasAttribute"), 
                 WellKnownIdAttribute = Type("Hagar.WellKnownIdAttribute"), 
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
@@ -157,7 +158,7 @@ namespace Hagar.CodeGenerator
                     compilation.GetSpecialType(SpecialType.System_DateTime),
                 },
                     Exception = Type("System.Exception"),
-                    Immutable = Type("Hagar.ImmutableAttribute"),
+                    ImmutableAttributes = options.ImmutableAttributes.Select(Type).ToList(),
                     Immutable_1 = Type("Hagar.Immutable`1"),
                     ValueTuple = Type("System.ValueTuple"),
                     TimeSpan = Type("System.TimeSpan"),
@@ -268,9 +269,10 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol[] TupleTypes { get; private set; }
         public INamedTypeSymbol ValueTuple { get; private set; }
         public INamedTypeSymbol Immutable_1 { get; private set; }
-        public INamedTypeSymbol Immutable { get; private set; }
+        public List<INamedTypeSymbol> ImmutableAttributes { get; private set; }
         public INamedTypeSymbol Exception { get; private set; }
         public INamedTypeSymbol VoidRequest { get; private set; }
+        public INamedTypeSymbol ApplicationPartAttribute { get; private set; }
 
 #pragma warning disable RS1024 // Compare symbols correctly
         private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);
@@ -312,9 +314,12 @@ namespace Hagar.CodeGenerator
                 return result;
             }
 
-            if (type.HasAttribute(Immutable))
+            foreach (var attr in ImmutableAttributes)
             {
-                return _shallowCopyableTypes[type] = true;
+                if (type.HasAttribute(attr))
+                {
+                    return _shallowCopyableTypes[type] = true;
+                }
             }
 
             if (type.HasBaseType(Exception))

@@ -23,7 +23,7 @@ namespace Hagar.UnitTests
         public GeneratedSerializerTests()
         {
             _serviceProvider = new ServiceCollection()
-                .AddHagar(hagar => hagar.AddAssembly(typeof(GeneratedSerializerTests).Assembly))
+                .AddHagar()
                 .BuildServiceProvider();
             _codecProvider = _serviceProvider.GetRequiredService<IFieldCodecProvider>();
             _sessionPool = _serviceProvider.GetRequiredService<SerializerSessionPool>();

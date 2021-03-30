@@ -17,11 +17,10 @@ namespace Hagar.UnitTests
     {
         private const string TestString = "hello, hagar";
         private readonly ITestOutputHelper _log;
-        private IServiceProvider _serviceProvider;
-        private IFieldCodec<SubType> _serializer;
-        private IFieldCodec<ObjectWithNewField> _objectWithNewFieldSerializer;
-        private IFieldCodec<ObjectWithoutNewField> _objectWithoutNewFieldSerializer;
-        private ServiceCollection _serviceCollection;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly CodecProvider _codecProvider;
+        private readonly IFieldCodec<SubType> _serializer;
+        private readonly ServiceCollection _serviceCollection;
 
         public ManualVersionToleranceTests(ITestOutputHelper log)
         {
@@ -36,17 +35,17 @@ namespace Hagar.UnitTests
                         _ = configuration.Serializers.Add(typeof(BaseTypeSerializer));
                         _ = configuration.Serializers.Add(typeof(ObjectWithNewFieldTypeSerializer));
                         _ = configuration.Serializers.Add(typeof(ObjectWithoutNewFieldTypeSerializer));
+
+                        // Intentionally remove the generated serializer for these type. It will be added back during tests.
+                        configuration.Serializers.RemoveWhere(s => typeof(IFieldCodec<ObjectWithNewField>).IsAssignableFrom(s));
+                        configuration.Serializers.RemoveWhere(s => typeof(IFieldCodec<ObjectWithoutNewField>).IsAssignableFrom(s));
                     });
               });
-            //serviceCollection.AddSingleton<IGeneralizedCodec, DotNetSerializableCodec>();
-            //serviceCollection.AddSingleton<IGeneralizedCodec, JsonCodec>();
 
             _serviceProvider = _serviceCollection.BuildServiceProvider();
 
-            var codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
-            _serializer = codecProvider.GetCodec<SubType>();
-            _objectWithNewFieldSerializer = codecProvider.GetCodec<ObjectWithNewField>();
-            _objectWithoutNewFieldSerializer = codecProvider.GetCodec<ObjectWithoutNewField>();
+            _codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
+            _serializer = _codecProvider.GetCodec<SubType>();
         }
 
         [Fact]
@@ -179,6 +178,8 @@ namespace Hagar.UnitTests
             writer.Commit();
 
             _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
+            var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
+            var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
             pipe.Writer.Complete();
             _ = pipe.Reader.TryRead(out var readResult);
             using var readerSession = GetSession();
@@ -225,8 +226,10 @@ namespace Hagar.UnitTests
 
             // Using manual serializer that ignores ObjectWithNewField.NewField
             // not serializing NewField to simulate a binary that's created from a previous version of the object
-            _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(_objectWithNewFieldSerializer);
-            _objectWithNewFieldSerializer.WriteField(ref writer, 0, typeof(ObjectWithNewField), expected);
+            var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
+            var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
+            _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(objectWithNewFieldSerializer);
+            objectWithNewFieldSerializer.WriteField(ref writer, 0, typeof(ObjectWithNewField), expected);
             writer.Commit();
 
             _log.WriteLine($"Size: {writer.Position} bytes.");
@@ -243,17 +246,19 @@ namespace Hagar.UnitTests
             _log.WriteLine("Header:");
             _log.WriteLine(initialHeader.ToString());
 
-            SwitchToGeneratedSerializer(out _objectWithNewFieldSerializer);
-            Assert.IsNotType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(_objectWithNewFieldSerializer);
+            GetGeneratedSerializer(out objectWithNewFieldSerializer);
+            Assert.IsNotType<ConcreteTypeSerializer<ObjectWithNewField, ObjectWithNewFieldTypeSerializer>>(objectWithNewFieldSerializer);
 
             // using Generated Deserializer, which is capable of deserializing NewField 
-            var actual = _objectWithNewFieldSerializer.ReadValue(ref reader, initialHeader);
+            var actual = objectWithNewFieldSerializer.ReadValue(ref reader, initialHeader);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
 
             _log.WriteLine($"Expect: {expected}\nActual: {actual}");
 
             Assert.Equal(expected.Blah, actual.Blah);
+            objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
+            objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
             Assert.Null(actual.NewField); // Null, since it should not be in the binary
             Assert.Equal(expected.Version, actual.Version);
             Assert.Equal(writer.Position, reader.Position);
@@ -272,10 +277,12 @@ namespace Hagar.UnitTests
             var pipe = new Pipe();
             var writer = Writer.Create(pipe.Writer, writerSession);
 
+            var objectWithNewFieldSerializer = _codecProvider.GetCodec<ObjectWithNewField>();
+            var objectWithoutNewFieldSerializer = _codecProvider.GetCodec<ObjectWithoutNewField>();
             // Using a manual serializer that writes a new field
             // serializing a new field to simulate a binary that created from a newer version of the object
-            _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(_objectWithoutNewFieldSerializer);
-            _objectWithoutNewFieldSerializer.WriteField(ref writer, 0, typeof(ObjectWithoutNewField), expected);
+            _ = Assert.IsType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(objectWithoutNewFieldSerializer);
+            objectWithoutNewFieldSerializer.WriteField(ref writer, 0, typeof(ObjectWithoutNewField), expected);
             writer.Commit();
 
             _log.WriteLine($"Size: {writer.Position} bytes.");
@@ -292,11 +299,11 @@ namespace Hagar.UnitTests
             _log.WriteLine("Header:");
             _log.WriteLine(initialHeader.ToString());
 
-            SwitchToGeneratedSerializer(out _objectWithoutNewFieldSerializer);
-            Assert.IsNotType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(_objectWithoutNewFieldSerializer);
+            GetGeneratedSerializer(out objectWithoutNewFieldSerializer);
+            Assert.IsNotType<ConcreteTypeSerializer<ObjectWithoutNewField, ObjectWithoutNewFieldTypeSerializer>>(objectWithoutNewFieldSerializer);
 
             // using Generated Deserializer, which is not able to deserialize the new field that was serialized
-            var actual = _objectWithoutNewFieldSerializer.ReadValue(ref reader, initialHeader);
+            var actual = objectWithoutNewFieldSerializer.ReadValue(ref reader, initialHeader);
             pipe.Reader.AdvanceTo(readResult.Buffer.End);
             pipe.Reader.Complete();
 
@@ -311,16 +318,11 @@ namespace Hagar.UnitTests
             _log.WriteLine($"Read references:\n{references}");
         }
 
-        private void SwitchToGeneratedSerializer<T>(out IFieldCodec<T> serializer)
+        private void GetGeneratedSerializer<T>(out IFieldCodec<T> serializer)
         {
-            _ = _serviceCollection.AddHagar(builder =>
-            {
-                _ = builder.AddAssembly(typeof(T).Assembly);
-            });
-
-            _serviceProvider = _serviceCollection.BuildServiceProvider();
-
-            var codecProvider = _serviceProvider.GetRequiredService<CodecProvider>();
+            var services = new ServiceCollection().AddHagar();
+            var serviceProvider = services.BuildServiceProvider();
+            var codecProvider = serviceProvider.GetRequiredService<CodecProvider>();
             serializer = codecProvider.GetCodec<T>();
         }
 

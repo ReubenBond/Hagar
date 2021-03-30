@@ -12,10 +12,7 @@ namespace Hagar.UnitTests
 
         public PolymorphismTests()
         {
-            _serviceProvider = new ServiceCollection().AddHagar(hagar =>
-            {
-                hagar.AddAssembly(typeof(PolymorphismTests).Assembly);
-            })
+            _serviceProvider = new ServiceCollection().AddHagar()
                 .AddSingleton<IConfigurationProvider<SerializerConfiguration>, TypeConfigurationProvider>()
                 .BuildServiceProvider();
         }
