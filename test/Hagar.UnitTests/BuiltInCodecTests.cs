@@ -1543,6 +1543,9 @@ namespace Hagar.UnitTests
 #if NETCOREAPP
             StringComparer.Ordinal,
             StringComparer.OrdinalIgnoreCase,
+            EqualityComparer<string>.Default,
+#endif
+#if NET6_0
             StringComparer.InvariantCulture,
             StringComparer.InvariantCultureIgnoreCase,
             StringComparer.CurrentCulture,
