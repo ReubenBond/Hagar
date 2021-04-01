@@ -8,8 +8,8 @@
   <PropertyGroup>
     <Authors>Reuben Bond</Authors>
     <Product>Hagar</Product>
-    <VersionPrefix>0.6.3</VersionPrefix>
-    <Copyright>Copyright © Reuben Bond 2020</Copyright>
+    <VersionPrefix>0.6.4</VersionPrefix>
+    <Copyright>Copyright © Reuben Bond 2021</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ReubenBond/Hagar</PackageProjectUrl>
     <PackageTags>Serializer Version-Tolerant Span</PackageTags>
