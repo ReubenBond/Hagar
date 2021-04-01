@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
@@ -8,22 +10,9 @@ namespace Hagar.Invocation
     {
         private ManualResetValueTaskSourceCore<TResult> _core;
 
-        public ValueTask<TResult> AsValueTask() => new ValueTask<TResult>(this, _core.Version);
+        public ValueTask<TResult> AsValueTask() => new(this, _core.Version);
 
-        public ValueTask AsVoidValueTask() => new ValueTask(this, _core.Version);
-
-        public TResult GetResult(short token)
-        {
-            try
-            {
-                var result = _core.GetResult(token);
-                return result;
-            }
-            finally
-            {
-                Reset();
-            }
-        }
+        public ValueTask AsVoidValueTask() => new(this, _core.Version);
 
         public ValueTaskSourceStatus GetStatus(short token) => _core.GetStatus(token);
 
@@ -56,11 +45,34 @@ namespace Hagar.Invocation
                 {
                     SetResult(default);
                 }
+                else if (result is TResult typedResult)
+                {
+                    SetResult(typedResult);
+                }
                 else
                 {
-                    SetResult((TResult)result);
+                    SetInvalidCastException(result);
                 }
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SetInvalidCastException(object result)
+        {
+            var exception = new InvalidCastException($"Cannot cast object of type {result.GetType()} to {typeof(TResult)}");
+#if NET5_0
+            ExceptionDispatchInfo.SetCurrentStackTrace(exception);
+            SetException(exception);
+#else
+            try
+            {
+                throw exception;
+            }
+            catch (Exception ex)
+            {
+                SetException(ex);
+            }
+#endif
         }
 
         /// <summary>
@@ -81,15 +93,35 @@ namespace Hagar.Invocation
 
         public void Complete() => SetResult(default);
 
+        public TResult GetResult(short token)
+        {
+            bool isValid = token == _core.Version;
+            try
+            {
+                return _core.GetResult(token);
+            }
+            finally
+            {
+                if (isValid)
+                {
+                    _core.Reset();
+                }
+            }
+        }
+
         void IValueTaskSource.GetResult(short token)
         {
+            bool isValid = token == _core.Version;
             try
             {
                 _ = _core.GetResult(token);
             }
             finally
             {
-                Reset();
+                if (isValid)
+                {
+                    _core.Reset();
+                }
             }
         }
     }

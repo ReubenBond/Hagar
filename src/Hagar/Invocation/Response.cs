@@ -22,6 +22,8 @@ namespace Hagar.Invocation
         public abstract Exception Exception { get; set; }
 
         public abstract void Dispose();
+
+        public virtual object GetResultOrDefault() => Exception is { } ? Result : default;
     }
 
     [GenerateSerializer]
