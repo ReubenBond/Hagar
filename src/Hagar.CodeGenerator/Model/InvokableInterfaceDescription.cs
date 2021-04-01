@@ -26,7 +26,11 @@ namespace Hagar.CodeGenerator
             ProxyBaseType = proxyBaseType;
             IsExtension = isExtension;
             Name = name;
-            GeneratedNamespace = CodeGenerator.CodeGeneratorName + "." + InterfaceType.GetNamespaceAndNesting();
+            GeneratedNamespace = InterfaceType.GetNamespaceAndNesting() switch
+            {
+                { Length: > 0 } ns => $"{CodeGenerator.CodeGeneratorName}.{ns}",
+                _ => CodeGenerator.CodeGeneratorName
+            };
 
             var names = new HashSet<string>(StringComparer.Ordinal);
             TypeParameters = new List<(string Name, ITypeParameterSymbol Parameter)>();

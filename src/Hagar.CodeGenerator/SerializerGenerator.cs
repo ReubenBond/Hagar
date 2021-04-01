@@ -84,7 +84,11 @@ namespace Hagar.CodeGenerator
 
         public static string GetSimpleClassName(string name) => $"Codec_{name}";
 
-        public static string GetGeneratedNamespaceName(ITypeSymbol type) => $"{CodeGenerator.CodeGeneratorName}.{type.GetNamespaceAndNesting()}";
+        public static string GetGeneratedNamespaceName(ITypeSymbol type) => type.GetNamespaceAndNesting() switch
+        {
+            { Length: > 0 } ns => $"{CodeGenerator.CodeGeneratorName}.{ns}",
+            _ => CodeGenerator.CodeGeneratorName
+        };
 
         private static MemberDeclarationSyntax[] GetFieldDeclarations(List<GeneratedFieldDescription> fieldDescriptions)
         {

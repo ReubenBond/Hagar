@@ -1,5 +1,21 @@
+using Hagar;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+
+[GenerateSerializer]
+public class SomeClassWithSerializers
+{
+    [Id(0)]
+    public int IntProperty { get; set; }
+
+    [Id(1)] public int IntField;
+
+    public int UnmarkedField;
+
+    public int UnmarkedProperty { get; set; }
+
+    public override string ToString() => $"{nameof(IntField)}: {IntField}, {nameof(IntProperty)}: {IntProperty}";
+}
 
 namespace Hagar.UnitTests
 {
