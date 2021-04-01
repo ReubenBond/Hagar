@@ -139,7 +139,7 @@ namespace Hagar.CodeGenerator
                 var declaration = MethodDeclaration(method.ReturnType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions), method.Name.EscapeIdentifier())
                     .AddParameterListParameters(method.Parameters.Select((p, i) => GetParameterSyntax(i, p, methodDescription)).ToArray())
                     .WithBody(
-                        CreateProxyMethodBody(libraryTypes, metadataModel, methodDescription));
+                        CreateAsyncProxyMethodBody(libraryTypes, metadataModel, methodDescription));
                 if (methodDescription.HasCollision)
                 {
                     declaration = declaration.WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)));
@@ -169,6 +169,105 @@ namespace Hagar.CodeGenerator
 
                 return declaration;
             }
+        }
+
+        private static BlockSyntax CreateAsyncProxyMethodBody(
+            LibraryTypes libraryTypes,
+            MetadataModel metadataModel,
+            MethodDescription methodDescription)
+        {
+            var statements = new List<StatementSyntax>();
+            var requestVar = IdentifierName("request");
+            var requestDescription = metadataModel.GeneratedInvokables[methodDescription];
+            var createRequestExpr = InvocationExpression(ThisExpression().Member("GetInvokable", requestDescription.TypeSyntax))
+                .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>()));
+
+            statements.Add(
+                LocalDeclarationStatement(
+                    VariableDeclaration(
+                        ParseTypeName("var"),
+                        SingletonSeparatedList(
+                            VariableDeclarator(
+                                    Identifier("request"))
+                                .WithInitializer(
+                                    EqualsValueClause(createRequestExpr))))));
+
+            // Set request object fields from method parameters.
+            var parameterIndex = 0;
+            foreach (var parameter in methodDescription.Method.Parameters)
+            {
+                statements.Add(
+                    ExpressionStatement(
+                        AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            requestVar.Member($"arg{parameterIndex}"),
+                            IdentifierName(SyntaxFactoryUtility.GetSanitizedName(parameter, parameterIndex)))));
+
+                parameterIndex++;
+            }
+
+            var invokeMethodName = "InvokeAsync";
+            foreach (var attr in methodDescription.Method.GetAttributes())
+            {
+                if (attr.AttributeClass.GetAttributes(libraryTypes.InvokeMethodNameAttribute, out var attrs))
+                {
+                    foreach (var methodAttr in attrs)
+                    {
+                        invokeMethodName = (string)methodAttr.ConstructorArguments.First().Value;
+                    }
+                }
+            }
+
+            ITypeSymbol resultType;
+            var methodReturnType = (INamedTypeSymbol)methodDescription.Method.ReturnType;
+            if (methodReturnType.TypeArguments.Length == 1)
+            {
+                // Task<T> / ValueTask<T>
+                resultType = methodReturnType.TypeArguments[0];
+            }
+            else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Void))
+            {
+                // void
+                resultType = libraryTypes.Object;
+            }
+            else
+            {
+                // Task / ValueTask
+                resultType = libraryTypes.Object;
+            }
+
+            // C#: base.InvokeAsync<TReturn>(request);
+            var invocationExpression =
+                         InvocationExpression(
+                             BaseExpression().Member(invokeMethodName, resultType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions)),
+                             ArgumentList(SeparatedList(new[] { Argument(requestVar) })));
+
+            var rt = methodReturnType.ConstructedFrom;
+            if (SymbolEqualityComparer.Default.Equals(rt, libraryTypes.Task_1) || SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.Task))
+            {
+                // C#: return <invocation>.AsTask()
+                statements.Add(ReturnStatement(InvocationExpression(invocationExpression.Member("AsTask"), ArgumentList())));
+            }
+            else if (SymbolEqualityComparer.Default.Equals(rt, libraryTypes.ValueTask_1))
+            {
+                // C#: return <invocation>
+                statements.Add(ReturnStatement(invocationExpression));
+            }
+            else if (SymbolEqualityComparer.Default.Equals(methodReturnType, libraryTypes.ValueTask))
+            {
+                // C#: return new ValueTask(<invocation>)
+                statements.Add(ReturnStatement(ObjectCreationExpression(libraryTypes.ValueTask.ToTypeSyntax()).WithArgumentList(ArgumentList(SeparatedList(new[]
+                {
+                    Argument(InvocationExpression(invocationExpression.Member("AsTask"), ArgumentList()))
+                })))));
+            }
+            else
+            {
+                // C#: _ = <invocation>
+                statements.Add(ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName("_"), invocationExpression)));
+            }
+
+            return Block(statements);
         }
 
         private static BlockSyntax CreateProxyMethodBody(
@@ -235,7 +334,7 @@ namespace Hagar.CodeGenerator
             var sendRequestMethodName = "SendRequest";
             foreach (var attr in methodDescription.Method.GetAttributes())
             {
-                if (attr.AttributeClass.GetAttributes(libraryTypes.SubmitInvokableMethodNameAttribute, out var attrs))
+                if (attr.AttributeClass.GetAttributes(libraryTypes.InvokeMethodNameAttribute, out var attrs))
                 {
                     foreach (var methodAttr in attrs)
                     {

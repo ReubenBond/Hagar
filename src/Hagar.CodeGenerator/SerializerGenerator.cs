@@ -387,7 +387,7 @@ namespace Hagar.CodeGenerator
 
             // Order members according to their FieldId, since fields must be serialized in order and FieldIds are serialized as deltas.
             var previousFieldIdVar = "previousFieldId".ToIdentifierName();
-            if (type.OmitDefaultMemberValues)
+            if (type.OmitDefaultMemberValues && members.Count > 0)
             {
                 // C#: uint previousFieldId = 0;
                 body.Add(LocalDeclarationStatement(

@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Hagar.CodeGenerator
 {
@@ -83,7 +82,7 @@ namespace Hagar.CodeGenerator
                         var proxyBaseType = (INamedTypeSymbol)ctorArgs[0].Value;
                         var returnType = (INamedTypeSymbol)ctorArgs[1].Value;
                         var invokableBaseType = (INamedTypeSymbol)ctorArgs[2].Value;
-                        if (SymbolEqualityComparer.Default.Equals(containingType.ProxyBaseType, proxyBaseType))
+                        if (!SymbolEqualityComparer.Default.Equals(containingType.ProxyBaseType, proxyBaseType))
                         {
                             // This attribute does not apply to this particular invoker, since it is for a different proxy base type.
                             continue;
@@ -149,6 +148,8 @@ namespace Hagar.CodeGenerator
         public string Name { get; }
 
         public IMethodSymbol Method { get; }
+
+        public InvokableInterfaceDescription ContainingInterface => _iface;
 
         public bool HasCollision { get; }
 

@@ -1,6 +1,6 @@
-using Hagar.Codecs;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Hagar.Invocation
@@ -51,6 +51,13 @@ namespace Hagar.Invocation
         public abstract TArgument GetArgument<TArgument>(int index);
         public abstract void SetArgument<TArgument>(int index, in TArgument value);
         public abstract void Dispose();
+        public abstract string MethodName { get; }
+        public abstract Type[] MethodTypeArguments { get; }
+        public abstract string InterfaceName { get; }
+        public abstract Type InterfaceType { get; }
+        public abstract Type[] InterfaceTypeArguments { get; }
+        public abstract Type[] ParameterTypes { get; }
+        public abstract MethodInfo Method { get; }
     }
 
     public abstract class Request<TResult> : IInvokable
@@ -98,6 +105,13 @@ namespace Hagar.Invocation
         public abstract TArgument GetArgument<TArgument>(int index);
         public abstract void SetArgument<TArgument>(int index, in TArgument value);
         public abstract void Dispose();
+        public abstract string MethodName { get; }
+        public abstract Type[] MethodTypeArguments { get; }
+        public abstract string InterfaceName { get; }
+        public abstract Type InterfaceType { get; }
+        public abstract Type[] InterfaceTypeArguments { get; }
+        public abstract Type[] ParameterTypes { get; }
+        public abstract MethodInfo Method { get; }
     }
 
     public abstract class TaskRequest<TResult> : IInvokable
@@ -146,6 +160,13 @@ namespace Hagar.Invocation
         public abstract TArgument GetArgument<TArgument>(int index);
         public abstract void SetArgument<TArgument>(int index, in TArgument value);
         public abstract void Dispose();
+        public abstract string MethodName { get; }
+        public abstract Type[] MethodTypeArguments { get; }
+        public abstract string InterfaceName { get; }
+        public abstract Type InterfaceType { get; }
+        public abstract Type[] InterfaceTypeArguments { get; }
+        public abstract Type[] ParameterTypes { get; }
+        public abstract MethodInfo Method { get; }
     }
 
     public abstract class TaskRequest : IInvokable
@@ -195,6 +216,13 @@ namespace Hagar.Invocation
         public abstract TArgument GetArgument<TArgument>(int index);
         public abstract void SetArgument<TArgument>(int index, in TArgument value);
         public abstract void Dispose();
+        public abstract string MethodName { get; }
+        public abstract Type[] MethodTypeArguments { get; }
+        public abstract string InterfaceName { get; }
+        public abstract Type InterfaceType { get; }
+        public abstract Type[] InterfaceTypeArguments { get; }
+        public abstract Type[] ParameterTypes { get; }
+        public abstract MethodInfo Method { get; }
     }
 
     public abstract class VoidRequest : IInvokable
@@ -223,5 +251,12 @@ namespace Hagar.Invocation
         public abstract TArgument GetArgument<TArgument>(int index);
         public abstract void SetArgument<TArgument>(int index, in TArgument value);
         public abstract void Dispose();
+        public abstract string MethodName { get; }
+        public abstract Type[] MethodTypeArguments { get; }
+        public abstract string InterfaceName { get; }
+        public abstract Type InterfaceType { get; }
+        public abstract Type[] InterfaceTypeArguments { get; }
+        public abstract Type[] ParameterTypes { get; }
+        public abstract MethodInfo Method { get; }
     }
 }

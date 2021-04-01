@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -185,6 +186,59 @@ namespace Hagar.GeneratedCodeHelpers
         {
             var specificSerializer = reader.Session.CodecProvider.GetCodec(field.FieldType);
             return (TField)specificSerializer.ReadValue(ref reader, field);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static MethodInfo GetMethodInfoOrDefault(Type interfaceType, string methodName, Type[] methodTypeParameters, Type[] parameterTypes)
+        {
+            if (interfaceType is null)
+            {
+                return null;
+            }
+
+            foreach (var method in interfaceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                if (method.Name != methodName)
+                {
+                    continue;
+                }
+
+                if (!method.ContainsGenericParameters && methodTypeParameters is {Length: > 0 })
+                {
+                    continue;
+                }
+
+                if (method.ContainsGenericParameters && methodTypeParameters is null or {Length: 0 })
+                {
+                    continue;
+                }
+
+                var parameters = method.GetParameters();
+                if (parameters.Length != parameterTypes.Length)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (!parameters[0].ParameterType.Equals(parameterTypes[i]))
+                    {
+                        continue;
+                    }
+                }
+
+                return method;
+            }
+
+            foreach (var implemented in interfaceType.GetInterfaces())
+            {
+                if (GetMethodInfoOrDefault(implemented, methodName, methodTypeParameters, parameterTypes) is { } method)
+                {
+                    return method;
+                }
+            }
+
+            return null;
         }
     }
 }

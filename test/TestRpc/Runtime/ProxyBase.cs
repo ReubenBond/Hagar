@@ -23,6 +23,14 @@ namespace TestRpc.Runtime
 
         public GrainId GrainId { get; }
 
+        protected TInvokable GetInvokable<TInvokable>() where TInvokable : class, IInvokable, new() => InvokablePool.Get<TInvokable>();
+
         protected void SendRequest(IResponseCompletionSource callback, IInvokable body) => _runtimeClient.SendRequest(GrainId, callback, body);
+        protected ValueTask<T> InvokeAsync<T>(IInvokable body)
+        {
+            var callback = ResponseCompletionSourcePool.Get<T>();
+            _runtimeClient.SendRequest(GrainId, callback, body);
+            return callback.AsValueTask();
+        }
     }
 }

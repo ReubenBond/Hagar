@@ -29,14 +29,29 @@ namespace Hagar
     /// Applied to method attributes on invokable interfaces to specify the name of the method to call when submitting a request.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class SubmitInvokableMethodNameAttribute : Attribute
+    public sealed class InvokeMethodNameAttribute : Attribute
     {
-        public SubmitInvokableMethodNameAttribute(string invokeMethodName)
+        public InvokeMethodNameAttribute(string invokeMethodName)
         {
             InvokeMethodName = invokeMethodName;
         }
 
         public string InvokeMethodName { get; }
+    }
+
+    /// <summary>
+    /// Applied to proxy base types and to attribute types used on invokable interface methods to specify the base type for the invokable object which represents a method call.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class DefaultInvokeMethodNameAttribute : Attribute
+    {
+        public DefaultInvokeMethodNameAttribute(Type returnType, string methodName)
+        {
+            ReturnType = returnType;
+            MethodName = methodName;
+        }
+        public Type ReturnType { get; }
+        public string MethodName { get; }
     }
 
     /// <summary>
@@ -76,8 +91,10 @@ namespace Hagar
             ReturnType = returnType;
             InvokableBaseType = invokableBaseType;
         }
+
         public Type ReturnType { get; }
         public Type InvokableBaseType { get; }
+        public string ProxyInvokeMethodName { get; init; }
     }
 
     /// <summary>
@@ -96,6 +113,7 @@ namespace Hagar
         public Type ProxyBaseClass { get; }
         public Type ReturnType { get; }
         public Type InvokableBaseType { get; }
+        public string ProxyInvokeMethodName { get; init; }
     }
 
     /// <summary>
@@ -246,5 +264,10 @@ namespace Hagar
         }
 
         public Type HookType { get; }
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public sealed class FromServiceProviderAttribute : Attribute
+    {
     }
 }
