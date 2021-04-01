@@ -26,6 +26,7 @@ namespace Hagar.CodeGenerator
                 FieldCodec_1 = Type("Hagar.Codecs.IFieldCodec`1"),
                 DeepCopier_1 = Type("Hagar.Cloning.IDeepCopier`1"),
                 CopyContext = Type("Hagar.Cloning.CopyContext"),
+                MethodInfo = Type("System.Reflection.MethodInfo"),
                 Func_2 = Type("System.Func`2"),
                 GenerateMethodSerializersAttribute = Type("Hagar.GenerateMethodSerializersAttribute"),
                 GenerateSerializerAttribute = Type("Hagar.GenerateSerializerAttribute"),
@@ -36,10 +37,12 @@ namespace Hagar.CodeGenerator
                 WellKnownAliasAttribute = Type("Hagar.WellKnownAliasAttribute"), 
                 WellKnownIdAttribute = Type("Hagar.WellKnownIdAttribute"), 
                 IInvokable = Type("Hagar.Invocation.IInvokable"),
-                SubmitInvokableMethodNameAttribute = Type("Hagar.SubmitInvokableMethodNameAttribute"),
+                DefaultInvokeMethodNameAttribute = Type("Hagar.DefaultInvokeMethodNameAttribute"),
+                InvokeMethodNameAttribute = Type("Hagar.InvokeMethodNameAttribute"),
                 InvokableCustomInitializerAttribute = Type("Hagar.InvokableCustomInitializerAttribute"),
                 DefaultInvokableBaseTypeAttribute = Type("Hagar.DefaultInvokableBaseTypeAttribute"),
                 InvokableBaseTypeAttribute = Type("Hagar.InvokableBaseTypeAttribute"),
+                FromServiceProviderAttribute = Type("Hagar.FromServiceProviderAttribute"),
                 RegisterSerializerAttribute = Type("Hagar.RegisterSerializerAttribute"),
                 RegisterActivatorAttribute = Type("Hagar.RegisterActivatorAttribute"),
                 RegisterCopierAttribute = Type("Hagar.RegisterCopierAttribute"),
@@ -242,6 +245,7 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol TaskRequest { get; private set; }
         public INamedTypeSymbol TaskRequest_1 { get; private set; }
         public INamedTypeSymbol Type { get; private set; }
+        public INamedTypeSymbol MethodInfo { get; private set; }
         public INamedTypeSymbol ICodecProvider { get; private set; }
         public INamedTypeSymbol ValueSerializer { get; private set; }
         public INamedTypeSymbol ValueTask { get; private set; }
@@ -278,11 +282,13 @@ namespace Hagar.CodeGenerator
         public INamedTypeSymbol Exception { get; private set; }
         public INamedTypeSymbol VoidRequest { get; private set; }
         public INamedTypeSymbol ApplicationPartAttribute { get; private set; }
-        public INamedTypeSymbol SubmitInvokableMethodNameAttribute { get; private set; }
+        public INamedTypeSymbol InvokeMethodNameAttribute { get; private set; }
         public INamedTypeSymbol InvokableCustomInitializerAttribute { get; private set; }
         public INamedTypeSymbol InvokableBaseTypeAttribute { get; private set; }
+        public INamedTypeSymbol FromServiceProviderAttribute { get; private set; }
         public INamedTypeSymbol DefaultInvokableBaseTypeAttribute { get; private set; }
         public INamedTypeSymbol SerializationCallbacksAttribute { get; private set; }
+        public INamedTypeSymbol DefaultInvokeMethodNameAttribute { get; private set; }
 
 #pragma warning disable RS1024 // Compare symbols correctly
         private readonly ConcurrentDictionary<ITypeSymbol, bool> _shallowCopyableTypes = new(SymbolEqualityComparer.Default);

@@ -23,8 +23,15 @@ namespace MyPocos
     {
         public List<IInvokable> Invocations { get; } = new();
 
+        protected TInvokable GetInvokable<TInvokable>() where TInvokable : class, IInvokable, new() => InvokablePool.Get<TInvokable>();
+
         // The only required method is Invoke and it must have this signature.
         protected void SendRequest(IResponseCompletionSource completion, IInvokable request) => Invocations.Add(request);
+        protected ValueTask<T> InvokeAsync<T>(IInvokable request)
+        {
+            Invocations.Add(request);
+            return default;
+        }
     }
 
     public interface IMyInvokable : IGrain

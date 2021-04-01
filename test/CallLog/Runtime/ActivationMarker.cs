@@ -1,6 +1,7 @@
 ﻿using Hagar;
 using Hagar.Invocation;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CallLog
@@ -30,6 +31,14 @@ namespace CallLog
         public int Version { get; set; }
 
         public int ArgumentCount => 0;
+
+        public string MethodName => "ActivationMarker";
+        public Type[] MethodTypeArguments => Array.Empty<Type>();
+        public string InterfaceName => "ActivationMarker";
+        public Type InterfaceType => null;
+        public Type[] InterfaceTypeArguments => Array.Empty<Type>();
+        public Type[] ParameterTypes => Array.Empty<Type>();
+        public MethodInfo Method => null;
 
         public void Dispose()
         {

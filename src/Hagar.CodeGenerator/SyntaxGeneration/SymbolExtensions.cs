@@ -39,7 +39,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             {
                 return typeSymbol.ToTypeSyntax();
             }
-             
+
             if (typeSymbol.SpecialType == SpecialType.System_Void)
             {
                 return PredefinedType(Token(SyntaxKind.VoidKeyword));
@@ -51,7 +51,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return result;
         }
 
-        public static string ToDisplayName(this ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions)
+        public static string ToDisplayName(this ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions, bool includeGlobalSpecifier = true)
         {
             if (typeSymbol.SpecialType == SpecialType.System_Void)
             {
@@ -59,7 +59,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             }
 
             var result = new StringBuilder();
-            ToTypeSyntaxInner(typeSymbol, substitutions, result);
+            ToTypeSyntaxInner(typeSymbol, substitutions, result, includeGlobalSpecifier);
             return result.ToString();
         }
 
@@ -93,7 +93,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
             return result;
         }
 
-        private static void ToTypeSyntaxInner(ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions, StringBuilder res)
+        private static void ToTypeSyntaxInner(ITypeSymbol typeSymbol, Dictionary<ITypeParameterSymbol, string> substitutions, StringBuilder res, bool includeGlobalSpecifier = true)
         {
             switch (typeSymbol)
             {
@@ -101,7 +101,7 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                     res.Append("dynamic");
                     break;
                 case IArrayTypeSymbol a:
-                    ToTypeSyntaxInner(a.ElementType, substitutions, res);
+                    ToTypeSyntaxInner(a.ElementType, substitutions, res, includeGlobalSpecifier);
                     res.Append('[');
                     if (a.Rank > 1)
                     {
@@ -121,21 +121,21 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                     }
                     break;
                 case INamedTypeSymbol n:
-                    OnNamedTypeSymbol(n, substitutions, res);
+                    OnNamedTypeSymbol(n, substitutions, res, includeGlobalSpecifier);
                     break;
                 default:
                     throw new NotSupportedException($"Symbols of type {typeSymbol?.GetType().ToString() ?? "null"} are not supported");
             }
 
-            static void OnNamedTypeSymbol(INamedTypeSymbol symbol, Dictionary<ITypeParameterSymbol, string> substitutions, StringBuilder res)
+            static void OnNamedTypeSymbol(INamedTypeSymbol symbol, Dictionary<ITypeParameterSymbol, string> substitutions, StringBuilder res, bool includeGlobalSpecifier)
             {
                 switch (symbol.ContainingSymbol)
                 {
                     case INamespaceSymbol ns:
-                        AddFullNamespace(ns, res);
+                        AddFullNamespace(ns, res, includeGlobalSpecifier);
                         break;
                     case INamedTypeSymbol containingType:
-                        OnNamedTypeSymbol(containingType, substitutions, res);
+                        OnNamedTypeSymbol(containingType, substitutions, res, includeGlobalSpecifier);
                         res.Append('.');
                         break;
                 }
@@ -152,23 +152,26 @@ namespace Hagar.CodeGenerator.SyntaxGeneration
                             res.Append(',');
                         }
 
-                        ToTypeSyntaxInner(typeParameter, substitutions, res);
+                        ToTypeSyntaxInner(typeParameter, substitutions, res, includeGlobalSpecifier);
                         first = false;
                     }
                     res.Append('>');
                 }
             }
 
-            static void AddFullNamespace(INamespaceSymbol symbol, StringBuilder res)
+            static void AddFullNamespace(INamespaceSymbol symbol, StringBuilder res, bool includeGlobalSpecifier)
             {
                 if (symbol.ContainingNamespace is { } parent)
                 {
-                    AddFullNamespace(parent, res);
+                    AddFullNamespace(parent, res, includeGlobalSpecifier);
                 }
 
                 if (symbol.IsGlobalNamespace)
                 {
-                    res.Append("global::");
+                    if (includeGlobalSpecifier)
+                    {
+                        res.Append("global::");
+                    }
                 }
                 else
                 {

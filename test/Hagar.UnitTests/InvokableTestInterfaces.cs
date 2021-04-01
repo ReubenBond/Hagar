@@ -21,6 +21,32 @@ namespace Hagar.UnitTests
         protected void SendRequest(IResponseCompletionSource callback, IInvokable body)
         {
         }
+        
+        protected TInvokable GetInvokable<TInvokable>() where TInvokable : class, IInvokable, new() => InvokablePool.Get<TInvokable>();
+
+        protected ValueTask<T> InvokeAsync<T>(IInvokable body)
+        {
+            return default;
+        }
+    }
+
+    [DefaultInvokableBaseType(typeof(ValueTask<>), typeof(Request<>))]
+    [DefaultInvokableBaseType(typeof(ValueTask), typeof(Request))]
+    [DefaultInvokableBaseType(typeof(Task<>), typeof(TaskRequest<>))]
+    [DefaultInvokableBaseType(typeof(Task), typeof(TaskRequest))]
+    [DefaultInvokableBaseType(typeof(void), typeof(VoidRequest))]
+    public abstract class AltInvokableProxyBase
+    {
+        protected void InvokeVoid(IInvokable body)
+        {
+        }
+
+        protected TInvokable GetInvokable<TInvokable>() where TInvokable : class, IInvokable, new() => InvokablePool.Get<TInvokable>();
+
+        protected ValueTask<T> InvokeAsync<T>(IInvokable request)
+        {
+            return default;
+        }
     }
 
     [GenerateMethodSerializers(typeof(MyInvokableProxyBase))]

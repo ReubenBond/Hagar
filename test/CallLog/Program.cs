@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -468,7 +469,15 @@ namespace CallLog
         public abstract TArgument GetArgument<TArgument>(int index);
         public abstract void SetArgument<TArgument>(int index, in TArgument value);
         public abstract void Dispose();
+        public abstract string MethodName { get; }
+        public abstract Type[] MethodTypeArguments { get; }
+        public abstract string InterfaceName { get; }
+        public abstract Type InterfaceType { get; }
+        public abstract Type[] InterfaceTypeArguments { get; }
+        public abstract Type[] ParameterTypes { get; }
+        public abstract MethodInfo Method { get; }
     }
+
     [InvokableCustomInitializer("Yo")]
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class YoDayAttribute : Attribute
@@ -481,6 +490,10 @@ namespace CallLog
     [DefaultInvokableBaseType(typeof(Task<>), typeof(TaskRequest<>))]
     [DefaultInvokableBaseType(typeof(Task), typeof(TaskRequest))]
     [DefaultInvokableBaseType(typeof(void), typeof(VoidRequest))]
+    [DefaultInvokeMethodName(typeof(ValueTask<>), nameof(InvokeAsync))]
+    [DefaultInvokeMethodName(typeof(Task<>), nameof(InvokeAsync))]
+    [DefaultInvokeMethodName(typeof(ValueTask), nameof(InvokeAsync))]
+    [DefaultInvokeMethodName(typeof(Task), nameof(InvokeAsync))]
     internal abstract class WorkflowProxyBase
     {
         private readonly IdSpan _id;
@@ -490,6 +503,15 @@ namespace CallLog
         {
             _id = id;
             _router = router;
+        }
+
+        protected TInvokable GetInvokable<TInvokable>() where TInvokable : class, IInvokable, new() => InvokablePool.Get<TInvokable>();
+
+        protected ValueTask<T> InvokeAsync<T>(IInvokable body)
+        {
+            var callback = ResponseCompletionSourcePool.Get<T>();
+            SendRequest(callback, body);
+            return callback.AsValueTask();
         }
 
         protected void SendRequest(IResponseCompletionSource callback, IInvokable body)

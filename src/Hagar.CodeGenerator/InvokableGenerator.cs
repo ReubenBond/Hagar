@@ -2,9 +2,11 @@ using Hagar.CodeGenerator.SyntaxGeneration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
@@ -44,6 +46,13 @@ namespace Hagar.CodeGenerator
                 .AddMembers(ctor)
                 .AddMembers(
                     GenerateGetArgumentCount(libraryTypes, method),
+                    GenerateGetMethodName(libraryTypes, method),
+                    GenerateGetInterfaceName(libraryTypes, method),
+                    GenerateGetInterfaceType(libraryTypes, method),
+                    GenerateGetInterfaceTypeArguments(libraryTypes, method),
+                    GenerateGetMethodTypeArguments(libraryTypes, method),
+                    GenerateGetParameterTypes(libraryTypes, method),
+                    GenerateGetMethod(libraryTypes),
                     GenerateSetTargetMethod(libraryTypes, interfaceDescription, targetField),
                     GenerateGetTargetMethod(targetField),
                     GenerateDisposeMethod(libraryTypes, method, fieldDescriptions),
@@ -366,7 +375,7 @@ namespace Hagar.CodeGenerator
 
             foreach (var field in fields)
             {
-                if (!field.IsInjected)
+                if (!field.IsInjected && field.IsInstanceField)
                 {
                     body.Add(
                         ExpressionStatement(
@@ -397,6 +406,71 @@ namespace Hagar.CodeGenerator
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
 
+        private static MemberDeclarationSyntax GenerateGetMethodName(
+            LibraryTypes libraryTypes,
+            MethodDescription methodDescription) =>
+            PropertyDeclaration(PredefinedType(Token(SyntaxKind.StringKeyword)), "MethodName")
+                .WithExpressionBody(
+                    ArrowExpressionClause(
+                        LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            Literal(methodDescription.Method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+        private static MemberDeclarationSyntax GenerateGetInterfaceName(
+            LibraryTypes libraryTypes,
+            MethodDescription methodDescription) =>
+            PropertyDeclaration(PredefinedType(Token(SyntaxKind.StringKeyword)), "InterfaceName")
+                .WithExpressionBody(
+                    ArrowExpressionClause(
+                        LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            Literal(methodDescription.Method.ContainingType.ToDisplayName(methodDescription.TypeParameterSubstitutions, includeGlobalSpecifier: false)))))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+        private static MemberDeclarationSyntax GenerateGetInterfaceType(
+            LibraryTypes libraryTypes,
+            MethodDescription methodDescription) =>
+            PropertyDeclaration(libraryTypes.Type.ToTypeSyntax(), "InterfaceType")
+                .WithExpressionBody(
+                    ArrowExpressionClause(
+                        TypeOfExpression(methodDescription.Method.ContainingType.ToTypeSyntax(methodDescription.TypeParameterSubstitutions))))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+        private static MemberDeclarationSyntax GenerateGetInterfaceTypeArguments(
+            LibraryTypes libraryTypes,
+            MethodDescription methodDescription) =>
+                GenerateGetTypeArrayHelper(libraryTypes, "InterfaceTypeArguments", "InterfaceTypeArgumentsBackingField");
+
+        private static MemberDeclarationSyntax GenerateGetMethodTypeArguments(
+            LibraryTypes libraryTypes,
+            MethodDescription methodDescription) =>
+                GenerateGetTypeArrayHelper(libraryTypes, "MethodTypeArguments", "MethodTypeArgumentsBackingField");
+
+        private static MemberDeclarationSyntax GenerateGetParameterTypes(
+            LibraryTypes libraryTypes,
+            MethodDescription methodDescription) =>
+                GenerateGetTypeArrayHelper(libraryTypes, "ParameterTypes", "ParameterTypesBackingField");
+
+        private static MemberDeclarationSyntax GenerateGetTypeArrayHelper(
+            LibraryTypes libraryTypes,
+            string propertyName,
+            string backingPropertyName)
+            => PropertyDeclaration(ArrayType(libraryTypes.Type.ToTypeSyntax(), SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))), propertyName)
+                .WithExpressionBody(ArrowExpressionClause(IdentifierName(backingPropertyName)))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
+        private static MemberDeclarationSyntax GenerateGetMethod(
+            LibraryTypes libraryTypes)
+            => PropertyDeclaration(libraryTypes.MethodInfo.ToTypeSyntax(), "Method")
+                .WithExpressionBody(ArrowExpressionClause(IdentifierName("MethodBackingField")))
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.OverrideKeyword)))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+
         public static string GetSimpleClassName(InvokableInterfaceDescription interfaceDescription, MethodDescription method)
         {
             var genericArity = method.AllTypeParameters.Count;
@@ -413,10 +487,43 @@ namespace Hagar.CodeGenerator
 
             MemberDeclarationSyntax GetFieldDeclaration(InvokerFieldDescripton description)
             {
-                var field = FieldDeclaration(
-                    VariableDeclaration(
-                        description.FieldType.ToTypeSyntax(method.TypeParameterSubstitutions),
-                        SingletonSeparatedList(VariableDeclarator(description.FieldName))));
+                FieldDeclarationSyntax field;
+                if (description is TypeArrayFieldDescription types)
+                {
+                    field = FieldDeclaration(
+                        VariableDeclaration(
+                            ArrayType(libraryTypes.Type.ToTypeSyntax(), SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))),
+                            SingletonSeparatedList(VariableDeclarator(description.FieldName)
+                            .WithInitializer(EqualsValueClause(ArrayCreationExpression(
+                                ArrayType(libraryTypes.Type.ToTypeSyntax(), SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))),
+                                InitializerExpression(SyntaxKind.ArrayInitializerExpression, SeparatedList<ExpressionSyntax>(types.Values.Select(t => TypeOfExpression(t))))))))))
+                        .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword));
+                }
+                else if (description is MethodInfoFieldDescription methodInfo)
+                {
+                    field = FieldDeclaration(
+                        VariableDeclaration(
+                            libraryTypes.MethodInfo.ToTypeSyntax(),
+                            SingletonSeparatedList(VariableDeclarator(description.FieldName)
+                            .WithInitializer(EqualsValueClause(
+                                InvocationExpression(
+                                    IdentifierName("HagarGeneratedCodeHelper").Member("GetMethodInfoOrDefault"),
+                                    ArgumentList(SeparatedList<ArgumentSyntax>(new[]
+                                    {
+                                        Argument(TypeOfExpression(method.Method.ContainingType.ToTypeSyntax(method.TypeParameterSubstitutions))),
+                                        Argument(method.Method.Name.GetLiteralExpression()),
+                                        Argument(IdentifierName("MethodTypeArgumentsBackingField")),
+                                        Argument(IdentifierName("ParameterTypesBackingField")),
+                                    }))))))))
+                        .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword));
+                }
+                else
+                {
+                    field = FieldDeclaration(
+                        VariableDeclaration(
+                            description.FieldType.ToTypeSyntax(method.TypeParameterSubstitutions),
+                            SingletonSeparatedList(VariableDeclarator(description.FieldName))));
+                }
 
                 switch (description)
                 {
@@ -504,6 +611,17 @@ namespace Hagar.CodeGenerator
 
             fields.Add(new TargetFieldDescription(method, interfaceDescription.InterfaceType));
 
+            var methodTypeArguments = method.MethodTypeParameters.Select(p => p.Parameter.ToTypeSyntax(method.TypeParameterSubstitutions)).ToArray();
+            fields.Add(new TypeArrayFieldDescription(method, interfaceDescription.CodeGenerator.LibraryTypes.Type, "MethodTypeArgumentsBackingField", methodTypeArguments));
+
+            var interfaceTypeArguments = method.Method.ContainingType.TypeArguments.Select(p => p.ToTypeSyntax(method.TypeParameterSubstitutions)).ToArray();
+            fields.Add(new TypeArrayFieldDescription(method, interfaceDescription.CodeGenerator.LibraryTypes.Type, "InterfaceTypeArgumentsBackingField", interfaceTypeArguments));
+
+            var methodParameterTypes = method.Method.Parameters.Select(p => p.Type.ToTypeSyntax(method.TypeParameterSubstitutions)).ToArray();
+            fields.Add(new TypeArrayFieldDescription(method, interfaceDescription.CodeGenerator.LibraryTypes.Type, "ParameterTypesBackingField", methodParameterTypes));
+
+            fields.Add(new MethodInfoFieldDescription(method, interfaceDescription.CodeGenerator.LibraryTypes.MethodInfo, "MethodBackingField"));
+
             return fields;
         }
 
@@ -520,6 +638,7 @@ namespace Hagar.CodeGenerator
             public string FieldName { get; }
             public abstract bool IsInjected { get; }
             public abstract bool IsSerializable { get; }
+            public abstract bool IsInstanceField { get; }
         }
 
         internal class TargetFieldDescription : InvokerFieldDescripton
@@ -534,6 +653,7 @@ namespace Hagar.CodeGenerator
             public override bool IsInjected => false;
             public override bool IsSerializable => false;
             public override TypeSyntax FieldTypeSyntax => FieldType.ToTypeSyntax(_method.TypeParameterSubstitutions);
+            public override bool IsInstanceField => true;
         }
 
         internal class MethodParameterFieldDescription : InvokerFieldDescripton, IMemberDescription
@@ -570,6 +690,7 @@ namespace Hagar.CodeGenerator
             public IParameterSymbol Parameter { get; }
             public string Name => FieldName;
             public override bool IsSerializable => true;
+            public override bool IsInstanceField => true;
             public override TypeSyntax FieldTypeSyntax { get; }
 
             public string AssemblyName => Parameter.Type.ContainingAssembly.ToDisplayName();
@@ -589,6 +710,38 @@ namespace Hagar.CodeGenerator
             }
 
             public TypeSyntax GetTypeSyntax(ITypeSymbol typeSymbol) => typeSymbol.ToTypeSyntax(_method.TypeParameterSubstitutions);
+        }
+
+        internal class TypeArrayFieldDescription : InvokerFieldDescripton
+        {
+            private readonly MethodDescription _method;
+
+            public TypeArrayFieldDescription(MethodDescription method, ITypeSymbol fieldType, string fieldName, TypeSyntax[] values) : base(fieldType, fieldName)
+            {
+                _method = method;
+                Values = values;
+            }
+
+            public TypeSyntax[] Values { get; }
+            public override bool IsInjected => false;
+            public override bool IsSerializable => false;
+            public override bool IsInstanceField => false;
+            public override TypeSyntax FieldTypeSyntax => FieldType.ToTypeSyntax(_method.TypeParameterSubstitutions);
+        }
+
+        internal class MethodInfoFieldDescription : InvokerFieldDescripton
+        {
+            private readonly MethodDescription _method;
+
+            public MethodInfoFieldDescription(MethodDescription method, ITypeSymbol fieldType, string fieldName) : base(fieldType, fieldName)
+            {
+                _method = method;
+            }
+
+            public override bool IsInjected => false;
+            public override bool IsSerializable => false;
+            public override bool IsInstanceField => false;
+            public override TypeSyntax FieldTypeSyntax => FieldType.ToTypeSyntax(_method.TypeParameterSubstitutions);
         }
     }
 }
