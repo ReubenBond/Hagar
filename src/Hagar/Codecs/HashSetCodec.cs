@@ -1,65 +1,125 @@
-﻿using Hagar.Cloning;
-using Hagar.Serializers;
+﻿using Hagar.Buffers;
+using Hagar.Cloning;
+using Hagar.GeneratedCodeHelpers;
+using Hagar.Session;
+using Hagar.WireProtocol;
+using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Hagar.Codecs
 {
+    /// <summary>
+    /// Codec for <see cref="HashSet{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
     [RegisterSerializer]
-    public sealed class HashSetCodec<T> : GeneralizedReferenceTypeSurrogateCodec<HashSet<T>, HashSetSurrogate<T>>
+    public sealed class HashSetCodec<T> : IFieldCodec<HashSet<T>>
     {
-        public HashSetCodec(IValueSerializer<HashSetSurrogate<T>> surrogateSerializer) : base(surrogateSerializer)
+        private static readonly Type CodecElementType = typeof(T);
+
+        private readonly IFieldCodec<T> _fieldCodec;
+        private readonly IFieldCodec<IEqualityComparer<T>> _comparerCodec;
+
+        public HashSetCodec(IFieldCodec<T> fieldCodec, IFieldCodec<IEqualityComparer<T>> comparerCodec)
         {
+            _fieldCodec = HagarGeneratedCodeHelper.UnwrapService(this, fieldCodec);
+            _comparerCodec = comparerCodec;
         }
 
-        public override HashSet<T> ConvertFromSurrogate(ref HashSetSurrogate<T> surrogate)
+        public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, HashSet<T> value) where TBufferWriter : IBufferWriter<byte>
         {
-            if (surrogate.Values is null)
+            if (ReferenceCodec.TryWriteReferenceField(ref writer, fieldIdDelta, expectedType, value))
             {
-                return null;
-            }
-            else
-            {
-                if (surrogate.Comparer is object)
-                {
-                    return new HashSet<T>(surrogate.Values, surrogate.Comparer);
-                }
-                else
-                {
-                    return new HashSet<T>(surrogate.Values);
-                }
-            }
-        }
-
-        public override void ConvertToSurrogate(HashSet<T> value, ref HashSetSurrogate<T> surrogate)
-        {
-            if (value is null)
-            {
-                surrogate = default;
                 return;
             }
-            else
-            {
-                surrogate = new HashSetSurrogate<T>
-                {
-                    Values = new List<T>(value)
-                };
 
-                if (!ReferenceEquals(value.Comparer, EqualityComparer<T>.Default))
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, value.GetType(), WireType.TagDelimited);
+
+            if (value.Comparer != EqualityComparer<T>.Default)
+            {
+                _comparerCodec.WriteField(ref writer, 0, typeof(IEqualityComparer<T>), value.Comparer);
+            }
+
+            Int32Codec.WriteField(ref writer, 1, typeof(int), value.Count);
+
+            uint innerFieldIdDelta = 1;
+            foreach (var element in value)
+            {
+                _fieldCodec.WriteField(ref writer, innerFieldIdDelta, CodecElementType, element);
+                innerFieldIdDelta = 0;
+            }
+
+            writer.WriteEndObject();
+        }
+
+        public HashSet<T> ReadValue<TInput>(ref Reader<TInput> reader, Field field)
+        {
+            if (field.WireType == WireType.Reference)
+            {
+                return ReferenceCodec.ReadReference<HashSet<T>, TInput>(ref reader, field);
+            }
+
+            if (field.WireType != WireType.TagDelimited)
+            {
+                ThrowUnsupportedWireTypeException(field);
+            }
+
+            var placeholderReferenceId = ReferenceCodec.CreateRecordPlaceholder(reader.Session);
+            HashSet<T> result = null;
+            IEqualityComparer<T> comparer = null;
+            uint fieldId = 0;
+            while (true)
+            {
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
                 {
-                    surrogate.Comparer = value.Comparer;
+                    break;
+                }
+
+                fieldId += header.FieldIdDelta;
+                switch (fieldId)
+                {
+                    case 0:
+                        comparer = _comparerCodec.ReadValue(ref reader, header);
+                        break;
+                    case 1:
+                        int length = Int32Codec.ReadValue(ref reader, header);
+                        if (length > 10240 && length > reader.Length)
+                        {
+                            ThrowInvalidSizeException(length);
+                        }
+
+                        break;
+                    case 2:
+                        result ??= CreateInstance(comparer, reader.Session, placeholderReferenceId);
+                        result.Add(_fieldCodec.ReadValue(ref reader, header));
+                        break;
+                    default:
+                        reader.ConsumeUnknownField(header);
+                        break;
                 }
             }
+
+            result ??= CreateInstance(comparer, reader.Session, placeholderReferenceId);
+            return result;
         }
-    }
 
-    [GenerateSerializer]
-    public struct HashSetSurrogate<T>
-    {
-        [Id(1)]
-        public List<T> Values { get; set; }
+        private HashSet<T> CreateInstance(IEqualityComparer<T> comparer, SerializerSession session, uint placeholderReferenceId)
+        {
+            var result = new HashSet<T>(comparer);
+            ReferenceCodec.RecordObject(session, result, placeholderReferenceId);
+            return result;
+        }
 
-        [Id(2)]
-        public IEqualityComparer<T> Comparer { get; set; }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
+            $"Only a {nameof(WireType)} value of {WireType.TagDelimited} is supported. {field}");
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowInvalidSizeException(int length) => throw new IndexOutOfRangeException(
+            $"Declared length of {typeof(HashSet<T>)}, {length}, is greater than total length of input.");
     }
 
     [RegisterCopier]
