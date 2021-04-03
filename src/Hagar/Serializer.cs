@@ -27,6 +27,12 @@ namespace Hagar
         }
 
         /// <summary>
+        /// Returns a serializer which is specialized to the provided type parameter.
+        /// </summary>
+        /// <typeparam name="T">The underlying type for the returned serializer.</typeparam>
+        public Serializer<T> GetSerializer<T>() => new(_codecProvider, _sessionPool);
+
+        /// <summary>
         /// Serializes the provided <paramref name="value"/> into a new array.
         /// </summary>
         /// <typeparam name="T">The expected type of <paramref name="value"/>.</typeparam>
@@ -262,6 +268,35 @@ namespace Hagar
         /// <typeparam name="T">The expected type of <paramref name="value"/>.</typeparam>
         /// <param name="value">The value to serialize.</param>
         /// <param name="destination">The destination where serialized data will be written.</param>
+        /// <returns>The length of the serialized data.</returns>
+        public int Serialize<T>(T value, ArraySegment<byte> destination)
+        {
+            var destinationSpan = destination.AsSpan();
+            Serialize(value, ref destinationSpan);
+            return destinationSpan.Length;
+        }
+
+        /// <summary>
+        /// Serializes the provided <paramref name="value"/> into <paramref name="destination"/>.
+        /// </summary>
+        /// <typeparam name="T">The expected type of <paramref name="value"/>.</typeparam>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="destination">The destination where serialized data will be written.</param>
+        /// <param name="session">The serializer session.</param>
+        /// <returns>The length of the serialized data.</returns>
+        public int Serialize<T>(T value, ArraySegment<byte> destination, SerializerSession session)
+        {
+            var destinationSpan = destination.AsSpan();
+            Serialize(value, ref destinationSpan, session);
+            return destinationSpan.Length;
+        }
+
+        /// <summary>
+        /// Serializes the provided <paramref name="value"/> into <paramref name="destination"/>.
+        /// </summary>
+        /// <typeparam name="T">The expected type of <paramref name="value"/>.</typeparam>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="destination">The destination where serialized data will be written.</param>
         /// <param name="session">The serializer session.</param>
         /// <returns>The length of the serialized data.</returns>
         public int Serialize<T>(T value, byte[] destination, SerializerSession session)
@@ -396,6 +431,21 @@ namespace Hagar
         /// <param name="session">The serializer session.</param>
         /// <returns>The deserialized value.</returns>
         public T Deserialize<T>(ReadOnlyMemory<byte> source, SerializerSession session) => Deserialize<T>(source.Span, session);
+
+        /// <summary>
+        /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">The source buffer.</param>
+        /// <returns>The deserialized value.</returns>
+        public T Deserialize<T>(ArraySegment<byte> source) => Deserialize<T>(source.AsSpan());
+
+        /// <summary>
+        /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
+        /// </summary>
+        /// <param name="source">The source buffer.</param>
+        /// <param name="session">The serializer session.</param>
+        /// <returns>The deserialized value.</returns>
+        public T Deserialize<T>(ArraySegment<byte> source, SerializerSession session) => Deserialize<T>(source.AsSpan(), session);
         
         /// <summary>
         /// Deserialize a value of type <typeparamref name="T"/> from <paramref name="source"/>.
@@ -422,7 +472,7 @@ namespace Hagar
         private readonly SerializerSessionPool _sessionPool;
         private readonly Type _expectedType;
 
-        public Serializer(IFieldCodecProvider codecProvider, SerializerSessionPool sessionPool)
+        public Serializer(ICodecProvider codecProvider, SerializerSessionPool sessionPool)
         {
             _expectedType = typeof(T);
             _codec = HagarGeneratedCodeHelper.UnwrapService(null, codecProvider.GetCodec<T>());
