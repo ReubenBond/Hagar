@@ -37,7 +37,7 @@ namespace Hagar.Codecs
         public string Value { get; set; }
     }
 
-    [RegisterSerializer]
+    [RegisterCopier]
     public sealed class UriCopier : IDeepCopier<Uri>, IGeneralizedCopier
     {
         public Uri DeepCopy(Uri input, CopyContext context) => input;
