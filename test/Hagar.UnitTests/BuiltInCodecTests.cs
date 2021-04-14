@@ -1905,4 +1905,25 @@ namespace Hagar.UnitTests
 
         protected override bool IsImmutable => true;
     }
+
+    public class UriTests : FieldCodecTester<Uri, UriCodec>
+    {
+        protected override int[] MaxSegmentSizes => new[] { 128 };
+        protected override Uri CreateValue() => new Uri($"http://www.{Guid.NewGuid()}.com/");
+
+        protected override Uri[] TestValues => new[] { null, CreateValue(), CreateValue(), CreateValue(), CreateValue() };
+
+        protected override bool Equals(Uri left, Uri right) => object.ReferenceEquals(left, right) || left == right;
+    }
+
+    public class UriCopierTests : CopierTester<Uri, UriCopier>
+    {
+        protected override Uri CreateValue() => new Uri($"http://www.{Guid.NewGuid()}.com/");
+
+        protected override Uri[] TestValues => new[] { null, CreateValue(), CreateValue(), CreateValue(), CreateValue() };
+
+        protected override bool Equals(Uri left, Uri right) => object.ReferenceEquals(left, right) || left == right;
+
+        protected override bool IsImmutable => true;
+    }
 }
