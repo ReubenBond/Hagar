@@ -61,7 +61,7 @@
     Name="HagarGenerateInputCache"
     DependsOnTargets="ResolveAssemblyReferences"
     BeforeTargets="HagarGenerateCode"
-    Inputs="$(Hagar_CodeGenInputs)"
+    Inputs="@(Hagar_CodeGenInputs)"
     Outputs="$(Hagar_CodeGenInputCache)">
 
     <Hash ItemsToHash="@(Hagar_CodeGenInputs)">
