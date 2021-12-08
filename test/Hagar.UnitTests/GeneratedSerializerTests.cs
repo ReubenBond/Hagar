@@ -195,6 +195,24 @@ namespace Hagar.UnitTests
             Assert.Equal(original.ConcurrentDictProperty["eleven"], result.ConcurrentDictProperty["eleven"]);
         }
 
+        [Fact]
+        public void ClassWithLargeCollectionAndUriRoundTrip()
+        {
+            Dictionary<string, string> largeDictionary = new Dictionary<string, string>();
+            for (int i=0; i<200; i++)
+            {
+                largeDictionary[i.ToString()] = (-1 * i).ToString();
+            }
+
+            var original = new ClassWithLargeCollectionAndUri
+            {
+                largeDictionary = largeDictionary,
+                uri = new Uri($"http://www.{Guid.NewGuid()}.com/")
+            };
+
+            var result = RoundTripThroughCodec(original);
+            Assert.Equal(original.uri, result.uri);
+        }
 
         public void Dispose() => _serviceProvider?.Dispose();
 

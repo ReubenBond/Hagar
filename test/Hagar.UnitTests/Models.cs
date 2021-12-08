@@ -1,4 +1,5 @@
 using Hagar;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -150,5 +151,15 @@ namespace Hagar.UnitTests
 
         [Id(5)]
         public ConcurrentDictionary<string, int> ConcurrentDictProperty { get; set; }
+    }
+
+    [GenerateSerializer]
+    public class ClassWithLargeCollectionAndUri
+    {
+        [Id(0)]
+        public Dictionary<string, string> largeDictionary;
+
+        [Id(1)]
+        public Uri uri;
     }
 }
