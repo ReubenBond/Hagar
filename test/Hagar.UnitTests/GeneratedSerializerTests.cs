@@ -198,15 +198,15 @@ namespace Hagar.UnitTests
         [Fact]
         public void ClassWithLargeCollectionAndUriRoundTrip()
         {
-            Dictionary<string, string> largeDictionary = new Dictionary<string, string>();
-            for (int i=0; i<200; i++)
+            List<string> largeList = new List<string>();
+            for (int i=0; i<60; i++)
             {
-                largeDictionary[i.ToString()] = (-1 * i).ToString();
+                largeList.Add(i.ToString());
             }
 
             var original = new ClassWithLargeCollectionAndUri
             {
-                largeDictionary = largeDictionary,
+                largeList = largeList,
                 uri = new Uri($"http://www.{Guid.NewGuid()}.com/")
             };
 

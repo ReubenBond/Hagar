@@ -157,7 +157,7 @@ namespace Hagar.UnitTests
     public class ClassWithLargeCollectionAndUri
     {
         [Id(0)]
-        public Dictionary<string, string> largeDictionary;
+        public List<string> largeList;
 
         [Id(1)]
         public Uri uri;
