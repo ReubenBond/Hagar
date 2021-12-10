@@ -329,6 +329,7 @@ namespace Hagar.CodeGenerator
         // Returns descriptions of all data members (fields and properties) 
         private IEnumerable<IMemberDescription> GetDataMembers(INamedTypeSymbol symbol)
         {
+            var members = new Dictionary<ushort, IMemberDescription>();
             var hasAttributes = false;
             foreach (var member in symbol.GetMembers())
             {
@@ -352,6 +353,11 @@ namespace Hagar.CodeGenerator
             var nextFieldId = (ushort)0;
             foreach (var member in symbol.GetMembers().OrderBy(m => m.MetadataName))
             {
+                if (member.IsStatic)
+                {
+                    continue;
+                }
+
                 // Only consider fields and properties.
                 if (!(member is IFieldSymbol || member is IPropertySymbol))
                 {
@@ -368,7 +374,7 @@ namespace Hagar.CodeGenerator
                     var id = GetId(prop);
                     if (!id.HasValue)
                     {
-                        if (hasAttributes)
+                        if (hasAttributes || !_options.GenerateFieldIds)
                         {
                             continue;
                         }
@@ -376,7 +382,11 @@ namespace Hagar.CodeGenerator
                         id = ++nextFieldId;
                     }
 
-                    yield return new PropertyDescription(id.Value, prop);
+                    // FieldDescription takes precedence over PropertyDescription
+                    if (!members.TryGetValue(id.Value, out var existing))
+                    {
+                        members[id.Value] = new PropertyDescription(id.Value, prop);
+                    }
                 }
 
                 if (member is IFieldSymbol field)
@@ -409,9 +419,16 @@ namespace Hagar.CodeGenerator
                         id = nextFieldId++;
                     }
 
-                    yield return new FieldDescription(id.Value, field);
+                    // FieldDescription takes precedence over PropertyDescription
+                    if (!members.TryGetValue(id.Value, out var existing) || existing is PropertyDescription)
+                    {
+                        members[id.Value] = new FieldDescription(id.Value, field);
+                        continue;
+                    }
                 }
             }
+
+            return members.Values;
         }
 
         public ushort? GetId(ISymbol memberSymbol) => GetId(LibraryTypes, memberSymbol);

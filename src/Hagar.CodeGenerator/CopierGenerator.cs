@@ -27,13 +27,14 @@ namespace Hagar.CodeGenerator
             var members = new List<ISerializableMember>();
             foreach (var member in type.Members)
             {
-                if (member is IFieldDescription)
+                var ordinal = members.Count;
+                if (member is IFieldDescription or IPropertyDescription)
                 {
-                    members.Add(new SerializableMember(libraryTypes, type, member, members.Count));
+                    members.Add(new SerializableMember(libraryTypes, type, member, ordinal));
                 }
                 else if (member is MethodParameterFieldDescription methodParameter)
                 {
-                    members.Add(new SerializableMethodMember(methodParameter, members.Count));
+                    members.Add(new SerializableMethodMember(methodParameter, ordinal));
                 }
             }
 
@@ -170,7 +171,7 @@ namespace Hagar.CodeGenerator
 
             StatementSyntax InitializeGetterField(GetterFieldDescription getter)
             {
-                var fieldInfo = GetFieldInfo(getter.Member.Field.ContainingType, getter.Member.Field.Name);
+                var fieldInfo = GetFieldInfo(getter.Member.ContainingType, getter.Member.Name);
                 var accessorInvoke = CastExpression(
                     getter.FieldType,
                     InvocationExpression(fieldAccessorUtility.Member("GetGetter")).AddArgumentListArguments(Argument(fieldInfo)));
@@ -181,8 +182,8 @@ namespace Hagar.CodeGenerator
 
             StatementSyntax InitializeSetterField(SetterFieldDescription setter)
             {
-                var field = setter.Member.Field;
-                var fieldInfo = GetFieldInfo(field.ContainingType, field.Name);
+                var member = setter.Member;
+                var fieldInfo = GetFieldInfo(member.ContainingType, member.Name);
                 var accessorMethod = setter.IsContainedByValueType ? "GetValueSetter" : "GetReferenceSetter";
                 var accessorInvoke = CastExpression(
                     setter.FieldType,
@@ -313,14 +314,14 @@ namespace Hagar.CodeGenerator
 
             GetterFieldDescription GetGetterDescription(ISerializableMember member)
             {
-                var containingType = member.Field.ContainingType;
+                var containingType = member.ContainingType;
                 var getterType = libraryTypes.Func_2.ToTypeSyntax(member.Member.GetTypeSyntax(containingType), member.TypeSyntax);
-                return new GetterFieldDescription(getterType, member.GetterFieldName, member.Field.Type, member);
+                return new GetterFieldDescription(getterType, member.GetterFieldName, member.SymbolType, member);
             }
 
             SetterFieldDescription GetSetterDescription(ISerializableMember member)
             {
-                var containingType = member.Field.ContainingType;
+                var containingType = member.ContainingType;
                 TypeSyntax fieldType;
                 if (containingType != null && containingType.IsValueType)
                 {
@@ -331,7 +332,7 @@ namespace Hagar.CodeGenerator
                     fieldType = libraryTypes.Action_2.ToTypeSyntax(member.Member.GetTypeSyntax(containingType), member.TypeSyntax);
                 }
 
-                return new SetterFieldDescription(fieldType, member.SetterFieldName, member.Field.Type, member);
+                return new SetterFieldDescription(fieldType, member.SetterFieldName, member.SymbolType, member);
             }
 
             static string ToLowerCamelCase(string input) => char.IsLower(input, 0) ? input : char.ToLowerInvariant(input[0]) + input.Substring(1);
