@@ -333,7 +333,7 @@ namespace Hagar.CodeGenerator
             var hasAttributes = false;
             foreach (var member in symbol.GetMembers())
             {
-                if (member.IsStatic)
+                if (member.IsStatic || member.IsAbstract)
                 {
                     continue;
                 }
@@ -353,7 +353,7 @@ namespace Hagar.CodeGenerator
             var nextFieldId = (ushort)0;
             foreach (var member in symbol.GetMembers().OrderBy(m => m.MetadataName))
             {
-                if (member.IsStatic)
+                if (member.IsStatic || member.IsAbstract)
                 {
                     continue;
                 }
