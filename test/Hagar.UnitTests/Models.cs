@@ -166,6 +166,7 @@ namespace Hagar.UnitTests
     [GenerateSerializer]
     public class ClassWithManualSerializableProperty
     {
+        [NonSerialized]
         private string _stringPropertyValue;
 
         [Id(0)]

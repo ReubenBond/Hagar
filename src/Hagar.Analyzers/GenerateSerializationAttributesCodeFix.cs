@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,9 +14,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Hagar.Analyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp)]
-    public class GenerateHagarSerializationAttributesCodeFix : CodeFixProvider
+    public class GenerateSerializationAttributesCodeFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(GenerateHagarSerializationAttributesAnalyzer.RuleId, AddGenerateHagarSerializationAttributeAnalyzer.RuleId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(GenerateSerializationAttributesAnalyzer.RuleId, GenerateGenerateSerializerAttributeAnalyzer.RuleId);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer; 
 
@@ -28,17 +28,17 @@ namespace Hagar.Analyzers
             {
                 switch (diagnostic.Id)
                 {
-                    case GenerateHagarSerializationAttributesAnalyzer.RuleId:
+                    case GenerateSerializationAttributesAnalyzer.RuleId:
                         context.RegisterCodeFix(
-                            CodeAction.Create("Generate serialization attributes", cancellationToken => AddSerializationAttributes(declaration, context, cancellationToken), equivalenceKey: GenerateHagarSerializationAttributesAnalyzer.RuleId),
+                            CodeAction.Create("Generate serialization attributes", cancellationToken => AddSerializationAttributes(declaration, context, cancellationToken), equivalenceKey: GenerateSerializationAttributesAnalyzer.RuleId),
                             diagnostic);
                         context.RegisterCodeFix(
-                            CodeAction.Create("Mark properties and fields [NonSerialized]", cancellationToken => AddNonSerializedAttributes(root, declaration, context, cancellationToken), equivalenceKey: GenerateHagarSerializationAttributesAnalyzer.RuleId + "NonSerialized"),
+                            CodeAction.Create("Mark properties and fields [NonSerialized]", cancellationToken => AddNonSerializedAttributes(root, declaration, context, cancellationToken), equivalenceKey: GenerateSerializationAttributesAnalyzer.RuleId + "NonSerialized"),
                             diagnostic);
                         break;
-                    case AddGenerateHagarSerializationAttributeAnalyzer.RuleId:
+                    case GenerateGenerateSerializerAttributeAnalyzer.RuleId:
                         context.RegisterCodeFix(
-                            CodeAction.Create("Add [GenerateSerializer] attribute", cancellationToken => AddGenerateSerializerAttribute(declaration, context, cancellationToken), equivalenceKey: AddGenerateHagarSerializationAttributeAnalyzer.RuleId),
+                            CodeAction.Create("Add [GenerateSerializer] attribute", cancellationToken => AddGenerateSerializerAttribute(declaration, context, cancellationToken), equivalenceKey: GenerateGenerateSerializerAttributeAnalyzer.RuleId),
                             diagnostic);
                         break;
                 }
@@ -59,7 +59,7 @@ namespace Hagar.Analyzers
         private static async Task<Document> AddSerializationAttributes(TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
-            var (serializableMembers, nextId) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
+            var (serializableMembers, _, nextId) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
 
             foreach (var member in serializableMembers)
             {
@@ -76,7 +76,7 @@ namespace Hagar.Analyzers
         private static async Task<Document> AddNonSerializedAttributes(SyntaxNode root, TypeDeclarationSyntax declaration, CodeFixContext context, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(context.Document, cancellationToken).ConfigureAwait(false);
-            var (serializableMembers, _) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
+            var (serializableMembers, _, _) = SerializationAttributesHelper.AnalyzeTypeDeclaration(declaration);
 
             var insertUsingDirective = true;
             var ns = root.DescendantNodesAndSelf()
