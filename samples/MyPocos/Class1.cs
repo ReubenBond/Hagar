@@ -13,7 +13,7 @@ namespace MyPocos
     }
 
     [GenerateSerializer]
-    public class SomeClassWithSerialzers
+    public class SomeClassWithSerializers
     {
         [Id(0)]
         public int IntProperty { get; set; }
