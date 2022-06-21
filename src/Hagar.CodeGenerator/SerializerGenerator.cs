@@ -989,7 +989,8 @@ namespace Hagar.CodeGenerator
                                     Argument(writerParam).WithRefOrOutKeyword(Token(SyntaxKind.RefKeyword)),
                                     Argument(fieldIdDeltaParam),
                                     Argument(expectedTypeParam),
-                                    Argument(CastExpression(type.BaseType.ToTypeSyntax(), valueParam))
+                                    Argument(CastExpression(type.BaseType.ToTypeSyntax(), valueParam)),
+                                    Argument(TypeOfExpression(type.TypeSyntax))
                                 })))));
 
             var parameters = new[]
@@ -1335,7 +1336,7 @@ namespace Hagar.CodeGenerator
             /// <summary>
             /// Gets the underlying <see cref="Symbol"/> instance.
             /// </summary>
-            public IFieldSymbol? Field => Member.Member as IFieldSymbol;
+            public IFieldSymbol Field => Member.Member as IFieldSymbol;
 
             /// <summary>
             /// Gets the name of the getter field.
@@ -1377,7 +1378,7 @@ namespace Hagar.CodeGenerator
             /// Gets the <see cref="Property"/> which this field is the backing property for, or
             /// <see langword="null" /> if this is not the backing field of an auto-property.
             /// </summary>
-            private IPropertySymbol? Property
+            private IPropertySymbol Property
             {
                 get
                 {
