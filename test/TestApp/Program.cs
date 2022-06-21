@@ -108,7 +108,7 @@ namespace TestApp
 
             var codecs = serviceProvider.GetRequiredService<ICodecProvider>();
 
-            var codec = codecs.GetCodec<SomeClassWithSerialzers>();
+            var codec = codecs.GetCodec<SomeClassWithSerializers>();
             var sessionPool = serviceProvider.GetRequiredService<SerializerSessionPool>();
 
             var writeSession = sessionPool.GetSession();
@@ -116,8 +116,8 @@ namespace TestApp
             var writer = Writer.Create(pipe.Writer, writeSession);
             codec.WriteField(ref writer,
                              0,
-                             typeof(SomeClassWithSerialzers),
-                             new SomeClassWithSerialzers { IntField = 2, IntProperty = 30 });
+                             typeof(SomeClassWithSerializers),
+                             new SomeClassWithSerializers { IntField = 2, IntProperty = 30 });
             writer.Commit();
             _ = pipe.Writer.FlushAsync().AsTask().GetAwaiter().GetResult();
             pipe.Writer.Complete();

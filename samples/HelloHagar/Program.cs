@@ -16,9 +16,9 @@ namespace HelloHagar
         {
             var serviceProvider = new ServiceCollection()
                 .AddHagar()
-                .AddSerializers(typeof(SomeClassWithSerialzers).Assembly)
+                .AddSerializers(typeof(SomeClassWithSerializers).Assembly)
                 .BuildServiceProvider();
-            var serializer = serviceProvider.GetRequiredService<Serializer<SomeClassWithSerialzers>>();
+            var serializer = serviceProvider.GetRequiredService<Serializer<SomeClassWithSerializers>>();
             
             var sessionPool = serviceProvider.GetRequiredService<SessionPool>();
             var pipe = new Pipe();
@@ -26,7 +26,7 @@ namespace HelloHagar
             using (var session = sessionPool.GetSession())
             {
                 var writer = pipe.Writer.CreateWriter(session);
-                serializer.Serialize(ref writer, new SomeClassWithSerialzers {IntField = 2, IntProperty = 30});
+                serializer.Serialize(ref writer, new SomeClassWithSerializers {IntField = 2, IntProperty = 30});
                 pipe.Writer.Complete();
             }
 
