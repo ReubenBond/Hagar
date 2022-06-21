@@ -29,6 +29,30 @@ namespace Hagar.UnitTests
             }
         }
 
+        [GenerateSerializer]
+        public class WrapperClass
+        {
+            [Id(0)]
+            public object boxedField;
+        }
+
+        [GenerateSerializer]
+        public enum EnumToBeBoxed
+        {
+            Zero,
+            One,
+            Two
+        }
+
+        [Fact]
+        public void SerializeBoxedEnumWithGeneratedSerializer()
+        {
+            WrapperClass wrapper = new WrapperClass { boxedField = EnumToBeBoxed.Two };
+            var result = RoundTripToExpectedType<WrapperClass, WrapperClass>(wrapper);
+
+            Assert.Equal(EnumToBeBoxed.Two, (EnumToBeBoxed)result.boxedField);
+        }
+
         [Fact]
         public void ExceptionsAreSerializable()
         {
