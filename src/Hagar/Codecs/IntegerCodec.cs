@@ -86,6 +86,22 @@ namespace Hagar.Codecs
             writer.WriteVarUInt32(value);
         }
 
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, byte value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
+            writer.WriteVarUInt32(value);
+        }
+
         byte IFieldCodec<byte>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -113,6 +129,22 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
+            writer.WriteVarInt8(value);
+        }
+
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, sbyte value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
             writer.WriteVarInt8(value);
         }
 
@@ -155,6 +187,22 @@ namespace Hagar.Codecs
             writer.WriteVarUInt32(value);
         }
 
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ushort value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
+            writer.WriteVarUInt32(value);
+        }
+
         public ushort DeepCopy(ushort input, CopyContext _) => input;
     }
 
@@ -173,6 +221,22 @@ namespace Hagar.Codecs
         {
             ReferenceCodec.MarkValueField(writer.Session);
             writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
+            writer.WriteVarInt16(value);
+        }
+
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, short value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
             writer.WriteVarInt16(value);
         }
 
@@ -210,6 +274,30 @@ namespace Hagar.Codecs
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
+                writer.WriteVarUInt32(value);
+            }
+        }
+
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, uint value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            if (value > 1 << 20)
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.Fixed32);
+                writer.WriteUInt32(value);
+            }
+            else
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
                 writer.WriteVarUInt32(value);
             }
         }
@@ -269,6 +357,35 @@ namespace Hagar.Codecs
             }
         }
 
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(
+            ref Writer<TBufferWriter> writer,
+            uint fieldIdDelta,
+            Type expectedType,
+            int value,
+            Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            if (value > 1 << 20 || -value > 1 << 20)
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.Fixed32);
+                writer.WriteInt32(value);
+            }
+            else
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
+                writer.WriteVarInt32(value);
+            }
+        }
+
         int IFieldCodec<int>.ReadValue<TInput>(ref Reader<TInput> reader, Field field) => ReadValue(ref reader, field);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -313,6 +430,43 @@ namespace Hagar.Codecs
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
+                writer.WriteVarInt64(value);
+            }
+        }
+
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, long value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            if (value <= int.MaxValue && value >= int.MinValue)
+            {
+                if (value > 1 << 20 || -value > 1 << 20)
+                {
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.Fixed32);
+                    writer.WriteInt32((int)value);
+                }
+                else
+                {
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
+                    writer.WriteVarInt64(value);
+                }
+            }
+            else if (value > 1 << 41 || -value > 1 << 41)
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.Fixed64);
+                writer.WriteInt64(value);
+            }
+            else
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
                 writer.WriteVarInt64(value);
             }
         }
@@ -364,6 +518,43 @@ namespace Hagar.Codecs
             else
             {
                 writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
+                writer.WriteVarUInt64(value);
+            }
+        }
+
+        /// <summary>
+        /// Writes a field.
+        /// </summary>
+        /// <typeparam name="TBufferWriter">The buffer writer type.</typeparam>
+        /// <param name="writer">The writer.</param>
+        /// <param name="fieldIdDelta">The field identifier delta.</param>
+        /// <param name="expectedType">The expected type.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="actualType">The actual type.</param>
+        public static void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, ulong value, Type actualType) where TBufferWriter : IBufferWriter<byte>
+        {
+            ReferenceCodec.MarkValueField(writer.Session);
+            if (value <= int.MaxValue)
+            {
+                if (value > 1 << 20)
+                {
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.Fixed32);
+                    writer.WriteUInt32((uint)value);
+                }
+                else
+                {
+                    writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
+                    writer.WriteVarUInt64(value);
+                }
+            }
+            else if (value > 1 << 41)
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.Fixed64);
+                writer.WriteUInt64(value);
+            }
+            else
+            {
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, actualType, WireType.VarInt);
                 writer.WriteVarUInt64(value);
             }
         }

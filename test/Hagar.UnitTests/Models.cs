@@ -21,6 +21,15 @@ public class SomeClassWithSerializers
 namespace Hagar.UnitTests
 {
     [GenerateSerializer]
+    public enum MyCustomEnum
+    {
+        None,
+        One,
+        Two,
+        Three
+    }
+
+    [GenerateSerializer]
     [WellKnownId(3201)]
     public class SomeClassWithSerializers
     {
@@ -28,6 +37,9 @@ namespace Hagar.UnitTests
         public int IntProperty { get; set; }
 
         [Id(1)] public int IntField;
+
+        [Id(2)]
+        public object OtherObject { get; set; }
 
         public int UnmarkedField;
 
