@@ -6,7 +6,11 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Hagar.CodeGenerator
 {
-    internal class PropertyDescription : IMemberDescription
+    internal interface IPropertyDescription : IMemberDescription 
+    {
+    }
+
+    internal class PropertyDescription : IPropertyDescription
     {
         public PropertyDescription(ushort fieldId, IPropertySymbol property)
         {
