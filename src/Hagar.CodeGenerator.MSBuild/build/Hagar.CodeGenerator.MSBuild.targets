@@ -93,6 +93,7 @@
       <Hagar_CodeGenArgs Include="ProjectGuid:$(ProjectGuid)"/>
       <Hagar_CodeGenArgs Include="OutputType:$(OutputType)"/>
       <Hagar_CodeGenArgs Include="TargetPath:$(TargetPath)"/>
+      <Hagar_CodeGenArgs Include="AssemblyName:$(AssemblyName)"/>
       <Hagar_CodeGenArgs Include="CodeGenOutputFile:$(Hagar_OutputFileName)"/>
       <Hagar_CodeGenArgs Include="IdAttributes:$(HagarIdAttributeTypes)" Condition="'$(HagarIdAttributeTypes)' != ''"/>
       <Hagar_CodeGenArgs Include="ImmutableAttributes:$(HagarImmutableAttributeTypes)" Condition="'$(HagarImmutableAttributeTypes)' != ''"/>
