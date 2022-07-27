@@ -58,6 +58,9 @@ namespace Hagar.CodeGenerator.MSBuild
                         case nameof(cmd.ProjectGuid):
                             cmd.ProjectGuid = value;
                             break;
+                        case nameof(cmd.AssemblyName):
+                            cmd.AssemblyName = value;
+                            break;
                         case nameof(cmd.ProjectPath):
                             cmd.ProjectPath = value;
                             break;
