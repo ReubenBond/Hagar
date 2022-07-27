@@ -74,6 +74,11 @@ namespace Hagar.CodeGenerator.MSBuild
         public List<string> ImmutableAttributes { get; private set; } = new();
         public List<string> GenerateSerializerAttributes { get; private set; } = new();
 
+        /// <summary>
+        /// The project's AssemblyName.
+        /// </summary>
+        public string AssemblyName { get; internal set; }
+
         public async Task<bool> Execute(CancellationToken cancellationToken)
         {
             try
@@ -101,14 +106,14 @@ namespace Hagar.CodeGenerator.MSBuild
                 }
 
                 var projectInfo = ProjectInfo.Create(
-                    projectId,
-                    VersionStamp.Create(),
-                    projectName,
-                    projectName,
+                    id: projectId,
+                    version: VersionStamp.Create(),
+                    name: projectName,
+                    assemblyName: AssemblyName ?? projectName,
                     languageName,
-                    ProjectPath,
-                    TargetPath,
-                    CreateCompilationOptions(OutputType, languageName),
+                    filePath: this.ProjectPath,
+                    outputFilePath: this.TargetPath,
+                    compilationOptions: CreateCompilationOptions(this.OutputType, languageName),
                     documents: documents,
                     metadataReferences: metadataReferences
                 );
