@@ -1,3 +1,7 @@
+# This work has been integrated into [dotnet/orleans](https://github.com/dotnet/orleans) and this repository is in maintenance mode. See [dotnet/orleans#7070](https://github.com/dotnet/orleans/pull/7070)
+
+---
+
 # Hagar
 
 [![Build status](https://dev.azure.com/reubenbond/Hagar/_apis/build/status/Azure%20Pipelines%20CI)](https://dev.azure.com/reubenbond/Hagar/_build/latest?definitionId=4)
