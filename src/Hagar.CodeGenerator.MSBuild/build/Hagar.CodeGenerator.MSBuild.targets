@@ -22,7 +22,7 @@
 
     <!-- Specify the assembly containing the code generator. -->
     <Hagar_GeneratorAssembly Condition="'$(HagarCodeGenCoreAssembly)' != ''">$(HagarCodeGenCoreAssembly)</Hagar_GeneratorAssembly>
-    <Hagar_GeneratorAssembly Condition="'$(Hagar_GeneratorAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\net5.0\Hagar.CodeGenerator.MSBuild.dll</Hagar_GeneratorAssembly>
+    <Hagar_GeneratorAssembly Condition="'$(Hagar_GeneratorAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\Hagar.CodeGenerator.MSBuild.dll</Hagar_GeneratorAssembly>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -80,11 +80,7 @@
     but before NuGet generates a nuspec. See https://github.com/NuGet/Home/issues/4704.
    -->
     <ItemGroup>
-      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)**/$(AssemblyName).*;$(PublishRoot)*/refs/**/*" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).Tasks.dll" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).Tasks.pdb" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).deps.json" />
-      <PublishedFiles Include="$(PublishRoot)**/$(AssemblyName).*.config" />
+      <PublishedFiles Include="$(PublishRoot)**/*" Exclude="$(PublishRoot)*/refs/**/*" />
       <_PackageFiles Include="@(PublishedFiles)">
         <PackagePath>tasks/$(RecursiveDir)</PackagePath>
         <Visible>false</Visible>
