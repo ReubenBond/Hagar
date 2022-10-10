@@ -13,7 +13,7 @@
     <!-- Specify the assembly containing the MSBuild tasks. -->
     <Hagar_MSBuildIsCore Condition="'$(MSBuildRuntimeType)' == 'Core' or '$(OS)' != 'Windows_NT'">true</Hagar_MSBuildIsCore>
     <Hagar_TaskAssembly Condition=" '$(HagarCodeGenTaskAssembly)' != '' ">$(HagarCodeGenTaskAssembly)</Hagar_TaskAssembly>
-    <Hagar_TaskAssembly Condition=" '$(Hagar_TaskAssembly)' == '' and '$(Hagar_MSBuildIsCore)' == 'true'">$(MSBuildThisFileDirectory)..\tasks\net5.0\Hagar.CodeGenerator.MSBuild.Tasks.dll</Hagar_TaskAssembly>
+    <Hagar_TaskAssembly Condition=" '$(Hagar_TaskAssembly)' == '' and '$(Hagar_MSBuildIsCore)' == 'true'">$(MSBuildThisFileDirectory)..\tasks\Hagar.CodeGenerator.MSBuild.Tasks.dll</Hagar_TaskAssembly>
 
     <!-- When the MSBuild host is full-framework, we defer to PATH for dotnet -->
     <Hagar_DotNetHost Condition="'$(DotNetFromPath)' == 'true'">dotnet</Hagar_DotNetHost>

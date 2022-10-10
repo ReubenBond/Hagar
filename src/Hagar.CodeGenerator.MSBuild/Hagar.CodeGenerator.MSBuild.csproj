@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
     <PackageDescription>Code generator for projects using Hagar with MSBuild</PackageDescription>
     <OutputType>Exe</OutputType>
@@ -15,7 +15,7 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PublishRoot>bin\$(Configuration)\publish\</PublishRoot>
-    <PublishDir>$(PublishRoot)$(TargetFramework)</PublishDir>
+    <PublishDir>$(PublishRoot)</PublishDir>
   </PropertyGroup>
 
   <ItemGroup>
