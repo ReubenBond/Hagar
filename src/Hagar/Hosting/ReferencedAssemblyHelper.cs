@@ -130,7 +130,7 @@ namespace Hagar
 
                 try
                 {
-#if NET5_0
+#if NET6_0
                     var name = lib.GetRuntimeAssemblyNames(dependencyContext, System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier).FirstOrDefault();
                     if (name is null)
                     {
