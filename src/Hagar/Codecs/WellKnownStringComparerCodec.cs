@@ -1,12 +1,16 @@
-﻿using Hagar.Buffers;
+﻿using Hagar;
+using Hagar.Buffers;
+using Hagar.Cloning;
+using Hagar.Codecs;
 using Hagar.Serializers;
-using Hagar.Utilities;
 using Hagar.WireProtocol;
-using Microsoft.VisualBasic;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace Hagar.Codecs
 {
@@ -14,22 +18,16 @@ namespace Hagar.Codecs
     public sealed class WellKnownStringComparerCodec : IGeneralizedCodec
     {
         private static readonly Type CodecType = typeof(WellKnownStringComparerCodec);
-
         private readonly StringComparer _ordinalComparer;
         private readonly StringComparer _ordinalIgnoreCaseComparer;
         private readonly EqualityComparer<string> _defaultEqualityComparer;
-        private readonly StringComparer _invariantComparer;
-        private readonly StringComparer _invariantIgnoreCaseComparer;
-        private readonly StringComparer _currentCultureComparer;
-        private readonly StringComparer _currentCultureIgnoreCaseComparer;
-
         private readonly Type _ordinalType;
         private readonly Type _ordinalIgnoreCaseType;
         private readonly Type _defaultEqualityType;
-        private readonly Type _invariantType;
-        private readonly Type _invariantIgnoreCaseType;
-        private readonly Type _currentCultureType;
-        private readonly Type _currentCultureIgnoreCaseType;
+#if !NET6_0_OR_GREATER
+        private readonly StreamingContext _streamingContext;
+        private readonly FormatterConverter _formatterConverter;
+#endif
 
         public WellKnownStringComparerCodec()
         {
@@ -37,104 +35,204 @@ namespace Hagar.Codecs
             _ordinalIgnoreCaseComparer = StringComparer.OrdinalIgnoreCase;
             _defaultEqualityComparer = EqualityComparer<string>.Default;
 
-            _invariantComparer = StringComparer.InvariantCulture;
-            _invariantIgnoreCaseComparer = StringComparer.InvariantCultureIgnoreCase;
-            _currentCultureComparer = StringComparer.CurrentCulture;
-            _currentCultureIgnoreCaseComparer = StringComparer.CurrentCultureIgnoreCase;
-
             _ordinalType = _ordinalComparer.GetType();
             _ordinalIgnoreCaseType = _ordinalIgnoreCaseComparer.GetType();
             _defaultEqualityType = _defaultEqualityComparer.GetType();
-
-            _invariantType = _invariantComparer.GetType();
-            _invariantIgnoreCaseType = _invariantIgnoreCaseComparer.GetType();
-            _currentCultureType = _currentCultureComparer.GetType();
-            _currentCultureIgnoreCaseType = _currentCultureIgnoreCaseComparer.GetType();
+#if !NET6_0_OR_GREATER
+            _streamingContext = new StreamingContext(StreamingContextStates.All);
+            _formatterConverter = new FormatterConverter();
+#endif
         }
 
-        public bool IsSupportedType(Type type) => CodecType == type
-            || _defaultEqualityType == type
-            || _ordinalType == type
-            || _ordinalIgnoreCaseType == type
-            || _invariantType == type
-            || _invariantIgnoreCaseType == type
-            || _currentCultureType == type
-            || _currentCultureIgnoreCaseType == type;
+        public bool IsSupportedType(Type type) =>
+            type == CodecType
+            || type == _ordinalType
+            || type == _ordinalIgnoreCaseType
+            || type == _defaultEqualityType
+            || !type.IsAbstract && typeof(IEqualityComparer<string>).IsAssignableFrom(type) && type.Assembly.Equals(typeof(IEqualityComparer<string>).Assembly);
 
         public object ReadValue<TInput>(ref Reader<TInput> reader, Field field)
         {
             ReferenceCodec.MarkValueField(reader.Session);
-            var value = reader.ReadUInt32(field.WireType);
-
-            switch (value)
+            uint type = default;
+            CompareOptions options = default;
+            int lcid = default;
+            uint fieldId = 0;
+            while (true)
             {
-                case 0:
-                    return null;
-                case 1:
-                    return _ordinalComparer;
-                case 2:
-                    return _ordinalIgnoreCaseComparer;
-                case 3:
-                    return _defaultEqualityComparer;
-                case 4:
-                    return _invariantComparer;
-                case 5:
-                    return _invariantIgnoreCaseComparer;
-                case 6: 
-                    return _currentCultureComparer;
-                case 7:
-                    return _currentCultureIgnoreCaseComparer;
-                default:
-                    ThrowNotSupported(field, value);
-                    return null;
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
+                fieldId += header.FieldIdDelta;
+                switch (fieldId)
+                {
+                    case 0:
+                        type = UInt32Codec.ReadValue(ref reader, header);
+                        break;
+                    case 1:
+                        options = (CompareOptions)UInt64Codec.ReadValue(ref reader, header);
+                        break;
+                    case 2:
+                        lcid = Int32Codec.ReadValue(ref reader, header);
+                        break;
+                    default:
+                        reader.ConsumeUnknownField(header);
+                        break;
+                }
             }
+
+            if (type == 0)
+            {
+                return null;
+            }
+            else if (type == 1)
+            {
+                if (options.HasFlag(CompareOptions.IgnoreCase))
+                {
+                    return StringComparer.OrdinalIgnoreCase;
+                }
+                else
+                {
+                    return StringComparer.Ordinal;
+                }
+            }
+            else if (type == 2)
+            {
+                if (lcid == CultureInfo.InvariantCulture.LCID)
+                {
+                    if (options == CompareOptions.None)
+                    {
+                        return StringComparer.InvariantCulture;
+                    }
+                    else if (options == CompareOptions.IgnoreCase)
+                    {
+                        return StringComparer.InvariantCultureIgnoreCase;
+                    }
+
+                    // Otherwise, perhaps some other options were specified, in which case we fall-through to create a new comparer.
+                }
+
+                var cultureInfo = CultureInfo.GetCultureInfo(lcid);
+#if NETCOREAPP
+                var result = StringComparer.Create(cultureInfo, options);
+                return result;
+#else
+                ThrowNotSupported(field, type);
+#endif
+            }
+
+            ThrowNotSupported(field, type);
+            return null;
         }
 
         public void WriteField<TBufferWriter>(ref Writer<TBufferWriter> writer, uint fieldIdDelta, Type expectedType, object value) where TBufferWriter : IBufferWriter<byte>
         {
-            uint encoded;
+            uint type;
+            CompareOptions compareOptions = default;
+            CompareInfo compareInfo = default;
             if (value is null)
             {
-                encoded = 0;
-            }
-            else if (_ordinalComparer.Equals(value))
-            {
-                encoded = 1;
-            }
-            else if (_ordinalIgnoreCaseComparer.Equals(value))
-            {
-                encoded = 2;
-            }
-            else if (_defaultEqualityComparer.Equals(value))
-            {
-                encoded = 3;
-            }
-            else if (_invariantComparer.Equals(value))
-            {
-                encoded = 4;
-            }
-            else if (_invariantIgnoreCaseComparer.Equals(value))
-            {
-                encoded = 5;
-            }
-            else if (_currentCultureComparer.Equals(value))
-            {
-                encoded = 6;
-            }
-            else if (_currentCultureIgnoreCaseComparer.Equals(value))
-            {
-                encoded = 7;
+                type = 0;
             }
             else
             {
-                ThrowNotSupported(value.GetType());
-                return;
+#if NET6_0_OR_GREATER
+                var comparer = (IEqualityComparer<string>)value;
+                if (StringComparer.IsWellKnownOrdinalComparer(comparer, out var ignoreCase))
+                {
+                    // Ordinal. This also handles EqualityComparer<string>.Default.
+                    type = 1;
+                    if (ignoreCase)
+                    {
+                        compareOptions = CompareOptions.IgnoreCase;
+                    }
+                }
+                else if (StringComparer.IsWellKnownCultureAwareComparer(comparer, out compareInfo, out compareOptions))
+                {
+                    type = 2;
+                }
+                else
+                {
+                    ThrowNotSupported(value.GetType());
+                    return;
+                }
+#else
+                var isOrdinal = _ordinalComparer.Equals(value) || _defaultEqualityComparer.Equals(value);
+                var isOrdinalIgnoreCase = _ordinalIgnoreCaseComparer.Equals(value);
+                if (isOrdinal)
+                {
+                    type = 1;
+                }
+                else if (isOrdinalIgnoreCase)
+                {
+                    type = 1;
+                    compareOptions = CompareOptions.IgnoreCase;
+                }
+                else if (TryGetWellKnownCultureAwareComparerInfo(value, out compareInfo, out compareOptions, out var ignoreCase))
+                {
+                    type = 2;
+                    if (ignoreCase)
+                    {
+                        compareOptions |= CompareOptions.IgnoreCase;
+                    }
+                }
+                else
+                {
+                    ThrowNotSupported(value.GetType());
+                    return;
+                }
+#endif
             }
 
             ReferenceCodec.MarkValueField(writer.Session);
-            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(WellKnownStringComparerCodec), WireType.VarInt);
-            writer.WriteVarUInt32(encoded);
+            writer.WriteFieldHeader(fieldIdDelta, expectedType, typeof(WellKnownStringComparerCodec), WireType.TagDelimited);
+
+            UInt32Codec.WriteField(ref writer, 0, typeof(int), type);
+            UInt64Codec.WriteField(ref writer, 1, typeof(ulong), (ulong)compareOptions);
+
+            if (compareInfo is not null)
+            {
+                Int32Codec.WriteField(ref writer, 1, typeof(int), compareInfo.LCID);
+            }
+
+            writer.WriteEndObject();
         }
+
+#if !NET6_0_OR_GREATER
+        private bool TryGetWellKnownCultureAwareComparerInfo(object value, out CompareInfo compareInfo, out CompareOptions compareOptions, out bool ignoreCase)
+        {
+            compareInfo = default;
+            compareOptions = default;
+            ignoreCase = default;
+            if (value is ISerializable serializable)
+            {
+                var info = new SerializationInfo(value.GetType(), _formatterConverter);
+                serializable.GetObjectData(info, _streamingContext);
+                foreach (var entry in info)
+                {
+                    switch (entry.Name)
+                    {
+                        case "_compareInfo":
+                            compareInfo = entry.Value as CompareInfo;
+                            break;
+                        case "_options":
+                            compareOptions = (CompareOptions)entry.Value;
+                            break;
+                        case "_ignoreCase":
+                            ignoreCase = (bool)entry.Value;
+                            break;
+                    }
+                }
+
+                return compareInfo is not null;
+            }
+
+            return false;
+        }
+#endif
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowUnsupportedWireTypeException(Field field) => throw new UnsupportedWireTypeException(
@@ -145,5 +243,55 @@ namespace Hagar.Codecs
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowNotSupported(Type type) => throw new NotSupportedException($"Values of type {type} are not supported");
+    }
+
+    [RegisterCopier]
+    [RegisterSerializer]
+    public class EqualityComparerBaseCodec<T> : IBaseCodec<EqualityComparer<T>>, IBaseCopier<EqualityComparer<T>>
+    {
+        public void DeepCopy(EqualityComparer<T> input, EqualityComparer<T> output, CopyContext context) { }
+
+        public void Deserialize<TInput>(ref Reader<TInput> reader, EqualityComparer<T> value)
+        {
+            while (true)
+            {
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
+                reader.ConsumeUnknownField(header);
+            }
+        }
+
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, EqualityComparer<T> value) where TBufferWriter : IBufferWriter<byte>
+        {
+        }
+    }
+
+    [RegisterCopier]
+    [RegisterSerializer]
+    public class ComparerBaseCodec<T> : IBaseCodec<Comparer<T>>, IBaseCopier<Comparer<T>>
+    {
+        public void DeepCopy(Comparer<T> input, Comparer<T> output, CopyContext context) { }
+
+        public void Deserialize<TInput>(ref Reader<TInput> reader, Comparer<T> value)
+        {
+            while (true)
+            {
+                var header = reader.ReadFieldHeader();
+                if (header.IsEndBaseOrEndObject)
+                {
+                    break;
+                }
+
+                reader.ConsumeUnknownField(header);
+            }
+        }
+
+        public void Serialize<TBufferWriter>(ref Writer<TBufferWriter> writer, Comparer<T> value) where TBufferWriter : IBufferWriter<byte>
+        {
+        }
     }
 }

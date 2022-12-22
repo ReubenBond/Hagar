@@ -12,8 +12,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization.Formatters.Binary;
 using Xunit;
 
 namespace Hagar.UnitTests
@@ -1536,22 +1539,46 @@ namespace Hagar.UnitTests
     public class DictionaryWithComparerCodecTests : FieldCodecTester<Dictionary<string, int>, DictionaryCodec<string, int>>
     {
         protected override int[] MaxSegmentSizes => new[] { 1024 };
+        private static readonly BinaryFormatter _binaryFormatter = new();
         private int _nextComparer;
         private IEqualityComparer<string>[] _comparers = new IEqualityComparer<string>[]
         {
             new CaseInsensitiveEqualityComparer(),
+            PassComparerThroughBinaryFormatterRoundTrip(new CaseInsensitiveEqualityComparer()),
 #if NETCOREAPP
             StringComparer.Ordinal,
+            PassComparerThroughBinaryFormatterRoundTrip(StringComparer.Ordinal),
             StringComparer.OrdinalIgnoreCase,
+            PassComparerThroughBinaryFormatterRoundTrip(StringComparer.OrdinalIgnoreCase),
             EqualityComparer<string>.Default,
+            PassComparerThroughBinaryFormatterRoundTrip(EqualityComparer<string>.Default),
 #endif
 #if NET6_0
             StringComparer.InvariantCulture,
+            PassComparerThroughBinaryFormatterRoundTrip(StringComparer.InvariantCulture),
             StringComparer.InvariantCultureIgnoreCase,
+            PassComparerThroughBinaryFormatterRoundTrip(StringComparer.InvariantCultureIgnoreCase),
             StringComparer.CurrentCulture,
+            PassComparerThroughBinaryFormatterRoundTrip(StringComparer.CurrentCulture),
             StringComparer.CurrentCultureIgnoreCase,
+            PassComparerThroughBinaryFormatterRoundTrip(StringComparer.CurrentCultureIgnoreCase),
 #endif
         };
+
+        // Some comparers become 'System.OridinalComparer' as a result of the roundtrip
+        private static IEqualityComparer<string> PassComparerThroughBinaryFormatterRoundTrip(IEqualityComparer<string> source)
+        {
+            object copy = null;
+            using (var memoryStream = new MemoryStream())
+            {
+                _binaryFormatter.Serialize(memoryStream, source);
+                memoryStream.Flush();
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                copy = _binaryFormatter.Deserialize(memoryStream);
+            }
+
+            return (IEqualityComparer<string>)copy;
+        }
 
         protected override Dictionary<string, int> CreateValue()
         {
@@ -1578,12 +1605,59 @@ namespace Hagar.UnitTests
             CreateValue(),
             CreateValue(),
             CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
+            CreateValue(),
             CreateValue()
         };
 
-        protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right) => object.ReferenceEquals(left, right) || left.SequenceEqual(right);
+        protected override bool Equals(Dictionary<string, int> left, Dictionary<string, int> right)
+        {
+            if (!object.ReferenceEquals(left, right) && !left.SequenceEqual(right))
+            {
+                return false;
+            }
+#if NET6_0
+            if (object.ReferenceEquals(left?.Comparer, right?.Comparer) || left?.Comparer.GetType() == right?.Comparer.GetType())
+            {
+                return true;
+            }
+
+            if (StringComparer.IsWellKnownOrdinalComparer(left.Comparer, out bool leftIgnoreCase))
+            {
+                return StringComparer.IsWellKnownOrdinalComparer(right.Comparer, out bool rightIgnoreCase) &&
+                    leftIgnoreCase == rightIgnoreCase;
+            }
+            else if (StringComparer.IsWellKnownCultureAwareComparer(
+                left.Comparer,
+                out CompareInfo leftCompareInfo,
+                out CompareOptions leftCompareOptions))
+            {
+                bool rightIsWellKnownCultureAwareComparer = StringComparer.IsWellKnownCultureAwareComparer(
+                    right.Comparer,
+                    out CompareInfo rightCompareInfo,
+                    out CompareOptions rightCompareOptions);
+
+                return rightIsWellKnownCultureAwareComparer &&
+                    leftCompareInfo == rightCompareInfo &&
+                    leftCompareOptions == rightCompareOptions;
+            }
+            else
+            {
+                return base.Equals(left, right);
+            }
+#else
+            return true;
+#endif
+        }
 
         [GenerateSerializer]
+        [Serializable]
         public class CaseInsensitiveEqualityComparer : IEqualityComparer<string>
         {
             public bool Equals(string left, string right)
