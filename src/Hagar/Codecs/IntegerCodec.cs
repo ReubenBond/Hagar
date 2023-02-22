@@ -352,7 +352,9 @@ namespace Hagar.Codecs
             }
             else
             {
-                writer.WriteFieldHeaderExpected(fieldIdDelta, WireType.VarInt);
+                // When WriteFieldHeaderExpected() is used, the boxed enum will not deserialized correctly
+                //writer.WriteFieldHeaderExpected(fieldIdDelta, WireType.VarInt);
+                writer.WriteFieldHeader(fieldIdDelta, expectedType, CodecFieldType, WireType.VarInt);
                 writer.WriteVarInt32(value);
             }
         }
